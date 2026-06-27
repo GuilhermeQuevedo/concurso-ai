@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String
+  avatar        String?
+  role          Role     @default(USER)
+  targetExam    String?
+  targetRole    String?
+  dailyGoal     Int      @default(30)
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions      Session[]
+  attempts      QuestionAttempt[]
+  studySessions StudySession[]
+  documents     Document[]
+  favorites     Favorite[]
+  notes         Note[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  parentId  String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent    Subject?  @relation("SubjectTree", fields: [parentId], references: [id])
+  children  Subject[] @relation("SubjectTree")
+  questions Question[]
+
+  @@index([parentId])
+}
+
+model ExamBoard {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  questions Question[]
+}
+
+model Question {
+  id            String         @id @default(cuid())
+  statement     String
+  alternatives  Json
+  correctAnswer String
+  difficulty    Difficulty
+  explanation   String
+  comments      Json
+  subjectId     String
+  examBoardId   String?
+  source        QuestionSource @default(AI_GENERATED)
+  aiModel       String?
+  createdAt     DateTime       @default(now())
+
+  subject   Subject    @relation(fields: [subjectId], references: [id])
+  examBoard ExamBoard? @relation(fields: [examBoardId], references: [id])
+  attempts  QuestionAttempt[]
+  favorites Favorite[]
+
+  @@index([subjectId])
+  @@index([examBoardId])
+  @@index([difficulty])
+}
+
+model QuestionAttempt {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  answer     String
+  isCorrect  Boolean
+  timeSpent  Int
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([userId, createdAt])
+}
+
+model StudySession {
+  id             String      @id @default(cuid())
+  userId         String
+  subjectId      String?
+  questionsCount Int
+  correctCount   Int
+  totalTime      Int
+  mode           StudyMode
+  difficulty     Difficulty?
+  examBoardId    String?
+  createdAt      DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+model Document {
+  id        String       @id @default(cuid())
+  userId    String
+  name      String
+  type      DocumentType
+  content   String
+  subjectId String?
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String?
+  subjectId  String?
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum StudyMode {
+  STUDY
+  EXAM
+}
+
+enum QuestionSource {
+  AI_GENERATED
+  IMPORTED
+  MANUAL
+}
+
+enum DocumentType {
+  PDF
+  DOCX
+  TXT
+  HTML
+  MARKDOWN
+}

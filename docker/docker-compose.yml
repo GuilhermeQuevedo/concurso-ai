@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: concurso-ai-db
+    environment:
+      POSTGRES_USER: concurso
+      POSTGRES_PASSWORD: concurso_dev
+      POSTGRES_DB: concurso_ai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: concurso-ai-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@concurso.ai
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

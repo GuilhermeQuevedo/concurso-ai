@@ -1,0 +1,41 @@
+{
+  "name": "@concurso-ai/backend",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint .",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@concurso-ai/shared": "workspace:*",
+    "@concurso-ai/types": "workspace:*",
+    "@prisma/client": "^6.9.0",
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "express-rate-limit": "^7.5.0",
+    "jose": "^6.0.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.15.0",
+    "eslint": "^9.25.0",
+    "globals": "^15.15.0",
+    "prisma": "^6.9.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.30.0"
+  }
+}

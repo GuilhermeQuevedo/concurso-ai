@@ -1,0 +1,21 @@
+{
+  "name": "concurso-ai",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "test": "turbo test",
+    "db:migrate": "pnpm --filter @concurso-ai/backend prisma:migrate",
+    "db:seed": "pnpm --filter @concurso-ai/backend prisma:seed",
+    "db:studio": "pnpm --filter @concurso-ai/backend prisma:studio",
+    "db:generate": "pnpm --filter @concurso-ai/backend prisma:generate"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.0",
+    "turbo": "^2.5.0"
+  }
+}
