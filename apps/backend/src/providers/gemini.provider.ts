@@ -33,10 +33,15 @@ export class GeminiProvider implements IAIProvider {
     const difficultyMap = { EASY: 'fácil', MEDIUM: 'média', HARD: 'difícil' };
     const diffText = params.difficulty ? difficultyMap[params.difficulty] : 'variada';
 
+    const contextBlock = params.context
+      ? `\nMATERIAL DE REFERÊNCIA (use como base para elaborar as questões):\n${params.context}\n`
+      : '';
+
     return `Você é um especialista em concursos públicos brasileiros. Gere ${params.quantity} questão(ões) de múltipla escolha sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
 
 ${params.examBoard ? `Estilo da banca: ${params.examBoard}. Siga o padrão de elaboração dessa banca.` : ''}
 Dificuldade: ${diffText}.
+${contextBlock}
 
 REGRAS OBRIGATÓRIAS:
 1. Cada questão deve ter exatamente 5 alternativas (A, B, C, D, E)

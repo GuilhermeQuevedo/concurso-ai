@@ -27,6 +27,10 @@ model User {
   documents     Document[]
   favorites     Favorite[]
   notes         Note[]
+  studyPlans    StudyPlan[]
+  flashcards    Flashcard[]
+  achievements  Achievement[]
+  streak        Streak?
 }
 
 model Session {
@@ -49,9 +53,11 @@ model Subject {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  parent    Subject?  @relation("SubjectTree", fields: [parentId], references: [id])
-  children  Subject[] @relation("SubjectTree")
-  questions Question[]
+  parent         Subject?         @relation("SubjectTree", fields: [parentId], references: [id])
+  children       Subject[]        @relation("SubjectTree")
+  questions      Question[]
+  planItems      StudyPlanItem[]
+  flashcards     Flashcard[]
 
   @@index([parentId])
 }
@@ -184,6 +190,77 @@ enum QuestionSource {
   AI_GENERATED
   IMPORTED
   MANUAL
+}
+
+model StudyPlan {
+  id        String          @id @default(cuid())
+  userId    String
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  active    Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items StudyPlanItem[]
+
+  @@index([userId])
+}
+
+model StudyPlanItem {
+  id          String   @id @default(cuid())
+  planId      String
+  subjectId   String
+  dayOfWeek   Int
+  duration    Int
+  completed   Boolean  @default(false)
+
+  plan    StudyPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  subject Subject   @relation(fields: [subjectId], references: [id])
+
+  @@index([planId])
+}
+
+model Flashcard {
+  id         String   @id @default(cuid())
+  userId     String
+  subjectId  String
+  front      String   @db.Text
+  back       String   @db.Text
+  interval   Int      @default(1)
+  easeFactor Float    @default(2.5)
+  repetition Int      @default(0)
+  nextReview DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@index([userId])
+  @@index([userId, nextReview])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  unlockedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+}
+
+model Streak {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  current   Int      @default(0)
+  longest   Int      @default(0)
+  lastDate  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum DocumentType {

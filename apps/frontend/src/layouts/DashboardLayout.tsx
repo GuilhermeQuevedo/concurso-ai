@@ -11,6 +11,9 @@ import {
   LogOut,
   Menu,
   X,
+  FileText,
+  Layers,
+  Trophy,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
@@ -19,6 +22,9 @@ const navItems = [
   { path: '/subjects', label: 'Disciplinas', icon: BookOpen },
   { path: '/exam-boards', label: 'Bancas', icon: Building2 },
   { path: '/generate', label: 'Gerar Questões', icon: Sparkles },
+  { path: '/documents', label: 'Documentos', icon: FileText },
+  { path: '/flashcards', label: 'Flashcards', icon: Layers },
+  { path: '/achievements', label: 'Conquistas', icon: Trophy },
   { path: '/stats', label: 'Estatísticas', icon: BarChart3 },
   { path: '/settings', label: 'Configurações', icon: Settings },
 ];

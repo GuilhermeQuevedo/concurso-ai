@@ -2,8 +2,11 @@ import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import type { GenerateQuestionsDTO } from '../validators/question.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
+import { DocumentService } from './document.service.js';
 
 export class QuestionService {
+  private readonly documentService = new DocumentService();
+
   constructor(private readonly aiProvider: IAIProvider) {}
 
   async generate(dto: GenerateQuestionsDTO) {
@@ -21,12 +24,15 @@ export class QuestionService {
       examBoardName = board.name;
     }
 
+    const context = await this.documentService.getContentBySubject(dto.subjectId);
+
     const generated = await this.aiProvider.generateQuestions({
       subject: subject.name,
       topic: dto.topic,
       examBoard: examBoardName,
       difficulty: dto.difficulty,
       quantity: dto.quantity,
+      context: context || undefined,
     });
 
     const saved = await prisma.$transaction(

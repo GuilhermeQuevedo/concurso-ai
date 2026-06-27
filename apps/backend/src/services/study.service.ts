@@ -1,5 +1,6 @@
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
+import { GamificationService } from './gamification.service.js';
 
 interface CreateSessionDTO {
   subjectId?: string;
@@ -16,6 +17,8 @@ interface SubmitAnswerDTO {
 }
 
 export class StudyService {
+  private readonly gamification = new GamificationService();
+
   async createSession(userId: string, dto: CreateSessionDTO) {
     const session = await prisma.studySession.create({
       data: {
@@ -79,6 +82,9 @@ export class StudyService {
       data: { correctCount, totalTime },
     });
 
+    await this.gamification.updateStreak(userId);
+    const newAchievements = await this.gamification.checkAchievements(userId);
+
     return {
       session: updated,
       attempts,
@@ -89,6 +95,7 @@ export class StudyService {
         accuracy: session.questionsCount > 0 ? Math.round((correctCount / session.questionsCount) * 100) : 0,
         totalTime,
       },
+      newAchievements,
     };
   }
 

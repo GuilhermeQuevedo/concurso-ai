@@ -7,6 +7,9 @@ import { SubjectsPage } from '@/pages/SubjectsPage';
 import { ExamBoardsPage } from '@/pages/ExamBoardsPage';
 import { GeneratePage } from '@/pages/GeneratePage';
 import StudyPage from '@/pages/StudyPage';
+import { DocumentsPage } from '@/pages/DocumentsPage';
+import { FlashcardsPage } from '@/pages/FlashcardsPage';
+import { AchievementsPage } from '@/pages/AchievementsPage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 
@@ -30,6 +33,9 @@ export function AppRoutes() {
       <Route path="/exam-boards" element={<ProtectedLayout><ExamBoardsPage /></ProtectedLayout>} />
       <Route path="/generate" element={<ProtectedLayout><GeneratePage /></ProtectedLayout>} />
       <Route path="/study" element={<ProtectedLayout><StudyPage /></ProtectedLayout>} />
+      <Route path="/documents" element={<ProtectedLayout><DocumentsPage /></ProtectedLayout>} />
+      <Route path="/flashcards" element={<ProtectedLayout><FlashcardsPage /></ProtectedLayout>} />
+      <Route path="/achievements" element={<ProtectedLayout><AchievementsPage /></ProtectedLayout>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

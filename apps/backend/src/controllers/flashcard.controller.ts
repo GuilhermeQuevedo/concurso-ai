@@ -1,0 +1,69 @@
+import type { Request, Response, NextFunction } from 'express';
+import type { FlashcardService } from '../services/flashcard.service.js';
+import type { ApiResponse } from '@concurso-ai/types';
+
+export class FlashcardController {
+  constructor(private readonly service: FlashcardService) {}
+
+  create = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const card = await this.service.create(req.userId!, req.body);
+      const response: ApiResponse<typeof card> = { success: true, data: card };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getDue = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const subjectId = req.query.subjectId as string | undefined;
+      const cards = await this.service.getDueCards(req.userId!, subjectId);
+      const response: ApiResponse<typeof cards> = { success: true, data: cards };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  review = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const card = await this.service.review(req.userId!, req.params.id as string, req.body);
+      const response: ApiResponse<typeof card> = { success: true, data: card };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  list = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const subjectId = req.query.subjectId as string | undefined;
+      const cards = await this.service.list(req.userId!, subjectId);
+      const response: ApiResponse<typeof cards> = { success: true, data: cards };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  delete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.service.delete(req.userId!, req.params.id as string);
+      const response: ApiResponse<null> = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const stats = await this.service.getStats(req.userId!);
+      const response: ApiResponse<typeof stats> = { success: true, data: stats };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+}

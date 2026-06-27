@@ -5,6 +5,10 @@ import { subjectRouter } from './subject.routes.js';
 import { examBoardRouter } from './exam-board.routes.js';
 import { questionRouter } from './question.routes.js';
 import { studyRouter } from './study.routes.js';
+import { documentRouter } from './document.routes.js';
+import { studyPlanRouter } from './study-plan.routes.js';
+import { flashcardRouter } from './flashcard.routes.js';
+import { gamificationRouter } from './gamification.routes.js';
 
 const router: RouterType = Router();
 
@@ -13,6 +17,10 @@ router.use('/subjects', subjectRouter);
 router.use('/exam-boards', examBoardRouter);
 router.use('/questions', questionRouter);
 router.use('/study', studyRouter);
+router.use('/documents', documentRouter);
+router.use('/study-plans', studyPlanRouter);
+router.use('/flashcards', flashcardRouter);
+router.use('/gamification', gamificationRouter);
 
 router.get('/health', (_req, res) => {
   const response: ApiResponse<{ status: string; timestamp: string }> = {

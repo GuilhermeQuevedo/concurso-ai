@@ -12,6 +12,7 @@ export interface GenerateQuestionsParams {
   examBoard?: string;
   difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
   quantity: number;
+  context?: string;
 }
 
 export interface IAIProvider {
