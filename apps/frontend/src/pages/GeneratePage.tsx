@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Play } from 'lucide-react';
 import { contentService, type SubjectDTO, type ExamBoardDTO } from '@/features/content/services/content.service';
 import { questionService, type QuestionDTO, type GenerateParams } from '@/features/questions/services/question.service';
 
@@ -12,6 +13,7 @@ const difficultyOptions = [
 ] as const;
 
 export function GeneratePage() {
+  const navigate = useNavigate();
   const [subjectId, setSubjectId] = useState('');
   const [examBoardId, setExamBoardId] = useState('');
   const [difficulty, setDifficulty] = useState('');
@@ -163,9 +165,27 @@ export function GeneratePage() {
 
       {questions.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {questions.length} questão(ões) gerada(s)
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {questions.length} questão(ões) gerada(s)
+            </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate('/study', { state: { questions, mode: 'STUDY', subjectId, examBoardId: examBoardId || undefined, difficulty: difficulty || undefined } })}
+                className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+              >
+                <Play className="h-4 w-4" />
+                Modo Estudo
+              </button>
+              <button
+                onClick={() => navigate('/study', { state: { questions, mode: 'EXAM', subjectId, examBoardId: examBoardId || undefined, difficulty: difficulty || undefined } })}
+                className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              >
+                <Play className="h-4 w-4" />
+                Modo Simulado
+              </button>
+            </div>
+          </div>
 
           {questions.map((q, index) => {
             const selected = selectedAnswers[q.id];

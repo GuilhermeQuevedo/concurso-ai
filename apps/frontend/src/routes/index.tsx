@@ -6,6 +6,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { SubjectsPage } from '@/pages/SubjectsPage';
 import { ExamBoardsPage } from '@/pages/ExamBoardsPage';
 import { GeneratePage } from '@/pages/GeneratePage';
+import StudyPage from '@/pages/StudyPage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 
@@ -28,6 +29,7 @@ export function AppRoutes() {
       <Route path="/subjects" element={<ProtectedLayout><SubjectsPage /></ProtectedLayout>} />
       <Route path="/exam-boards" element={<ProtectedLayout><ExamBoardsPage /></ProtectedLayout>} />
       <Route path="/generate" element={<ProtectedLayout><GeneratePage /></ProtectedLayout>} />
+      <Route path="/study" element={<ProtectedLayout><StudyPage /></ProtectedLayout>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

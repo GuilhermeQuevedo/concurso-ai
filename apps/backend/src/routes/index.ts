@@ -4,6 +4,7 @@ import { authRouter } from './auth.routes.js';
 import { subjectRouter } from './subject.routes.js';
 import { examBoardRouter } from './exam-board.routes.js';
 import { questionRouter } from './question.routes.js';
+import { studyRouter } from './study.routes.js';
 
 const router: RouterType = Router();
 
@@ -11,6 +12,7 @@ router.use('/auth', authRouter);
 router.use('/subjects', subjectRouter);
 router.use('/exam-boards', examBoardRouter);
 router.use('/questions', questionRouter);
+router.use('/study', studyRouter);
 
 router.get('/health', (_req, res) => {
   const response: ApiResponse<{ status: string; timestamp: string }> = {
