@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -67,11 +67,11 @@ model ExamBoard {
 
 model Question {
   id            String         @id @default(cuid())
-  statement     String
+  statement     String @db.Text
   alternatives  Json
   correctAnswer String
   difficulty    Difficulty
-  explanation   String
+  explanation   String @db.Text
   comments      Json
   subjectId     String
   examBoardId   String?
@@ -129,7 +129,7 @@ model Document {
   userId    String
   name      String
   type      DocumentType
-  content   String
+  content   String       @db.LongText
   subjectId String?
   createdAt DateTime     @default(now())
 
@@ -155,7 +155,7 @@ model Note {
   userId     String
   questionId String?
   subjectId  String?
-  content    String
+  content    String   @db.Text
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

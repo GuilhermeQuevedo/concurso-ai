@@ -8,10 +8,10 @@ Monorepo com pnpm + Turborepo.
 ## Stack
 
 - **Frontend:** React 19, Vite 6, TypeScript 5, React Router 7, TanStack Query 5, Axios, TailwindCSS 4, shadcn/ui, Lucide Icons, React Hook Form 7, Zod 3
-- **Backend:** Node.js 22, Express 5, TypeScript 5, Prisma 6, PostgreSQL 17, jose (JWT), bcrypt, Helmet, cors, express-rate-limit, Zod 3
+- **Backend:** Node.js 22, Express 5, TypeScript 5, Prisma 6, MySQL 8.0, jose (JWT), bcrypt, Helmet, cors, express-rate-limit, Zod 3
 - **IA:** Google Gemini API (via interface abstrata IAIProvider)
 - **Monorepo:** pnpm, Turborepo
-- **Banco:** PostgreSQL 17 via Docker Compose
+- **Banco:** MySQL 8.0 local (gestão via DBeaver)
 - **Testes:** Vitest
 
 ## Estrutura
@@ -21,8 +21,7 @@ apps/frontend/src/   → Feature-Based Architecture (features/, pages/, componen
 apps/backend/src/    → Clean Architecture (controllers/, services/, repositories/, dto/, entities/, interfaces/, middlewares/)
 packages/shared/     → Constantes e utils compartilhados
 packages/types/      → Tipos TypeScript compartilhados
-prisma/              → Schema e migrations
-docker/              → Docker Compose
+apps/backend/prisma/ → Schema e migrations
 docs/                → Documentação (PRD, arquitetura, plano)
 ```
 
