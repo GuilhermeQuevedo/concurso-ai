@@ -13,6 +13,7 @@ import { AchievementsPage } from '@/pages/AchievementsPage';
 import { StudyPlanPage } from '@/pages/StudyPlanPage';
 import { StatsPage } from '@/pages/StatsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { GroupsPage } from '@/pages/GroupsPage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 
@@ -40,6 +41,7 @@ export function AppRoutes() {
       <Route path="/flashcards" element={<ProtectedLayout><FlashcardsPage /></ProtectedLayout>} />
       <Route path="/achievements" element={<ProtectedLayout><AchievementsPage /></ProtectedLayout>} />
       <Route path="/study-plan" element={<ProtectedLayout><StudyPlanPage /></ProtectedLayout>} />
+      <Route path="/groups" element={<ProtectedLayout><GroupsPage /></ProtectedLayout>} />
       <Route path="/stats" element={<ProtectedLayout><StatsPage /></ProtectedLayout>} />
       <Route path="/settings" element={<ProtectedLayout><SettingsPage /></ProtectedLayout>} />
 

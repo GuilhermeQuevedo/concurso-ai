@@ -12,6 +12,7 @@ model User {
   email         String   @unique
   password      String
   name          String
+  phone         String?
   avatar        String?
   role          Role     @default(USER)
   targetExam    String?
@@ -31,6 +32,8 @@ model User {
   flashcards    Flashcard[]
   achievements  Achievement[]
   streak        Streak?
+  groupMembers  GroupMember[]
+  groupActivities GroupActivity[]
 }
 
 model Session {
@@ -269,4 +272,52 @@ enum DocumentType {
   TXT
   HTML
   MARKDOWN
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
+
+model StudyGroup {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members    GroupMember[]
+  activities GroupActivity[]
+}
+
+model GroupMember {
+  id       String    @id @default(cuid())
+  groupId  String
+  userId   String
+  role     GroupRole  @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+model GroupActivity {
+  id          String   @id @default(cuid())
+  groupId     String
+  userId      String
+  type        String
+  points      Int
+  description String
+  createdAt   DateTime @default(now())
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([userId])
 }

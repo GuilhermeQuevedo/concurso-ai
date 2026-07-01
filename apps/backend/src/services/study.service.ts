@@ -1,6 +1,7 @@
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { GamificationService } from './gamification.service.js';
+import { GroupService } from './group.service.js';
 
 interface CreateSessionDTO {
   subjectId?: string;
@@ -18,6 +19,7 @@ interface SubmitAnswerDTO {
 
 export class StudyService {
   private readonly gamification = new GamificationService();
+  private readonly groups = new GroupService();
 
   async createSession(userId: string, dto: CreateSessionDTO) {
     const session = await prisma.studySession.create({
@@ -84,6 +86,13 @@ export class StudyService {
 
     await this.gamification.updateStreak(userId);
     const newAchievements = await this.gamification.checkAchievements(userId);
+
+    const isPerfect = correctCount === session.questionsCount && session.questionsCount > 0;
+    await this.groups.recordActivity(
+      userId,
+      isPerfect ? 'PERFECT_SESSION' : 'SESSION_COMPLETED',
+      `Completou sessão: ${correctCount}/${session.questionsCount} acertos`,
+    );
 
     return {
       session: updated,

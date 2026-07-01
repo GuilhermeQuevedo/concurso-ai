@@ -9,6 +9,7 @@ import { documentRouter } from './document.routes.js';
 import { studyPlanRouter } from './study-plan.routes.js';
 import { flashcardRouter } from './flashcard.routes.js';
 import { gamificationRouter } from './gamification.routes.js';
+import { groupRouter } from './group.routes.js';
 
 const router: RouterType = Router();
 
@@ -21,6 +22,7 @@ router.use('/documents', documentRouter);
 router.use('/study-plans', studyPlanRouter);
 router.use('/flashcards', flashcardRouter);
 router.use('/gamification', gamificationRouter);
+router.use('/groups', groupRouter);
 
 router.get('/health', (_req, res) => {
   const response: ApiResponse<{ status: string; timestamp: string }> = {

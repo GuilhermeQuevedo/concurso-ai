@@ -15,6 +15,7 @@ import {
   Layers,
   Trophy,
   CalendarDays,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
@@ -26,6 +27,7 @@ const navItems = [
   { path: '/documents', label: 'Documentos', icon: FileText },
   { path: '/flashcards', label: 'Flashcards', icon: Layers },
   { path: '/achievements', label: 'Conquistas', icon: Trophy },
+  { path: '/groups', label: 'Competição', icon: Users },
   { path: '/study-plan', label: 'Plano de Estudos', icon: CalendarDays },
   { path: '/stats', label: 'Estatísticas', icon: BarChart3 },
   { path: '/settings', label: 'Configurações', icon: Settings },

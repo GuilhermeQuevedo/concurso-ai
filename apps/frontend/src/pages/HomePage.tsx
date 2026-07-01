@@ -1,60 +1,82 @@
-import { BookOpen, Brain, BarChart3, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Brain, BookOpen, Users, Sparkles, Layers, Trophy } from 'lucide-react';
 
 const features = [
   {
-    icon: Brain,
-    title: 'Questões por IA',
-    description: 'Gere questões inéditas com inteligência artificial no estilo da sua banca.',
+    icon: Sparkles,
+    title: 'Questões com IA',
+    description: 'Gere questões inéditas no estilo da sua banca usando inteligência artificial.',
   },
   {
-    icon: BookOpen,
-    title: 'Biblioteca de conteúdos',
-    description: 'Organize disciplinas, assuntos e subassuntos em estrutura hierárquica.',
+    icon: Users,
+    title: 'Competição com amigos',
+    description: 'Crie grupos e dispute rankings semanais de estudo com seus colegas.',
   },
   {
-    icon: BarChart3,
-    title: 'Dashboard inteligente',
-    description: 'Acompanhe seu desempenho com estatísticas detalhadas e gráficos.',
+    icon: Layers,
+    title: 'Flashcards inteligentes',
+    description: 'Revisão espaçada com algoritmo SM-2 para memorizar o que importa.',
   },
   {
-    icon: FileText,
-    title: 'Importe seus materiais',
-    description: 'PDFs, editais, leis e apostilas como contexto para gerar questões.',
+    icon: Trophy,
+    title: 'Conquistas e streaks',
+    description: 'Ganhe conquistas, mantenha seu streak e acompanhe sua evolução.',
   },
 ];
 
 export function HomePage() {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-primary-50 to-white px-4 dark:from-gray-900 dark:to-gray-950">
-      <div className="mx-auto max-w-4xl text-center">
-        <h1 className="mb-4 text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Concurso <span className="text-primary-600">AI</span>
-        </h1>
-        <p className="mx-auto mb-12 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-          Plataforma inteligente para preparação de concursos públicos.
-          Gere questões inéditas, estude no estilo da sua banca e acompanhe sua evolução.
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-white px-4 dark:from-gray-900 dark:to-gray-950">
+      <div className="mx-auto max-w-3xl text-center">
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <Brain className="h-10 w-10 text-primary-600" />
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+            Concurso <span className="text-primary-600">AI</span>
+          </h1>
+        </div>
+
+        <p className="mx-auto mb-2 max-w-xl text-lg text-gray-600 dark:text-gray-400">
+          Plataforma de estudos para concursos com IA.
+        </p>
+        <p className="mx-auto mb-10 max-w-xl text-sm text-gray-500 dark:text-gray-500">
+          Projeto em fase de testes — uso gratuito e sem fins comerciais.
         </p>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-xl border border-gray-200 bg-white p-6 text-left shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
+              className="rounded-xl border border-gray-200 bg-white p-5 text-left transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
             >
-              <feature.icon className="mb-3 h-8 w-8 text-primary-600" />
-              <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+              <feature.icon className="mb-2 h-6 w-6 text-primary-600" />
+              <h3 className="mb-1 text-sm font-semibold text-gray-900 dark:text-white">
                 {feature.title}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{feature.description}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{feature.description}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-12">
-          <button className="rounded-lg bg-primary-600 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-700">
-            Começar agora
+        <div className="mt-10 flex items-center justify-center gap-3">
+          <button
+            onClick={() => navigate('/register')}
+            className="rounded-lg bg-primary-600 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+          >
+            Criar conta grátis
+          </button>
+          <button
+            onClick={() => navigate('/login')}
+            className="rounded-lg border border-gray-300 bg-white px-8 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            Entrar
           </button>
         </div>
+
+        <p className="mt-6 text-xs text-gray-400 dark:text-gray-600">
+          Feito com <BookOpen className="inline h-3 w-3" /> para quem estuda.
+        </p>
       </div>
     </div>
   );

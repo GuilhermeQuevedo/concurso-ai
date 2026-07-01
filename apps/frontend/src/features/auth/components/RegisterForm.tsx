@@ -10,6 +10,7 @@ const registerSchema = z
   .object({
     name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
     email: z.string().email('E-mail inválido'),
+    phone: z.string().min(10, 'Telefone deve ter pelo menos 10 dígitos'),
     password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
     confirmPassword: z.string(),
   })
@@ -37,7 +38,7 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError('');
-      await registerUser(data.name, data.email, data.password);
+      await registerUser(data.name, data.email, data.phone, data.password);
       navigate('/dashboard', { replace: true });
     } catch {
       setError('Erro ao criar conta. E-mail pode já estar em uso.');
@@ -80,6 +81,21 @@ export function RegisterForm() {
           placeholder="seu@email.com"
         />
         {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Telefone
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          autoComplete="tel"
+          {...register('phone')}
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+          placeholder="(11) 99999-9999"
+        />
+        {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone.message}</p>}
       </div>
 
       <div>
