@@ -82,7 +82,7 @@ export class OllamaProvider implements IAIProvider {
           model: this.model,
           stream: false,
           format: 'json',
-          options: { temperature: 0.7, num_ctx: 16384 },
+          options: { temperature: 0.7, num_ctx: 32768 },
           messages: [{ role: 'user', content: prompt }],
         }),
       });

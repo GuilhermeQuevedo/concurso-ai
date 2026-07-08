@@ -32,8 +32,11 @@ app.use('/api', apiRouter);
 
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, () => {
   console.log(`Server running on http://localhost:${env.PORT}`);
 });
+
+// IA local pode levar vários minutos em editais grandes
+server.requestTimeout = 660000;
 
 export { app };

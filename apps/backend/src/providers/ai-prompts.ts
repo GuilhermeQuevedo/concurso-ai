@@ -51,8 +51,9 @@ const EDITAL_HEAD_CHARS = 150000;
 // ao truncar, preserva o início (dados do concurso) e o final (anexos)
 export function truncateEdital(content: string, maxChars = EDITAL_MAX_CHARS): string {
   if (content.length <= maxChars) return content;
-  const head = content.slice(0, EDITAL_HEAD_CHARS);
-  const tail = content.slice(-(maxChars - EDITAL_HEAD_CHARS));
+  const headChars = Math.min(EDITAL_HEAD_CHARS, Math.floor(maxChars * 0.25));
+  const head = content.slice(0, headChars);
+  const tail = content.slice(-(maxChars - headChars));
   return `${head}\n\n[... trecho intermediário do edital omitido ...]\n\n${tail}`;
 }
 

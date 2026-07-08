@@ -1,13 +1,20 @@
 import { Building2, CalendarDays, Clock } from 'lucide-react';
 import type { ContestSummary } from '../services/contest.service';
 
+// Data da prova é "somente data" (armazenada como meia-noite UTC) —
+// converter para fuso local deslocaria um dia; usa os componentes UTC
 export function daysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null;
+  const [year, month, day] = dateStr.slice(0, 10).split('-').map(Number);
+  const exam = new Date(year, month - 1, day);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const exam = new Date(dateStr);
-  exam.setHours(0, 0, 0, 0);
   return Math.round((exam.getTime() - today.getTime()) / 86400000);
+}
+
+export function formatExamDate(dateStr: string): string {
+  const [year, month, day] = dateStr.slice(0, 10).split('-');
+  return `${day}/${month}/${year}`;
 }
 
 export function ContestCard({ contest, onClick }: { contest: ContestSummary; onClick: () => void }) {
@@ -40,7 +47,7 @@ export function ContestCard({ contest, onClick }: { contest: ContestSummary; onC
             {contest.examDate && (
               <span className="flex items-center gap-1 rounded bg-gray-100 px-1.5 py-0.5 dark:bg-gray-800">
                 <CalendarDays className="h-3 w-3" />
-                {new Date(contest.examDate).toLocaleDateString('pt-BR')}
+                {formatExamDate(contest.examDate)}
               </span>
             )}
           </div>

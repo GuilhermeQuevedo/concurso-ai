@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarClock, Loader2, Sparkles, X } from 'lucide-react';
 import { contestService } from '@/features/contests/services/contest.service';
+import { formatExamDate } from '@/features/contests/components/ContestCard';
 import { studyTaskService } from '../services/study-task.service';
 
 const WEEKDAYS = [
@@ -74,7 +75,7 @@ export function GeneratePlanForm({ onClose }: { onClose: () => void }) {
               <option value="">Selecione...</option>
               {eligible.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} — prova {new Date(c.examDate!).toLocaleDateString('pt-BR')}
+                  {c.name} — prova {formatExamDate(c.examDate!)}
                 </option>
               ))}
             </select>

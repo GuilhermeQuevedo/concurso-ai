@@ -12,7 +12,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { contestService, type SyllabusItem } from '../services/contest.service';
-import { daysUntil } from './ContestCard';
+import { daysUntil, formatExamDate } from './ContestCard';
 
 export function ContestDetailView({ contestId, onBack }: { contestId: string; onBack: () => void }) {
   const queryClient = useQueryClient();
@@ -95,7 +95,7 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
           {contest.examDate && (
             <span className="flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
               <CalendarDays className="h-3 w-3" />
-              Prova: {new Date(contest.examDate).toLocaleDateString('pt-BR')}
+              Prova: {formatExamDate(contest.examDate)}
             </span>
           )}
         </div>

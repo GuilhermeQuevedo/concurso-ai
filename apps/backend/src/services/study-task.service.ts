@@ -146,8 +146,9 @@ function buildStudyDates(examDate: Date, weekdays: number[]): Date[] {
   cursor.setHours(12, 0, 0, 0);
   cursor.setDate(cursor.getDate() + 1);
 
-  const limit = new Date(examDate);
-  limit.setHours(0, 0, 0, 0);
+  // examDate é "somente data" (meia-noite UTC) — usa os componentes UTC
+  // para não deslocar o limite um dia em fusos negativos
+  const limit = new Date(examDate.getUTCFullYear(), examDate.getUTCMonth(), examDate.getUTCDate());
 
   while (cursor < limit) {
     if (allowed.has(cursor.getDay())) {
