@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
-import { PDFParse } from 'pdf-parse';
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
+import { extractPdfText } from '../utils/pdf.js';
 import type { CreateContestDTO, UpdateContestDTO } from '../validators/contest.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -31,7 +31,7 @@ export class ContestService {
   async createFromEdital(userId: string, file: UploadedFile) {
     const content =
       file.mimetype === 'application/pdf'
-        ? await this.extractPdfText(file.path)
+        ? await extractPdfText(file.path)
         : (await fs.readFile(file.path, 'utf-8')).trim();
     await fs.unlink(file.path).catch(() => {});
 
@@ -143,14 +143,4 @@ export class ContestService {
     });
   }
 
-  private async extractPdfText(filePath: string): Promise<string> {
-    const data = await fs.readFile(filePath);
-    const parser = new PDFParse({ data: new Uint8Array(data) }) as unknown as {
-      load(): Promise<void>;
-      getText(): Promise<{ text: string }>;
-    };
-    await parser.load();
-    const result = await parser.getText();
-    return result.text.trim();
-  }
 }

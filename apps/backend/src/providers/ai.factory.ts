@@ -1,5 +1,6 @@
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { GeminiProvider } from './gemini.provider.js';
+import { OllamaProvider } from './ollama.provider.js';
 import { MockProvider } from './mock.provider.js';
 import { env } from '../config/env.js';
 
@@ -11,6 +12,8 @@ export function createAIProvider(): IAIProvider {
       }
       return new GeminiProvider(env.GEMINI_API_KEY);
     }
+    case 'ollama':
+      return new OllamaProvider(env.OLLAMA_URL, env.OLLAMA_MODEL);
     case 'mock':
       return new MockProvider();
     default:

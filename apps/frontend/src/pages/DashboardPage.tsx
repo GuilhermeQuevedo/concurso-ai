@@ -4,6 +4,7 @@ import { BookOpen, Sparkles, BarChart3, Clock, Play, History, Rocket, ArrowRight
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { studyService, type StudySessionDTO } from '@/features/study/services/study.service';
 import { contentService } from '@/features/content/services/content.service';
+import { TodayPanel } from '@/features/calendar/components/TodayPanel';
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -68,6 +69,8 @@ export function DashboardPage() {
           </div>
         ))}
       </div>
+
+      <TodayPanel />
 
       {showOnboarding && (
         <div className="mt-6 rounded-xl border border-primary-200 bg-primary-50 p-5 dark:border-primary-900 dark:bg-primary-950/30">

@@ -7,6 +7,9 @@ const REVIEW_DURATION = 15;
 const ESSAY_DURATION = 90;
 const FINAL_REVIEW_RATIO = 0.15;
 const SPACED_REVIEW_OFFSETS = [3, 7];
+const WEAK_REVIEW_OFFSETS = [3, 7, 14];
+const WEAK_ACCURACY_THRESHOLD = 0.6;
+const MIN_ATTEMPTS_FOR_FEEDBACK = 5;
 
 interface SyllabusTopic {
   id: string;
@@ -39,7 +42,8 @@ export class StudyTaskService {
     }
 
     const topics = interleaveByDiscipline(contest.syllabus);
-    const tasks = buildTasks(contest.id, contest.name, studyDates, topics, dto.minutesPerDay);
+    const weakDisciplines = await getWeakDisciplines(userId);
+    const tasks = buildTasks(contest.id, contest.name, studyDates, topics, dto.minutesPerDay, weakDisciplines);
 
     await prisma.studyTask.deleteMany({ where: { userId, contestId: contest.id } });
     await prisma.studyTask.createMany({
@@ -103,6 +107,38 @@ export class StudyTaskService {
   }
 }
 
+// Disciplinas com taxa de acerto baixa nas questões ganham revisões extras no plano
+async function getWeakDisciplines(userId: string): Promise<Set<string>> {
+  const attempts = await prisma.questionAttempt.findMany({
+    where: { userId },
+    select: {
+      isCorrect: true,
+      question: {
+        select: {
+          subject: { select: { name: true, parent: { select: { name: true } } } },
+        },
+      },
+    },
+  });
+
+  const stats = new Map<string, { total: number; correct: number }>();
+  for (const attempt of attempts) {
+    const name = (attempt.question.subject.parent?.name ?? attempt.question.subject.name).toLowerCase();
+    const entry = stats.get(name) ?? { total: 0, correct: 0 };
+    entry.total += 1;
+    if (attempt.isCorrect) entry.correct += 1;
+    stats.set(name, entry);
+  }
+
+  const weak = new Set<string>();
+  for (const [name, { total, correct }] of stats) {
+    if (total >= MIN_ATTEMPTS_FOR_FEEDBACK && correct / total < WEAK_ACCURACY_THRESHOLD) {
+      weak.add(name);
+    }
+  }
+  return weak;
+}
+
 function buildStudyDates(examDate: Date, weekdays: number[]): Date[] {
   const allowed = new Set(weekdays);
   const dates: Date[] = [];
@@ -152,6 +188,7 @@ function buildTasks(
   studyDates: Date[],
   topics: SyllabusTopic[],
   minutesPerDay: number,
+  weakDisciplines: Set<string>,
 ): NewTask[] {
   const finalDays = Math.max(2, Math.floor(studyDates.length * FINAL_REVIEW_RATIO));
   const learningDates = studyDates.slice(0, studyDates.length - finalDays);
@@ -166,10 +203,13 @@ function buildTasks(
     const date = learningDates[Math.min(Math.floor(index / topicsPerDay), learningDates.length - 1)];
     tasks.push(makeTask(contestId, 'STUDY', date, `Estudar: ${topic.topic}`, topic.discipline, studyDuration, topic.id));
 
-    for (const offset of SPACED_REVIEW_OFFSETS) {
+    const isWeak = weakDisciplines.has(topic.discipline.toLowerCase());
+    const offsets = isWeak ? WEAK_REVIEW_OFFSETS : SPACED_REVIEW_OFFSETS;
+    for (const offset of offsets) {
       const reviewDate = addDays(date, offset);
       if (dateKeys.has(dayKey(reviewDate)) && reviewDate < reviewDates[0]) {
-        tasks.push(makeTask(contestId, 'REVIEW', reviewDate, `Revisar: ${topic.topic}`, topic.discipline, REVIEW_DURATION, topic.id));
+        const prefix = isWeak ? 'Reforçar' : 'Revisar';
+        tasks.push(makeTask(contestId, 'REVIEW', reviewDate, `${prefix}: ${topic.topic}`, topic.discipline, REVIEW_DURATION, topic.id));
       }
     }
   });

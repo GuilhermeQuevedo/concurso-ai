@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
+import { extractPdfText } from '../utils/pdf.js';
 import type { SubmitEssayDTO } from '../validators/essay.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -24,12 +25,17 @@ export class EssayService {
       throw new AppError(400, 'MISSING_CONTENT', 'Envie o texto da redação ou um arquivo (PDF/imagem).');
     }
 
+    let content = dto.content ?? '';
+    if (!content && file && file.mimetype === 'application/pdf') {
+      content = await extractPdfText(file.path);
+    }
+
     const essay = await prisma.essay.create({
       data: {
         userId,
         title: dto.title,
         theme: dto.theme,
-        content: dto.content ?? '',
+        content,
         fileUrl: file ? `/uploads/essays/${file.path.split(/[/\\]/).pop()}` : null,
         fileName: file?.originalname ?? null,
         status: 'GRADING',
@@ -39,7 +45,7 @@ export class EssayService {
     try {
       const result = await this.aiProvider.gradeEssay({
         theme: dto.theme,
-        content: dto.content,
+        content: content || undefined,
         filePath: file?.path,
         fileMimeType: file?.mimetype,
       });

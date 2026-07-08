@@ -6,8 +6,10 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
-  AI_PROVIDER: z.enum(['gemini', 'mock']).default('mock'),
+  AI_PROVIDER: z.enum(['gemini', 'ollama', 'mock']).default('mock'),
   GEMINI_API_KEY: z.string().optional(),
+  OLLAMA_URL: z.string().default('http://localhost:11434'),
+  OLLAMA_MODEL: z.string().default('qwen2.5:14b'),
 });
 
 function loadEnv() {
