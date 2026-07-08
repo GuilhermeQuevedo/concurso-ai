@@ -439,7 +439,7 @@ export function HelpPage() {
 
                           {item.link && (
                             <button
-                              onClick={() => navigate(item.link!.path)}
+                              onClick={() => item.link && navigate(item.link.path)}
                               className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-primary-700"
                             >
                               {item.link.label}

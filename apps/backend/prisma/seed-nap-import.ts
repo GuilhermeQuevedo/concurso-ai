@@ -61,7 +61,8 @@ async function main() {
 
   async function getOrCreateSubject(rawName: string): Promise<string> {
     const name = rawName.length > 190 ? rawName.substring(0, 190) : rawName;
-    if (subjectCache.has(name)) return subjectCache.get(name)!;
+    const cached = subjectCache.get(name);
+    if (cached) return cached;
 
     let subject = await prisma.subject.findFirst({ where: { name, parentId: null } });
     if (!subject) {
@@ -75,7 +76,8 @@ async function main() {
   async function getOrCreateSubtopic(rawName: string, parentId: string): Promise<string> {
     const name = rawName.length > 190 ? rawName.substring(0, 190) : rawName;
     const key = `${parentId}::${name}`;
-    if (subtopicCache.has(key)) return subtopicCache.get(key)!;
+    const cached = subtopicCache.get(key);
+    if (cached) return cached;
 
     let sub = await prisma.subject.findFirst({ where: { name, parentId } });
     if (!sub) {
@@ -91,7 +93,8 @@ async function main() {
 
   async function getOrCreateExamBoard(rawName: string): Promise<string> {
     const name = normalizeBancaName(rawName);
-    if (examBoardCache.has(name)) return examBoardCache.get(name)!;
+    const cached = examBoardCache.get(name);
+    if (cached) return cached;
 
     let slug = slugify(name);
     let board = await prisma.examBoard.findFirst({ where: { name } });

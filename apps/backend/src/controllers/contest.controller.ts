@@ -2,13 +2,14 @@ import type { Request, Response, NextFunction } from 'express';
 import type { ContestService } from '../services/contest.service.js';
 import type { ApiResponse } from '@concurso-ai/types';
 import { AppError } from '../middlewares/error-handler.js';
+import { getUserId } from '../utils/request.js';
 
 export class ContestController {
   constructor(private readonly service: ContestService) {}
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const contest = await this.service.create(req.userId!, req.body);
+      const contest = await this.service.create(getUserId(req), req.body);
       const response: ApiResponse<typeof contest> = { success: true, data: contest };
       res.status(201).json(response);
     } catch (error) {
@@ -22,7 +23,7 @@ export class ContestController {
       if (!file) {
         throw new AppError(400, 'MISSING_FILE', 'Envie o PDF do edital.');
       }
-      const contest = await this.service.createFromEdital(req.userId!, {
+      const contest = await this.service.createFromEdital(getUserId(req), {
         originalname: file.originalname,
         mimetype: file.mimetype,
         path: file.path,
@@ -36,7 +37,7 @@ export class ContestController {
 
   list = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const contests = await this.service.listByUser(req.userId!);
+      const contests = await this.service.listByUser(getUserId(req));
       const response: ApiResponse<typeof contests> = { success: true, data: contests };
       res.json(response);
     } catch (error) {
@@ -46,7 +47,7 @@ export class ContestController {
 
   getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const contest = await this.service.getById(req.userId!, req.params.id as string);
+      const contest = await this.service.getById(getUserId(req), req.params.id as string);
       const response: ApiResponse<typeof contest> = { success: true, data: contest };
       res.json(response);
     } catch (error) {
@@ -56,7 +57,7 @@ export class ContestController {
 
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const contest = await this.service.update(req.userId!, req.params.id as string, req.body);
+      const contest = await this.service.update(getUserId(req), req.params.id as string, req.body);
       const response: ApiResponse<typeof contest> = { success: true, data: contest };
       res.json(response);
     } catch (error) {
@@ -66,7 +67,7 @@ export class ContestController {
 
   delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.service.delete(req.userId!, req.params.id as string);
+      await this.service.delete(getUserId(req), req.params.id as string);
       const response: ApiResponse<null> = { success: true, data: null };
       res.json(response);
     } catch (error) {
@@ -77,7 +78,7 @@ export class ContestController {
   updateSyllabusItem = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const item = await this.service.updateSyllabusItem(
-        req.userId!,
+        getUserId(req),
         req.params.itemId as string,
         req.body.studied,
       );

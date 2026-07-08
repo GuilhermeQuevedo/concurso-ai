@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface GroupMemberDTO {
@@ -39,32 +39,32 @@ export interface FeedEntry {
 export const groupService = {
   async create(data: { name: string; description?: string }): Promise<GroupDTO> {
     const response = await api.post<ApiResponse<GroupDTO>>('/groups', data);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async join(code: string): Promise<GroupDTO> {
     const response = await api.post<ApiResponse<GroupDTO>>('/groups/join', { code });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async list(): Promise<GroupDTO[]> {
     const response = await api.get<ApiResponse<GroupDTO[]>>('/groups');
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getById(id: string): Promise<GroupDTO> {
     const response = await api.get<ApiResponse<GroupDTO>>(`/groups/${id}`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getRanking(id: string): Promise<RankingEntry[]> {
     const response = await api.get<ApiResponse<RankingEntry[]>>(`/groups/${id}/ranking`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getFeed(id: string): Promise<FeedEntry[]> {
     const response = await api.get<ApiResponse<FeedEntry[]>>(`/groups/${id}/feed`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async leave(id: string): Promise<void> {

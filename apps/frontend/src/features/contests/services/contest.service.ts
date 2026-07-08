@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export type ContestStatus = 'PLANNED' | 'STUDYING' | 'DONE' | 'ARCHIVED';
@@ -42,7 +42,7 @@ export interface CreateContestInput {
 export const contestService = {
   async create(data: CreateContestInput): Promise<ContestDetail> {
     const response = await api.post<ApiResponse<ContestDetail>>('/contests', data);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async createFromEdital(file: File): Promise<ContestDetail> {
@@ -53,22 +53,22 @@ export const contestService = {
       // IA local pode levar vários minutos num edital grande
       timeout: 600000,
     });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async list(): Promise<ContestSummary[]> {
     const response = await api.get<ApiResponse<ContestSummary[]>>('/contests');
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getById(id: string): Promise<ContestDetail> {
     const response = await api.get<ApiResponse<ContestDetail>>(`/contests/${id}`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async update(id: string, data: Partial<CreateContestInput> & { status?: ContestStatus }): Promise<ContestDetail> {
     const response = await api.patch<ApiResponse<ContestDetail>>(`/contests/${id}`, data);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async delete(id: string): Promise<void> {
@@ -77,6 +77,6 @@ export const contestService = {
 
   async setTopicStudied(itemId: string, studied: boolean): Promise<SyllabusItem> {
     const response = await api.patch<ApiResponse<SyllabusItem>>(`/contests/syllabus/${itemId}`, { studied });
-    return response.data.data!;
+    return unwrapData(response);
   },
 };

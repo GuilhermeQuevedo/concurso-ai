@@ -59,7 +59,7 @@ export function CalendarPage() {
 
   const upcomingExams = contests
     .filter((c) => c.examDate && (daysUntil(c.examDate) ?? -1) >= 0)
-    .sort((a, b) => (a.examDate! < b.examDate! ? -1 : 1));
+    .sort((a, b) => ((a.examDate ?? '') < (b.examDate ?? '') ? -1 : 1));
 
   const navigate = (delta: number) => {
     const next = new Date(year, month + delta, 1);
@@ -95,7 +95,7 @@ export function CalendarPage() {
       {upcomingExams.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-3">
           {upcomingExams.map((contest) => {
-            const days = daysUntil(contest.examDate)!;
+            const days = daysUntil(contest.examDate) ?? 0;
             const color = days <= 14 ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300' : days <= 45 ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300';
             return (
               <div key={contest.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${color}`}>

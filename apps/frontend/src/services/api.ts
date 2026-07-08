@@ -8,6 +8,14 @@ export const api = axios.create({
   },
 });
 
+export function unwrapData<T>(response: { data: ApiResponse<T> }): T {
+  const { data } = response.data;
+  if (data === undefined || data === null) {
+    throw new Error(response.data.error?.message ?? 'Resposta inválida da API');
+  }
+  return data;
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {

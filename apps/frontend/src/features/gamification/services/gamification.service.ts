@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface AchievementDTO {
@@ -24,6 +24,6 @@ export interface GamificationProfile {
 export const gamificationService = {
   async getProfile(): Promise<GamificationProfile> {
     const response = await api.get<ApiResponse<GamificationProfile>>('/gamification/profile');
-    return response.data.data!;
+    return unwrapData(response);
   },
 };

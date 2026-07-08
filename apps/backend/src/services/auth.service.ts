@@ -74,7 +74,8 @@ export class AuthService {
       throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
     }
 
-    const { password: _, ...profile } = user;
+    const { password, ...profile } = user;
+    void password;
     return profile;
   }
 

@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface EssayCriterion {
@@ -42,17 +42,17 @@ export const essayService = {
     const response = await api.post<ApiResponse<EssayDetail>>('/essays', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async list(): Promise<EssaySummary[]> {
     const response = await api.get<ApiResponse<EssaySummary[]>>('/essays');
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getById(id: string): Promise<EssayDetail> {
     const response = await api.get<ApiResponse<EssayDetail>>(`/essays/${id}`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async delete(id: string): Promise<void> {

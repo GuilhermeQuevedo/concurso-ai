@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import type { AuthService } from '../services/auth.service.js';
 import type { RegisterDTO, LoginDTO, RefreshDTO } from '../validators/auth.validators.js';
 import type { ApiResponse, AuthTokens } from '@concurso-ai/types';
+import { getUserId } from '../utils/request.js';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -48,7 +49,7 @@ export class AuthController {
 
   profile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.userId!;
+      const userId = getUserId(req);
       const profile = await this.authService.getProfile(userId);
       res.json({ success: true, data: profile });
     } catch (error) {

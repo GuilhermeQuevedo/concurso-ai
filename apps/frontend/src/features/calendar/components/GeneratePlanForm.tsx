@@ -75,7 +75,7 @@ export function GeneratePlanForm({ onClose }: { onClose: () => void }) {
               <option value="">Selecione...</option>
               {eligible.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} — prova {formatExamDate(c.examDate!)}
+                  {c.name} — prova {c.examDate ? formatExamDate(c.examDate) : ''}
                 </option>
               ))}
             </select>

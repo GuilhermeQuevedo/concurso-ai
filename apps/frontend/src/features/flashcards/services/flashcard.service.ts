@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface FlashcardDTO {
@@ -23,24 +23,24 @@ export interface FlashcardStatsDTO {
 export const flashcardService = {
   async create(data: { subjectId: string; front: string; back: string }): Promise<FlashcardDTO> {
     const response = await api.post<ApiResponse<FlashcardDTO>>('/flashcards', data);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getDue(subjectId?: string): Promise<FlashcardDTO[]> {
     const params = subjectId ? { subjectId } : {};
     const response = await api.get<ApiResponse<FlashcardDTO[]>>('/flashcards/due', { params });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async review(id: string, quality: number): Promise<FlashcardDTO> {
     const response = await api.patch<ApiResponse<FlashcardDTO>>(`/flashcards/${id}/review`, { quality });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async list(subjectId?: string): Promise<FlashcardDTO[]> {
     const params = subjectId ? { subjectId } : {};
     const response = await api.get<ApiResponse<FlashcardDTO[]>>('/flashcards', { params });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async delete(id: string): Promise<void> {
@@ -49,6 +49,6 @@ export const flashcardService = {
 
   async getStats(): Promise<FlashcardStatsDTO> {
     const response = await api.get<ApiResponse<FlashcardStatsDTO>>('/flashcards/stats');
-    return response.data.data!;
+    return unwrapData(response);
   },
 };

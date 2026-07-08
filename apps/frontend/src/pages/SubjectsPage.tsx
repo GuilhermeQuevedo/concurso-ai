@@ -139,7 +139,7 @@ export function SubjectsPage() {
 
         {isExpanded && hasChildren && (
           <div className="mt-1 space-y-1">
-            {subject.children!.map((child) => renderSubject(child, depth + 1))}
+            {subject.children?.map((child) => renderSubject(child, depth + 1))}
           </div>
         )}
       </div>

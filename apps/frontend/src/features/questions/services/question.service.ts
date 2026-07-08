@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface QuestionDTO {
@@ -29,16 +29,16 @@ export interface GenerateParams {
 export const questionService = {
   async generate(params: GenerateParams): Promise<QuestionDTO[]> {
     const response = await api.post<ApiResponse<QuestionDTO[]>>('/questions/generate', params);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getBySubject(subjectId: string): Promise<QuestionDTO[]> {
     const response = await api.get<ApiResponse<QuestionDTO[]>>(`/questions/subject/${subjectId}`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getById(id: string): Promise<QuestionDTO> {
     const response = await api.get<ApiResponse<QuestionDTO>>(`/questions/${id}`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 };

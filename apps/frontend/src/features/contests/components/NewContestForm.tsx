@@ -52,7 +52,10 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const mutation = useMutation({
-    mutationFn: () => contestService.createFromEdital(file!),
+    mutationFn: () => {
+      if (!file) return Promise.reject(new Error('Selecione o PDF do edital'));
+      return contestService.createFromEdital(file);
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['contests'] });
       onCreated(data.id);

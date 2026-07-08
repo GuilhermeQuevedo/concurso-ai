@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface StudyPlanItemDTO {
@@ -35,7 +35,7 @@ export const studyPlanService = {
     items: { subjectId: string; dayOfWeek: number; duration: number }[];
   }): Promise<StudyPlanDTO> {
     const response = await api.post<ApiResponse<StudyPlanDTO>>('/study-plans', data);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getActive(): Promise<StudyPlanDTO | null> {
@@ -45,12 +45,12 @@ export const studyPlanService = {
 
   async list(): Promise<StudyPlanDTO[]> {
     const response = await api.get<ApiResponse<StudyPlanDTO[]>>('/study-plans');
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async toggleItem(itemId: string): Promise<StudyPlanItemDTO> {
     const response = await api.patch<ApiResponse<StudyPlanItemDTO>>(`/study-plans/items/${itemId}/toggle`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async delete(planId: string): Promise<void> {
@@ -59,6 +59,6 @@ export const studyPlanService = {
 
   async getSuggestions(): Promise<SubjectSuggestion[]> {
     const response = await api.get<ApiResponse<SubjectSuggestion[]>>('/study-plans/suggest');
-    return response.data.data!;
+    return unwrapData(response);
   },
 };

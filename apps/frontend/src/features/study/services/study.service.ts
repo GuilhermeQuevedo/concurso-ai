@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface StudySessionDTO {
@@ -60,7 +60,7 @@ export const studyService = {
     examBoardId?: string;
   }): Promise<{ session: StudySessionDTO; questionIds: string[] }> {
     const response = await api.post<ApiResponse<{ session: StudySessionDTO; questionIds: string[] }>>('/study/sessions', data);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async submitAnswer(sessionId: string, data: {
@@ -69,26 +69,26 @@ export const studyService = {
     timeSpent: number;
   }): Promise<SubmitAnswerResponse> {
     const response = await api.post<ApiResponse<SubmitAnswerResponse>>(`/study/sessions/${sessionId}/answer`, data);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async finishSession(sessionId: string): Promise<FinishSessionResponse> {
     const response = await api.post<ApiResponse<FinishSessionResponse>>(`/study/sessions/${sessionId}/finish`);
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async toggleFavorite(questionId: string): Promise<{ favorited: boolean }> {
     const response = await api.post<ApiResponse<{ favorited: boolean }>>('/study/favorites', { questionId });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getStats(): Promise<UserStatsDTO> {
     const response = await api.get<ApiResponse<UserStatsDTO>>('/study/stats');
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async getHistory(): Promise<StudySessionDTO[]> {
     const response = await api.get<ApiResponse<StudySessionDTO[]>>('/study/history');
-    return response.data.data!;
+    return unwrapData(response);
   },
 };

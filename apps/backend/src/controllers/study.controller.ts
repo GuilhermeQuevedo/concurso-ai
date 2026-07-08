@@ -1,13 +1,14 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { StudyService } from '../services/study.service.js';
 import type { ApiResponse } from '@concurso-ai/types';
+import { getUserId } from '../utils/request.js';
 
 export class StudyController {
   constructor(private readonly service: StudyService) {}
 
   createSession = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.service.createSession(req.userId!, req.body);
+      const result = await this.service.createSession(getUserId(req), req.body);
       const response: ApiResponse<typeof result> = { success: true, data: result };
       res.status(201).json(response);
     } catch (error) {
@@ -17,7 +18,7 @@ export class StudyController {
 
   submitAnswer = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.service.submitAnswer(req.userId!, req.params.sessionId as string, req.body);
+      const result = await this.service.submitAnswer(getUserId(req), req.params.sessionId as string, req.body);
       const response: ApiResponse<typeof result> = { success: true, data: result };
       res.json(response);
     } catch (error) {
@@ -27,7 +28,7 @@ export class StudyController {
 
   finishSession = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.service.finishSession(req.userId!, req.params.sessionId as string);
+      const result = await this.service.finishSession(getUserId(req), req.params.sessionId as string);
       const response: ApiResponse<typeof result> = { success: true, data: result };
       res.json(response);
     } catch (error) {
@@ -37,7 +38,7 @@ export class StudyController {
 
   toggleFavorite = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.service.toggleFavorite(req.userId!, req.body.questionId);
+      const result = await this.service.toggleFavorite(getUserId(req), req.body.questionId);
       const response: ApiResponse<typeof result> = { success: true, data: result };
       res.json(response);
     } catch (error) {
@@ -47,7 +48,7 @@ export class StudyController {
 
   getStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const stats = await this.service.getUserStats(req.userId!);
+      const stats = await this.service.getUserStats(getUserId(req));
       const response: ApiResponse<typeof stats> = { success: true, data: stats };
       res.json(response);
     } catch (error) {
@@ -57,7 +58,7 @@ export class StudyController {
 
   getHistory = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const sessions = await this.service.getSessionHistory(req.userId!);
+      const sessions = await this.service.getSessionHistory(getUserId(req));
       const response: ApiResponse<typeof sessions> = { success: true, data: sessions };
       res.json(response);
     } catch (error) {

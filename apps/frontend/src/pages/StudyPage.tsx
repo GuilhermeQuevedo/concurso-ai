@@ -94,8 +94,10 @@ export default function StudyPage() {
   const answeredCount = Object.values(questionStates).filter((s) => s.selectedAnswer !== null).length;
 
   const submitMutation = useMutation({
-    mutationFn: (data: { questionId: string; answer: string; timeSpent: number }) =>
-      studyService.submitAnswer(sessionId!, data),
+    mutationFn: (data: { questionId: string; answer: string; timeSpent: number }) => {
+      if (!sessionId) return Promise.reject(new Error('Sessão não iniciada'));
+      return studyService.submitAnswer(sessionId, data);
+    },
     onSuccess: (result, variables) => {
       setQuestionStates((prev) => ({
         ...prev,
@@ -109,7 +111,10 @@ export default function StudyPage() {
   });
 
   const finishMutation = useMutation({
-    mutationFn: () => studyService.finishSession(sessionId!),
+    mutationFn: () => {
+      if (!sessionId) return Promise.reject(new Error('Sessão não iniciada'));
+      return studyService.finishSession(sessionId);
+    },
     onSuccess: (data) => {
       setFinished(true);
       setFinishStats(data.stats);

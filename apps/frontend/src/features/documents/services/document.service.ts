@@ -1,4 +1,4 @@
-import { api } from '@/services/api';
+import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface DocumentDTO {
@@ -18,13 +18,13 @@ export const documentService = {
     const response = await api.post<ApiResponse<DocumentDTO>>('/documents', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async list(subjectId?: string): Promise<DocumentDTO[]> {
     const params = subjectId ? { subjectId } : {};
     const response = await api.get<ApiResponse<DocumentDTO[]>>('/documents', { params });
-    return response.data.data!;
+    return unwrapData(response);
   },
 
   async delete(id: string): Promise<void> {
