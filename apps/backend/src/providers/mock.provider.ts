@@ -1,4 +1,12 @@
-import type { IAIProvider, GenerateQuestionsParams, GeneratedQuestion } from '../interfaces/ai.interfaces.js';
+import type {
+  IAIProvider,
+  GenerateQuestionsParams,
+  GeneratedQuestion,
+  GradeEssayParams,
+  EssayGradeResult,
+  ParseEditalParams,
+  EditalParseResult,
+} from '../interfaces/ai.interfaces.js';
 
 export class MockProvider implements IAIProvider {
   async generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]> {
@@ -23,5 +31,79 @@ export class MockProvider implements IAIProvider {
     }
 
     return questions;
+  }
+
+  async gradeEssay(_params: GradeEssayParams): Promise<EssayGradeResult> {
+    const cacScore = Math.floor(Math.random() * 10) + 25;
+    const otScore = Math.floor(Math.random() * 10) + 20;
+    const dlpScore = Math.floor(Math.random() * 10) + 20;
+    const total = cacScore + otScore + dlpScore;
+
+    return {
+      score: total,
+      maxScore: 100,
+      feedback: `[MOCK] Sua redação demonstra bom domínio do tema proposto, com argumentação consistente e estrutura textual adequada. O texto apresenta introdução contextualizada, desenvolvimento com argumentos pertinentes e conclusão que retoma a tese principal.\n\nPontos fortes: boa articulação entre os parágrafos, uso adequado de conectivos e repertório sociocultural diversificado.\n\nPontos a melhorar: a proposta de intervenção poderia ser mais detalhada, com agentes, ações e meios mais específicos. Alguns desvios de concordância e regência foram identificados.\n\nNota final: ${total}/100.`,
+      criteria: {
+        cac: {
+          score: cacScore,
+          maxScore: 40,
+          comments: '[MOCK] Conteúdo e Atendimento ao Comando: O candidato demonstrou compreensão do tema e atendeu ao comando da proposta. A abordagem é pertinente, com argumentos que dialogam com o recorte temático. Poderia aprofundar a discussão com mais exemplos concretos e dados estatísticos.',
+        },
+        ot: {
+          score: otScore,
+          maxScore: 30,
+          comments: '[MOCK] Organização Textual: O texto apresenta estrutura dissertativo-argumentativa adequada, com introdução, desenvolvimento e conclusão bem delimitados. A progressão temática é satisfatória, embora alguns parágrafos pudessem ter melhor encadeamento lógico.',
+        },
+        dlp: {
+          score: dlpScore,
+          maxScore: 30,
+          comments: '[MOCK] Domínio da Língua Portuguesa: Bom domínio da norma culta, com poucos desvios gramaticais. Vocabulário adequado ao gênero textual. Atenção a alguns problemas de concordância verbal e uso de crase.',
+        },
+      },
+    };
+  }
+
+  async parseEdital(_params: ParseEditalParams): Promise<EditalParseResult> {
+    const examDate = new Date();
+    examDate.setDate(examDate.getDate() + 90);
+
+    return {
+      name: '[MOCK] SEEDF — Professor de Educação Básica',
+      organization: 'Secretaria de Estado de Educação do Distrito Federal',
+      examBoard: 'CESPE/CEBRASPE',
+      role: 'Professor de Educação Básica — Sociologia',
+      examDate: examDate.toISOString().slice(0, 10),
+      syllabus: [
+        {
+          discipline: 'Língua Portuguesa',
+          topics: [
+            'Compreensão e interpretação de textos',
+            'Tipologia textual e gêneros textuais',
+            'Ortografia oficial e acentuação gráfica',
+            'Concordância verbal e nominal',
+            'Regência verbal e nominal',
+          ],
+        },
+        {
+          discipline: 'Conhecimentos Pedagógicos',
+          topics: [
+            'Lei de Diretrizes e Bases da Educação Nacional (LDB)',
+            'Currículo em Movimento do Distrito Federal',
+            'Avaliação educacional e institucional',
+            'Gestão democrática na escola pública',
+          ],
+        },
+        {
+          discipline: 'Sociologia',
+          topics: [
+            'Clássicos da Sociologia: Durkheim, Weber e Marx',
+            'Cultura, identidade e diversidade',
+            'Estratificação e desigualdades sociais',
+            'Movimentos sociais no Brasil',
+            'Sociologia da educação',
+          ],
+        },
+      ],
+    };
   }
 }

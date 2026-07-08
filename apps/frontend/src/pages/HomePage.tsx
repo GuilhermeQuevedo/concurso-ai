@@ -15,7 +15,7 @@ const features = [
   {
     icon: Layers,
     title: 'Flashcards inteligentes',
-    description: 'Revisão espaçada com algoritmo SM-2 para memorizar o que importa.',
+    description: 'Cards de estudo que repetem mais o que você erra e menos o que já sabe.',
   },
   {
     icon: Trophy,

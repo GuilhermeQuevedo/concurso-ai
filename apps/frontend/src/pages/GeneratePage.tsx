@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Play } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Play, Building2, Calendar, Tag, Search, X } from 'lucide-react';
 import { contentService, type SubjectDTO, type ExamBoardDTO } from '@/features/content/services/content.service';
 import { questionService, type QuestionDTO, type GenerateParams } from '@/features/questions/services/question.service';
 
@@ -22,6 +22,12 @@ export function GeneratePage() {
   const [questions, setQuestions] = useState<QuestionDTO[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [bancaSearch, setBancaSearch] = useState('');
+  const [bancaOpen, setBancaOpen] = useState(false);
+  const [subjectSearch, setSubjectSearch] = useState('');
+  const [subjectOpen, setSubjectOpen] = useState(false);
+  const bancaRef = useRef<HTMLDivElement>(null);
+  const subjectRef = useRef<HTMLDivElement>(null);
 
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects'],
@@ -57,6 +63,26 @@ export function GeneratePage() {
 
   const flatSubjects = flattenSubjects(subjects);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (bancaRef.current && !bancaRef.current.contains(e.target as Node)) setBancaOpen(false);
+      if (subjectRef.current && !subjectRef.current.contains(e.target as Node)) setSubjectOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredBoards = examBoards.filter((b: ExamBoardDTO) =>
+    b.name.toLowerCase().includes(bancaSearch.toLowerCase())
+  );
+
+  const filteredSubjects = flatSubjects.filter((s) =>
+    s.name.toLowerCase().includes(subjectSearch.toLowerCase())
+  );
+
+  const selectedBancaName = examBoards.find((b: ExamBoardDTO) => b.id === examBoardId)?.name || '';
+  const selectedSubjectName = flatSubjects.find((s) => s.id === subjectId)?.name || '';
+
   return (
     <div>
       <div className="mb-6">
@@ -68,38 +94,114 @@ export function GeneratePage() {
 
       <div className="mb-8 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
+          <div ref={subjectRef} className="relative">
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Disciplina *
             </label>
-            <select
-              value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            <div
+              className="flex w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white cursor-pointer"
+              onClick={() => setSubjectOpen(!subjectOpen)}
             >
-              <option value="">Selecione...</option>
-              {flatSubjects.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.prefix}{s.name}
-                </option>
-              ))}
-            </select>
+              <Search className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+              {subjectOpen ? (
+                <input
+                  autoFocus
+                  value={subjectSearch}
+                  onChange={(e) => setSubjectSearch(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Buscar disciplina..."
+                  className="w-full bg-transparent outline-none placeholder-gray-400"
+                />
+              ) : (
+                <span className={`flex-1 truncate ${subjectId ? '' : 'text-gray-400'}`}>
+                  {selectedSubjectName || 'Selecione...'}
+                </span>
+              )}
+              {subjectId && (
+                <button onClick={(e) => { e.stopPropagation(); setSubjectId(''); setSubjectSearch(''); }} className="text-gray-400 hover:text-gray-600">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+            </div>
+            {subjectOpen && (
+              <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                {filteredSubjects.length === 0 ? (
+                  <p className="px-3 py-2 text-sm text-gray-400">Nenhuma disciplina encontrada</p>
+                ) : (
+                  filteredSubjects.slice(0, 50).map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => { setSubjectId(s.id); setSubjectOpen(false); setSubjectSearch(''); }}
+                      className={`w-full px-3 py-2 text-left text-sm transition-colors hover:bg-primary-50 dark:hover:bg-primary-950 ${
+                        s.id === subjectId ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {s.prefix}{s.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
-          <div>
+          <div ref={bancaRef} className="relative">
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Banca
             </label>
-            <select
-              value={examBoardId}
-              onChange={(e) => setExamBoardId(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            <div
+              className="flex w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white cursor-pointer"
+              onClick={() => setBancaOpen(!bancaOpen)}
             >
-              <option value="">Qualquer banca</option>
-              {examBoards.map((b: ExamBoardDTO) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
+              <Search className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+              {bancaOpen ? (
+                <input
+                  autoFocus
+                  value={bancaSearch}
+                  onChange={(e) => setBancaSearch(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Buscar banca..."
+                  className="w-full bg-transparent outline-none placeholder-gray-400"
+                />
+              ) : (
+                <span className={`flex-1 truncate ${examBoardId ? '' : 'text-gray-400'}`}>
+                  {selectedBancaName || 'Qualquer banca'}
+                </span>
+              )}
+              {examBoardId && (
+                <button onClick={(e) => { e.stopPropagation(); setExamBoardId(''); setBancaSearch(''); }} className="text-gray-400 hover:text-gray-600">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+            </div>
+            {bancaOpen && (
+              <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                <button
+                  onClick={() => { setExamBoardId(''); setBancaOpen(false); setBancaSearch(''); }}
+                  className={`w-full px-3 py-2 text-left text-sm transition-colors hover:bg-primary-50 dark:hover:bg-primary-950 ${
+                    !examBoardId ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  Qualquer banca
+                </button>
+                {filteredBoards.length === 0 ? (
+                  <p className="px-3 py-2 text-sm text-gray-400">Nenhuma banca encontrada</p>
+                ) : (
+                  filteredBoards.slice(0, 50).map((b: ExamBoardDTO) => (
+                    <button
+                      key={b.id}
+                      onClick={() => { setExamBoardId(b.id); setBancaOpen(false); setBancaSearch(''); }}
+                      className={`w-full px-3 py-2 text-left text-sm transition-colors hover:bg-primary-50 dark:hover:bg-primary-950 ${
+                        b.id === examBoardId ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {b.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           <div>
@@ -192,6 +294,7 @@ export function GeneratePage() {
             const isExpanded = expandedId === q.id;
             const isAnswered = !!selected;
             const isCorrect = selected === q.correctAnswer;
+            const meta = extractQuestionMeta(q);
 
             return (
               <div
@@ -199,20 +302,58 @@ export function GeneratePage() {
                 className="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
               >
                 <div className="p-5">
-                  <div className="mb-3 flex items-center gap-2">
-                    <span className="rounded bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300">
-                      Questão {index + 1}
-                    </span>
-                    <span className={`rounded px-2 py-0.5 text-xs font-medium ${
-                      q.difficulty === 'EASY' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
-                      q.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
-                      'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                    }`}>
-                      {q.difficulty === 'EASY' ? 'Fácil' : q.difficulty === 'MEDIUM' ? 'Média' : 'Difícil'}
-                    </span>
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300">
+                        Questão {index + 1}
+                      </span>
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${
+                        q.difficulty === 'EASY' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                        q.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
+                        'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                      }`}>
+                        {q.difficulty === 'EASY' ? 'Fácil' : q.difficulty === 'MEDIUM' ? 'Média' : 'Difícil'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {meta.examBoard && (
+                        <span className="flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                          <Building2 className="h-3 w-3" />
+                          {meta.examBoard}
+                        </span>
+                      )}
+                      {meta.year && (
+                        <span className="flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                          <Calendar className="h-3 w-3" />
+                          {meta.year}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <p className="mb-4 text-sm text-gray-800 dark:text-gray-200">{q.statement}</p>
+                  {meta.source && (
+                    <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                      {meta.source}
+                    </p>
+                  )}
+
+                  {meta.subtopics.length > 0 && (
+                    <div className="mb-3 flex flex-wrap gap-1.5">
+                      {q.subject && (
+                        <span className="flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                          <Tag className="h-3 w-3" />
+                          {q.subject.name}
+                        </span>
+                      )}
+                      {meta.subtopics.map((st, i) => (
+                        <span key={i} className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                          {st}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="mb-4 text-sm text-gray-800 dark:text-gray-200">{meta.cleanStatement}</p>
 
                   <div className="space-y-2">
                     {q.alternatives.map((alt) => {
@@ -276,6 +417,43 @@ export function GeneratePage() {
       )}
     </div>
   );
+}
+
+interface QuestionMeta {
+  examBoard: string | null;
+  year: string | null;
+  source: string | null;
+  subtopics: string[];
+  cleanStatement: string;
+}
+
+function extractQuestionMeta(q: QuestionDTO): QuestionMeta {
+  const comments = (q.comments || []) as Array<{ type: string; data: unknown }>;
+  const subtopicEntry = comments.find((c) => c.type === 'subtopics');
+  const examEntry = comments.find((c) => c.type === 'exam');
+  const orgEntry = comments.find((c) => c.type === 'org');
+
+  const subtopics = subtopicEntry ? (subtopicEntry.data as string[]) : [];
+  const source = examEntry ? (examEntry.data as string) : null;
+
+  let examBoard = q.examBoard?.name || null;
+  let year: string | null = null;
+  let cleanStatement = q.statement;
+
+  const headerMatch = cleanStatement.match(/^\(([^)]+)\)\s*/);
+  if (headerMatch) {
+    const headerParts = headerMatch[1].split(' - ').map((p) => p.trim());
+    const yearPart = headerParts.find((p) => /^\d{4}$/.test(p));
+    if (yearPart) year = yearPart;
+    if (!examBoard) {
+      examBoard = headerParts.find((p) => !(/^\d{4}$/.test(p)) && p !== (orgEntry?.data as string)) || null;
+    }
+    cleanStatement = cleanStatement.replace(headerMatch[0], '').trim();
+  }
+
+  cleanStatement = cleanStatement.replace(/&nbsp;/g, ' ').replace(/\s{2,}/g, ' ').trim();
+
+  return { examBoard, year, source, subtopics, cleanStatement };
 }
 
 function flattenSubjects(subjects: SubjectDTO[], prefix = ''): Array<SubjectDTO & { prefix: string }> {

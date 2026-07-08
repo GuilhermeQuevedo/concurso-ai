@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 export const documentParamsSchema = z.object({
   params: z.object({
-    id: z.string().cuid(),
+    id: z.string().min(1),
   }),
 });
 
 export const documentQuerySchema = z.object({
-  subjectId: z.string().cuid().optional(),
+  subjectId: z.string().min(1).optional(),
 });

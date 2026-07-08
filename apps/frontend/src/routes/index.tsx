@@ -14,6 +14,11 @@ import { StudyPlanPage } from '@/pages/StudyPlanPage';
 import { StatsPage } from '@/pages/StatsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { GroupsPage } from '@/pages/GroupsPage';
+import { EssayPage } from '@/pages/EssayPage';
+import { ContestsPage } from '@/pages/ContestsPage';
+import { CalendarPage } from '@/pages/CalendarPage';
+import { HelpPage } from '@/pages/HelpPage';
+import { GettingStartedPage } from '@/pages/GettingStartedPage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 
@@ -41,9 +46,14 @@ export function AppRoutes() {
       <Route path="/flashcards" element={<ProtectedLayout><FlashcardsPage /></ProtectedLayout>} />
       <Route path="/achievements" element={<ProtectedLayout><AchievementsPage /></ProtectedLayout>} />
       <Route path="/study-plan" element={<ProtectedLayout><StudyPlanPage /></ProtectedLayout>} />
+      <Route path="/contests" element={<ProtectedLayout><ContestsPage /></ProtectedLayout>} />
+      <Route path="/calendar" element={<ProtectedLayout><CalendarPage /></ProtectedLayout>} />
+      <Route path="/essays" element={<ProtectedLayout><EssayPage /></ProtectedLayout>} />
       <Route path="/groups" element={<ProtectedLayout><GroupsPage /></ProtectedLayout>} />
       <Route path="/stats" element={<ProtectedLayout><StatsPage /></ProtectedLayout>} />
       <Route path="/settings" element={<ProtectedLayout><SettingsPage /></ProtectedLayout>} />
+      <Route path="/help" element={<ProtectedLayout><HelpPage /></ProtectedLayout>} />
+      <Route path="/getting-started" element={<ProtectedLayout><GettingStartedPage /></ProtectedLayout>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -1,0 +1,156 @@
+import fs from 'node:fs/promises';
+import { PDFParse } from 'pdf-parse';
+import type { IAIProvider } from '../interfaces/ai.interfaces.js';
+import type { CreateContestDTO, UpdateContestDTO } from '../validators/contest.validators.js';
+import { prisma } from '../database/prisma.js';
+import { AppError } from '../middlewares/error-handler.js';
+
+interface UploadedFile {
+  originalname: string;
+  mimetype: string;
+  path: string;
+}
+
+export class ContestService {
+  constructor(private readonly aiProvider: IAIProvider) {}
+
+  async create(userId: string, dto: CreateContestDTO) {
+    return prisma.contest.create({
+      data: {
+        userId,
+        name: dto.name,
+        organization: dto.organization ?? null,
+        examBoard: dto.examBoard ?? null,
+        role: dto.role ?? null,
+        examDate: dto.examDate ? new Date(dto.examDate) : null,
+      },
+      include: { syllabus: true },
+    });
+  }
+
+  async createFromEdital(userId: string, file: UploadedFile) {
+    const content =
+      file.mimetype === 'application/pdf'
+        ? await this.extractPdfText(file.path)
+        : (await fs.readFile(file.path, 'utf-8')).trim();
+    await fs.unlink(file.path).catch(() => {});
+
+    if (content.length < 200) {
+      throw new AppError(400, 'EDITAL_TOO_SHORT', 'Não foi possível extrair texto suficiente do edital. Verifique se o PDF contém texto (não apenas imagens).');
+    }
+
+    const parsed = await this.aiProvider.parseEdital({ content });
+
+    const document = await prisma.document.create({
+      data: {
+        userId,
+        name: file.originalname,
+        type: 'PDF',
+        content,
+      },
+    });
+
+    return prisma.contest.create({
+      data: {
+        userId,
+        name: parsed.name,
+        organization: parsed.organization,
+        examBoard: parsed.examBoard,
+        role: parsed.role,
+        examDate: parsed.examDate ? new Date(parsed.examDate) : null,
+        editalDocumentId: document.id,
+        syllabus: {
+          create: parsed.syllabus.flatMap((entry, disciplineIndex) =>
+            entry.topics.map((topic, topicIndex) => ({
+              discipline: entry.discipline,
+              topic,
+              order: disciplineIndex * 1000 + topicIndex,
+            })),
+          ),
+        },
+      },
+      include: { syllabus: { orderBy: { order: 'asc' } } },
+    });
+  }
+
+  async listByUser(userId: string) {
+    const contests = await prisma.contest.findMany({
+      where: { userId, status: { not: 'ARCHIVED' } },
+      orderBy: [{ examDate: 'asc' }, { createdAt: 'desc' }],
+      include: {
+        _count: { select: { syllabus: true } },
+        syllabus: { where: { studied: true }, select: { id: true } },
+      },
+    });
+
+    return contests.map(({ syllabus, _count, ...contest }) => ({
+      ...contest,
+      totalTopics: _count.syllabus,
+      studiedTopics: syllabus.length,
+    }));
+  }
+
+  async getById(userId: string, contestId: string) {
+    const contest = await prisma.contest.findUnique({
+      where: { id: contestId },
+      include: { syllabus: { orderBy: { order: 'asc' } } },
+    });
+
+    if (!contest || contest.userId !== userId) {
+      throw new AppError(404, 'CONTEST_NOT_FOUND', 'Concurso não encontrado');
+    }
+
+    return contest;
+  }
+
+  async update(userId: string, contestId: string, dto: UpdateContestDTO) {
+    await this.getById(userId, contestId);
+
+    return prisma.contest.update({
+      where: { id: contestId },
+      data: {
+        ...(dto.name !== undefined ? { name: dto.name } : {}),
+        ...(dto.organization !== undefined ? { organization: dto.organization } : {}),
+        ...(dto.examBoard !== undefined ? { examBoard: dto.examBoard } : {}),
+        ...(dto.role !== undefined ? { role: dto.role } : {}),
+        ...(dto.examDate !== undefined
+          ? { examDate: dto.examDate ? new Date(dto.examDate) : null }
+          : {}),
+        ...(dto.status !== undefined ? { status: dto.status } : {}),
+      },
+      include: { syllabus: { orderBy: { order: 'asc' } } },
+    });
+  }
+
+  async delete(userId: string, contestId: string) {
+    await this.getById(userId, contestId);
+    await prisma.contest.delete({ where: { id: contestId } });
+  }
+
+  async updateSyllabusItem(userId: string, itemId: string, studied: boolean) {
+    const item = await prisma.contestSyllabusItem.findUnique({
+      where: { id: itemId },
+      include: { contest: { select: { userId: true } } },
+    });
+
+    if (!item || item.contest.userId !== userId) {
+      throw new AppError(404, 'SYLLABUS_ITEM_NOT_FOUND', 'Item do conteúdo programático não encontrado');
+    }
+
+    return prisma.contestSyllabusItem.update({
+      where: { id: itemId },
+      data: { studied },
+    });
+  }
+
+  private async extractPdfText(filePath: string): Promise<string> {
+    const data = await fs.readFile(filePath);
+    const parser = new PDFParse({ data: new Uint8Array(data) }) as unknown as {
+      load(): Promise<void>;
+      getText(): Promise<{ text: string }>;
+    };
+    await parser.load();
+    const result = await parser.getText();
+    return result.text.trim();
+  }
+}

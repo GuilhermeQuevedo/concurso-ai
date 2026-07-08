@@ -18,6 +18,7 @@ export function validateRequest(schema: ZodSchema) {
       const result = schema.parse({
         body: req.body,
         params: req.params,
+        query: req.query,
       });
 
       if (result.body) {

@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Sparkles, BarChart3, Clock, Play, History } from 'lucide-react';
+import { BookOpen, Sparkles, BarChart3, Clock, Play, History, Rocket, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { studyService, type StudySessionDTO } from '@/features/study/services/study.service';
+import { contentService } from '@/features/content/services/content.service';
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -17,6 +18,13 @@ export function DashboardPage() {
     queryKey: ['session-history'],
     queryFn: studyService.getHistory,
   });
+
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: contentService.getSubjects,
+  });
+
+  const showOnboarding = subjects.length === 0 || (stats?.totalSessions ?? 0) === 0;
 
   const formatTime = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
@@ -60,6 +68,33 @@ export function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {showOnboarding && (
+        <div className="mt-6 rounded-xl border border-primary-200 bg-primary-50 p-5 dark:border-primary-900 dark:bg-primary-950/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-primary-100 p-2 dark:bg-primary-900">
+                <Rocket className="h-5 w-5 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Primeiro acesso? Veja como configurar tudo
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Tutorial passo a passo para alimentar a plataforma e começar a estudar
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/getting-started')}
+              className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+            >
+              Ver tutorial
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {history.length > 0 ? (
         <div className="mt-8">

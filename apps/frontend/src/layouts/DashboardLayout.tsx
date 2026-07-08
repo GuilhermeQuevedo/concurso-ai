@@ -16,14 +16,21 @@ import {
   Trophy,
   CalendarDays,
   Users,
+  HelpCircle,
+  PenLine,
+  Target,
+  CalendarClock,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/contests', label: 'Meus Concursos', icon: Target },
+  { path: '/calendar', label: 'Calendário', icon: CalendarClock },
   { path: '/subjects', label: 'Disciplinas', icon: BookOpen },
   { path: '/exam-boards', label: 'Bancas', icon: Building2 },
   { path: '/generate', label: 'Gerar Questões', icon: Sparkles },
+  { path: '/essays', label: 'Redações', icon: PenLine },
   { path: '/documents', label: 'Documentos', icon: FileText },
   { path: '/flashcards', label: 'Flashcards', icon: Layers },
   { path: '/achievements', label: 'Conquistas', icon: Trophy },
@@ -31,6 +38,7 @@ const navItems = [
   { path: '/study-plan', label: 'Plano de Estudos', icon: CalendarDays },
   { path: '/stats', label: 'Estatísticas', icon: BarChart3 },
   { path: '/settings', label: 'Configurações', icon: Settings },
+  { path: '/help', label: 'Ajuda', icon: HelpCircle },
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -116,6 +124,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         <main className="flex-1 p-6">{children}</main>
+
+        {location.pathname !== '/help' && (
+          <Link
+            to="/help"
+            className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg transition-transform hover:scale-110 hover:bg-primary-700"
+            title="Ajuda"
+          >
+            <HelpCircle className="h-5 w-5" />
+          </Link>
+        )}
       </div>
     </div>
   );

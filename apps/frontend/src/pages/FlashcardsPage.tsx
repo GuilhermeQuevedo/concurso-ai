@@ -102,7 +102,7 @@ export function FlashcardsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Flashcards</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Revisão espaçada com algoritmo SM-2
+            O app repete mais o que você erra e menos o que já sabe
           </p>
         </div>
         <div className="flex gap-2">

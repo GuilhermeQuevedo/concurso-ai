@@ -186,8 +186,8 @@ export class GroupService {
     });
   }
 
-  async recordActivity(userId: string, type: string, description: string) {
-    const points = POINTS_MAP[type] ?? 1;
+  async recordActivity(userId: string, type: string, description: string, customPoints?: number) {
+    const points = customPoints ?? POINTS_MAP[type] ?? 1;
 
     const memberships = await prisma.groupMember.findMany({
       where: { userId },

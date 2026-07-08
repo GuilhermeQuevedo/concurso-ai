@@ -15,6 +15,46 @@ export class QuestionService {
       throw new AppError(404, 'SUBJECT_NOT_FOUND', 'Disciplina não encontrada');
     }
 
+    const imported = await this.findImportedQuestions(dto);
+    if (imported.length > 0) {
+      return imported;
+    }
+
+    return this.generateWithAI(dto, subject.name);
+  }
+
+  private async findImportedQuestions(dto: GenerateQuestionsDTO) {
+    const subjectIds = await this.getSubjectTreeIds(dto.subjectId);
+
+    const where: Record<string, unknown> = {
+      subjectId: { in: subjectIds },
+      source: 'IMPORTED',
+    };
+    if (dto.examBoardId) where.examBoardId = dto.examBoardId;
+    if (dto.difficulty) where.difficulty = dto.difficulty;
+
+    const total = await prisma.question.count({ where });
+    if (total === 0) return [];
+
+    const skip = Math.max(0, Math.floor(Math.random() * (total - dto.quantity)));
+    return prisma.question.findMany({
+      where,
+      skip,
+      take: dto.quantity,
+      include: { subject: true, examBoard: true },
+    });
+  }
+
+  private async getSubjectTreeIds(subjectId: string): Promise<string[]> {
+    const children = await prisma.subject.findMany({
+      where: { parentId: subjectId },
+      select: { id: true },
+    });
+    if (children.length === 0) return [subjectId];
+    return [subjectId, ...children.map((c) => c.id)];
+  }
+
+  private async generateWithAI(dto: GenerateQuestionsDTO, subjectName: string) {
     let examBoardName: string | undefined;
     if (dto.examBoardId) {
       const board = await prisma.examBoard.findUnique({ where: { id: dto.examBoardId } });
@@ -27,7 +67,7 @@ export class QuestionService {
     const context = await this.documentService.getContentBySubject(dto.subjectId);
 
     const generated = await this.aiProvider.generateQuestions({
-      subject: subject.name,
+      subject: subjectName,
       topic: dto.topic,
       examBoard: examBoardName,
       difficulty: dto.difficulty,

@@ -1,0 +1,211 @@
+import { useMemo, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  Circle,
+  Clock,
+  Loader2,
+  Trash2,
+} from 'lucide-react';
+import { contestService, type SyllabusItem } from '../services/contest.service';
+import { daysUntil } from './ContestCard';
+
+export function ContestDetailView({ contestId, onBack }: { contestId: string; onBack: () => void }) {
+  const queryClient = useQueryClient();
+
+  const { data: contest, isLoading } = useQuery({
+    queryKey: ['contest', contestId],
+    queryFn: () => contestService.getById(contestId),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => contestService.delete(contestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contests'] });
+      onBack();
+    },
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: ({ itemId, studied }: { itemId: string; studied: boolean }) =>
+      contestService.setTopicStudied(itemId, studied),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contest', contestId] });
+      queryClient.invalidateQueries({ queryKey: ['contests'] });
+    },
+  });
+
+  const disciplines = useMemo(() => {
+    if (!contest) return [];
+    const groups = new Map<string, SyllabusItem[]>();
+    for (const item of contest.syllabus) {
+      const list = groups.get(item.discipline) ?? [];
+      list.push(item);
+      groups.set(item.discipline, list);
+    }
+    return Array.from(groups.entries());
+  }, [contest]);
+
+  if (isLoading || !contest) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  const days = daysUntil(contest.examDate);
+  const total = contest.syllabus.length;
+  const studied = contest.syllabus.filter((s) => s.studied).length;
+  const progress = total > 0 ? Math.round((studied / total) * 100) : 0;
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-4 flex items-center justify-between">
+        <button onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400">
+          <ChevronLeft className="mr-1 inline h-4 w-4" />
+          Voltar
+        </button>
+        <button
+          onClick={() => deleteMutation.mutate()}
+          className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Excluir
+        </button>
+      </div>
+
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{contest.name}</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          {contest.organization && <span>{contest.organization}</span>}
+          {contest.role && <span>· {contest.role}</span>}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {contest.examBoard && (
+            <span className="flex items-center gap-1 rounded bg-blue-50 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+              <Building2 className="h-3 w-3" />
+              {contest.examBoard}
+            </span>
+          )}
+          {contest.examDate && (
+            <span className="flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+              <CalendarDays className="h-3 w-3" />
+              Prova: {new Date(contest.examDate).toLocaleDateString('pt-BR')}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {days !== null && days >= 0 && (
+        <div className="mb-4 flex items-center justify-center gap-3 rounded-xl border border-primary-200 bg-primary-50 p-5 dark:border-primary-800 dark:bg-primary-950">
+          <Clock className="h-8 w-8 text-primary-600 dark:text-primary-400" />
+          <div>
+            <p className="text-3xl font-bold text-primary-700 dark:text-primary-300">{days} dias</p>
+            <p className="text-xs text-primary-600 dark:text-primary-400">até a prova</p>
+          </div>
+        </div>
+      )}
+
+      {total > 0 && (
+        <div className="mb-4 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+          <div className="mb-2 flex items-center justify-between text-sm">
+            <span className="font-semibold text-gray-900 dark:text-white">Progresso do conteúdo programático</span>
+            <span className="text-gray-500 dark:text-gray-400">
+              {studied}/{total} ({progress}%)
+            </span>
+          </div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+            <div className="h-full rounded-full bg-primary-500 transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      )}
+
+      {disciplines.length === 0 ? (
+        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+          Nenhum conteúdo programático cadastrado para este concurso.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {disciplines.map(([discipline, items]) => (
+            <DisciplineGroup
+              key={discipline}
+              discipline={discipline}
+              items={items}
+              onToggle={(itemId, value) => toggleMutation.mutate({ itemId, studied: value })}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DisciplineGroup({
+  discipline,
+  items,
+  onToggle,
+}: {
+  discipline: string;
+  items: SyllabusItem[];
+  onToggle: (itemId: string, studied: boolean) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const studied = items.filter((i) => i.studied).length;
+  const done = studied === items.length;
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+      >
+        <div className="flex items-center gap-2">
+          {done ? (
+            <CheckCircle2 className="h-5 w-5 text-green-500" />
+          ) : (
+            <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" />
+          )}
+          <span className="font-medium text-gray-900 dark:text-white">{discipline}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {studied}/{items.length}
+          </span>
+          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t border-gray-200 dark:border-gray-800">
+          {items.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onToggle(item.id, !item.studied)}
+              className="flex w-full items-start gap-3 border-b border-gray-100 px-4 py-3 text-left last:border-b-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
+            >
+              {item.studied ? (
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+              ) : (
+                <Circle className="mt-0.5 h-4 w-4 shrink-0 text-gray-300 dark:text-gray-600" />
+              )}
+              <span
+                className={`text-sm ${
+                  item.studied
+                    ? 'text-gray-400 line-through dark:text-gray-500'
+                    : 'text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                {item.topic}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

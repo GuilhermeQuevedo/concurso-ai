@@ -1,0 +1,572 @@
+[
+  {
+    "number": 1,
+    "statement": "A carga horária mínima anual será de oitocentas horas para o ensino fundamental e médio, distribuídas por pelo menos duzentos dias de efetivo trabalho escolar, excluído o tempo dos exames finais.",
+    "correctAnswer": "C",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 2,
+    "statement": "A educação infantil será oferecida em creches ou entidades equivalentes para as crianças de três a cinco anos de idade.",
+    "correctAnswer": "E",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 3,
+    "statement": "É obrigatório aos sistemas de ensino desdobrar o ensino fundamental em ciclos.",
+    "correctAnswer": "E",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 7,
+    "statement": "A educação especial oferece educação precoce para a promoção do desenvolvimento biopsicossocial da criança com deficiência, de risco ou atraso em seu desenvolvimento, na faixa etária de até quatro anos incompletos de idade.",
+    "correctAnswer": "C",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 8,
+    "statement": "A educação profissional técnica subsequente é ofertada somente a quem já tenha concluído o ensino médio.",
+    "correctAnswer": "C",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 9,
+    "statement": "Os estudantes com deficiência auditiva leve, moderada, profunda e severa receberão o mesmo atendimento curricular da turma cursada, no intuito de promover a inclusão e de evitar o prejuízo no conteúdo, podendo ser solicitado um acompanhamento por profissional habilitado.",
+    "correctAnswer": "E",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 10,
+    "statement": "A opção pela progressão parcial em regime de dependência é facultativa e deve ser formalizada no máximo quinze dias após a divulgação dos resultados finais, somente tendo direito a ela o estudante que participou da recuperação final.",
+    "correctAnswer": "C",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 11,
+    "statement": "É uma meta do Plano Nacional de Educação a de universalizar o ensino fundamental de nove anos para toda a população de até quinze anos de idade, garantindo que pelo menos 90% dos alunos concluam essa etapa na idade recomendada, até o último ano de sua vigência.",
+    "correctAnswer": "E",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 12,
+    "statement": "Alfabetizar todas as crianças, no máximo, até o final do terceiro ano do ensino fundamental consiste em uma das metas.",
+    "correctAnswer": "C",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 13,
+    "statement": "É uma meta do Plano Nacional de Educação a de erradicar o analfabetismo absoluto e o analfabetismo funcional até o final de sua vigência.",
+    "correctAnswer": "E",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 14,
+    "statement": "Elevar a qualidade da educação superior no Distrito Federal e ampliar a proporção de mestres e doutores do corpo docente em efetivo exercício para 90%, sendo, no mínimo, 60% doutores, é uma meta do Plano Distrital de Educação.",
+    "correctAnswer": "E",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 15,
+    "statement": "Entre as competências gerais da educação básica, consta a de utilizar diferentes linguagens (verbal, corporal, visual, sonora e digital), bem como conhecimentos das linguagens artística, matemática e científica, para se expressar e partilhar informações em diferentes contextos, propiciando o entendimento mútuo.",
+    "correctAnswer": "C",
+    "subject": "Legislação Educacional"
+  },
+  {
+    "number": 16,
+    "statement": "O termo currículo é usado apenas para definir o trabalho dentro de sala de aula, com alguns sentidos, conceitos ou definições.",
+    "correctAnswer": "E",
+    "subject": "Currículo e Práticas Pedagógicas"
+  },
+  {
+    "number": 17,
+    "statement": "O currículo compreende o conteúdo programático de um assunto ou de uma área de estudos específicos, referindo-se ao programa total das disciplinas de uma escola de qualquer nível ou grau de ensino.",
+    "correctAnswer": "E",
+    "subject": "Currículo e Práticas Pedagógicas"
+  },
+  {
+    "number": 19,
+    "statement": "A prática pedagógica que se realiza na sala de aula existe de forma autônoma e independente.",
+    "correctAnswer": "E",
+    "subject": "Currículo e Práticas Pedagógicas"
+  },
+  {
+    "number": 20,
+    "statement": "O currículo faz parte de múltiplos tipos de práticas que não se podem reduzir unicamente à prática pedagógica de ensino (ações que são de ordem política, administrativa, de supervisão, de produção de meios, de criação intelectual, de avaliação etc.).",
+    "correctAnswer": "C",
+    "subject": "Currículo e Práticas Pedagógicas"
+  },
+  {
+    "number": 21,
+    "statement": "A Lei de Diretrizes e Bases afirma que os sistemas de ensino assegurarão, gratuitamente, aos jovens e aos adultos que não puderam efetuar os estudos na idade regular oportunidades de estudo.",
+    "correctAnswer": "C",
+    "subject": "Educação de Jovens e Adultos"
+  },
+  {
+    "number": 22,
+    "statement": "A educação de jovens e de adultos deverá articular-se, obrigatoriamente, com a educação profissional, na forma do regulamento, sendo que o educando deverá optar por uma modalidade.",
+    "correctAnswer": "E",
+    "subject": "Educação de Jovens e Adultos"
+  },
+  {
+    "number": 23,
+    "statement": "Os sistemas de ensino não serão obrigados a oferecer cursos e exames supletivos para os educandos, uma vez que essas pessoas precisam concluir seus estudos com mais rapidez.",
+    "correctAnswer": "E",
+    "subject": "Educação de Jovens e Adultos"
+  },
+  {
+    "number": 24,
+    "statement": "Os educandos terão oportunidades educacionais apropriadas, consideradas as características do aluno, seus interesses, suas condições de vida e de trabalho, mediante cursos e exames.",
+    "correctAnswer": "C",
+    "subject": "Educação de Jovens e Adultos"
+  },
+  {
+    "number": 25,
+    "statement": "Os conhecimentos e as habilidades adquiridos pelos educandos por meios informais serão aferidos e reconhecidos mediante exames.",
+    "correctAnswer": "C",
+    "subject": "Educação de Jovens e Adultos"
+  },
+  {
+    "number": 26,
+    "statement": "A Base Nacional Comum Curricular foi finalizada e está estruturada de modo a explicitar as competências que devem ser desenvolvidas ao longo de toda a educação básica e em cada etapa da escolaridade, como expressão dos direitos de aprendizagem e desenvolvimento de todos os estudantes. A estrutura geral da Base Nacional Comum Curricular inclui a educação básica e a educação especial.",
+    "correctAnswer": "E",
+    "subject": "Educação Especial e Inclusão"
+  },
+  {
+    "number": 27,
+    "statement": "A Lei de Diretrizes e Bases da Educação Nacional (Lei n.o 9.394/1996) é fundamentada no Parecer n.o 17/2001, do Conselho Nacional de Educação, que define os caminhos que a educação básica deve seguir para garantir que a educação especial, enquanto modalidade de ensino, favoreça o processo de aprendizagem dos estudantes que necessitam desse recurso no sistema educacional.",
+    "correctAnswer": "E",
+    "subject": "Educação Especial e Inclusão"
+  },
+  {
+    "number": 28,
+    "statement": "Um dos grandes desafios da educação brasileira é a formação dos docentes a respeito da educação inclusiva. Os professores devem estar preparados e capacitados para lidar com crianças e adolescentes portadores de necessidades educacionais especiais. É função da escola promover a formação continuada do corpo docente para atender a essa modalidade de ensino.",
+    "correctAnswer": "E",
+    "subject": "Educação Especial e Inclusão"
+  },
+  {
+    "number": 29,
+    "statement": "No Projeto de Acessibilidade Especial, as escolas devem abordar propostas pedagógicas para garantir o atendimento educacional especializado aos estudantes portadores de necessidades educacionais especiais, conforme a Lei n.o 8.069/1990, mais conhecida como Estatuto da Criança e do Adolescente.",
+    "correctAnswer": "E",
+    "subject": "Educação Especial e Inclusão"
+  },
+  {
+    "number": 31,
+    "statement": "A sociologia despontou no século XIX com a ambição de explicar as profundas transformações na sociedade após as revoluções políticas e a Revolução Industrial no final do século XVIII.",
+    "correctAnswer": "C",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 32,
+    "statement": "O vocabulário utilizado por Émile Durkheim, um dos pais da sociologia, tinha relação direta com as ciências físicas e naturais.",
+    "correctAnswer": "C",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 33,
+    "statement": "A sociologia é uma disciplina que questiona as premissas que as pessoas desenvolvem sobre si mesmas como indivíduos e acerca dos contextos sociais mais amplos em que vivem.",
+    "correctAnswer": "C",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 34,
+    "statement": "Para Émile Durkheim, o fato social, seu conceito mais central, é algo interior ao indivíduo e exerce uma ação coercitiva com relação a ele.",
+    "correctAnswer": "E",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 35,
+    "statement": "De acordo com Émile Durkheim, os fatos sociais podem ser classificados como normais e patológicos.",
+    "correctAnswer": "C",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 36,
+    "statement": "A coesão social está baseada no consenso entre os indivíduos, uma consciência coletiva que Durkheim chama de solidariedade.",
+    "correctAnswer": "C",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 37,
+    "statement": "A solidariedade orgânica é verificada nas sociedades mais antigas e tradicionais, que apresentam coerção social baseada em valores, crenças e semelhanças sociais e culturais.",
+    "correctAnswer": "E",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 38,
+    "statement": "Na solidariedade mecânica típica das sociedades mais modernas, a divisão do trabalho é mais complexa.",
+    "correctAnswer": "E",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 39,
+    "statement": "A sociologia se interessa por tudo o que as pessoas fazem juntas, o que inclui uma variedade de práticas, que vão desde os cultos religiosos às linhas industriais de montagem.",
+    "correctAnswer": "C",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 40,
+    "statement": "A socialização é definida como um processo contínuo no qual valores e conhecimentos básicos de uma sociedade são transmitidos por meio de interações sociais. A juventude é vista, em geral, como uma fase complicada, de frustrações, dúvidas e inseguranças. Simultaneamente, é considerada como uma fase de liberdade e ousadia, permeada por descobertas e novas experimentações. Na cultura ocidental, considera-se a juventude como um período de passagem da infância para a vida adulta. Pode ser compreendida como um período de aprendizado, que costuma ser superado quando o indivíduo “amadurece”. No entanto, há outro entendimento do que é “ser jovem” que se baseia no estilo de vida e no modo de ver o mundo (com o entusiasmo de quem está sempre aprendendo), e essa postura pode ser cultivada por muitos anos.",
+    "correctAnswer": "C",
+    "subject": "Constituição do Saber Sociológico"
+  },
+  {
+    "number": 41,
+    "statement": "A sociologia considera essas transformações da psique e do corpo humano no tempo e no espaço, relacionando-as com a história e com a cultura.",
+    "correctAnswer": "C",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 42,
+    "statement": "O contínuo processo de socialização, ao qual os seres humanos estão sujeitos, tem uma função específica na juventude: adaptar o indivíduo aos padrões e valores vigentes no contexto em que vive, para que ele se torne um adulto funcional.",
+    "correctAnswer": "C",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 43,
+    "statement": "Quando a juventude foi assumida no ocidente como um período de desenvolvimento do ser humano, a sociedade precisou se organizar quanto às particularidades jurídicas que envolviam esse conceito a partir de então.",
+    "correctAnswer": "C",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 44,
+    "statement": "O ingresso na juventude não significa a conquista de maior autonomia perante a família e a comunidade, o que também significa assumir novas responsabilidades.",
+    "correctAnswer": "E",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 45,
+    "statement": "A experiência da juventude acontece de forma muito homogênea por causa, principalmente, das diferenças culturais, mas há outros fatores que a influenciam.",
+    "correctAnswer": "E",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 46,
+    "statement": "As desigualdades sociais se mostram um fenômeno de grande influência na trajetória escolar de muitos jovens, em diferentes lugares do mundo.",
+    "correctAnswer": "C",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 47,
+    "statement": "A convivência, da maior parte dos jovens, se dá em ambientes institucionalizados, como a escola, a igreja e os locais de trabalho.",
+    "correctAnswer": "C",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 48,
+    "statement": "As culturas juvenis podem ser pensadas seguindo-se duas definições de cultura trabalhadas na sociologia: modos de vida; e produção simbólica.",
+    "correctAnswer": "C",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 49,
+    "statement": "As novas tecnologias, tão utilizadas entre os jovens, permitem que os contatos se prolonguem mesmo quando as pessoas estão distantes, limitando as interações.",
+    "correctAnswer": "E",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 50,
+    "statement": "A escolarização (como processo) e a escola (como instituição), tão presentes na vida dos jovens, são novas formas de aprendizagem e educação, desenvolvidas ao longo da história da humanidade. A palavra cultura tem origem no latim colere, ou culturae, e significa, entre outras possibilidades, “cultivar”, “cuidar”. Esse sentido estaria inicialmente ligado ao cultivo da terra. Atualmente, a palavra “cultura” também pode ser compreendida como o complexo dos padrões de comportamento, das crenças, das instituições, das manifestações artísticas e intelectuais, entre outros aspectos, transmitido coletivamente e típico de uma sociedade.",
+    "correctAnswer": "C",
+    "subject": "Juventude e Socialização"
+  },
+  {
+    "number": 51,
+    "statement": "Para Pierre Bourdieu, o capital cultural é reproduzido em espaços de sociabilidade, escolas, circuitos de arte, restaurantes, mercado de trabalho, entre outros.",
+    "correctAnswer": "C",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 52,
+    "statement": "A cultura popular está associada aos saberes, ou seja, às ideias, às atitudes, às práticas sociais e às manifestações artísticas das classes desfavorecidas, chamadas de populares.",
+    "correctAnswer": "C",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 53,
+    "statement": "A cultura erudita está associada a saberes das elites sociais, econômicas, políticas e culturais, se alicerça no conhecimento científico e é vista como a produção vanguardista e dominante de uma sociedade.",
+    "correctAnswer": "C",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 54,
+    "statement": "Para Claude Lévi-Strauss, ao se falar em cultura, o pensamento selvagem é aquele que usa a intuição e a percepção, opera na concretude dos fenômenos e dá maior atenção ao que é específico.",
+    "correctAnswer": "C",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 55,
+    "statement": "Claude Lévi-Strauss defende que a cultura é uma forma de produção, e não uma negação da natureza.",
+    "correctAnswer": "C",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 56,
+    "statement": "O conceito de indústria cultural surgiu com os filósofos idealistas Adorno e Marcuse.",
+    "correctAnswer": "E",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 57,
+    "statement": "Etnocentrismo é um conceito antropológico que descreve uma visão preconceituosa e unilateralmente formada sobre outras culturas, a partir de uma matriz de referência do observador, que julga a própria cultura como certa e universalmente aceita.",
+    "correctAnswer": "C",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 58,
+    "statement": "Relativismo cultural é um conceito que reivindica o caráter coletivo de cada cultura, o que torna toda e qualquer cultura participante da teia global de produção de significados e sentidos.",
+    "correctAnswer": "E",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 59,
+    "statement": "Multiculturalismo é a inter-relação de várias culturas para além das fronteiras nacionais de onde as culturas são provenientes.",
+    "correctAnswer": "C",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 60,
+    "statement": "Aldeia global é um conceito que busca explicar como o mundo, a partir da ampliação dos meios de comunicação de massa, fica cada vez maior culturalmente, utilizando as diferentes tecnologias.",
+    "correctAnswer": "E",
+    "subject": "Cultura e Sociedade"
+  },
+  {
+    "number": 61,
+    "statement": "A Lei de Diretrizes e Bases da Educação garante a consolidação e o aprofundamento dos conhecimentos adquiridos no ensino fundamental, possibilitando o prosseguimento dos estudos no ensino médio.",
+    "correctAnswer": "E",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 62,
+    "statement": "Faz parte dos novos parâmetros para o ensino médio a preparação básica para o trabalho e a cidadania do educando, para continuar aprendendo, de modo a ser capaz de se adaptar, com flexibilidade, às novas condições de ocupação ou aperfeiçoamento.",
+    "correctAnswer": "C",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 63,
+    "statement": "A educação de jovens e adultos será destinada a todos os estudantes, independentemente da idade, que não tiveram acesso ou continuidade de estudos no ensino fundamental e médio na idade própria.",
+    "correctAnswer": "E",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 64,
+    "statement": "Os sistemas de ensino assegurarão, gratuitamente, aos jovens e aos adultos que não puderam efetuar os estudos na idade regular oportunidades educacionais apropriadas, seguindo, como parâmetro, o currículo normativo de ensino.",
+    "correctAnswer": "E",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 65,
+    "statement": "O poder público viabilizará e estimulará o acesso e a permanência do trabalhador na escola, mediante ações integradas e complementares entre si.",
+    "correctAnswer": "C",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 66,
+    "statement": "A educação básica é direito universal e alicerce indispensável para se exercer, em plenitude, o direito à cidadania.",
+    "correctAnswer": "C",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 67,
+    "statement": "O art. 8.o das Diretrizes Curriculares Nacionais para o Ensino Médio estabelece três áreas do conhecimento: linguagens; matemática; e ciências da natureza.",
+    "correctAnswer": "E",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 68,
+    "statement": "A Secretaria de Estado de Educação do Distrito Federal apresenta, atualmente, três formas de organização do ensino médio: a seriada, em regime anual; a semestral; e a trimestral, dividida em trimestres com três blocos de componentes curriculares, em regime anual.",
+    "correctAnswer": "E",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 69,
+    "statement": "Segundo o artigo 22 da Lei de Diretrizes e Bases da Educação, a educação básica tem por finalidades desenvolver o educando, assegurar-lhe a formação comum indispensável para o exercício da cidadania e fornecer-lhe meios para progredir no trabalho e em estudos posteriores.",
+    "correctAnswer": "C",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 70,
+    "statement": "A Emenda Constitucional n.o 59/2009 instituiu a educação básica obrigatória e gratuita dos quatro aos dezessete anos de idade, assegurando, inclusive, sua oferta gratuita para todos os que a ela não tiveram acesso na idade própria.",
+    "correctAnswer": "C",
+    "subject": "Diretrizes Curriculares Nacionais"
+  },
+  {
+    "number": 71,
+    "statement": "No texto, estruturado em forma dissertativa, são apresentados dados numéricos que refletem os danos causados pela pandemia de covid-19 à aprendizagem escolar de estudantes da rede pública de ensino no Brasil.",
+    "correctAnswer": "C",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 72,
+    "statement": "De acordo com o texto, durante a pandemia de covid-19, acentuou-se, na América Latina, a desigualdade entre ensino público e privado no que se refere ao acesso ao conhecimento de estudantes de ensino fundamental e médio.",
+    "correctAnswer": "C",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 73,
+    "statement": "Identifica-se, no texto, a principal causa da evasão escolar por estudantes latino-americanos dos últimos anos do ensino médio e primeiros anos da graduação.",
+    "correctAnswer": "C",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 74,
+    "statement": "Na linha 19, haveria prejuízo para a coerência das ideias do texto caso o termo “maior” fosse deslocado para antes do substantivo “efeito” – O maior efeito.",
+    "correctAnswer": "E",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 75,
+    "statement": "As orações “que pudesse chegar aos mais pobres” (linha 12) e “que a segunda onda de covid-19 está extremamente agressiva” (linhas 12 e 13) são adjetivas restritivas, por isso não se separam por vírgula da oração à qual se subordinam.",
+    "correctAnswer": "E",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 76,
+    "statement": "“deve se agravar” (linha 11) por deve agravar-se",
+    "correctAnswer": "C",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 77,
+    "statement": "“apesar das” (linha 14) por não obstante às",
+    "correctAnswer": "E",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 78,
+    "statement": "“não só no que diz respeito à aprendizagem, mas, também, no que se refere ao aumento da desigualdade e do abandono escolar” (linhas 2 e 3): tanto em relação a aprendizagem quanto o aumento da desigualdade e do abandono escolar",
+    "correctAnswer": "E",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 79,
+    "statement": "“É preciso reconhecer que há uma pandemia educacional que pode ser devastadora em médio e em longo prazo se nada for feito.” (linhas 28 e 29): É necessário reconhecer a existência de uma pandemia educacional, que pode ser devastadora no médio e longo prazos caso nada seja feito a esse respeito.",
+    "correctAnswer": "C",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 80,
+    "statement": "Servimo-nos do presente para solicitar a essa Secretaria de Estado que seja designada uma cadeira representativa na Comissão de Análise de Retorno às Aulas Presenciais a um membro indicado deste Sindicato, tendo em vista de que, a maneira pela qual será organizado o retorno às atividades presenciais nas escolas da rede pública de ensino impactará na saúde do trabalhador e daqueles que por eles são atendidos.",
+    "correctAnswer": "E",
+    "subject": "Língua Portuguesa"
+  },
+  {
+    "number": 81,
+    "statement": "Compete ao Distrito Federal, em concorrência com a União, legislar sobre educação, cultura, ensino e desporto.",
+    "correctAnswer": "C",
+    "subject": "Legislação do DF"
+  },
+  {
+    "number": 82,
+    "statement": "A gestão democrática é assegurada por seleção com provas e eleição direta, podendo o Distrito Federal implantar concurso público para gestor escolar.",
+    "correctAnswer": "C",
+    "subject": "Legislação do DF"
+  },
+  {
+    "number": 83,
+    "statement": "Quando houver conveniência para o serviço, a penalidade de suspensão por infração disciplinar poderá ser convertida em multa no valor da remuneração diária, por dia de suspensão, e o servidor ficará obrigado a cumprir integralmente a jornada de trabalho.",
+    "correctAnswer": "E",
+    "subject": "Legislação do DF"
+  },
+  {
+    "number": 84,
+    "statement": "É classificada como infração disciplinar grave a prática de ato incompatível com a moralidade administrativa e como infração leve a prática de comércio na repartição.",
+    "correctAnswer": "E",
+    "subject": "Legislação do DF"
+  },
+  {
+    "number": 85,
+    "statement": "Denúncias anônimas sobre infração disciplinar cometida por servidor serão desconsideradas, sendo indispensável, para o início das investigações, a representação por escrito com a identificação do denunciante.",
+    "correctAnswer": "E",
+    "subject": "Legislação do DF"
+  },
+  {
+    "number": 86,
+    "statement": "A permanência da criança em programa de acolhimento institucional não se prolongará por mais de dezoito meses, salvo necessidade que atenda ao seu superior interesse, fundamentada pela autoridade judiciária.",
+    "correctAnswer": "C",
+    "subject": "ECA e Estatuto da Pessoa com Deficiência"
+  },
+  {
+    "number": 87,
+    "statement": "A guarda destina-se a regularizar a posse de fato, confere à criança ou ao adolescente a condição de dependente para todos os efeitos de direito, inclusive previdenciários, e seu deferimento se vincula aos procedimentos de tutela e adoção, inclusive por estrangeiros.",
+    "correctAnswer": "E",
+    "subject": "ECA e Estatuto da Pessoa com Deficiência"
+  },
+  {
+    "number": 88,
+    "statement": "Os dirigentes de estabelecimentos de ensino fundamental comunicarão ao conselho tutelar elevados níveis de repetência e a reiteração de faltas injustificadas e de evasão escolar, esgotados os recursos escolares.",
+    "correctAnswer": "C",
+    "subject": "ECA e Estatuto da Pessoa com Deficiência"
+  },
+  {
+    "number": 89,
+    "statement": "Nos processos seletivos para ingresso em instituições de ensino superior e de educação profissional públicas, devem ser disponibilizados recursos de acessibilidade e de tecnologia assistiva adequados, previamente solicitados e escolhidos pelo candidato com deficiência, sendo tal disponibilidade facultativa nas instituições privadas.",
+    "correctAnswer": "E",
+    "subject": "ECA e Estatuto da Pessoa com Deficiência"
+  },
+  {
+    "number": 90,
+    "statement": "Incumbe ao poder público assegurar a oferta de educação bilíngue, em Libras como primeira língua e na modalidade escrita da língua portuguesa como segunda língua, em escolas e classes bilíngues e em escolas inclusivas.",
+    "correctAnswer": "C",
+    "subject": "ECA e Estatuto da Pessoa com Deficiência"
+  },
+  {
+    "number": 91,
+    "statement": "Brasília foi concebida para, além de cidade modernista, contribuir para o processo de interiorização do desenvolvimento brasileiro.",
+    "correctAnswer": "C",
+    "subject": "Conhecimentos sobre o DF"
+  },
+  {
+    "number": 92,
+    "statement": "Ao Plano de Metas apresentado na campanha eleitoral para a presidência em 1955, JK acrescentou uma meta-síntese, que seria a construção da nova capital no Planalto Central do País.",
+    "correctAnswer": "C",
+    "subject": "Conhecimentos sobre o DF"
+  },
+  {
+    "number": 93,
+    "statement": "A proposta de construção de Brasília foi recebida com entusiasmo pela população e o grande apoio político para a concretização do projeto veio da União Democrática Nacional (UDN), especialmente de seu líder, Carlos Lacerda.",
+    "correctAnswer": "E",
+    "subject": "Conhecimentos sobre o DF"
+  },
+  {
+    "number": 94,
+    "statement": "O projeto urbanístico de Brasília, elaborado por Lúcio Costa, foi integralmente estendido às chamadas “cidades-satélites” do Plano Piloto e ao entorno do Distrito Federal.",
+    "correctAnswer": "E",
+    "subject": "Conhecimentos sobre o DF"
+  },
+  {
+    "number": 95,
+    "statement": "A maior crítica que se faz à legislação que criou a Rede Integrada de Desenvolvimento da Região do Distrito Federal e Entorno (RIDE) é a por ter excluído os municípios mineiros.",
+    "correctAnswer": "C",
+    "subject": "Conhecimentos sobre o DF"
+  },
+  {
+    "number": 96,
+    "statement": "No Google Classroom, ao utilizar tanto a avaliação por “Total de pontos” quanto a “Ponderada por categoria” no sistema de notas, o professor receberá as notas já calculadas e poderá permitir que os alunos visualizem suas notas finais.",
+    "correctAnswer": "C",
+    "subject": "Informática"
+  },
+  {
+    "number": 97,
+    "statement": "Ao criar uma turma no Google Classroom, é gerado, de forma automática, o código que o professor pode usar para convidar os alunos para a turma.",
+    "correctAnswer": "C",
+    "subject": "Informática"
+  },
+  {
+    "number": 98,
+    "statement": "No Google Classroom, ao clicar em uma turma e depois clicar em Notas, o professor poderá visualizar um trabalho enviado por um aluno.",
+    "correctAnswer": "E",
+    "subject": "Informática"
+  },
+  {
+    "number": 99,
+    "statement": "O Google Meet não permite adicionar legenda a uma transmissão ao vivo.",
+    "correctAnswer": "E",
+    "subject": "Informática"
+  },
+  {
+    "number": 100,
+    "statement": "Após uma reunião ter sido iniciada no Google Meet, não é permitido adicionar pessoas à videochamada.",
+    "correctAnswer": "E",
+    "subject": "Informática"
+  }
+]

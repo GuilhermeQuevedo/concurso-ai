@@ -34,6 +34,9 @@ model User {
   streak        Streak?
   groupMembers  GroupMember[]
   groupActivities GroupActivity[]
+  essays        Essay[]
+  contests      Contest[]
+  studyTasks    StudyTask[]
 }
 
 model Session {
@@ -266,6 +269,34 @@ model Streak {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Essay {
+  id          String      @id @default(cuid())
+  userId      String
+  title       String
+  theme       String
+  content     String      @db.LongText
+  fileUrl     String?
+  fileName    String?
+  status      EssayStatus @default(PENDING)
+  score       Int?
+  feedback    String?     @db.LongText
+  criteria    Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+enum EssayStatus {
+  PENDING
+  GRADING
+  GRADED
+  ERROR
+}
+
 enum DocumentType {
   PDF
   DOCX
@@ -320,4 +351,73 @@ model GroupActivity {
 
   @@index([groupId, createdAt])
   @@index([userId])
+}
+
+model Contest {
+  id               String        @id @default(cuid())
+  userId           String
+  name             String
+  organization     String?
+  examBoard        String?
+  role             String?
+  examDate         DateTime?
+  status           ContestStatus @default(STUDYING)
+  editalDocumentId String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syllabus   ContestSyllabusItem[]
+  studyTasks StudyTask[]
+
+  @@index([userId])
+}
+
+model ContestSyllabusItem {
+  id         String  @id @default(cuid())
+  contestId  String
+  subjectId  String?
+  discipline String
+  topic      String  @db.Text
+  order      Int     @default(0)
+  studied    Boolean @default(false)
+
+  contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+
+  @@index([contestId])
+}
+
+enum ContestStatus {
+  PLANNED
+  STUDYING
+  DONE
+  ARCHIVED
+}
+
+model StudyTask {
+  id             String        @id @default(cuid())
+  userId         String
+  contestId      String?
+  syllabusItemId String?
+  date           DateTime
+  type           StudyTaskType
+  title          String
+  discipline     String?
+  duration       Int
+  completed      Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contest Contest? @relation(fields: [contestId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([contestId])
+}
+
+enum StudyTaskType {
+  STUDY
+  REVIEW
+  ESSAY
+  MOCK_EXAM
 }

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import path from 'node:path';
 import { env } from './config/env.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler } from './middlewares/error-handler.js';
@@ -25,6 +26,7 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '10mb' }));
+app.use('/uploads', express.static(path.resolve('uploads')));
 
 app.use('/api', apiRouter);
 

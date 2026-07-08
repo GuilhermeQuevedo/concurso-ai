@@ -10,6 +10,9 @@ import { studyPlanRouter } from './study-plan.routes.js';
 import { flashcardRouter } from './flashcard.routes.js';
 import { gamificationRouter } from './gamification.routes.js';
 import { groupRouter } from './group.routes.js';
+import { essayRouter } from './essay.routes.js';
+import { contestRouter } from './contest.routes.js';
+import { studyTaskRouter } from './study-task.routes.js';
 
 const router: RouterType = Router();
 
@@ -23,6 +26,9 @@ router.use('/study-plans', studyPlanRouter);
 router.use('/flashcards', flashcardRouter);
 router.use('/gamification', gamificationRouter);
 router.use('/groups', groupRouter);
+router.use('/essays', essayRouter);
+router.use('/contests', contestRouter);
+router.use('/study-tasks', studyTaskRouter);
 
 router.get('/health', (_req, res) => {
   const response: ApiResponse<{ status: string; timestamp: string }> = {
