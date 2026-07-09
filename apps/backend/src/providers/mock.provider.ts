@@ -7,6 +7,8 @@ import type {
   ParseEditalParams,
   EditalParseResult,
   TopicContentParams,
+  GenerateFlashcardsParams,
+  GeneratedFlashcard,
 } from '../interfaces/ai.interfaces.js';
 
 export class MockProvider implements IAIProvider {
@@ -127,5 +129,13 @@ export class MockProvider implements IAIProvider {
 
 ### Dica de memorização
 Associe cada conceito a um exemplo do dia a dia para fixar melhor.`;
+  }
+
+  async generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]> {
+    const subject = params.subject ?? 'o tema estudado';
+    return Array.from({ length: params.count }, (_, i) => ({
+      front: `[MOCK] Pergunta ${i + 1} sobre ${subject}?`,
+      back: `[MOCK] Resposta ${i + 1} baseada no conteúdo enviado, resumindo o conceito principal.`,
+    }));
   }
 }

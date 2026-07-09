@@ -9,10 +9,15 @@ export class QuestionService {
 
   constructor(private readonly aiProvider: IAIProvider) {}
 
-  async generate(dto: GenerateQuestionsDTO) {
+  async generate(userId: string, dto: GenerateQuestionsDTO) {
     const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
     if (!subject) {
       throw new AppError(404, 'SUBJECT_NOT_FOUND', 'Disciplina não encontrada');
+    }
+
+    // Com documento escolhido, gera ancorado nas anotações do aluno (pula o banco)
+    if (dto.documentId) {
+      return this.generateWithAI(userId, dto, subject.name);
     }
 
     const imported = await this.findImportedQuestions(dto);
@@ -20,7 +25,7 @@ export class QuestionService {
       return imported;
     }
 
-    return this.generateWithAI(dto, subject.name);
+    return this.generateWithAI(userId, dto, subject.name);
   }
 
   private async findImportedQuestions(dto: GenerateQuestionsDTO) {
@@ -54,7 +59,7 @@ export class QuestionService {
     return [subjectId, ...children.map((c) => c.id)];
   }
 
-  private async generateWithAI(dto: GenerateQuestionsDTO, subjectName: string) {
+  private async generateWithAI(userId: string, dto: GenerateQuestionsDTO, subjectName: string) {
     let examBoardName: string | undefined;
     if (dto.examBoardId) {
       const board = await prisma.examBoard.findUnique({ where: { id: dto.examBoardId } });
@@ -64,7 +69,16 @@ export class QuestionService {
       examBoardName = board.name;
     }
 
-    const context = await this.documentService.getContentBySubject(dto.subjectId);
+    let context: string;
+    if (dto.documentId) {
+      const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
+      if (!doc || doc.userId !== userId) {
+        throw new AppError(404, 'DOCUMENT_NOT_FOUND', 'Documento não encontrado');
+      }
+      context = doc.content;
+    } else {
+      context = await this.documentService.getContentBySubject(dto.subjectId);
+    }
 
     const generated = await this.aiProvider.generateQuestions({
       subject: subjectName,

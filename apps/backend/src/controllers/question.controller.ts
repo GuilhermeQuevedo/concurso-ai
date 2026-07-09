@@ -1,13 +1,14 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { QuestionService } from '../services/question.service.js';
 import type { ApiResponse } from '@concurso-ai/types';
+import { getUserId } from '../utils/request.js';
 
 export class QuestionController {
   constructor(private readonly service: QuestionService) {}
 
   generate = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const questions = await this.service.generate(req.body);
+      const questions = await this.service.generate(getUserId(req), req.body);
       const response: ApiResponse<typeof questions> = { success: true, data: questions };
       res.status(201).json(response);
     } catch (error) {

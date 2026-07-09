@@ -91,7 +91,7 @@ export default function StudyPage() {
 
   const currentQuestion = questions[currentIndex];
   const currentState = currentQuestion ? questionStates[currentQuestion.id] : null;
-  const answeredCount = Object.values(questionStates).filter((s) => s.selectedAnswer !== null).length;
+  const answeredCount = Object.values(questionStates).filter((s) => s.result !== null).length;
 
   const submitMutation = useMutation({
     mutationFn: (data: { questionId: string; answer: string; timeSpent: number }) => {
@@ -124,23 +124,29 @@ export default function StudyPage() {
 
   const handleSelectAnswer = useCallback(
     (letter: string) => {
-      if (!currentQuestion || !sessionId || currentState?.selectedAnswer) return;
+      // Enquanto não confirmar, a seleção é livre — pode trocar ou desmarcar
+      if (!currentQuestion || currentState?.result) return;
 
-      setQuestionStates((prev) => ({
-        ...prev,
-        [currentQuestion.id]: { ...prev[currentQuestion.id], selectedAnswer: letter },
-      }));
-
-      submitMutation.mutate({
-        questionId: currentQuestion.id,
-        answer: letter,
-        timeSpent: questionTimer.current,
+      setQuestionStates((prev) => {
+        const current = prev[currentQuestion.id];
+        const next = current.selectedAnswer === letter ? null : letter;
+        return { ...prev, [currentQuestion.id]: { ...current, selectedAnswer: next } };
       });
-
-      questionTimer.current = 0;
     },
-    [currentQuestion, sessionId, currentState?.selectedAnswer],
+    [currentQuestion, currentState?.result],
   );
+
+  const handleConfirm = useCallback(() => {
+    if (!currentQuestion || !sessionId || !currentState?.selectedAnswer || currentState.result) return;
+
+    submitMutation.mutate({
+      questionId: currentQuestion.id,
+      answer: currentState.selectedAnswer,
+      timeSpent: questionTimer.current,
+    });
+
+    questionTimer.current = 0;
+  }, [currentQuestion, sessionId, currentState?.selectedAnswer, currentState?.result, submitMutation]);
 
   const handleToggleFavorite = useCallback(async () => {
     if (!currentQuestion) return;
@@ -174,8 +180,9 @@ export default function StudyPage() {
 
   if (!currentQuestion) return null;
 
-  const isAnswered = !!currentState?.selectedAnswer;
-  const showFeedback = mode === 'STUDY' && isAnswered && currentState?.result;
+  const isConfirmed = !!currentState?.result;
+  const hasSelection = !!currentState?.selectedAnswer;
+  const showFeedback = mode === 'STUDY' && isConfirmed;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -200,9 +207,9 @@ export default function StudyPage() {
           const qs = questionStates[q.id];
           const isCurrent = i === currentIndex;
           let bg = 'bg-gray-200 dark:bg-gray-700';
-          if (qs?.selectedAnswer && mode === 'STUDY') {
-            bg = qs.result?.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white';
-          } else if (qs?.selectedAnswer) {
+          if (qs?.result && mode === 'STUDY') {
+            bg = qs.result.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white';
+          } else if (qs?.result || qs?.selectedAnswer) {
             bg = 'bg-primary-500 text-white';
           }
           return (
@@ -254,15 +261,15 @@ export default function StudyPage() {
               let borderClass = 'border-gray-200 dark:border-gray-700';
               if (showFeedback && isCorrectAlt) borderClass = 'border-green-500 bg-green-50 dark:bg-green-950';
               else if (showFeedback && isSelected && !currentState.result?.isCorrect) borderClass = 'border-red-500 bg-red-50 dark:bg-red-950';
-              else if (mode === 'EXAM' && isSelected) borderClass = 'border-primary-500 bg-primary-50 dark:bg-primary-950';
+              else if (!isConfirmed && isSelected) borderClass = 'border-primary-500 bg-primary-50 dark:bg-primary-950';
 
               return (
                 <button
                   key={alt.letter}
                   onClick={() => handleSelectAnswer(alt.letter)}
-                  disabled={isAnswered}
+                  disabled={isConfirmed}
                   className={`flex w-full items-center gap-3 rounded-lg border px-4 py-2.5 text-left text-sm transition-colors ${borderClass} ${
-                    !isAnswered ? 'hover:border-primary-300 hover:bg-primary-50 dark:hover:border-primary-700 dark:hover:bg-primary-950 cursor-pointer' : ''
+                    !isConfirmed ? 'hover:border-primary-300 hover:bg-primary-50 dark:hover:border-primary-700 dark:hover:bg-primary-950 cursor-pointer' : ''
                   }`}
                 >
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gray-300 text-xs font-medium dark:border-gray-600">
@@ -275,6 +282,23 @@ export default function StudyPage() {
               );
             })}
           </div>
+
+          {!isConfirmed && (
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                onClick={handleConfirm}
+                disabled={!hasSelection || submitMutation.isPending}
+                className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-40"
+              >
+                {submitMutation.isPending ? 'Confirmando...' : 'Confirmar resposta'}
+              </button>
+              <span className="text-xs text-gray-400">
+                {hasSelection
+                  ? 'Você ainda pode trocar de alternativa antes de confirmar.'
+                  : 'Selecione uma alternativa.'}
+              </span>
+            </div>
+          )}
 
           {showFeedback && (
             <div className="mt-4">

@@ -7,6 +7,8 @@ import type {
   ParseEditalParams,
   EditalParseResult,
   TopicContentParams,
+  GenerateFlashcardsParams,
+  GeneratedFlashcard,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
@@ -14,9 +16,11 @@ import {
   buildEssayPrompt,
   buildEditalPrompt,
   buildTopicContentPrompt,
+  buildFlashcardsPrompt,
   questionsResponseSchema,
   essayResponseSchema,
   editalResponseSchema,
+  flashcardsResponseSchema,
   truncateEdital,
   stripJsonMarkdown,
 } from './ai-prompts.js';
@@ -76,6 +80,17 @@ export class OllamaProvider implements IAIProvider {
   async generateTopicContent(params: TopicContentParams): Promise<string> {
     const text = await this.callApi(buildTopicContentPrompt(params), false);
     return text.trim();
+  }
+
+  async generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]> {
+    const raw = await this.callApi(buildFlashcardsPrompt(params));
+    const parsed = this.parseJson(raw, 'geração de flashcards');
+
+    const result = flashcardsResponseSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de flashcards inválido do modelo local: ${result.error.message}`);
+    }
+    return result.data.flashcards;
   }
 
   private async callApi(prompt: string, json = true): Promise<string> {

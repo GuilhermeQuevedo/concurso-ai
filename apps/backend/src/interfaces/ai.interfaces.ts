@@ -68,9 +68,21 @@ export interface TopicContentParams {
   focus?: string | null;
 }
 
+export interface GeneratedFlashcard {
+  front: string;
+  back: string;
+}
+
+export interface GenerateFlashcardsParams {
+  content: string;
+  subject?: string;
+  count: number;
+}
+
 export interface IAIProvider {
   generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]>;
   gradeEssay(params: GradeEssayParams): Promise<EssayGradeResult>;
   parseEdital(params: ParseEditalParams): Promise<EditalParseResult>;
   generateTopicContent(params: TopicContentParams): Promise<string>;
+  generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]>;
 }

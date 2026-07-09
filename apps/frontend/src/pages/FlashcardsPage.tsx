@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Layers, Plus, Trash2, Loader2, RotateCcw, Eye } from 'lucide-react';
+import { Layers, Plus, Trash2, Loader2, RotateCcw, Eye, Sparkles } from 'lucide-react';
 import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
 import { flashcardService, type FlashcardDTO } from '@/features/flashcards/services/flashcard.service';
+import { GenerateFlashcardsForm } from '@/features/flashcards/components/GenerateFlashcardsForm';
 
-type View = 'list' | 'review' | 'create';
+type View = 'list' | 'review' | 'create' | 'generate';
 
 export function FlashcardsPage() {
   const queryClient = useQueryClient();
@@ -60,6 +61,18 @@ export function FlashcardsPage() {
     return <ReviewMode cards={dueCards} onBack={() => { setView('list'); refetchDue(); }} />;
   }
 
+  if (view === 'generate') {
+    return (
+      <GenerateFlashcardsForm
+        onBack={() => setView('list')}
+        onDone={() => {
+          queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+          setView('list');
+        }}
+      />
+    );
+  }
+
   if (view === 'create') {
     return (
       <div className="mx-auto max-w-xl">
@@ -112,9 +125,13 @@ export function FlashcardsPage() {
               Revisar ({stats?.due})
             </button>
           )}
-          <button onClick={() => setView('create')} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">
+          <button onClick={() => setView('generate')} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">
+            <Sparkles className="h-4 w-4" />
+            Gerar com IA
+          </button>
+          <button onClick={() => setView('create')} className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             <Plus className="h-4 w-4" />
-            Novo
+            Manual
           </button>
         </div>
       </div>
@@ -135,7 +152,17 @@ export function FlashcardsPage() {
       ) : cards.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
           <Layers className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum flashcard criado ainda</p>
+          <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Nenhum flashcard ainda</p>
+          <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
+            Cole o que estudou e deixe a IA criar seus cartões de revisão automaticamente
+          </p>
+          <button
+            onClick={() => setView('generate')}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+          >
+            <Sparkles className="h-4 w-4" />
+            Gerar com IA
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -162,6 +189,26 @@ export function FlashcardsPage() {
   );
 }
 
+// Prévia do intervalo do SM-2 (espelha o backend) para mostrar em cada botão
+function previewInterval(card: FlashcardDTO, quality: number): string {
+  if (quality < 3) return '< 1 dia';
+  let interval: number;
+  if (card.repetition === 0) interval = 1;
+  else if (card.repetition === 1) interval = 6;
+  else interval = Math.round(card.interval * card.easeFactor);
+  if (interval <= 1) return '1 dia';
+  if (interval < 30) return `${interval} dias`;
+  const months = Math.round(interval / 30);
+  return months <= 1 ? '1 mês' : `${months} meses`;
+}
+
+const QUALITY_BUTTONS = [
+  { quality: 0, key: '1', label: 'De novo', color: 'bg-red-500 hover:bg-red-600' },
+  { quality: 3, key: '2', label: 'Difícil', color: 'bg-orange-500 hover:bg-orange-600' },
+  { quality: 4, key: '3', label: 'Bom', color: 'bg-blue-500 hover:bg-blue-600' },
+  { quality: 5, key: '4', label: 'Fácil', color: 'bg-green-500 hover:bg-green-600' },
+];
+
 function ReviewMode({ cards, onBack }: { cards: FlashcardDTO[]; onBack: () => void }) {
   const queryClient = useQueryClient();
   const [index, setIndex] = useState(0);
@@ -176,7 +223,39 @@ function ReviewMode({ cards, onBack }: { cards: FlashcardDTO[]; onBack: () => vo
     },
   });
 
-  if (cards.length === 0 || index >= cards.length) {
+  const card = cards[index];
+  const done = cards.length === 0 || index >= cards.length;
+
+  const rate = useCallback(
+    (quality: number) => {
+      if (!card || reviewMutation.isPending) return;
+      reviewMutation.mutate({ id: card.id, quality });
+    },
+    [card, reviewMutation],
+  );
+
+  // Atalhos de teclado estilo Anki: espaço/enter vira; 1-4 avalia
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (done) return;
+      if (!flipped && (e.code === 'Space' || e.code === 'Enter')) {
+        e.preventDefault();
+        setFlipped(true);
+        return;
+      }
+      if (flipped) {
+        const btn = QUALITY_BUTTONS.find((b) => b.key === e.key);
+        if (btn) {
+          e.preventDefault();
+          rate(btn.quality);
+        }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [flipped, done, rate]);
+
+  if (done) {
     return (
       <div className="mx-auto max-w-md text-center py-12">
         <RotateCcw className="mx-auto mb-3 h-10 w-10 text-green-500" />
@@ -187,14 +266,6 @@ function ReviewMode({ cards, onBack }: { cards: FlashcardDTO[]; onBack: () => vo
     );
   }
 
-  const card = cards[index];
-  const qualityButtons = [
-    { quality: 0, label: 'Esqueci', color: 'bg-red-500 hover:bg-red-600' },
-    { quality: 3, label: 'Difícil', color: 'bg-orange-500 hover:bg-orange-600' },
-    { quality: 4, label: 'Bom', color: 'bg-blue-500 hover:bg-blue-600' },
-    { quality: 5, label: 'Fácil', color: 'bg-green-500 hover:bg-green-600' },
-  ];
-
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-4 flex items-center justify-between">
@@ -204,12 +275,14 @@ function ReviewMode({ cards, onBack }: { cards: FlashcardDTO[]; onBack: () => vo
 
       <div
         onClick={() => !flipped && setFlipped(true)}
-        className="mb-4 cursor-pointer rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900 min-h-[200px] flex flex-col items-center justify-center"
+        className="mb-4 cursor-pointer rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900 min-h-[220px] flex flex-col items-center justify-center"
       >
         {!flipped ? (
           <>
             <p className="text-lg text-gray-900 dark:text-white">{card.front}</p>
-            <p className="mt-4 flex items-center gap-1 text-xs text-gray-400"><Eye className="h-3 w-3" /> Clique para ver a resposta</p>
+            <p className="mt-4 flex items-center gap-1 text-xs text-gray-400">
+              <Eye className="h-3 w-3" /> Clique ou aperte espaço para ver a resposta
+            </p>
           </>
         ) : (
           <>
@@ -220,19 +293,28 @@ function ReviewMode({ cards, onBack }: { cards: FlashcardDTO[]; onBack: () => vo
         )}
       </div>
 
-      {flipped && (
+      {flipped ? (
         <div className="grid grid-cols-4 gap-2">
-          {qualityButtons.map((btn) => (
+          {QUALITY_BUTTONS.map((btn) => (
             <button
               key={btn.quality}
-              onClick={() => reviewMutation.mutate({ id: card.id, quality: btn.quality })}
+              onClick={() => rate(btn.quality)}
               disabled={reviewMutation.isPending}
-              className={`rounded-lg px-3 py-2.5 text-sm font-medium text-white ${btn.color} disabled:opacity-50`}
+              className={`flex flex-col items-center rounded-lg px-2 py-2 text-white ${btn.color} disabled:opacity-50`}
             >
-              {btn.label}
+              <span className="text-sm font-medium">{btn.label}</span>
+              <span className="text-[10px] opacity-80">{previewInterval(card, btn.quality)}</span>
+              <span className="mt-0.5 rounded bg-white/20 px-1 text-[10px]">{btn.key}</span>
             </button>
           ))}
         </div>
+      ) : (
+        <button
+          onClick={() => setFlipped(true)}
+          className="w-full rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
+        >
+          Mostrar resposta <span className="opacity-70">(espaço)</span>
+        </button>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Play, Building2, Calendar, Tag, Search, X } from 'lucide-react';
 import { contentService, type SubjectDTO, type ExamBoardDTO } from '@/features/content/services/content.service';
 import { questionService, type QuestionDTO, type GenerateParams } from '@/features/questions/services/question.service';
+import { documentService } from '@/features/documents/services/document.service';
 
 const difficultyOptions = [
   { value: '', label: 'Qualquer' },
@@ -19,6 +20,7 @@ export function GeneratePage() {
   const [difficulty, setDifficulty] = useState('');
   const [quantity, setQuantity] = useState(5);
   const [topic, setTopic] = useState('');
+  const [documentId, setDocumentId] = useState('');
   const [questions, setQuestions] = useState<QuestionDTO[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
@@ -39,6 +41,11 @@ export function GeneratePage() {
     queryFn: contentService.getExamBoards,
   });
 
+  const { data: documents = [] } = useQuery({
+    queryKey: ['documents'],
+    queryFn: () => documentService.list(),
+  });
+
   const generateMutation = useMutation({
     mutationFn: (params: GenerateParams) => questionService.generate(params),
     onSuccess: (data) => {
@@ -54,6 +61,7 @@ export function GeneratePage() {
     if (examBoardId) params.examBoardId = examBoardId;
     if (difficulty) params.difficulty = difficulty as 'EASY' | 'MEDIUM' | 'HARD';
     if (topic.trim()) params.topic = topic.trim();
+    if (documentId) params.documentId = documentId;
     generateMutation.mutate(params);
   };
 
@@ -244,6 +252,26 @@ export function GeneratePage() {
               placeholder="Ex: Princípios fundamentais, Direitos e Garantias..."
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Basear nas minhas anotações (opcional)
+            </label>
+            <select
+              value={documentId}
+              onChange={(e) => setDocumentId(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">Não — usar banco de questões reais</option>
+              {documents.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Escolha um documento e a IA cria questões inéditas cobrando exatamente o que está nas
+              suas anotações.
+            </p>
           </div>
         </div>
 

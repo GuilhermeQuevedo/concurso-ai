@@ -7,6 +7,7 @@ export const generateQuestionsSchema = z.object({
     examBoardId: z.string().min(1).optional(),
     difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).optional(),
     quantity: z.number().int().min(1).max(10).default(5),
+    documentId: z.string().min(1).optional(),
   }),
 });
 

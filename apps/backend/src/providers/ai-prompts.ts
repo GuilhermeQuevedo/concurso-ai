@@ -3,6 +3,7 @@ import type {
   GenerateQuestionsParams,
   GradeEssayParams,
   TopicContentParams,
+  GenerateFlashcardsParams,
 } from '../interfaces/ai.interfaces.js';
 
 export const questionsResponseSchema = z.object({
@@ -67,10 +68,10 @@ export function buildQuestionsPrompt(params: GenerateQuestionsParams): string {
   const diffText = params.difficulty ? difficultyMap[params.difficulty] : 'variada';
 
   const contextBlock = params.context
-    ? `\nMATERIAL DE REFERÊNCIA (use como base para elaborar as questões):\n${params.context}\n`
+    ? `\nMATERIAL DE ESTUDO DO CANDIDATO (baseie-se ESTRITAMENTE neste material — cada questão deve poder ser respondida com o que está aqui; não cobre nada que não esteja no texto):\n${params.context}\n`
     : '';
 
-  return `Você é um especialista em concursos públicos brasileiros. Gere ${params.quantity} questão(ões) de múltipla escolha sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
+  return `Você é um elaborador experiente de questões de concursos públicos brasileiros. Gere ${params.quantity} questão(ões) de múltipla escolha sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
 
 ${params.examBoard ? `Estilo da banca: ${params.examBoard}. Siga o padrão de elaboração dessa banca.` : ''}
 Dificuldade: ${diffText}.
@@ -78,11 +79,13 @@ ${contextBlock}
 
 REGRAS OBRIGATÓRIAS:
 1. Cada questão deve ter exatamente 5 alternativas (A, B, C, D, E)
-2. Apenas UMA alternativa correta por questão
-3. O enunciado deve ser claro e contextualizado
-4. A explicação deve justificar por que a alternativa correta está certa e as outras erradas
-5. Use linguagem formal e técnica adequada para concursos
-6. Varie a posição da resposta correta entre as questões
+2. Apenas UMA alternativa inequivocamente correta por questão — as demais devem estar claramente erradas para quem domina o conteúdo, sem ambiguidade
+3. O enunciado deve ser claro, autocontido e direto: uma única pergunta, sem duplas negações, sem "pegadinhas" de redação confusa
+4. As alternativas erradas devem ser plausíveis (erros comuns de candidatos), curtas e com estrutura gramatical semelhante à correta
+5. NÃO invente leis, artigos, números ou datas; se não tiver certeza de um dado, não o utilize
+6. A explicação deve justificar por que a alternativa correta está certa e por que CADA uma das outras está errada
+7. Use linguagem formal e técnica adequada para concursos
+8. Varie a posição da resposta correta entre as questões
 
 Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adicional:
 {
@@ -171,6 +174,39 @@ Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adic
       "discipline": "Língua Portuguesa",
       "topics": ["Tópico 1", "Tópico 2"]
     }
+  ]
+}`;
+}
+
+const FLASHCARD_MAX_CONTENT = 12000;
+
+export const flashcardsResponseSchema = z.object({
+  flashcards: z
+    .array(z.object({ front: z.string().min(1), back: z.string().min(1) }))
+    .min(1),
+});
+
+export function buildFlashcardsPrompt(params: GenerateFlashcardsParams): string {
+  const content = params.content.slice(0, FLASHCARD_MAX_CONTENT);
+  const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : '';
+
+  return `Você é um especialista em técnicas de memorização para concursos públicos. A partir do CONTEÚDO DE ESTUDO abaixo${subjectBlock}, crie ${params.count} flashcards de pergunta e resposta para revisão espaçada.
+
+CONTEÚDO DE ESTUDO:
+${content}
+
+REGRAS OBRIGATÓRIAS:
+1. Baseie-se ESTRITAMENTE no conteúdo fornecido — não invente fatos que não estejam no texto.
+2. Cada flashcard deve testar UM conceito específico e importante (atômico).
+3. A "front" é uma pergunta direta e objetiva; a "back" é a resposta completa mas concisa.
+4. Evite perguntas de sim/não. Prefira "O que é...", "Qual...", "Quando...", "Por que...".
+5. Priorize os pontos mais cobrados em prova (definições, prazos, exceções, classificações).
+6. Não repita o mesmo conceito em cards diferentes.
+
+Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adicional:
+{
+  "flashcards": [
+    { "front": "Pergunta objetiva?", "back": "Resposta completa e concisa." }
   ]
 }`;
 }

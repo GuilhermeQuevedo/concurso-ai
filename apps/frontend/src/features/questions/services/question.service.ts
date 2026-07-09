@@ -24,11 +24,15 @@ export interface GenerateParams {
   examBoardId?: string;
   difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
   quantity: number;
+  documentId?: string;
 }
 
 export const questionService = {
   async generate(params: GenerateParams): Promise<QuestionDTO[]> {
-    const response = await api.post<ApiResponse<QuestionDTO[]>>('/questions/generate', params);
+    const response = await api.post<ApiResponse<QuestionDTO[]>>('/questions/generate', params, {
+      // Geração com IA local pode levar minutos
+      timeout: 600000,
+    });
     return unwrapData(response);
   },
 

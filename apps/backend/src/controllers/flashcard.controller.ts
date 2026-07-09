@@ -16,6 +16,16 @@ export class FlashcardController {
     }
   };
 
+  generate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const cards = await this.service.generateFromContent(getUserId(req), req.body);
+      const response: ApiResponse<typeof cards> = { success: true, data: cards };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getDue = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const subjectId = req.query.subjectId as string | undefined;

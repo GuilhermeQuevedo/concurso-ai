@@ -1,3 +1,4 @@
+import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 
@@ -11,11 +12,57 @@ interface ReviewDTO {
   quality: number; // 0-5 SM-2 scale
 }
 
+interface GenerateFlashcardsDTO {
+  subjectId: string;
+  count: number;
+  text?: string;
+  documentId?: string;
+}
+
+const MAX_GENERATED_CARDS = 30;
+
 export class FlashcardService {
+  constructor(private readonly aiProvider: IAIProvider) {}
+
   async create(userId: string, dto: CreateFlashcardDTO) {
     return prisma.flashcard.create({
       data: { userId, subjectId: dto.subjectId, front: dto.front, back: dto.back },
     });
+  }
+
+  async generateFromContent(userId: string, dto: GenerateFlashcardsDTO) {
+    const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
+    if (!subject) {
+      throw new AppError(404, 'SUBJECT_NOT_FOUND', 'Disciplina não encontrada');
+    }
+
+    let content = dto.text?.trim() ?? '';
+    if (!content && dto.documentId) {
+      const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
+      if (!doc || doc.userId !== userId) {
+        throw new AppError(404, 'DOCUMENT_NOT_FOUND', 'Documento não encontrado');
+      }
+      content = doc.content;
+    }
+
+    if (content.length < 50) {
+      throw new AppError(400, 'CONTENT_TOO_SHORT', 'Envie um texto ou documento com conteúdo suficiente para gerar flashcards.');
+    }
+
+    const count = Math.min(Math.max(dto.count, 1), MAX_GENERATED_CARDS);
+    const generated = await this.aiProvider.generateFlashcards({
+      content,
+      subject: subject.name,
+      count,
+    });
+
+    return prisma.$transaction(
+      generated.map((card) =>
+        prisma.flashcard.create({
+          data: { userId, subjectId: dto.subjectId, front: card.front, back: card.back },
+        }),
+      ),
+    );
   }
 
   async getDueCards(userId: string, subjectId?: string) {

@@ -26,6 +26,18 @@ export const flashcardService = {
     return unwrapData(response);
   },
 
+  async generate(data: {
+    subjectId: string;
+    count: number;
+    text?: string;
+    documentId?: string;
+  }): Promise<FlashcardDTO[]> {
+    const response = await api.post<ApiResponse<FlashcardDTO[]>>('/flashcards/generate', data, {
+      timeout: 600000,
+    });
+    return unwrapData(response);
+  },
+
   async getDue(subjectId?: string): Promise<FlashcardDTO[]> {
     const params = subjectId ? { subjectId } : {};
     const response = await api.get<ApiResponse<FlashcardDTO[]>>('/flashcards/due', { params });
