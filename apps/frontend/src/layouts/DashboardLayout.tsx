@@ -42,7 +42,7 @@ interface NavGroup {
 }
 
 const topItems: NavItem[] = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/dashboard', label: 'Visão Geral', icon: LayoutDashboard },
 ];
 
 const navGroups: NavGroup[] = [

@@ -23,7 +23,7 @@ export class StudyTaskService {
   async generatePlan(userId: string, dto: GeneratePlanDTO) {
     const contest = await prisma.contest.findUnique({
       where: { id: dto.contestId },
-      include: { syllabus: { where: { studied: false }, orderBy: { order: 'asc' } } },
+      include: { syllabus: { where: { studied: false, focus: true }, orderBy: { order: 'asc' } } },
     });
 
     if (!contest || contest.userId !== userId) {

@@ -29,5 +29,6 @@ router.patch(
   validateRequest(updateSyllabusItemSchema),
   controller.updateSyllabusItem,
 );
+router.get('/syllabus/:itemId/content', authMiddleware, controller.getTopicContent);
 
 export { router as contestRouter };

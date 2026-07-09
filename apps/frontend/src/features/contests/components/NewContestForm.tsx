@@ -47,6 +47,7 @@ function ModeButton({ active, onClick, label }: { active: boolean; onClick: () =
 function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
+  const [focus, setFocus] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [fileError, setFileError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,7 +55,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
   const mutation = useMutation({
     mutationFn: () => {
       if (!file) return Promise.reject(new Error('Selecione o PDF do edital'));
-      return contestService.createFromEdital(file);
+      return contestService.createFromEdital(file, focus);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['contests'] });
@@ -84,6 +85,22 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
         <p>
           A IA lê o edital e extrai automaticamente: órgão, banca, cargo, data da prova e o conteúdo
           programático completo como checklist de estudo.
+        </p>
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Qual o seu foco? <span className="font-normal text-gray-400">(opcional)</span>
+        </label>
+        <input
+          value={focus}
+          onChange={(e) => setFocus(e.target.value)}
+          placeholder="Ex: Professor de Sociologia, Analista Judiciário, Área de TI..."
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        />
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Informe o cargo ou área que vai prestar. A IA monta o cronograma só com as disciplinas
+          exigidas para o seu foco.
         </p>
       </div>
 

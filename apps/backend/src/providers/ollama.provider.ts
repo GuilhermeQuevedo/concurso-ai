@@ -6,12 +6,14 @@ import type {
   EssayGradeResult,
   ParseEditalParams,
   EditalParseResult,
+  TopicContentParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
   buildQuestionsPrompt,
   buildEssayPrompt,
   buildEditalPrompt,
+  buildTopicContentPrompt,
   questionsResponseSchema,
   essayResponseSchema,
   editalResponseSchema,
@@ -61,7 +63,7 @@ export class OllamaProvider implements IAIProvider {
 
   async parseEdital(params: ParseEditalParams): Promise<EditalParseResult> {
     const content = truncateEdital(params.content, OLLAMA_EDITAL_MAX_CHARS);
-    const raw = await this.callApi(buildEditalPrompt(content));
+    const raw = await this.callApi(buildEditalPrompt(content, params.focus));
     const parsed = this.parseJson(raw, 'análise de edital');
 
     const result = editalResponseSchema.safeParse(parsed);
@@ -71,7 +73,12 @@ export class OllamaProvider implements IAIProvider {
     return result.data;
   }
 
-  private async callApi(prompt: string): Promise<string> {
+  async generateTopicContent(params: TopicContentParams): Promise<string> {
+    const text = await this.callApi(buildTopicContentPrompt(params), false);
+    return text.trim();
+  }
+
+  private async callApi(prompt: string, json = true): Promise<string> {
     let response: Response;
     try {
       response = await fetch(`${this.baseUrl}/api/chat`, {
@@ -81,7 +88,7 @@ export class OllamaProvider implements IAIProvider {
         body: JSON.stringify({
           model: this.model,
           stream: false,
-          format: 'json',
+          ...(json ? { format: 'json' } : {}),
           options: { temperature: 0.7, num_ctx: 32768 },
           messages: [{ role: 'user', content: prompt }],
         }),

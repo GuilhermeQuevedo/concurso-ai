@@ -11,6 +11,7 @@ export interface SyllabusItem {
   topic: string;
   order: number;
   studied: boolean;
+  focus: boolean;
 }
 
 export interface ContestSummary {
@@ -19,6 +20,7 @@ export interface ContestSummary {
   organization: string | null;
   examBoard: string | null;
   role: string | null;
+  focus: string | null;
   examDate: string | null;
   status: ContestStatus;
   totalTopics: number;
@@ -45,14 +47,23 @@ export const contestService = {
     return unwrapData(response);
   },
 
-  async createFromEdital(file: File): Promise<ContestDetail> {
+  async createFromEdital(file: File, focus?: string): Promise<ContestDetail> {
     const formData = new FormData();
     formData.append('file', file);
+    if (focus?.trim()) formData.append('focus', focus.trim());
     const response = await api.post<ApiResponse<ContestDetail>>('/contests/from-edital', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       // IA local pode levar vários minutos num edital grande
       timeout: 600000,
     });
+    return unwrapData(response);
+  },
+
+  async getTopicContent(itemId: string): Promise<{ id: string; content: string }> {
+    const response = await api.get<ApiResponse<{ id: string; content: string }>>(
+      `/contests/syllabus/${itemId}/content`,
+      { timeout: 600000 },
+    );
     return unwrapData(response);
   },
 

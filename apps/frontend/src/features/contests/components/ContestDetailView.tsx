@@ -9,10 +9,12 @@ import {
   Circle,
   Clock,
   Loader2,
+  Target,
   Trash2,
 } from 'lucide-react';
 import { contestService, type SyllabusItem } from '../services/contest.service';
 import { daysUntil, formatExamDate } from './ContestCard';
+import { TopicContent } from './TopicContent';
 
 export function ContestDetailView({ contestId, onBack }: { contestId: string; onBack: () => void }) {
   const queryClient = useQueryClient();
@@ -47,7 +49,12 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
       list.push(item);
       groups.set(item.discipline, list);
     }
-    return Array.from(groups.entries());
+    // Disciplinas em foco primeiro
+    return Array.from(groups.entries()).sort((a, b) => {
+      const aFocus = a[1].some((i) => i.focus) ? 0 : 1;
+      const bFocus = b[1].some((i) => i.focus) ? 0 : 1;
+      return aFocus - bFocus;
+    });
   }, [contest]);
 
   if (isLoading || !contest) {
@@ -98,6 +105,12 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
               Prova: {formatExamDate(contest.examDate)}
             </span>
           )}
+          {contest.focus && (
+            <span className="flex items-center gap-1 rounded bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-950 dark:text-primary-300">
+              <Target className="h-3 w-3" />
+              Foco: {contest.focus}
+            </span>
+          )}
         </div>
       </div>
 
@@ -136,6 +149,7 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
               key={discipline}
               discipline={discipline}
               items={items}
+              inFocus={items.some((i) => i.focus)}
               onToggle={(itemId, value) => toggleMutation.mutate({ itemId, studied: value })}
             />
           ))}
@@ -148,10 +162,12 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
 function DisciplineGroup({
   discipline,
   items,
+  inFocus,
   onToggle,
 }: {
   discipline: string;
   items: SyllabusItem[];
+  inFocus: boolean;
   onToggle: (itemId: string, studied: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -159,7 +175,11 @@ function DisciplineGroup({
   const done = studied === items.length;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+    <div
+      className={`overflow-hidden rounded-xl border bg-white dark:bg-gray-900 ${
+        inFocus ? 'border-gray-200 dark:border-gray-800' : 'border-gray-200 opacity-60 dark:border-gray-800'
+      }`}
+    >
       <button
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -171,6 +191,11 @@ function DisciplineGroup({
             <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" />
           )}
           <span className="font-medium text-gray-900 dark:text-white">{discipline}</span>
+          {!inFocus && (
+            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+              fora do foco
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -183,26 +208,30 @@ function DisciplineGroup({
       {open && (
         <div className="border-t border-gray-200 dark:border-gray-800">
           {items.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onToggle(item.id, !item.studied)}
-              className="flex w-full items-start gap-3 border-b border-gray-100 px-4 py-3 text-left last:border-b-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
-            >
-              {item.studied ? (
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-              ) : (
-                <Circle className="mt-0.5 h-4 w-4 shrink-0 text-gray-300 dark:text-gray-600" />
-              )}
-              <span
-                className={`text-sm ${
-                  item.studied
-                    ? 'text-gray-400 line-through dark:text-gray-500'
-                    : 'text-gray-700 dark:text-gray-300'
-                }`}
+            <div key={item.id} className="border-b border-gray-100 px-4 py-3 last:border-b-0 dark:border-gray-800">
+              <button
+                onClick={() => onToggle(item.id, !item.studied)}
+                className="flex w-full items-start gap-3 text-left"
               >
-                {item.topic}
-              </span>
-            </button>
+                {item.studied ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                ) : (
+                  <Circle className="mt-0.5 h-4 w-4 shrink-0 text-gray-300 dark:text-gray-600" />
+                )}
+                <span
+                  className={`text-sm ${
+                    item.studied
+                      ? 'text-gray-400 line-through dark:text-gray-500'
+                      : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {item.topic}
+                </span>
+              </button>
+              <div className="pl-7">
+                <TopicContent itemId={item.id} />
+              </div>
+            </div>
           ))}
         </div>
       )}

@@ -23,13 +23,28 @@ export class ContestController {
       if (!file) {
         throw new AppError(400, 'MISSING_FILE', 'Envie o PDF do edital.');
       }
-      const contest = await this.service.createFromEdital(getUserId(req), {
-        originalname: file.originalname,
-        mimetype: file.mimetype,
-        path: file.path,
-      });
+      const focus = typeof req.body?.focus === 'string' ? req.body.focus : undefined;
+      const contest = await this.service.createFromEdital(
+        getUserId(req),
+        {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          path: file.path,
+        },
+        focus,
+      );
       const response: ApiResponse<typeof contest> = { success: true, data: contest };
       res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getTopicContent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const content = await this.service.getTopicContent(getUserId(req), req.params.itemId as string);
+      const response: ApiResponse<typeof content> = { success: true, data: content };
+      res.json(response);
     } catch (error) {
       next(error);
     }

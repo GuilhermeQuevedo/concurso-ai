@@ -360,6 +360,7 @@ model Contest {
   organization     String?
   examBoard        String?
   role             String?
+  focus            String?       @db.Text
   examDate         DateTime?
   status           ContestStatus @default(STUDYING)
   editalDocumentId String?
@@ -381,6 +382,8 @@ model ContestSyllabusItem {
   topic      String  @db.Text
   order      Int     @default(0)
   studied    Boolean @default(false)
+  focus      Boolean @default(true)
+  content    String? @db.LongText
 
   contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
 

@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import type { GenerateQuestionsParams, GradeEssayParams } from '../interfaces/ai.interfaces.js';
+import type {
+  GenerateQuestionsParams,
+  GradeEssayParams,
+  TopicContentParams,
+} from '../interfaces/ai.interfaces.js';
 
 export const questionsResponseSchema = z.object({
   questions: z.array(
@@ -42,6 +46,7 @@ export const editalResponseSchema = z.object({
       topics: z.array(z.string()),
     }),
   ),
+  focusDisciplines: z.array(z.string()).nullable().optional(),
 });
 
 const EDITAL_MAX_CHARS = 700000;
@@ -131,7 +136,16 @@ Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adic
 }`;
 }
 
-export function buildEditalPrompt(content: string): string {
+export function buildEditalPrompt(content: string, focus?: string): string {
+  const focusBlock = focus
+    ? `
+
+FOCO DO CANDIDATO: "${focus}"
+Além de extrair o conteúdo COMPLETO, identifique em **focusDisciplines** APENAS as disciplinas do syllabus que são exigidas para esse foco/cargo (inclua as disciplinas comuns a todos os cargos, como Língua Portuguesa e conhecimentos gerais, mais as específicas do foco). Use exatamente os mesmos nomes de disciplina que aparecem no syllabus. Se o foco não corresponder a nenhuma disciplina específica, retorne focusDisciplines como null.`
+    : '';
+
+  const focusField = focus ? '\n  "focusDisciplines": ["Língua Portuguesa", "Sociologia"],' : '';
+
   return `Você é um especialista em concursos públicos brasileiros. Analise o texto do edital abaixo e extraia as informações estruturadas.
 
 TEXTO DO EDITAL:
@@ -143,7 +157,7 @@ EXTRAIA:
 3. **examBoard** — Banca organizadora (ex: CESPE/CEBRASPE, FGV, FCC). null se não encontrar.
 4. **role** — Cargo/função principal do edital. null se não encontrar.
 5. **examDate** — Data da prova objetiva no formato YYYY-MM-DD. null se não encontrada.
-6. **syllabus** — Conteúdo programático COMPLETO: para cada disciplina, liste TODOS os tópicos exatamente como aparecem no edital. Não resuma, não omita tópicos. Separe tópicos compostos em itens individuais quando fizer sentido.
+6. **syllabus** — Conteúdo programático COMPLETO: para cada disciplina, liste TODOS os tópicos exatamente como aparecem no edital. Não resuma, não omita tópicos. Separe tópicos compostos em itens individuais quando fizer sentido.${focusBlock}
 
 Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adicional:
 {
@@ -151,7 +165,7 @@ Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adic
   "organization": "Nome completo do órgão",
   "examBoard": "Banca",
   "role": "Cargo",
-  "examDate": "2026-10-15",
+  "examDate": "2026-10-15",${focusField}
   "syllabus": [
     {
       "discipline": "Língua Portuguesa",
@@ -159,6 +173,22 @@ Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adic
     }
   ]
 }`;
+}
+
+export function buildTopicContentPrompt(params: TopicContentParams): string {
+  const bancaBlock = params.examBoard ? ` A prova é da banca ${params.examBoard}; foque no que costuma ser cobrado por ela.` : '';
+
+  return `Você é um professor experiente que prepara candidatos para concursos públicos brasileiros. Escreva um material de estudo objetivo e didático sobre o tópico abaixo.
+
+DISCIPLINA: ${params.discipline}
+TÓPICO: ${params.topic}${bancaBlock}
+
+O material deve conter, em português, formatado em Markdown:
+1. Um resumo dos conceitos essenciais do tópico (o que o candidato precisa dominar)
+2. Os pontos mais cobrados em prova e possíveis pegadinhas
+3. Uma dica prática de memorização ou resolução
+
+Seja direto e didático. Use listas e negrito para destacar o essencial. Não invente legislação nem dados; se citar leis, cite apenas as reconhecidas. Escreva de 200 a 400 palavras. Responda APENAS com o material em Markdown, sem preâmbulo.`;
 }
 
 export function stripJsonMarkdown(raw: string): string {

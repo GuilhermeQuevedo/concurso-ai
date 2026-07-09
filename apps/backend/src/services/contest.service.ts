@@ -28,7 +28,7 @@ export class ContestService {
     });
   }
 
-  async createFromEdital(userId: string, file: UploadedFile) {
+  async createFromEdital(userId: string, file: UploadedFile, focus?: string) {
     const content =
       file.mimetype === 'application/pdf'
         ? await extractPdfText(file.path)
@@ -39,7 +39,13 @@ export class ContestService {
       throw new AppError(400, 'EDITAL_TOO_SHORT', 'Não foi possível extrair texto suficiente do edital. Verifique se o PDF contém texto (não apenas imagens).');
     }
 
-    const parsed = await this.aiProvider.parseEdital({ content });
+    const trimmedFocus = focus?.trim() || undefined;
+    const parsed = await this.aiProvider.parseEdital({ content, focus: trimmedFocus });
+
+    const focusSet =
+      parsed.focusDisciplines && parsed.focusDisciplines.length > 0
+        ? new Set(parsed.focusDisciplines.map((d) => d.toLowerCase().trim()))
+        : null;
 
     const document = await prisma.document.create({
       data: {
@@ -57,6 +63,7 @@ export class ContestService {
         organization: parsed.organization,
         examBoard: parsed.examBoard,
         role: parsed.role,
+        focus: trimmedFocus ?? null,
         examDate: parsed.examDate ? new Date(parsed.examDate) : null,
         editalDocumentId: document.id,
         syllabus: {
@@ -65,12 +72,42 @@ export class ContestService {
               discipline: entry.discipline,
               topic,
               order: disciplineIndex * 1000 + topicIndex,
+              focus: focusSet ? focusSet.has(entry.discipline.toLowerCase().trim()) : true,
             })),
           ),
         },
       },
       include: { syllabus: { orderBy: { order: 'asc' } } },
     });
+  }
+
+  async getTopicContent(userId: string, itemId: string) {
+    const item = await prisma.contestSyllabusItem.findUnique({
+      where: { id: itemId },
+      include: { contest: { select: { userId: true, examBoard: true, focus: true } } },
+    });
+
+    if (!item || item.contest.userId !== userId) {
+      throw new AppError(404, 'SYLLABUS_ITEM_NOT_FOUND', 'Item do conteúdo programático não encontrado');
+    }
+
+    if (item.content) {
+      return { id: item.id, content: item.content };
+    }
+
+    const content = await this.aiProvider.generateTopicContent({
+      discipline: item.discipline,
+      topic: item.topic,
+      examBoard: item.contest.examBoard,
+      focus: item.contest.focus,
+    });
+
+    await prisma.contestSyllabusItem.update({
+      where: { id: itemId },
+      data: { content },
+    });
+
+    return { id: item.id, content };
   }
 
   async listByUser(userId: string) {

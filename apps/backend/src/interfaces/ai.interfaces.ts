@@ -53,14 +53,24 @@ export interface EditalParseResult {
   role: string | null;
   examDate: string | null;
   syllabus: EditalSyllabusEntry[];
+  focusDisciplines?: string[] | null;
 }
 
 export interface ParseEditalParams {
   content: string;
+  focus?: string;
+}
+
+export interface TopicContentParams {
+  discipline: string;
+  topic: string;
+  examBoard?: string | null;
+  focus?: string | null;
 }
 
 export interface IAIProvider {
   generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]>;
   gradeEssay(params: GradeEssayParams): Promise<EssayGradeResult>;
   parseEdital(params: ParseEditalParams): Promise<EditalParseResult>;
+  generateTopicContent(params: TopicContentParams): Promise<string>;
 }

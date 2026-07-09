@@ -6,6 +6,7 @@ import type {
   EssayGradeResult,
   ParseEditalParams,
   EditalParseResult,
+  TopicContentParams,
 } from '../interfaces/ai.interfaces.js';
 
 export class MockProvider implements IAIProvider {
@@ -63,7 +64,7 @@ export class MockProvider implements IAIProvider {
     };
   }
 
-  async parseEdital(_params: ParseEditalParams): Promise<EditalParseResult> {
+  async parseEdital(params: ParseEditalParams): Promise<EditalParseResult> {
     const examDate = new Date();
     examDate.setDate(examDate.getDate() + 90);
 
@@ -73,6 +74,9 @@ export class MockProvider implements IAIProvider {
       examBoard: 'CESPE/CEBRASPE',
       role: 'Professor de Educação Básica — Sociologia',
       examDate: examDate.toISOString().slice(0, 10),
+      focusDisciplines: params.focus
+        ? ['Língua Portuguesa', 'Conhecimentos Pedagógicos', 'Sociologia']
+        : null,
       syllabus: [
         {
           discipline: 'Língua Portuguesa',
@@ -105,5 +109,23 @@ export class MockProvider implements IAIProvider {
         },
       ],
     };
+  }
+
+  async generateTopicContent(params: TopicContentParams): Promise<string> {
+    return `## ${params.topic}
+
+**[MOCK]** Material de estudo de exemplo para *${params.discipline}*.
+
+### Conceitos essenciais
+- Ponto-chave 1 do tópico "${params.topic}".
+- Ponto-chave 2, com foco no que a banca costuma cobrar.
+- Ponto-chave 3, relacionando o tópico a casos práticos.
+
+### Mais cobrado em prova
+- Definições e classificações costumam cair em questões objetivas.
+- **Pegadinha comum:** trocar termos parecidos entre si.
+
+### Dica de memorização
+Associe cada conceito a um exemplo do dia a dia para fixar melhor.`;
   }
 }

@@ -6,12 +6,14 @@ import type {
   EssayGradeResult,
   ParseEditalParams,
   EditalParseResult,
+  TopicContentParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
   buildQuestionsPrompt,
   buildEssayPrompt,
   buildEditalPrompt,
+  buildTopicContentPrompt,
   questionsResponseSchema,
   essayResponseSchema,
   editalResponseSchema,
@@ -60,7 +62,7 @@ export class GeminiProvider implements IAIProvider {
   }
 
   async parseEdital(params: ParseEditalParams): Promise<EditalParseResult> {
-    const raw = await this.callApi(buildEditalPrompt(truncateEdital(params.content)));
+    const raw = await this.callApi(buildEditalPrompt(truncateEdital(params.content), params.focus));
     const parsed = this.parseJson(raw, 'análise de edital');
 
     const result = editalResponseSchema.safeParse(parsed);
@@ -68,6 +70,10 @@ export class GeminiProvider implements IAIProvider {
       throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de análise de edital inválido: ${result.error.message}`);
     }
     return result.data;
+  }
+
+  async generateTopicContent(params: TopicContentParams): Promise<string> {
+    return this.callApi(buildTopicContentPrompt(params), 2, false);
   }
 
   private parseJson(raw: string, context: string): unknown {
@@ -114,7 +120,7 @@ export class GeminiProvider implements IAIProvider {
     return text;
   }
 
-  private async callApi(prompt: string, retries = 2): Promise<string> {
+  private async callApi(prompt: string, retries = 2, json = true): Promise<string> {
     const url = `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -127,7 +133,7 @@ export class GeminiProvider implements IAIProvider {
             generationConfig: {
               temperature: 0.7,
               topP: 0.9,
-              responseMimeType: 'application/json',
+              ...(json ? { responseMimeType: 'application/json' } : {}),
             },
           }),
         });
