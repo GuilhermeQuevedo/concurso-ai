@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { htmlToPlainText } from '../src/utils/html.js';
 
 const prisma = new PrismaClient();
 
@@ -144,10 +145,10 @@ async function main() {
 
       const examBoardId = q.banca ? await getOrCreateExamBoard(q.banca) : null;
 
-      const statement = buildStatement(q);
+      const statement = htmlToPlainText(buildStatement(q));
       const alternatives = q.alternativas.map((a) => ({
         letter: a.letra,
-        text: a.texto,
+        text: htmlToPlainText(a.texto),
       }));
 
       createData.push({
@@ -155,7 +156,7 @@ async function main() {
         alternatives,
         correctAnswer: q.gabarito,
         difficulty: mapDifficulty(q.dificuldade),
-        explanation: q.comentario_rich || `Gabarito: ${q.gabarito}`,
+        explanation: htmlToPlainText(q.comentario_rich || `Gabarito: ${q.gabarito}`),
         comments: buildComments(q),
         subjectId,
         examBoardId,

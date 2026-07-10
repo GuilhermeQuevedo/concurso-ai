@@ -3,6 +3,7 @@ import type { GenerateQuestionsDTO } from '../validators/question.validators.js'
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { DocumentService } from './document.service.js';
+import { htmlToPlainText } from '../utils/html.js';
 
 export class QuestionService {
   private readonly documentService = new DocumentService();
@@ -93,10 +94,10 @@ export class QuestionService {
       generated.map((q) =>
         prisma.question.create({
           data: {
-            statement: q.statement,
-            alternatives: q.alternatives,
+            statement: htmlToPlainText(q.statement),
+            alternatives: q.alternatives.map((a) => ({ letter: a.letter, text: htmlToPlainText(a.text) })),
             correctAnswer: q.correctAnswer,
-            explanation: q.explanation,
+            explanation: htmlToPlainText(q.explanation),
             difficulty: q.difficulty,
             comments: [],
             subjectId: dto.subjectId,
