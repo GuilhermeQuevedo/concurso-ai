@@ -37,10 +37,16 @@ export function ImportFlashcardsForm({ onBack, onDone }: { onBack: () => void; o
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      setText(String(reader.result ?? ''));
+      const buf = reader.result as ArrayBuffer;
+      // Tenta UTF-8; se vier lixo (arquivo ANSI/Windows-1252), refaz a decodificação
+      let decoded = new TextDecoder('utf-8').decode(buf);
+      if (decoded.includes('�')) {
+        decoded = new TextDecoder('windows-1252').decode(buf);
+      }
+      setText(decoded);
       setFileName(file.name);
     };
-    reader.readAsText(file, 'utf-8');
+    reader.readAsArrayBuffer(file);
   };
 
   if (result) {

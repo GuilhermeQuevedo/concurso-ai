@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { extractPdfText } from '../utils/pdf.js';
+import { decodeTextBuffer } from '../utils/text-encoding.js';
 import type { CreateContestDTO, UpdateContestDTO } from '../validators/contest.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -32,7 +33,7 @@ export class ContestService {
     const content =
       file.mimetype === 'application/pdf'
         ? await extractPdfText(file.path)
-        : (await fs.readFile(file.path, 'utf-8')).trim();
+        : decodeTextBuffer(await fs.readFile(file.path)).trim();
     await fs.unlink(file.path).catch(() => {});
 
     if (content.length < 200) {

@@ -3,6 +3,7 @@ import { PDFParse } from 'pdf-parse';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { mimeToDocType } from '../middlewares/upload.js';
+import { decodeTextBuffer } from '../utils/text-encoding.js';
 
 interface UploadedFile {
   originalname: string;
@@ -105,6 +106,6 @@ export class DocumentService {
     }
 
     const buffer = await fs.readFile(file.path);
-    return buffer.toString('utf-8').trim();
+    return decodeTextBuffer(buffer).trim();
   }
 }
