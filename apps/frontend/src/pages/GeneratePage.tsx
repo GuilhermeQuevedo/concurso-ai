@@ -5,6 +5,7 @@ import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Play,
 import { contentService, type SubjectDTO, type ExamBoardDTO } from '@/features/content/services/content.service';
 import { questionService, type QuestionDTO, type GenerateParams } from '@/features/questions/services/question.service';
 import { documentService } from '@/features/documents/services/document.service';
+import { htmlToPlainText } from '@/lib/html';
 
 const difficultyOptions = [
   { value: '', label: 'Qualquer' },
@@ -101,6 +102,7 @@ export function GeneratePage() {
       </div>
 
       <div className="mb-8 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Conteúdo</p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div ref={subjectRef} className="relative">
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -155,7 +157,7 @@ export function GeneratePage() {
 
           <div ref={bancaRef} className="relative">
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Banca
+              Banca <span className="font-normal text-gray-400">(opcional)</span>
             </label>
             <div
               className="flex w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white cursor-pointer"
@@ -212,6 +214,40 @@ export function GeneratePage() {
             )}
           </div>
 
+          <div className="sm:col-span-2 lg:col-span-1">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Tópico <span className="font-normal text-gray-400">(opcional)</span>
+            </label>
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="Ex: Princípios fundamentais..."
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            />
+          </div>
+        </div>
+
+        <div className="my-5 border-t border-gray-100 dark:border-gray-800" />
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Geração</p>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Fonte das questões
+            </label>
+            <select
+              value={documentId}
+              onChange={(e) => setDocumentId(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">Banco oficial de questões</option>
+              {documents.map((d) => (
+                <option key={d.id} value={d.id}>Minhas anotações: {d.name}</option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Dificuldade
@@ -240,40 +276,13 @@ export function GeneratePage() {
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
           </div>
-
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Tópico específico (opcional)
-            </label>
-            <input
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="Ex: Princípios fundamentais, Direitos e Garantias..."
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Basear nas minhas anotações (opcional)
-            </label>
-            <select
-              value={documentId}
-              onChange={(e) => setDocumentId(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            >
-              <option value="">Não — usar banco de questões reais</option>
-              {documents.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Escolha um documento e a IA cria questões inéditas cobrando exatamente o que está nas
-              suas anotações.
-            </p>
-          </div>
         </div>
+
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          {documentId
+            ? 'A IA vai criar questões inéditas cobrando exatamente o que está nas suas anotações.'
+            : 'Usamos o banco oficial de questões; se não houver para a disciplina, a IA gera novas.'}
+        </p>
 
         <button
           onClick={handleGenerate}
@@ -381,7 +390,7 @@ export function GeneratePage() {
                     </div>
                   )}
 
-                  <p className="mb-4 text-sm text-gray-800 dark:text-gray-200">{meta.cleanStatement}</p>
+                  <p className="mb-4 whitespace-pre-line text-sm text-gray-800 dark:text-gray-200">{meta.cleanStatement}</p>
 
                   <div className="space-y-2">
                     {q.alternatives.map((alt) => {
@@ -405,7 +414,7 @@ export function GeneratePage() {
                           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gray-300 text-xs font-medium dark:border-gray-600">
                             {alt.letter}
                           </span>
-                          <span className="text-gray-700 dark:text-gray-300">{alt.text}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{htmlToPlainText(alt.text)}</span>
                           {showResult && isCorrectAlt && <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-green-500" />}
                           {showResult && isSelected && !isCorrect && <XCircle className="ml-auto h-4 w-4 shrink-0 text-red-500" />}
                         </button>
@@ -424,8 +433,8 @@ export function GeneratePage() {
                   )}
 
                   {isExpanded && (
-                    <div className="mt-3 rounded-lg bg-gray-50 p-4 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                      {q.explanation}
+                    <div className="mt-3 whitespace-pre-line rounded-lg bg-gray-50 p-4 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                      {htmlToPlainText(q.explanation)}
                     </div>
                   )}
                 </div>
@@ -466,7 +475,7 @@ function extractQuestionMeta(q: QuestionDTO): QuestionMeta {
 
   let examBoard = q.examBoard?.name || null;
   let year: string | null = null;
-  let cleanStatement = q.statement;
+  let cleanStatement = htmlToPlainText(q.statement);
 
   const headerMatch = cleanStatement.match(/^\(([^)]+)\)\s*/);
   if (headerMatch) {
@@ -478,8 +487,6 @@ function extractQuestionMeta(q: QuestionDTO): QuestionMeta {
     }
     cleanStatement = cleanStatement.replace(headerMatch[0], '').trim();
   }
-
-  cleanStatement = cleanStatement.replace(/&nbsp;/g, ' ').replace(/\s{2,}/g, ' ').trim();
 
   return { examBoard, year, source, subtopics, cleanStatement };
 }

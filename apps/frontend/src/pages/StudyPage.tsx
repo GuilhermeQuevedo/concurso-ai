@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { QuestionDTO } from '@/features/questions/services/question.service';
 import { studyService, type SubmitAnswerResponse } from '@/features/study/services/study.service';
+import { htmlToPlainText } from '@/lib/html';
 
 type StudyMode = 'STUDY' | 'EXAM';
 
@@ -251,7 +252,7 @@ export default function StudyPage() {
         </div>
 
         <div className="p-5">
-          <p className="mb-5 text-sm leading-relaxed text-gray-800 dark:text-gray-200">{currentQuestion.statement}</p>
+          <p className="mb-5 whitespace-pre-line text-sm leading-relaxed text-gray-800 dark:text-gray-200">{htmlToPlainText(currentQuestion.statement)}</p>
 
           <div className="space-y-2">
             {currentQuestion.alternatives.map((alt) => {
@@ -275,7 +276,7 @@ export default function StudyPage() {
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gray-300 text-xs font-medium dark:border-gray-600">
                     {alt.letter}
                   </span>
-                  <span className="text-gray-700 dark:text-gray-300">{alt.text}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{htmlToPlainText(alt.text)}</span>
                   {showFeedback && isCorrectAlt && <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-green-500" />}
                   {showFeedback && isSelected && !currentState.result?.isCorrect && <XCircle className="ml-auto h-4 w-4 shrink-0 text-red-500" />}
                 </button>
@@ -310,8 +311,8 @@ export default function StudyPage() {
                 {expandedExplanation ? 'Ocultar explicação' : 'Ver explicação'}
               </button>
               {expandedExplanation && (
-                <div className="mt-2 rounded-lg bg-gray-50 p-4 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                  {currentState.result?.explanation}
+                <div className="mt-2 whitespace-pre-line rounded-lg bg-gray-50 p-4 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                  {htmlToPlainText(currentState.result?.explanation ?? '')}
                 </div>
               )}
             </div>
@@ -395,7 +396,7 @@ function ResultsView({
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="mb-1 text-sm text-gray-800 dark:text-gray-200 line-clamp-2">{q.statement}</p>
+                  <p className="mb-1 text-sm text-gray-800 dark:text-gray-200 line-clamp-2">{htmlToPlainText(q.statement)}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Sua resposta: <strong>{qs?.selectedAnswer ?? '—'}</strong> | Correta: <strong>{q.correctAnswer}</strong>
                     {qs?.timeSpent ? ` | Tempo: ${qs.timeSpent}s` : ''}
