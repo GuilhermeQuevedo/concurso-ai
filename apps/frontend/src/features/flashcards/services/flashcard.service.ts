@@ -38,6 +38,14 @@ export const flashcardService = {
     return unwrapData(response);
   },
 
+  async import(data: { subjectId: string; text: string }): Promise<{ imported: number; skipped: number }> {
+    const response = await api.post<ApiResponse<{ imported: number; skipped: number }>>(
+      '/flashcards/import',
+      data,
+    );
+    return unwrapData(response);
+  },
+
   async getDue(subjectId?: string): Promise<FlashcardDTO[]> {
     const params = subjectId ? { subjectId } : {};
     const response = await api.get<ApiResponse<FlashcardDTO[]>>('/flashcards/due', { params });

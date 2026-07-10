@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Layers, Plus, Trash2, Loader2, RotateCcw, Eye, Sparkles } from 'lucide-react';
+import { Layers, Plus, Trash2, Loader2, RotateCcw, Eye, Sparkles, FileUp } from 'lucide-react';
 import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
 import { flashcardService, type FlashcardDTO } from '@/features/flashcards/services/flashcard.service';
 import { GenerateFlashcardsForm } from '@/features/flashcards/components/GenerateFlashcardsForm';
+import { ImportFlashcardsForm } from '@/features/flashcards/components/ImportFlashcardsForm';
 
-type View = 'list' | 'review' | 'create' | 'generate';
+type View = 'list' | 'review' | 'create' | 'generate' | 'import';
 
 export function FlashcardsPage() {
   const queryClient = useQueryClient();
@@ -73,6 +74,18 @@ export function FlashcardsPage() {
     );
   }
 
+  if (view === 'import') {
+    return (
+      <ImportFlashcardsForm
+        onBack={() => setView('list')}
+        onDone={() => {
+          queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+          setView('list');
+        }}
+      />
+    );
+  }
+
   if (view === 'create') {
     return (
       <div className="mx-auto max-w-xl">
@@ -128,6 +141,10 @@ export function FlashcardsPage() {
           <button onClick={() => setView('generate')} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">
             <Sparkles className="h-4 w-4" />
             Gerar com IA
+          </button>
+          <button onClick={() => setView('import')} className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            <FileUp className="h-4 w-4" />
+            Importar
           </button>
           <button onClick={() => setView('create')} className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             <Plus className="h-4 w-4" />

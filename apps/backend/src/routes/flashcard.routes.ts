@@ -11,6 +11,7 @@ const controller = new FlashcardController(service);
 
 router.post('/', authMiddleware, controller.create);
 router.post('/generate', authMiddleware, controller.generate);
+router.post('/import', authMiddleware, controller.import);
 router.get('/due', authMiddleware, controller.getDue);
 router.get('/stats', authMiddleware, controller.getStats);
 router.get('/', authMiddleware, controller.list);

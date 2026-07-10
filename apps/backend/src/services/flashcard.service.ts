@@ -1,6 +1,7 @@
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
+import { parseFlashcardText } from '../utils/flashcard-parser.js';
 
 interface CreateFlashcardDTO {
   subjectId: string;
@@ -17,6 +18,11 @@ interface GenerateFlashcardsDTO {
   count: number;
   text?: string;
   documentId?: string;
+}
+
+interface ImportFlashcardsDTO {
+  subjectId: string;
+  text: string;
 }
 
 const MAX_GENERATED_CARDS = 30;
@@ -63,6 +69,33 @@ export class FlashcardService {
         }),
       ),
     );
+  }
+
+  async importCards(userId: string, dto: ImportFlashcardsDTO) {
+    const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
+    if (!subject) {
+      throw new AppError(404, 'SUBJECT_NOT_FOUND', 'Disciplina não encontrada');
+    }
+
+    const { cards, skipped } = parseFlashcardText(dto.text ?? '');
+    if (cards.length === 0) {
+      throw new AppError(
+        400,
+        'NO_CARDS_FOUND',
+        'Nenhum flashcard reconhecido. Use um arquivo com "frente" e "verso" separados por tab, ponto e vírgula ou vírgula (uma linha por cartão).',
+      );
+    }
+
+    await prisma.flashcard.createMany({
+      data: cards.map((card) => ({
+        userId,
+        subjectId: dto.subjectId,
+        front: card.front,
+        back: card.back,
+      })),
+    });
+
+    return { imported: cards.length, skipped };
   }
 
   async getDueCards(userId: string, subjectId?: string) {
