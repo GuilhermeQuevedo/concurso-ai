@@ -12,6 +12,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@concurso-ai/backend", "dev"],
       "port": 3333
+    },
+    {
+      "name": "gcerts-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-C", "E:/Servidor/questionario de estudos google", "dev"],
+      "port": 3000
     }
   ]
 }
