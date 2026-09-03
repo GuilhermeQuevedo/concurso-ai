@@ -41,6 +41,36 @@ export interface GradeEssayParams {
   fileMimeType?: string;
 }
 
+export interface CaseStudyAspect {
+  aspect: string;
+  situation: 'correto' | 'parcial' | 'incorreto' | 'ausente';
+  points: number;
+  maxPoints: number;
+  justification: string;
+}
+
+export interface CaseStudyResult {
+  score: number;
+  maxScore: number;
+  framing: string;
+  aspects: CaseStudyAspect[];
+  form: { strengths: string; issues: string; deduction: number };
+  penalties: { reason: string; deduction: number }[];
+  calculation: string;
+  feedback: string[];
+}
+
+export interface GradeCaseStudyParams {
+  role?: string;
+  examBoard?: string;
+  caseStatement: string;
+  answerKey?: string;
+  lineLimit?: number;
+  content?: string;
+  filePath?: string;
+  fileMimeType?: string;
+}
+
 export interface EditalSyllabusEntry {
   discipline: string;
   topics: string[];
@@ -82,6 +112,7 @@ export interface GenerateFlashcardsParams {
 export interface IAIProvider {
   generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]>;
   gradeEssay(params: GradeEssayParams): Promise<EssayGradeResult>;
+  gradeCaseStudy(params: GradeCaseStudyParams): Promise<CaseStudyResult>;
   parseEdital(params: ParseEditalParams): Promise<EditalParseResult>;
   generateTopicContent(params: TopicContentParams): Promise<string>;
   generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]>;

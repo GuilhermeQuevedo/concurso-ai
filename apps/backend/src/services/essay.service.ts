@@ -20,9 +20,13 @@ export class EssayService {
 
   async submit(userId: string, params: SubmitParams) {
     const { dto, file } = params;
+    const isCaseStudy = dto.type === 'ESTUDO_CASO';
 
     if (!dto.content && !file) {
-      throw new AppError(400, 'MISSING_CONTENT', 'Envie o texto da redação ou um arquivo (PDF/imagem).');
+      throw new AppError(400, 'MISSING_CONTENT', 'Envie o texto da resposta ou um arquivo (PDF/imagem).');
+    }
+    if (isCaseStudy && !dto.caseStatement?.trim()) {
+      throw new AppError(400, 'MISSING_CASE_STATEMENT', 'Informe o enunciado do caso para a correção do estudo de caso.');
     }
 
     let content = dto.content ?? '';
@@ -33,9 +37,15 @@ export class EssayService {
     const essay = await prisma.essay.create({
       data: {
         userId,
+        type: dto.type,
         title: dto.title,
         theme: dto.theme,
         content,
+        role: dto.role ?? null,
+        examBoard: dto.examBoard ?? null,
+        caseStatement: dto.caseStatement ?? null,
+        answerKey: dto.answerKey ?? null,
+        lineLimit: dto.lineLimit ?? null,
         fileUrl: file ? `/uploads/essays/${file.path.split(/[/\\]/).pop()}` : null,
         fileName: file?.originalname ?? null,
         status: 'GRADING',
@@ -43,28 +53,26 @@ export class EssayService {
     });
 
     try {
-      const result = await this.aiProvider.gradeEssay({
-        theme: dto.theme,
-        content: content || undefined,
-        filePath: file?.path,
-        fileMimeType: file?.mimetype,
-      });
+      const { score, maxScore, feedback, criteria } = isCaseStudy
+        ? await this.gradeCaseStudy(dto, content, file)
+        : await this.gradeDissertativa(dto, content, file);
 
       const graded = await prisma.essay.update({
         where: { id: essay.id },
         data: {
-          score: result.score,
-          feedback: result.feedback,
-          criteria: result.criteria as unknown as Prisma.InputJsonValue,
+          score,
+          maxScore,
+          feedback,
+          criteria: criteria as unknown as Prisma.InputJsonValue,
           status: 'GRADED',
         },
       });
 
-      const totalPoints = ESSAY_SUBMISSION_POINTS + Math.round(result.score / 10);
+      const totalPoints = ESSAY_SUBMISSION_POINTS + Math.round((score / maxScore) * 10);
       await this.groupService.recordActivity(
         userId,
         'ESSAY_SUBMITTED',
-        `Enviou redação "${dto.title}" — Nota: ${result.score}/${result.maxScore}`,
+        `Enviou ${isCaseStudy ? 'estudo de caso' : 'redação'} "${dto.title}" — Nota: ${score}/${maxScore}`,
         totalPoints,
       );
 
@@ -78,16 +86,43 @@ export class EssayService {
     }
   }
 
+  private async gradeDissertativa(dto: SubmitEssayDTO, content: string, file?: SubmitParams['file']) {
+    const result = await this.aiProvider.gradeEssay({
+      theme: dto.theme,
+      content: content || undefined,
+      filePath: file?.path,
+      fileMimeType: file?.mimetype,
+    });
+    return { score: result.score, maxScore: result.maxScore, feedback: result.feedback, criteria: result.criteria };
+  }
+
+  private async gradeCaseStudy(dto: SubmitEssayDTO, content: string, file?: SubmitParams['file']) {
+    const result = await this.aiProvider.gradeCaseStudy({
+      role: dto.role,
+      examBoard: dto.examBoard,
+      caseStatement: dto.caseStatement ?? dto.theme,
+      answerKey: dto.answerKey,
+      lineLimit: dto.lineLimit,
+      content: content || undefined,
+      filePath: file?.path,
+      fileMimeType: file?.mimetype,
+    });
+    // O feedback textual guarda o enquadramento; o restante vai em criteria
+    return { score: result.score, maxScore: result.maxScore, feedback: result.framing, criteria: result };
+  }
+
   async listByUser(userId: string) {
     return prisma.essay.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
+        type: true,
         title: true,
         theme: true,
         status: true,
         score: true,
+        maxScore: true,
         fileName: true,
         createdAt: true,
       },

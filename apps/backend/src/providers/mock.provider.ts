@@ -4,6 +4,8 @@ import type {
   GeneratedQuestion,
   GradeEssayParams,
   EssayGradeResult,
+  GradeCaseStudyParams,
+  CaseStudyResult,
   ParseEditalParams,
   EditalParseResult,
   TopicContentParams,
@@ -63,6 +65,27 @@ export class MockProvider implements IAIProvider {
           comments: '[MOCK] Domínio da Língua Portuguesa: Bom domínio da norma culta, com poucos desvios gramaticais. Vocabulário adequado ao gênero textual. Atenção a alguns problemas de concordância verbal e uso de crase.',
         },
       },
+    };
+  }
+
+  async gradeCaseStudy(_params: GradeCaseStudyParams): Promise<CaseStudyResult> {
+    return {
+      score: 7.2,
+      maxScore: 10,
+      framing: '[MOCK] A questão pediu a análise de um caso e a proposta de solução fundamentada.',
+      aspects: [
+        { aspect: 'Identificação do problema central', situation: 'correto', points: 2, maxPoints: 2, justification: '[MOCK] O candidato identificou corretamente o problema, conforme trecho citado.' },
+        { aspect: 'Fundamentação legal/normativa', situation: 'parcial', points: 1.5, maxPoints: 3, justification: '[MOCK] Citou a norma, mas não aprofundou a aplicação ao caso.' },
+        { aspect: 'Proposta de solução viável', situation: 'correto', points: 3, maxPoints: 3, justification: '[MOCK] Solução aplicável e bem fundamentada.' },
+      ],
+      form: { strengths: '[MOCK] Texto coeso e organizado.', issues: '[MOCK] Alguns desvios de pontuação.', deduction: 0.5 },
+      penalties: [{ reason: '[MOCK] Excedeu 2 linhas do limite', deduction: 0.3 }],
+      calculation: 'Conteúdo 6,5 + Forma −0,5 − Penalidades 0,3 = 7,2 (mock)',
+      feedback: [
+        '[MOCK] Aprofunde a fundamentação legal aplicando a norma ao caso concreto.',
+        '[MOCK] Revise a pontuação antes de entregar.',
+        '[MOCK] Controle o número de linhas para não sofrer penalidade.',
+      ],
     };
   }
 

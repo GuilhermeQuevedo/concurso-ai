@@ -4,6 +4,8 @@ import type {
   GeneratedQuestion,
   GradeEssayParams,
   EssayGradeResult,
+  GradeCaseStudyParams,
+  CaseStudyResult,
   ParseEditalParams,
   EditalParseResult,
   TopicContentParams,
@@ -14,11 +16,13 @@ import { AppError } from '../middlewares/error-handler.js';
 import {
   buildQuestionsPrompt,
   buildEssayPrompt,
+  buildCaseStudyPrompt,
   buildEditalPrompt,
   buildTopicContentPrompt,
   buildFlashcardsPrompt,
   questionsResponseSchema,
   essayResponseSchema,
+  caseStudyResponseSchema,
   editalResponseSchema,
   flashcardsResponseSchema,
   truncateEdital,
@@ -59,6 +63,25 @@ export class OllamaProvider implements IAIProvider {
     const parsed = this.parseJson(raw, 'correção de redação');
 
     const result = essayResponseSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de correção inválido do modelo local: ${result.error.message}`);
+    }
+    return result.data;
+  }
+
+  async gradeCaseStudy(params: GradeCaseStudyParams): Promise<CaseStudyResult> {
+    if (!params.content && params.fileMimeType?.startsWith('image/')) {
+      throw new AppError(
+        400,
+        'IMAGE_NOT_SUPPORTED',
+        'O modelo de IA local não lê imagens. Envie a resposta em PDF com texto ou digite o conteúdo.',
+      );
+    }
+
+    const raw = await this.callApi(buildCaseStudyPrompt(params));
+    const parsed = this.parseJson(raw, 'correção de estudo de caso');
+
+    const result = caseStudyResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de correção inválido do modelo local: ${result.error.message}`);
     }

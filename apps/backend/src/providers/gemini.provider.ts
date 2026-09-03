@@ -4,6 +4,8 @@ import type {
   GeneratedQuestion,
   GradeEssayParams,
   EssayGradeResult,
+  GradeCaseStudyParams,
+  CaseStudyResult,
   ParseEditalParams,
   EditalParseResult,
   TopicContentParams,
@@ -14,11 +16,13 @@ import { AppError } from '../middlewares/error-handler.js';
 import {
   buildQuestionsPrompt,
   buildEssayPrompt,
+  buildCaseStudyPrompt,
   buildEditalPrompt,
   buildTopicContentPrompt,
   buildFlashcardsPrompt,
   questionsResponseSchema,
   essayResponseSchema,
+  caseStudyResponseSchema,
   editalResponseSchema,
   flashcardsResponseSchema,
   truncateEdital,
@@ -59,6 +63,22 @@ export class GeminiProvider implements IAIProvider {
 
     const parsed = this.parseJson(raw, 'correção de redação');
     const result = essayResponseSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de correção inválido: ${result.error.message}`);
+    }
+    return result.data;
+  }
+
+  async gradeCaseStudy(params: GradeCaseStudyParams): Promise<CaseStudyResult> {
+    const prompt = buildCaseStudyPrompt(params);
+
+    const raw =
+      params.filePath && params.fileMimeType?.startsWith('image/')
+        ? await this.callApiWithImage(prompt, params.filePath, params.fileMimeType)
+        : await this.callApi(prompt);
+
+    const parsed = this.parseJson(raw, 'correção de estudo de caso');
+    const result = caseStudyResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de correção inválido: ${result.error.message}`);
     }

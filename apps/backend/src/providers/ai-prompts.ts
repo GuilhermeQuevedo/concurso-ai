@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type {
   GenerateQuestionsParams,
   GradeEssayParams,
+  GradeCaseStudyParams,
   TopicContentParams,
   GenerateFlashcardsParams,
 } from '../interfaces/ai.interfaces.js';
@@ -33,6 +34,31 @@ export const essayResponseSchema = z.object({
     ot: essayCriterionSchema,
     dlp: essayCriterionSchema,
   }),
+});
+
+export const caseStudyResponseSchema = z.object({
+  score: z.number().min(0),
+  maxScore: z.number().min(1),
+  framing: z.string(),
+  aspects: z
+    .array(
+      z.object({
+        aspect: z.string(),
+        situation: z.enum(['correto', 'parcial', 'incorreto', 'ausente']),
+        points: z.number().min(0),
+        maxPoints: z.number().min(0),
+        justification: z.string(),
+      }),
+    )
+    .min(1),
+  form: z.object({
+    strengths: z.string(),
+    issues: z.string(),
+    deduction: z.number(),
+  }),
+  penalties: z.array(z.object({ reason: z.string(), deduction: z.number() })),
+  calculation: z.string(),
+  feedback: z.array(z.string()).min(1),
 });
 
 export const editalResponseSchema = z.object({
@@ -136,6 +162,57 @@ Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adic
     "ot": { "score": 22, "maxScore": 30, "comments": "Comentário específico sobre organização textual..." },
     "dlp": { "score": 20, "maxScore": 30, "comments": "Comentário específico sobre domínio da língua portuguesa..." }
   }
+}`;
+}
+
+export function buildCaseStudyPrompt(params: GradeCaseStudyParams): string {
+  const contentBlock = params.content
+    ? params.content
+    : '(A resposta do candidato está na imagem anexada. Extraia o texto manuscrito/digitado e corrija.)';
+  const answerKeyBlock = params.answerKey?.trim()
+    ? params.answerKey
+    : 'Não foi fornecido espelho oficial. Monte um espelho de referência a partir do comando da questão e sinalize no enquadramento que a pontuação é uma referência estimada.';
+
+  return `Você é um avaliador de provas discursivas do tipo "estudo de caso" para concurso público, atuando como uma banca examinadora. Sua tarefa é corrigir a resposta do candidato com rigor, imparcialidade e consistência, seguindo o espelho de correção fornecido.
+
+## Contexto da correção
+- Cargo/área: ${params.role?.trim() || 'genérico'}
+- Banca/estilo: ${params.examBoard?.trim() || 'genérico'}
+- Enunciado do caso: ${params.caseStatement}
+- Limite de linhas: ${params.lineLimit ? `${params.lineLimit} linhas` : 'não especificado'}
+- Espelho de correção (aspectos esperados e pontuação): ${answerKeyBlock}
+- Resposta do candidato: ${contentBlock}
+
+## Como corrigir
+A nota divide-se em duas partes.
+
+### 1. Conteúdo (peso maior)
+Para cada aspecto previsto no espelho: verifique se o candidato abordou o ponto e classifique como correto/parcial/incorreto/ausente, atribuindo pontos conforme o espelho (proporcionais em abordagem parcial). Avalie: atendimento ao comando, domínio técnico (conceitos, legislação, normas), análise do caso (problema, variáveis, relações), solução (viável, fundamentada, aplicável) e argumentação (conclusões que decorrem logicamente).
+
+### 2. Forma
+Estrutura textual (coesão, coerência, organização), norma culta (gramática, ortografia, pontuação, concordância) e clareza/objetividade. Aplique descontos por erros de forma.
+
+### 3. Penalidades
+Desconto por linha excedente ao limite; fuga total ao tema ou resposta em branco zera o aspecto com justificativa; não pontue "encher linguiça".
+
+## Regras de conduta
+- Baseie-se exclusivamente na resposta enviada e no espelho; não presuma conhecimento não escrito.
+- Seja consistente: o mesmo erro recebe o mesmo desconto sempre.
+- Cite trechos da resposta ao justificar cada pontuação.
+- Tom técnico, impessoal e construtivo.
+
+Responda APENAS com JSON válido no formato abaixo, sem markdown ou texto adicional. "maxScore" é a soma dos pontos possíveis do espelho; "score" é a nota final (conteúdo + forma − penalidades); "form.deduction" e "penalties[].deduction" são valores positivos que foram subtraídos; "calculation" mostra o cálculo explícito da nota final:
+{
+  "score": 7.5,
+  "maxScore": 10,
+  "framing": "1-2 frases sobre o que a questão pediu.",
+  "aspects": [
+    { "aspect": "Identificação do problema central", "situation": "correto", "points": 2, "maxPoints": 2, "justification": "Justificativa citando trecho da resposta." }
+  ],
+  "form": { "strengths": "Pontos fortes da forma.", "issues": "Erros de forma identificados.", "deduction": 0.5 },
+  "penalties": [ { "reason": "Excedeu 3 linhas do limite", "deduction": 0.3 } ],
+  "calculation": "Conteúdo 8,0 + Forma −0,5 − Penalidades 0,3 = 7,2",
+  "feedback": ["Recomendação 1", "Recomendação 2", "Recomendação 3"]
 }`;
 }
 
