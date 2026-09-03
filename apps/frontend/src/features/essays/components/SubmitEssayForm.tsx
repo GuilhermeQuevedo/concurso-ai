@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, Send, Loader2, ChevronLeft, FileText, Image, X, PenLine, ClipboardList } from 'lucide-react';
+import { Upload, Send, Loader2, ChevronLeft, FileText, Image, X, PenLine, ClipboardList, Shuffle } from 'lucide-react';
 import { essayService, type EssayType } from '@/features/essays/services/essay.service';
+import { pickRandomTheme, type EssayTheme } from '@/features/essays/data/essayThemes';
 
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -19,6 +20,8 @@ export function SubmitEssayForm({ onBack, onCreated }: { onBack: () => void; onC
   const [answerKey, setAnswerKey] = useState('');
   const [lineLimit, setLineLimit] = useState('');
 
+  const [generated, setGenerated] = useState<EssayTheme | null>(null);
+
   const [answerMode, setAnswerMode] = useState<AnswerMode>('text');
   const [content, setContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -27,6 +30,13 @@ export function SubmitEssayForm({ onBack, onCreated }: { onBack: () => void; onC
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isCase = type === 'ESTUDO_CASO';
+
+  const generateTheme = () => {
+    const picked = pickRandomTheme(theme);
+    setGenerated(picked);
+    setTheme(picked.theme);
+    if (!title.trim()) setTitle(`Redação — ${picked.category}`);
+  };
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -98,12 +108,50 @@ export function SubmitEssayForm({ onBack, onCreated }: { onBack: () => void; onC
         </div>
 
         <Field label="Título *" value={title} onChange={setTitle} placeholder="Ex: Estudo de caso — Licitações" />
-        <Field
-          label={isCase ? 'Tema/assunto *' : 'Tema da redação *'}
-          value={theme}
-          onChange={setTheme}
-          placeholder={isCase ? 'Ex: Gestão de contratos administrativos' : 'Ex: Inclusão digital no Brasil'}
-        />
+
+        {isCase ? (
+          <Field
+            label="Tema/assunto *"
+            value={theme}
+            onChange={setTheme}
+            placeholder="Ex: Gestão de contratos administrativos"
+          />
+        ) : (
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tema da redação *</label>
+              <button
+                type="button"
+                onClick={generateTheme}
+                className="flex items-center gap-1.5 rounded-lg bg-primary-100 px-2.5 py-1 text-xs font-medium text-primary-700 transition-colors hover:bg-primary-200 dark:bg-primary-950 dark:text-primary-300 dark:hover:bg-primary-900"
+              >
+                <Shuffle className="h-3.5 w-3.5" />
+                Gerar tema
+              </button>
+            </div>
+            <input
+              value={theme}
+              onChange={(e) => { setTheme(e.target.value); setGenerated(null); }}
+              placeholder="Digite um tema ou clique em “Gerar tema”"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            />
+            {generated && (
+              <div className="mt-2 space-y-2 rounded-lg border border-primary-100 bg-primary-50/50 p-3 text-xs dark:border-primary-900 dark:bg-primary-950/30">
+                <span className="inline-block rounded bg-primary-100 px-1.5 py-0.5 text-[11px] font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300">
+                  {generated.category}
+                </span>
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold text-gray-900 dark:text-white">Comando: </span>
+                  {generated.command}
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold text-gray-900 dark:text-white">O que a banca espera: </span>
+                  {generated.aspects}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {isCase && (
           <div className="space-y-4 rounded-lg border border-primary-100 bg-primary-50/40 p-4 dark:border-primary-900 dark:bg-primary-950/20">
