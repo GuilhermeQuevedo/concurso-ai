@@ -84,6 +84,7 @@ async function main() {
     prisma: { schema: 'prisma/schema.prisma' },
     scripts: {
       postinstall: 'prisma generate',
+      build: 'node -e "process.exit(0)"',
       start: 'node server.mjs',
       'db:deploy': 'prisma migrate deploy',
     },
