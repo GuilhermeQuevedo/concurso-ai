@@ -12,10 +12,17 @@ import { RATE_LIMIT } from '@concurso-ai/shared';
 
 function applyMigrations(): void {
   try {
-    execSync('node node_modules/prisma/build/index.js migrate deploy', { stdio: 'inherit' });
-    console.log('Migrations aplicadas com sucesso.');
+    const out = execSync(
+      'node node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma',
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+    console.log('Migrations aplicadas com sucesso:\n', out);
   } catch (error) {
-    console.error('Falha ao aplicar migrations:', error);
+    const e = error as { stdout?: string; stderr?: string; message?: string };
+    console.error('Falha ao aplicar migrations.');
+    console.error('STDOUT:', e.stdout ?? '');
+    console.error('STDERR:', e.stderr ?? '');
+    console.error('MSG:', e.message ?? '');
   }
 }
 

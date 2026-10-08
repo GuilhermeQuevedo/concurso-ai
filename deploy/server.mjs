@@ -4095,10 +4095,17 @@ router15.get("/health", (_req, res) => {
 // apps/backend/src/server.ts
 function applyMigrations() {
   try {
-    execSync("node node_modules/prisma/build/index.js migrate deploy", { stdio: "inherit" });
-    console.log("Migrations aplicadas com sucesso.");
+    const out = execSync(
+      "node node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma",
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+    );
+    console.log("Migrations aplicadas com sucesso:\n", out);
   } catch (error) {
-    console.error("Falha ao aplicar migrations:", error);
+    const e = error;
+    console.error("Falha ao aplicar migrations.");
+    console.error("STDOUT:", e.stdout ?? "");
+    console.error("STDERR:", e.stderr ?? "");
+    console.error("MSG:", e.message ?? "");
   }
 }
 if (env.NODE_ENV === "production") {
