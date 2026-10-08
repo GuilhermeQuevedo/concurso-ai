@@ -1,18 +1,44 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Sparkles, BarChart3, Clock, Play, History, Rocket, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { studyService, type StudySessionDTO } from '@/features/study/services/study.service';
 import { contentService } from '@/features/content/services/content.service';
+import { dashboardService } from '@/features/dashboard/services/dashboard.service';
+import { ConstanciaHeatmap } from '@/features/dashboard/components/ConstanciaHeatmap';
+import { MetasCard } from '@/features/dashboard/components/MetasCard';
+import { DueReviewsPanel } from '@/features/dashboard/components/DueReviewsPanel';
+import { PomodoroTimer } from '@/features/dashboard/components/PomodoroTimer';
+import { EnergyCheckIn } from '@/features/dashboard/components/EnergyCheckIn';
+import { useTour, isTourDone } from '@/features/tour/useTour';
 import { TodayPanel } from '@/features/calendar/components/TodayPanel';
 
 export function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { start: startTour } = useTour();
+
+  useEffect(() => {
+    if (isTourDone()) return;
+    const timer = setTimeout(() => startTour(), 700);
+    return () => clearTimeout(timer);
+  }, [startTour]);
 
   const { data: stats } = useQuery({
     queryKey: ['user-stats'],
     queryFn: studyService.getStats,
+  });
+
+  const { data: summary } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: dashboardService.getSummary,
+  });
+
+  const goalMutation = useMutation({
+    mutationFn: dashboardService.setDailyGoal,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
   });
 
   const { data: history = [] } = useQuery({
@@ -69,6 +95,33 @@ export function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {summary && (
+        <>
+          <div className="mt-6">
+            <EnergyCheckIn dailyGoal={summary.goal.dailyQuestions} />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div data-tour="metas">
+              <MetasCard
+                goal={summary.goal}
+                averages={summary.averages}
+                onSetGoal={(value) => goalMutation.mutate(value)}
+                saving={goalMutation.isPending}
+              />
+            </div>
+            <div data-tour="revisoes">
+              <DueReviewsPanel />
+            </div>
+            <div data-tour="pomodoro">
+              <PomodoroTimer />
+            </div>
+          </div>
+          <div className="mt-4" data-tour="constancia">
+            <ConstanciaHeatmap heatmap={summary.heatmap} streak={summary.streak} />
+          </div>
+        </>
+      )}
 
       <TodayPanel />
 

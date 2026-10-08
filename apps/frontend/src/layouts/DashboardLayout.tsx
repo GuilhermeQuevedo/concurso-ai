@@ -27,6 +27,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useTour } from '@/features/tour/useTour';
 
 interface NavItem {
   path: string;
@@ -82,6 +83,7 @@ const navGroups: NavGroup[] = [
     icon: TrendingUp,
     items: [
       { path: '/stats', label: 'Estatísticas', icon: BarChart3 },
+      { path: '/memory-simulator', label: 'Simulador de Memória', icon: Brain },
       { path: '/achievements', label: 'Conquistas', icon: Trophy },
       { path: '/groups', label: 'Competição', icon: Users },
     ],
@@ -107,6 +109,7 @@ function loadExpanded(pathname: string): string[] {
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { active: tourActive } = useTour();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -131,16 +134,23 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <Link
         key={item.path}
         to={item.path}
+        data-tour={item.path}
         onClick={() => setSidebarOpen(false)}
-        className={`flex items-center gap-3 rounded-lg py-2 text-sm font-medium transition-colors ${
-          indent ? 'pl-9 pr-3' : 'px-3'
+        className={`group flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all ${
+          indent ? 'pl-7 pr-3' : 'px-3'
         } ${
           isActive
-            ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300'
-            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+            ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
+            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/70 dark:hover:text-white'
         }`}
       >
-        <item.icon className="h-4 w-4" />
+        <item.icon
+          className={`h-[18px] w-[18px] shrink-0 ${
+            isActive
+              ? 'text-white'
+              : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200'
+          }`}
+        />
         {item.label}
       </Link>
     );
@@ -156,41 +166,40 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform dark:border-gray-800 dark:bg-gray-900 lg:static lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform dark:border-gray-800 dark:bg-gray-900 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+          sidebarOpen || tourActive ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-6 dark:border-gray-800">
-          <Brain className="h-7 w-7 text-primary-600" />
-          <span className="text-lg font-bold text-gray-900 dark:text-white">Concurso AI</span>
+        <div className="flex h-16 items-center gap-2.5 border-b border-gray-200 px-5 dark:border-gray-800">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-sm shadow-primary-600/30">
+            <Brain className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Concurso AI</span>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
           {topItems.map((item) => renderItem(item))}
 
           {navGroups.map((group) => {
-            const isOpen = expanded.includes(group.key);
+            const isOpen = expanded.includes(group.key) || tourActive;
             const hasActive = group.items.some((i) => i.path === location.pathname);
             return (
-              <div key={group.key}>
+              <div key={group.key} className="pt-2">
                 <button
                   onClick={() => toggleGroup(group.key)}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    hasActive && !isOpen
-                      ? 'text-primary-700 dark:text-primary-300'
-                      : 'text-gray-700 dark:text-gray-300'
-                  } hover:bg-gray-100 dark:hover:bg-gray-800`}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
                 >
-                  <span className="flex items-center gap-3">
-                    <group.icon className="h-5 w-5" />
-                    {group.label}
+                  <span className="flex items-center gap-2">
+                    <group.icon className="h-4 w-4" />
+                    <span className="text-[11px] font-semibold uppercase tracking-wider">{group.label}</span>
+                    {hasActive && !isOpen && <span className="h-1.5 w-1.5 rounded-full bg-primary-500" />}
                   </span>
                   <ChevronDown
-                    className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {isOpen && (
-                  <div className="mt-1 space-y-1">
+                  <div className="mt-1 space-y-0.5 border-l border-gray-100 pl-2 dark:border-gray-800/80">
                     {group.items.map((item) => renderItem(item, true))}
                   </div>
                 )}
@@ -198,18 +207,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             );
           })}
 
-          <div className="border-t border-gray-200 pt-2 dark:border-gray-800">
+          <div className="mt-3 border-t border-gray-200 pt-3 dark:border-gray-800">
             {bottomItems.map((item) => renderItem(item))}
           </div>
         </nav>
 
-        <div className="border-t border-gray-200 p-4 dark:border-gray-800">
-          <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300">
+        <div className="border-t border-gray-200 p-3 dark:border-gray-800">
+          <div className="mb-2 flex items-center gap-3 rounded-xl px-2 py-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-sm font-semibold text-white shadow-sm">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
                 {user?.name}
               </p>
               <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
@@ -217,9 +226,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-950/40 dark:hover:text-red-400"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-[18px] w-[18px]" />
             Sair
           </button>
         </div>
@@ -239,6 +248,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         {location.pathname !== '/help' && (
           <Link
             to="/help"
+            data-tour="help"
             className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg transition-transform hover:scale-110 hover:bg-primary-700"
             title="Ajuda"
           >

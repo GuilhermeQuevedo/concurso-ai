@@ -3,6 +3,14 @@ import type { ApiResponse } from '@concurso-ai/types';
 
 export type ContestStatus = 'PLANNED' | 'STUDYING' | 'DONE' | 'ARCHIVED';
 
+export interface TopicReview {
+  id: string;
+  index: number;
+  intervalDays: number;
+  scheduledFor: string;
+  completedAt: string | null;
+}
+
 export interface SyllabusItem {
   id: string;
   contestId: string;
@@ -12,6 +20,32 @@ export interface SyllabusItem {
   order: number;
   studied: boolean;
   focus: boolean;
+  importance: number;
+  firstStudiedAt: string | null;
+  reviews: TopicReview[];
+}
+
+export interface DisciplineStat {
+  discipline: string;
+  inFocus: boolean;
+  total: number;
+  studied: number;
+  dueReviews: number;
+  importance: number;
+  priority: number;
+}
+
+export interface DueReview {
+  id: string;
+  index: number;
+  intervalDays: number;
+  scheduledFor: string;
+  overdue: boolean;
+  syllabusItemId: string;
+  topic: string;
+  discipline: string;
+  contestId: string;
+  contestName: string;
 }
 
 export interface ContestSummary {
@@ -31,6 +65,7 @@ export interface ContestSummary {
 export interface ContestDetail extends Omit<ContestSummary, 'totalTopics' | 'studiedTopics'> {
   editalDocumentId: string | null;
   syllabus: SyllabusItem[];
+  disciplines: DisciplineStat[];
 }
 
 export interface CreateContestInput {
@@ -88,6 +123,26 @@ export const contestService = {
 
   async setTopicStudied(itemId: string, studied: boolean): Promise<SyllabusItem> {
     const response = await api.patch<ApiResponse<SyllabusItem>>(`/contests/syllabus/${itemId}`, { studied });
+    return unwrapData(response);
+  },
+
+  async setImportance(contestId: string, discipline: string, importance: number): Promise<ContestDetail> {
+    const response = await api.patch<ApiResponse<ContestDetail>>(`/contests/${contestId}/importance`, {
+      discipline,
+      importance,
+    });
+    return unwrapData(response);
+  },
+
+  async completeReview(reviewId: string, completed: boolean): Promise<TopicReview> {
+    const response = await api.post<ApiResponse<TopicReview>>(`/contests/reviews/${reviewId}/complete`, {
+      completed,
+    });
+    return unwrapData(response);
+  },
+
+  async listDueReviews(): Promise<DueReview[]> {
+    const response = await api.get<ApiResponse<DueReview[]>>('/contests/reviews/due');
     return unwrapData(response);
   },
 };

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import {
   Search,
   ChevronDown,
+  Compass,
   BookOpen,
   Sparkles,
   Users,
@@ -23,6 +24,7 @@ import {
   Flame,
   Star,
 } from 'lucide-react';
+import { useTour } from '@/features/tour/useTour';
 
 interface Step {
   icon: typeof BookOpen;
@@ -314,6 +316,7 @@ const sections: GuideSection[] = [
 
 export function HelpPage() {
   const navigate = useNavigate();
+  const { start: startTour } = useTour();
   const [search, setSearch] = useState('');
   const [openItems, setOpenItems] = useState<Set<string>>(new Set());
 
@@ -352,11 +355,23 @@ export function HelpPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Central de Ajuda</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Tutoriais passo a passo de todas as funcionalidades
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Central de Ajuda</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Tutoriais passo a passo de todas as funcionalidades
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            navigate('/dashboard');
+            startTour();
+          }}
+          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+        >
+          <Compass className="h-4 w-4" />
+          Fazer tour guiado
+        </button>
       </div>
 
       <div className="relative mb-6">
