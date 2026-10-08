@@ -4,13 +4,28 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 import fs from 'node:fs';
+import { execSync } from 'node:child_process';
 import { env } from './config/env.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler } from './middlewares/error-handler.js';
 import { RATE_LIMIT } from '@concurso-ai/shared';
 
+function applyMigrations(): void {
+  try {
+    execSync('node node_modules/prisma/build/index.js migrate deploy', { stdio: 'inherit' });
+    console.log('Migrations aplicadas com sucesso.');
+  } catch (error) {
+    console.error('Falha ao aplicar migrations:', error);
+  }
+}
+
+if (env.NODE_ENV === 'production') {
+  applyMigrations();
+}
+
 const app: ReturnType<typeof express> = express();
 
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(
   cors({

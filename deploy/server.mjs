@@ -7,6 +7,7 @@ import helmet from "helmet";
 import rateLimit2 from "express-rate-limit";
 import path3 from "node:path";
 import fs5 from "node:fs";
+import { execSync } from "node:child_process";
 
 // apps/backend/src/config/env.ts
 import { z } from "zod";
@@ -4092,7 +4093,19 @@ router15.get("/health", (_req, res) => {
 });
 
 // apps/backend/src/server.ts
+function applyMigrations() {
+  try {
+    execSync("node node_modules/prisma/build/index.js migrate deploy", { stdio: "inherit" });
+    console.log("Migrations aplicadas com sucesso.");
+  } catch (error) {
+    console.error("Falha ao aplicar migrations:", error);
+  }
+}
+if (env.NODE_ENV === "production") {
+  applyMigrations();
+}
 var app = express();
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(
   cors({
