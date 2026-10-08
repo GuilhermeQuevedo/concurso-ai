@@ -1,0 +1,31 @@
+{
+  "name": "concurso-ai-deploy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "server.mjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "start": "node server.mjs",
+    "db:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "prisma": "^6.9.0",
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jose": "^6.0.0",
+    "multer": "^2.2.0",
+    "pdf-parse": "^2.4.5",
+    "zod": "^3.25.0"
+  }
+}

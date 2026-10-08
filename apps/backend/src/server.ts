@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'node:path';
+import fs from 'node:fs';
 import { env } from './config/env.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler } from './middlewares/error-handler.js';
@@ -26,9 +27,24 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '10mb' }));
-app.use('/uploads', express.static(path.resolve('uploads')));
+
+const uploadsDir = path.resolve('uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+app.use('/uploads', express.static(uploadsDir));
 
 app.use('/api', apiRouter);
+
+// Servir o frontend em produção (SPA), quando a pasta public existir ao lado do app
+const publicDir = path.resolve('public');
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return next();
+    }
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
+}
 
 app.use(errorHandler);
 

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:deploy": "pnpm --filter @concurso-ai/frontend build && node apps/backend/scripts/build-deploy.mjs",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -15,6 +16,7 @@
     "db:generate": "pnpm --filter @concurso-ai/backend prisma:generate"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "prettier": "^3.5.0",
     "turbo": "^2.5.0"
   }

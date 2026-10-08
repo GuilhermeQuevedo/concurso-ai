@@ -1,0 +1,459 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String
+  phone         String?
+  avatar        String?
+  role          Role     @default(USER)
+  targetExam    String?
+  targetRole    String?
+  dailyGoal     Int      @default(30)
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions      Session[]
+  attempts      QuestionAttempt[]
+  studySessions StudySession[]
+  documents     Document[]
+  favorites     Favorite[]
+  notes         Note[]
+  studyPlans    StudyPlan[]
+  flashcards    Flashcard[]
+  achievements  Achievement[]
+  streak        Streak?
+  groupMembers  GroupMember[]
+  groupActivities GroupActivity[]
+  essays        Essay[]
+  contests      Contest[]
+  studyTasks    StudyTask[]
+  topicReviews  TopicReview[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  parentId  String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent         Subject?         @relation("SubjectTree", fields: [parentId], references: [id])
+  children       Subject[]        @relation("SubjectTree")
+  questions      Question[]
+  planItems      StudyPlanItem[]
+  flashcards     Flashcard[]
+
+  @@index([parentId])
+}
+
+model ExamBoard {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  questions Question[]
+}
+
+model Question {
+  id            String         @id @default(cuid())
+  statement     String @db.Text
+  alternatives  Json
+  correctAnswer String
+  difficulty    Difficulty
+  explanation   String @db.Text
+  comments      Json
+  subjectId     String
+  examBoardId   String?
+  source        QuestionSource @default(AI_GENERATED)
+  aiModel       String?
+  createdAt     DateTime       @default(now())
+
+  subject   Subject    @relation(fields: [subjectId], references: [id])
+  examBoard ExamBoard? @relation(fields: [examBoardId], references: [id])
+  attempts  QuestionAttempt[]
+  favorites Favorite[]
+
+  @@index([subjectId])
+  @@index([examBoardId])
+  @@index([difficulty])
+}
+
+model QuestionAttempt {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  answer     String
+  isCorrect  Boolean
+  timeSpent  Int
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([userId, createdAt])
+}
+
+model StudySession {
+  id             String      @id @default(cuid())
+  userId         String
+  subjectId      String?
+  questionsCount Int
+  correctCount   Int
+  totalTime      Int
+  mode           StudyMode
+  difficulty     Difficulty?
+  examBoardId    String?
+  createdAt      DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+model Document {
+  id        String       @id @default(cuid())
+  userId    String
+  name      String
+  type      DocumentType
+  content   String       @db.LongText
+  subjectId String?
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String?
+  subjectId  String?
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum StudyMode {
+  STUDY
+  EXAM
+}
+
+enum QuestionSource {
+  AI_GENERATED
+  IMPORTED
+  MANUAL
+}
+
+model StudyPlan {
+  id        String          @id @default(cuid())
+  userId    String
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  active    Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items StudyPlanItem[]
+
+  @@index([userId])
+}
+
+model StudyPlanItem {
+  id          String   @id @default(cuid())
+  planId      String
+  subjectId   String
+  dayOfWeek   Int
+  duration    Int
+  completed   Boolean  @default(false)
+
+  plan    StudyPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  subject Subject   @relation(fields: [subjectId], references: [id])
+
+  @@index([planId])
+}
+
+model Flashcard {
+  id         String   @id @default(cuid())
+  userId     String
+  subjectId  String
+  front      String   @db.Text
+  back       String   @db.Text
+  interval   Int      @default(1)
+  easeFactor Float    @default(2.5)
+  repetition Int      @default(0)
+  nextReview DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@index([userId])
+  @@index([userId, nextReview])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  unlockedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+}
+
+model Streak {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  current   Int      @default(0)
+  longest   Int      @default(0)
+  lastDate  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Essay {
+  id            String      @id @default(cuid())
+  userId        String
+  type          EssayType   @default(DISSERTATIVA)
+  title         String
+  theme         String
+  content       String      @db.LongText
+  fileUrl       String?
+  fileName      String?
+  role          String?
+  examBoard     String?
+  caseStatement String?     @db.Text
+  answerKey     String?     @db.Text
+  lineLimit     Int?
+  status        EssayStatus @default(PENDING)
+  score         Int?
+  maxScore      Int?
+  feedback      String?     @db.LongText
+  criteria      Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+enum EssayType {
+  DISSERTATIVA
+  ESTUDO_CASO
+}
+
+enum EssayStatus {
+  PENDING
+  GRADING
+  GRADED
+  ERROR
+}
+
+enum DocumentType {
+  PDF
+  DOCX
+  TXT
+  HTML
+  MARKDOWN
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
+
+model StudyGroup {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members    GroupMember[]
+  activities GroupActivity[]
+}
+
+model GroupMember {
+  id       String    @id @default(cuid())
+  groupId  String
+  userId   String
+  role     GroupRole  @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+model GroupActivity {
+  id          String   @id @default(cuid())
+  groupId     String
+  userId      String
+  type        String
+  points      Int
+  description String
+  createdAt   DateTime @default(now())
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([userId])
+}
+
+model Contest {
+  id               String        @id @default(cuid())
+  userId           String
+  name             String
+  organization     String?
+  examBoard        String?
+  role             String?
+  focus            String?       @db.Text
+  examDate         DateTime?
+  status           ContestStatus @default(STUDYING)
+  editalDocumentId String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syllabus   ContestSyllabusItem[]
+  studyTasks StudyTask[]
+
+  @@index([userId])
+}
+
+model ContestSyllabusItem {
+  id             String    @id @default(cuid())
+  contestId      String
+  subjectId      String?
+  discipline     String
+  topic          String    @db.Text
+  order          Int       @default(0)
+  studied        Boolean   @default(false)
+  focus          Boolean   @default(true)
+  importance     Int       @default(5)
+  firstStudiedAt DateTime?
+  content        String?   @db.LongText
+
+  contest Contest       @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  reviews TopicReview[]
+
+  @@index([contestId])
+}
+
+model TopicReview {
+  id             String    @id @default(cuid())
+  userId         String
+  syllabusItemId String
+  index          Int
+  intervalDays   Int
+  scheduledFor   DateTime
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syllabusItem ContestSyllabusItem @relation(fields: [syllabusItemId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scheduledFor])
+  @@index([syllabusItemId])
+}
+
+enum ContestStatus {
+  PLANNED
+  STUDYING
+  DONE
+  ARCHIVED
+}
+
+model StudyTask {
+  id             String        @id @default(cuid())
+  userId         String
+  contestId      String?
+  syllabusItemId String?
+  date           DateTime
+  type           StudyTaskType
+  title          String
+  discipline     String?
+  duration       Int
+  completed      Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contest Contest? @relation(fields: [contestId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([contestId])
+}
+
+enum StudyTaskType {
+  STUDY
+  REVIEW
+  ESSAY
+  MOCK_EXAM
+}

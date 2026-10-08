@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `essay` ADD COLUMN `fileName` VARCHAR(191) NULL,
+    ADD COLUMN `fileUrl` VARCHAR(191) NULL;
