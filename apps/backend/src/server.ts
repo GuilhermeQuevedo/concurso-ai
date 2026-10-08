@@ -13,7 +13,7 @@ import { RATE_LIMIT } from '@concurso-ai/shared';
 function applyMigrations(): void {
   try {
     const out = execSync(
-      `"${process.execPath}" node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma`,
+      `"${process.execPath}" node_modules/prisma/build/index.js db push --schema prisma/schema.prisma --accept-data-loss --skip-generate`,
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
     );
     console.log('Migrations aplicadas com sucesso:\n', out);
