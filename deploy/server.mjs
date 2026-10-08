@@ -4096,7 +4096,7 @@ router15.get("/health", (_req, res) => {
 function applyMigrations() {
   try {
     const out = execSync(
-      "node node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma",
+      `"${process.execPath}" node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma`,
       { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
     );
     console.log("Migrations aplicadas com sucesso:\n", out);
