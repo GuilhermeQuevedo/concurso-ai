@@ -37,6 +37,7 @@ model User {
   essays        Essay[]
   contests      Contest[]
   studyTasks    StudyTask[]
+  topicReviews  TopicReview[]
 }
 
 model Session {
@@ -387,19 +388,39 @@ model Contest {
 }
 
 model ContestSyllabusItem {
-  id         String  @id @default(cuid())
-  contestId  String
-  subjectId  String?
-  discipline String
-  topic      String  @db.Text
-  order      Int     @default(0)
-  studied    Boolean @default(false)
-  focus      Boolean @default(true)
-  content    String? @db.LongText
+  id             String    @id @default(cuid())
+  contestId      String
+  subjectId      String?
+  discipline     String
+  topic          String    @db.Text
+  order          Int       @default(0)
+  studied        Boolean   @default(false)
+  focus          Boolean   @default(true)
+  importance     Int       @default(5)
+  firstStudiedAt DateTime?
+  content        String?   @db.LongText
 
-  contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  contest Contest       @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  reviews TopicReview[]
 
   @@index([contestId])
+}
+
+model TopicReview {
+  id             String    @id @default(cuid())
+  userId         String
+  syllabusItemId String
+  index          Int
+  intervalDays   Int
+  scheduledFor   DateTime
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syllabusItem ContestSyllabusItem @relation(fields: [syllabusItemId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scheduledFor])
+  @@index([syllabusItemId])
 }
 
 enum ContestStatus {

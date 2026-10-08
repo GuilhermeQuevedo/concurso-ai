@@ -5,6 +5,8 @@ import { decodeTextBuffer } from '../utils/text-encoding.js';
 import type { CreateContestDTO, UpdateContestDTO } from '../validators/contest.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
+import { buildReviewSchedule, startOfDay, addDays } from '../utils/spaced-repetition.js';
+import { computeDisciplinePriority } from '../utils/priority.js';
 
 interface UploadedFile {
   originalname: string;
@@ -131,14 +133,60 @@ export class ContestService {
   async getById(userId: string, contestId: string) {
     const contest = await prisma.contest.findUnique({
       where: { id: contestId },
-      include: { syllabus: { orderBy: { order: 'asc' } } },
+      include: {
+        syllabus: {
+          orderBy: { order: 'asc' },
+          include: { reviews: { orderBy: { index: 'asc' } } },
+        },
+      },
     });
 
     if (!contest || contest.userId !== userId) {
       throw new AppError(404, 'CONTEST_NOT_FOUND', 'Concurso não encontrado');
     }
 
-    return contest;
+    return { ...contest, disciplines: this.buildDisciplineStats(contest.syllabus) };
+  }
+
+  private buildDisciplineStats(
+    syllabus: { discipline: string; studied: boolean; focus: boolean; importance: number; reviews: { completedAt: Date | null; scheduledFor: Date }[] }[],
+  ) {
+    const dueCutoff = addDays(startOfDay(new Date()), 1);
+    const groups = new Map<string, typeof syllabus>();
+    for (const item of syllabus) {
+      const list = groups.get(item.discipline) ?? [];
+      list.push(item);
+      groups.set(item.discipline, list);
+    }
+
+    return Array.from(groups.entries())
+      .map(([discipline, items]) => {
+        const studied = items.filter((i) => i.studied).length;
+        const dueReviews = items.reduce(
+          (acc, i) => acc + i.reviews.filter((r) => !r.completedAt && r.scheduledFor < dueCutoff).length,
+          0,
+        );
+        const importance = items[0]?.importance ?? 5;
+        return {
+          discipline,
+          inFocus: items.some((i) => i.focus),
+          total: items.length,
+          studied,
+          dueReviews,
+          importance,
+          priority: computeDisciplinePriority({ importance, totalTopics: items.length, studiedTopics: studied, dueReviews }),
+        };
+      })
+      .sort((a, b) => b.priority - a.priority);
+  }
+
+  async setImportance(userId: string, contestId: string, discipline: string, importance: number) {
+    await this.getById(userId, contestId);
+    await prisma.contestSyllabusItem.updateMany({
+      where: { contestId, discipline },
+      data: { importance },
+    });
+    return this.getById(userId, contestId);
   }
 
   async update(userId: string, contestId: string, dto: UpdateContestDTO) {
@@ -168,17 +216,28 @@ export class ContestService {
   async updateSyllabusItem(userId: string, itemId: string, studied: boolean) {
     const item = await prisma.contestSyllabusItem.findUnique({
       where: { id: itemId },
-      include: { contest: { select: { userId: true } } },
+      include: { contest: { select: { userId: true } }, reviews: { select: { id: true } } },
     });
 
     if (!item || item.contest.userId !== userId) {
       throw new AppError(404, 'SYLLABUS_ITEM_NOT_FOUND', 'Item do conteúdo programático não encontrado');
     }
 
+    if (studied && item.reviews.length === 0) {
+      const schedule = buildReviewSchedule(new Date());
+      await prisma.topicReview.createMany({
+        data: schedule.map((r) => ({ ...r, userId, syllabusItemId: itemId })),
+      });
+    }
+
+    if (!studied) {
+      await prisma.topicReview.deleteMany({ where: { syllabusItemId: itemId } });
+    }
+
     return prisma.contestSyllabusItem.update({
       where: { id: itemId },
-      data: { studied },
+      data: { studied, firstStudiedAt: studied ? (item.firstStudiedAt ?? new Date()) : null },
+      include: { reviews: { orderBy: { index: 'asc' } } },
     });
   }
-
 }

@@ -27,6 +27,21 @@ export const updateSyllabusItemSchema = z.object({
   }),
 });
 
+export const setImportanceSchema = z.object({
+  body: z.object({
+    discipline: z.string().min(1).max(200),
+    importance: z.number().int().min(1).max(10),
+  }),
+});
+
+export const completeReviewSchema = z.object({
+  body: z.object({
+    completed: z.boolean(),
+  }),
+});
+
 export type CreateContestDTO = z.infer<typeof createContestSchema>['body'];
 export type UpdateContestDTO = z.infer<typeof updateContestSchema>['body'];
 export type UpdateSyllabusItemDTO = z.infer<typeof updateSyllabusItemSchema>['body'];
+export type SetImportanceDTO = z.infer<typeof setImportanceSchema>['body'];
+export type CompleteReviewDTO = z.infer<typeof completeReviewSchema>['body'];

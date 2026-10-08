@@ -13,6 +13,7 @@ import { groupRouter } from './group.routes.js';
 import { essayRouter } from './essay.routes.js';
 import { contestRouter } from './contest.routes.js';
 import { studyTaskRouter } from './study-task.routes.js';
+import { dashboardRouter } from './dashboard.routes.js';
 
 const router: RouterType = Router();
 
@@ -29,6 +30,7 @@ router.use('/groups', groupRouter);
 router.use('/essays', essayRouter);
 router.use('/contests', contestRouter);
 router.use('/study-tasks', studyTaskRouter);
+router.use('/dashboard', dashboardRouter);
 
 router.get('/health', (_req, res) => {
   const response: ApiResponse<{ status: string; timestamp: string }> = {

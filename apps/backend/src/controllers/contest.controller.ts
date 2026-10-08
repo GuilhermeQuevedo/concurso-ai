@@ -1,11 +1,15 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { ContestService } from '../services/contest.service.js';
+import type { ContestReviewService } from '../services/contest-review.service.js';
 import type { ApiResponse } from '@concurso-ai/types';
 import { AppError } from '../middlewares/error-handler.js';
 import { getUserId } from '../utils/request.js';
 
 export class ContestController {
-  constructor(private readonly service: ContestService) {}
+  constructor(
+    private readonly service: ContestService,
+    private readonly reviewService: ContestReviewService,
+  ) {}
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -98,6 +102,45 @@ export class ContestController {
         req.body.studied,
       );
       const response: ApiResponse<typeof item> = { success: true, data: item };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  setImportance = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const contest = await this.service.setImportance(
+        getUserId(req),
+        req.params.id as string,
+        req.body.discipline,
+        req.body.importance,
+      );
+      const response: ApiResponse<typeof contest> = { success: true, data: contest };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  completeReview = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const review = await this.reviewService.complete(
+        getUserId(req),
+        req.params.reviewId as string,
+        req.body.completed,
+      );
+      const response: ApiResponse<typeof review> = { success: true, data: review };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listDueReviews = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reviews = await this.reviewService.listDue(getUserId(req));
+      const response: ApiResponse<typeof reviews> = { success: true, data: reviews };
       res.json(response);
     } catch (error) {
       next(error);
