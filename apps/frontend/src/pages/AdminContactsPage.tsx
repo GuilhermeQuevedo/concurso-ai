@@ -120,6 +120,14 @@ export function AdminContactsPage() {
           rows={4}
           className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         />
+        <div className="mt-2 flex justify-end">
+          <button
+            onClick={() => updateTemplate(DEFAULT_WA_TEMPLATE)}
+            className="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400"
+          >
+            Restaurar mensagem padrão
+          </button>
+        </div>
         <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
           Envie somente para quem consentiu, <strong>um contato por vez</strong>, e inclua sempre a opção de descadastro.
           Disparar a mesma mensagem para muitos números em sequência — mesmo manualmente — pode banir seu número no WhatsApp e infringir a LGPD.
