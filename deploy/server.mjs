@@ -4072,9 +4072,19 @@ router14.patch("/daily-goal", authMiddleware, validateRequest(setDailyGoalSchema
 import { Router as Router15, raw } from "express";
 
 // apps/backend/src/services/payment.service.ts
-var ACTIVE_EVENTS = ["paid", "approved", "order_approved", "completed", "active", "subscription_renewed", "subscription_active"];
+var ACTIVE_EVENTS = [
+  "paid",
+  "approved",
+  "order_approved",
+  "compra_aprovada",
+  "completed",
+  "active",
+  "subscription_renewed",
+  "subscription_active"
+];
 var INACTIVE_EVENTS = {
   refunded: "REFUNDED",
+  compra_reembolsada: "REFUNDED",
   chargedback: "REFUNDED",
   chargeback: "REFUNDED",
   canceled: "CANCELED",

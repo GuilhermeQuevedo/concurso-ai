@@ -3,9 +3,19 @@ import { env } from '../config/env.js';
 
 type EntitlementStatus = 'ACTIVE' | 'CANCELED' | 'EXPIRED' | 'REFUNDED';
 
-const ACTIVE_EVENTS = ['paid', 'approved', 'order_approved', 'completed', 'active', 'subscription_renewed', 'subscription_active'];
+const ACTIVE_EVENTS = [
+  'paid',
+  'approved',
+  'order_approved',
+  'compra_aprovada',
+  'completed',
+  'active',
+  'subscription_renewed',
+  'subscription_active',
+];
 const INACTIVE_EVENTS: Record<string, EntitlementStatus> = {
   refunded: 'REFUNDED',
+  compra_reembolsada: 'REFUNDED',
   chargedback: 'REFUNDED',
   chargeback: 'REFUNDED',
   canceled: 'CANCELED',
