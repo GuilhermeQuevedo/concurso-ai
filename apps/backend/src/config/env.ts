@@ -14,6 +14,7 @@ const envSchema = z.object({
   KIWIFY_WEBHOOK_TOKEN: z.string().optional(),
   KIWIFY_CHECKOUT_URL: z.string().default(''),
   ADMIN_EMAIL: z.string().optional(),
+  ADMIN_PASSWORD: z.string().optional(),
 });
 
 function loadEnv() {

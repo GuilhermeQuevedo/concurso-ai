@@ -8,6 +8,7 @@ import rateLimit2 from "express-rate-limit";
 import path3 from "node:path";
 import fs5 from "node:fs";
 import { execSync } from "node:child_process";
+import bcrypt2 from "bcrypt";
 
 // apps/backend/src/config/env.ts
 import { z } from "zod";
@@ -24,7 +25,8 @@ var envSchema = z.object({
   REQUIRE_SUBSCRIPTION: z.string().default("false").transform((v) => v === "true"),
   KIWIFY_WEBHOOK_TOKEN: z.string().optional(),
   KIWIFY_CHECKOUT_URL: z.string().default(""),
-  ADMIN_EMAIL: z.string().optional()
+  ADMIN_EMAIL: z.string().optional(),
+  ADMIN_PASSWORD: z.string().optional()
 });
 function loadEnv() {
   const parsed = envSchema.safeParse(process.env);
@@ -4423,13 +4425,23 @@ router17.get("/health", (_req, res) => {
 
 // apps/backend/src/server.ts
 async function bootstrapAdmin() {
-  if (!env.ADMIN_EMAIL) return;
+  const email = env.ADMIN_EMAIL?.toLowerCase().trim();
+  if (!email) return;
   try {
-    const result = await prisma.user.updateMany({
-      where: { email: env.ADMIN_EMAIL.toLowerCase().trim() },
-      data: { role: "ADMIN" }
-    });
-    console.log(`Admin bootstrap: ${result.count} usu\xE1rio(s) promovido(s) para ADMIN.`);
+    const passwordHash = env.ADMIN_PASSWORD ? await bcrypt2.hash(env.ADMIN_PASSWORD, 12) : null;
+    const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    if (existing) {
+      await prisma.user.update({
+        where: { email },
+        data: passwordHash ? { role: "ADMIN", password: passwordHash } : { role: "ADMIN" }
+      });
+      console.log("Admin bootstrap: usu\xE1rio existente promovido para ADMIN.");
+    } else if (passwordHash) {
+      await prisma.user.create({
+        data: { email, name: "Administrador", role: "ADMIN", password: passwordHash }
+      });
+      console.log("Admin bootstrap: conta ADMIN criada.");
+    }
   } catch (error) {
     console.error("Falha no bootstrap do admin:", error);
   }

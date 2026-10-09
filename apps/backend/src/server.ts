@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 import fs from 'node:fs';
 import { execSync } from 'node:child_process';
+import bcrypt from 'bcrypt';
 import { env } from './config/env.js';
 import { prisma } from './database/prisma.js';
 import { apiRouter } from './routes/index.js';
@@ -12,13 +13,24 @@ import { errorHandler } from './middlewares/error-handler.js';
 import { RATE_LIMIT } from '@concurso-ai/shared';
 
 async function bootstrapAdmin(): Promise<void> {
-  if (!env.ADMIN_EMAIL) return;
+  const email = env.ADMIN_EMAIL?.toLowerCase().trim();
+  if (!email) return;
   try {
-    const result = await prisma.user.updateMany({
-      where: { email: env.ADMIN_EMAIL.toLowerCase().trim() },
-      data: { role: 'ADMIN' },
-    });
-    console.log(`Admin bootstrap: ${result.count} usuário(s) promovido(s) para ADMIN.`);
+    const passwordHash = env.ADMIN_PASSWORD ? await bcrypt.hash(env.ADMIN_PASSWORD, 12) : null;
+    const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+
+    if (existing) {
+      await prisma.user.update({
+        where: { email },
+        data: passwordHash ? { role: 'ADMIN', password: passwordHash } : { role: 'ADMIN' },
+      });
+      console.log('Admin bootstrap: usuário existente promovido para ADMIN.');
+    } else if (passwordHash) {
+      await prisma.user.create({
+        data: { email, name: 'Administrador', role: 'ADMIN', password: passwordHash },
+      });
+      console.log('Admin bootstrap: conta ADMIN criada.');
+    }
   } catch (error) {
     console.error('Falha no bootstrap do admin:', error);
   }
