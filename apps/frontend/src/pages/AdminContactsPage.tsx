@@ -1,13 +1,37 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Contact as ContactIcon, Trash2, Upload, Loader2, Phone, Mail } from 'lucide-react';
+import { Contact as ContactIcon, Trash2, Upload, Loader2, Phone, Mail, MessageCircle } from 'lucide-react';
 import { adminService, type Contact } from '@/features/admin/services/admin.service';
+import {
+  DEFAULT_WA_TEMPLATE,
+  WA_TEMPLATE_KEY,
+  applyTemplate,
+  buildWhatsAppLink,
+} from '@/features/admin/whatsapp';
+
+function loadTemplate(): string {
+  try {
+    return localStorage.getItem(WA_TEMPLATE_KEY) ?? DEFAULT_WA_TEMPLATE;
+  } catch {
+    return DEFAULT_WA_TEMPLATE;
+  }
+}
 
 export function AdminContactsPage() {
   const queryClient = useQueryClient();
   const [text, setText] = useState('');
   const [source, setSource] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [template, setTemplate] = useState<string>(loadTemplate);
+
+  const updateTemplate = (value: string) => {
+    setTemplate(value);
+    try {
+      localStorage.setItem(WA_TEMPLATE_KEY, value);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-contacts'],
@@ -81,6 +105,27 @@ export function AdminContactsPage() {
         )}
       </div>
 
+      <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div className="mb-2 flex items-center gap-2">
+          <MessageCircle className="h-4 w-4 text-green-600" />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Mensagem pronta (WhatsApp)</h2>
+        </div>
+        <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+          Use <code className="rounded bg-gray-100 px-1 dark:bg-gray-800">{'{nome}'}</code> para inserir o nome do contato.
+          O botão de cada contato abre o WhatsApp com esta mensagem já escrita — você revisa e envia manualmente.
+        </p>
+        <textarea
+          value={template}
+          onChange={(e) => updateTemplate(e.target.value)}
+          rows={4}
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        />
+        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+          Envie somente para quem consentiu, <strong>um contato por vez</strong>, e inclua sempre a opção de descadastro.
+          Disparar a mesma mensagem para muitos números em sequência — mesmo manualmente — pode banir seu número no WhatsApp e infringir a LGPD.
+        </div>
+      </div>
+
       <div className="mt-6">
         <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
           Contatos {data ? `(${data.total})` : ''}
@@ -102,12 +147,18 @@ export function AdminContactsPage() {
                   <th className="px-4 py-3 font-medium">Telefone</th>
                   <th className="px-4 py-3 font-medium">E-mail</th>
                   <th className="px-4 py-3 font-medium">Origem</th>
+                  <th className="px-4 py-3 font-medium">WhatsApp</th>
                   <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {data.contacts.map((c) => (
-                  <ContactRow key={c.id} contact={c} onDelete={() => deleteMutation.mutate(c.id)} />
+                  <ContactRow
+                    key={c.id}
+                    contact={c}
+                    template={template}
+                    onDelete={() => deleteMutation.mutate(c.id)}
+                  />
                 ))}
               </tbody>
             </table>
@@ -118,7 +169,16 @@ export function AdminContactsPage() {
   );
 }
 
-function ContactRow({ contact, onDelete }: { contact: Contact; onDelete: () => void }) {
+function ContactRow({
+  contact,
+  template,
+  onDelete,
+}: {
+  contact: Contact;
+  template: string;
+  onDelete: () => void;
+}) {
+  const waLink = buildWhatsAppLink(contact.phone, applyTemplate(template, contact));
   return (
     <tr className="text-gray-700 dark:text-gray-300">
       <td className="px-4 py-3">{contact.name ?? <span className="text-gray-400">—</span>}</td>
@@ -143,6 +203,22 @@ function ContactRow({ contact, onDelete }: { contact: Contact; onDelete: () => v
         )}
       </td>
       <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{contact.source ?? '—'}</td>
+      <td className="px-4 py-3">
+        {waLink ? (
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700"
+            title="Abrir conversa no WhatsApp com a mensagem pronta"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Abrir
+          </a>
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        )}
+      </td>
       <td className="px-4 py-3 text-right">
         <button
           onClick={onDelete}
