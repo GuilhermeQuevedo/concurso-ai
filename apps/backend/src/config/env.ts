@@ -10,6 +10,9 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   OLLAMA_URL: z.string().default('http://localhost:11434'),
   OLLAMA_MODEL: z.string().default('qwen2.5:14b'),
+  REQUIRE_SUBSCRIPTION: z.string().default('false').transform((v) => v === 'true'),
+  KIWIFY_WEBHOOK_TOKEN: z.string().optional(),
+  KIWIFY_CHECKOUT_URL: z.string().default(''),
 });
 
 function loadEnv() {

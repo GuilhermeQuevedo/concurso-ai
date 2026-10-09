@@ -14,23 +14,29 @@ import { essayRouter } from './essay.routes.js';
 import { contestRouter } from './contest.routes.js';
 import { studyTaskRouter } from './study-task.routes.js';
 import { dashboardRouter } from './dashboard.routes.js';
+import { paymentRouter } from './payment.routes.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { requireSubscription } from '../middlewares/subscription.middleware.js';
 
 const router: RouterType = Router();
 
+const gate = [authMiddleware, requireSubscription];
+
 router.use('/auth', authRouter);
+router.use('/payments', paymentRouter);
 router.use('/subjects', subjectRouter);
 router.use('/exam-boards', examBoardRouter);
-router.use('/questions', questionRouter);
-router.use('/study', studyRouter);
-router.use('/documents', documentRouter);
-router.use('/study-plans', studyPlanRouter);
-router.use('/flashcards', flashcardRouter);
 router.use('/gamification', gamificationRouter);
 router.use('/groups', groupRouter);
-router.use('/essays', essayRouter);
-router.use('/contests', contestRouter);
-router.use('/study-tasks', studyTaskRouter);
-router.use('/dashboard', dashboardRouter);
+router.use('/questions', gate, questionRouter);
+router.use('/study', gate, studyRouter);
+router.use('/documents', gate, documentRouter);
+router.use('/study-plans', gate, studyPlanRouter);
+router.use('/flashcards', gate, flashcardRouter);
+router.use('/essays', gate, essayRouter);
+router.use('/contests', gate, contestRouter);
+router.use('/study-tasks', gate, studyTaskRouter);
+router.use('/dashboard', gate, dashboardRouter);
 
 router.get('/health', (_req, res) => {
   const response: ApiResponse<{ status: string; timestamp: string }> = {

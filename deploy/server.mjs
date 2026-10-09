@@ -20,7 +20,10 @@ var envSchema = z.object({
   AI_PROVIDER: z.enum(["gemini", "ollama", "mock"]).default("mock"),
   GEMINI_API_KEY: z.string().optional(),
   OLLAMA_URL: z.string().default("http://localhost:11434"),
-  OLLAMA_MODEL: z.string().default("qwen2.5:14b")
+  OLLAMA_MODEL: z.string().default("qwen2.5:14b"),
+  REQUIRE_SUBSCRIPTION: z.string().default("false").transform((v) => v === "true"),
+  KIWIFY_WEBHOOK_TOKEN: z.string().optional(),
+  KIWIFY_CHECKOUT_URL: z.string().default("")
 });
 function loadEnv() {
   const parsed = envSchema.safeParse(process.env);
@@ -33,7 +36,7 @@ function loadEnv() {
 var env = loadEnv();
 
 // apps/backend/src/routes/index.ts
-import { Router as Router15 } from "express";
+import { Router as Router16 } from "express";
 
 // apps/backend/src/routes/auth.routes.ts
 import { Router } from "express";
@@ -462,8 +465,8 @@ var SubjectService = class {
 
 // apps/backend/src/controllers/subject.controller.ts
 var SubjectController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -624,8 +627,8 @@ var ExamBoardService = class {
 
 // apps/backend/src/controllers/exam-board.controller.ts
 var ExamBoardController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -965,8 +968,8 @@ var QuestionService = class {
 
 // apps/backend/src/controllers/question.controller.ts
 var QuestionController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   generate = async (req, res, next) => {
@@ -1280,8 +1283,8 @@ O material deve conter, em portugu\xEAs, formatado em Markdown:
 
 Seja direto e did\xE1tico. Use listas e negrito para destacar o essencial. N\xE3o invente legisla\xE7\xE3o nem dados; se citar leis, cite apenas as reconhecidas. Escreva de 200 a 400 palavras. Responda APENAS com o material em Markdown, sem pre\xE2mbulo.`;
 }
-function stripJsonMarkdown(raw) {
-  return raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+function stripJsonMarkdown(raw2) {
+  return raw2.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 }
 
 // apps/backend/src/providers/gemini.provider.ts
@@ -1293,8 +1296,8 @@ var GeminiProvider = class {
     this.apiKey = apiKey;
   }
   async generateQuestions(params) {
-    const raw = await this.callApi(buildQuestionsPrompt(params));
-    const parsed = this.parseJson(raw, "gera\xE7\xE3o de quest\xF5es");
+    const raw2 = await this.callApi(buildQuestionsPrompt(params));
+    const parsed = this.parseJson(raw2, "gera\xE7\xE3o de quest\xF5es");
     const result = questionsResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de resposta inv\xE1lido: ${result.error.message}`);
@@ -1306,8 +1309,8 @@ var GeminiProvider = class {
   }
   async gradeEssay(params) {
     const prompt = buildEssayPrompt(params);
-    const raw = params.filePath && params.fileMimeType?.startsWith("image/") ? await this.callApiWithImage(prompt, params.filePath, params.fileMimeType) : await this.callApi(prompt);
-    const parsed = this.parseJson(raw, "corre\xE7\xE3o de reda\xE7\xE3o");
+    const raw2 = params.filePath && params.fileMimeType?.startsWith("image/") ? await this.callApiWithImage(prompt, params.filePath, params.fileMimeType) : await this.callApi(prompt);
+    const parsed = this.parseJson(raw2, "corre\xE7\xE3o de reda\xE7\xE3o");
     const result = essayResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de corre\xE7\xE3o inv\xE1lido: ${result.error.message}`);
@@ -1316,8 +1319,8 @@ var GeminiProvider = class {
   }
   async gradeCaseStudy(params) {
     const prompt = buildCaseStudyPrompt(params);
-    const raw = params.filePath && params.fileMimeType?.startsWith("image/") ? await this.callApiWithImage(prompt, params.filePath, params.fileMimeType) : await this.callApi(prompt);
-    const parsed = this.parseJson(raw, "corre\xE7\xE3o de estudo de caso");
+    const raw2 = params.filePath && params.fileMimeType?.startsWith("image/") ? await this.callApiWithImage(prompt, params.filePath, params.fileMimeType) : await this.callApi(prompt);
+    const parsed = this.parseJson(raw2, "corre\xE7\xE3o de estudo de caso");
     const result = caseStudyResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de corre\xE7\xE3o inv\xE1lido: ${result.error.message}`);
@@ -1325,8 +1328,8 @@ var GeminiProvider = class {
     return result.data;
   }
   async parseEdital(params) {
-    const raw = await this.callApi(buildEditalPrompt(truncateEdital(params.content), params.focus));
-    const parsed = this.parseJson(raw, "an\xE1lise de edital");
+    const raw2 = await this.callApi(buildEditalPrompt(truncateEdital(params.content), params.focus));
+    const parsed = this.parseJson(raw2, "an\xE1lise de edital");
     const result = editalResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de an\xE1lise de edital inv\xE1lido: ${result.error.message}`);
@@ -1337,17 +1340,17 @@ var GeminiProvider = class {
     return this.callApi(buildTopicContentPrompt(params), 2, false);
   }
   async generateFlashcards(params) {
-    const raw = await this.callApi(buildFlashcardsPrompt(params));
-    const parsed = this.parseJson(raw, "gera\xE7\xE3o de flashcards");
+    const raw2 = await this.callApi(buildFlashcardsPrompt(params));
+    const parsed = this.parseJson(raw2, "gera\xE7\xE3o de flashcards");
     const result = flashcardsResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de flashcards inv\xE1lido: ${result.error.message}`);
     }
     return result.data.flashcards;
   }
-  parseJson(raw, context) {
+  parseJson(raw2, context) {
     try {
-      return JSON.parse(stripJsonMarkdown(raw));
+      return JSON.parse(stripJsonMarkdown(raw2));
     } catch {
       throw new AppError(502, "AI_INVALID_JSON", `Gemini retornou JSON inv\xE1lido na ${context}`);
     }
@@ -1441,8 +1444,8 @@ var OllamaProvider = class {
   baseUrl;
   model;
   async generateQuestions(params) {
-    const raw = await this.callApi(buildQuestionsPrompt(params));
-    const parsed = this.parseJson(raw, "gera\xE7\xE3o de quest\xF5es");
+    const raw2 = await this.callApi(buildQuestionsPrompt(params));
+    const parsed = this.parseJson(raw2, "gera\xE7\xE3o de quest\xF5es");
     const result = questionsResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de resposta inv\xE1lido do modelo local: ${result.error.message}`);
@@ -1457,8 +1460,8 @@ var OllamaProvider = class {
         "O modelo de IA local n\xE3o l\xEA imagens. Envie a reda\xE7\xE3o em PDF com texto ou digite o conte\xFAdo."
       );
     }
-    const raw = await this.callApi(buildEssayPrompt(params));
-    const parsed = this.parseJson(raw, "corre\xE7\xE3o de reda\xE7\xE3o");
+    const raw2 = await this.callApi(buildEssayPrompt(params));
+    const parsed = this.parseJson(raw2, "corre\xE7\xE3o de reda\xE7\xE3o");
     const result = essayResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de corre\xE7\xE3o inv\xE1lido do modelo local: ${result.error.message}`);
@@ -1473,8 +1476,8 @@ var OllamaProvider = class {
         "O modelo de IA local n\xE3o l\xEA imagens. Envie a resposta em PDF com texto ou digite o conte\xFAdo."
       );
     }
-    const raw = await this.callApi(buildCaseStudyPrompt(params));
-    const parsed = this.parseJson(raw, "corre\xE7\xE3o de estudo de caso");
+    const raw2 = await this.callApi(buildCaseStudyPrompt(params));
+    const parsed = this.parseJson(raw2, "corre\xE7\xE3o de estudo de caso");
     const result = caseStudyResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de corre\xE7\xE3o inv\xE1lido do modelo local: ${result.error.message}`);
@@ -1483,8 +1486,8 @@ var OllamaProvider = class {
   }
   async parseEdital(params) {
     const content = truncateEdital(params.content, OLLAMA_EDITAL_MAX_CHARS);
-    const raw = await this.callApi(buildEditalPrompt(content, params.focus));
-    const parsed = this.parseJson(raw, "an\xE1lise de edital");
+    const raw2 = await this.callApi(buildEditalPrompt(content, params.focus));
+    const parsed = this.parseJson(raw2, "an\xE1lise de edital");
     const result = editalResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de an\xE1lise de edital inv\xE1lido do modelo local: ${result.error.message}`);
@@ -1496,8 +1499,8 @@ var OllamaProvider = class {
     return text.trim();
   }
   async generateFlashcards(params) {
-    const raw = await this.callApi(buildFlashcardsPrompt(params));
-    const parsed = this.parseJson(raw, "gera\xE7\xE3o de flashcards");
+    const raw2 = await this.callApi(buildFlashcardsPrompt(params));
+    const parsed = this.parseJson(raw2, "gera\xE7\xE3o de flashcards");
     const result = flashcardsResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, "AI_INVALID_FORMAT", `Formato de flashcards inv\xE1lido do modelo local: ${result.error.message}`);
@@ -1537,9 +1540,9 @@ var OllamaProvider = class {
     }
     return text;
   }
-  parseJson(raw, context) {
+  parseJson(raw2, context) {
     try {
-      return JSON.parse(stripJsonMarkdown(raw));
+      return JSON.parse(stripJsonMarkdown(raw2));
     } catch {
       throw new AppError(502, "AI_INVALID_JSON", `O modelo local retornou JSON inv\xE1lido na ${context}`);
     }
@@ -2148,8 +2151,8 @@ var StudyService = class {
 
 // apps/backend/src/controllers/study.controller.ts
 var StudyController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   createSession = async (req, res, next) => {
@@ -2256,8 +2259,8 @@ import { Router as Router6 } from "express";
 
 // apps/backend/src/controllers/document.controller.ts
 var DocumentController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   upload = async (req, res, next) => {
@@ -2399,8 +2402,8 @@ var StudyPlanService = class {
 
 // apps/backend/src/controllers/study-plan.controller.ts
 var StudyPlanController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   create = async (req, res, next) => {
@@ -2526,8 +2529,8 @@ function isHeaderRow(fields) {
   const headerWords = ["front", "back", "frente", "verso", "pergunta", "resposta", "question", "answer"];
   return headerWords.includes(first) && headerWords.includes(second);
 }
-function parseFlashcardText(raw) {
-  const lines = raw.split(/\r?\n/);
+function parseFlashcardText(raw2) {
+  const lines = raw2.split(/\r?\n/);
   let separator = null;
   let tagsColumn = null;
   const dataLines = [];
@@ -2703,8 +2706,8 @@ var FlashcardService = class {
 
 // apps/backend/src/controllers/flashcard.controller.ts
 var FlashcardController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   create = async (req, res, next) => {
@@ -2801,8 +2804,8 @@ import { Router as Router9 } from "express";
 
 // apps/backend/src/controllers/gamification.controller.ts
 var GamificationController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   getProfile = async (req, res, next) => {
@@ -2837,8 +2840,8 @@ import { Router as Router10 } from "express";
 
 // apps/backend/src/controllers/group.controller.ts
 var GroupController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   create = async (req, res, next) => {
@@ -3066,8 +3069,8 @@ var EssayService = class {
 
 // apps/backend/src/controllers/essay.controller.ts
 var EssayController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   submit = async (req, res, next) => {
@@ -3453,8 +3456,8 @@ var ContestReviewService = class {
 
 // apps/backend/src/controllers/contest.controller.ts
 var ContestController = class {
-  constructor(service14, reviewService2) {
-    this.service = service14;
+  constructor(service15, reviewService2) {
+    this.service = service15;
     this.reviewService = reviewService2;
   }
   service;
@@ -3847,8 +3850,8 @@ function dayKey(date) {
 
 // apps/backend/src/controllers/study-task.controller.ts
 var StudyTaskController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   generatePlan = async (req, res, next) => {
@@ -4026,8 +4029,8 @@ var DashboardService = class {
 
 // apps/backend/src/controllers/dashboard.controller.ts
 var DashboardController = class {
-  constructor(service14) {
-    this.service = service14;
+  constructor(service15) {
+    this.service = service15;
   }
   service;
   getSummary = async (req, res, next) => {
@@ -4065,23 +4068,174 @@ var controller13 = new DashboardController(service13);
 router14.get("/", authMiddleware, controller13.getSummary);
 router14.patch("/daily-goal", authMiddleware, validateRequest(setDailyGoalSchema), controller13.setDailyGoal);
 
-// apps/backend/src/routes/index.ts
+// apps/backend/src/routes/payment.routes.ts
+import { Router as Router15, raw } from "express";
+
+// apps/backend/src/services/payment.service.ts
+var ACTIVE_EVENTS = ["paid", "approved", "order_approved", "completed", "active", "subscription_renewed", "subscription_active"];
+var INACTIVE_EVENTS = {
+  refunded: "REFUNDED",
+  chargedback: "REFUNDED",
+  chargeback: "REFUNDED",
+  canceled: "CANCELED",
+  cancelled: "CANCELED",
+  subscription_canceled: "CANCELED",
+  subscription_late: "EXPIRED",
+  expired: "EXPIRED"
+};
+function unknown(value) {
+  return value && typeof value === "object" ? value : {};
+}
+function pickEmail(payload) {
+  const customer = unknown(payload.Customer ?? payload.customer ?? payload.buyer);
+  const email = customer.email ?? payload.email ?? payload.Email;
+  return email ? email.toLowerCase().trim() : null;
+}
+function pickEvent(payload) {
+  const sub = unknown(payload.Subscription ?? payload.subscription);
+  const raw2 = payload.order_status ?? payload.webhook_event_type ?? payload.event ?? sub.status ?? "";
+  return String(raw2).toLowerCase().trim();
+}
+function mapStatus(event) {
+  if (ACTIVE_EVENTS.includes(event)) return "ACTIVE";
+  if (event in INACTIVE_EVENTS) return INACTIVE_EVENTS[event];
+  return null;
+}
+var PaymentService = class {
+  async handleKiwifyWebhook(payload) {
+    const email = pickEmail(payload);
+    const event = pickEvent(payload);
+    const status = mapStatus(event);
+    if (!email || !status) {
+      return { handled: false, email, event };
+    }
+    const product = unknown(payload.Product ?? payload.product);
+    const externalRef = payload.order_id ?? payload.order_ref ?? payload.id ?? null;
+    const productId = product.product_id ?? product.id ?? null;
+    await prisma.entitlement.upsert({
+      where: { email },
+      create: { email, status, provider: "kiwify", externalRef, productId },
+      update: { status, externalRef, productId }
+    });
+    return { handled: true, email, event, status };
+  }
+  async getAccess(email) {
+    const normalized = email.toLowerCase().trim();
+    const entitlement = await prisma.entitlement.findUnique({ where: { email: normalized } });
+    const now = /* @__PURE__ */ new Date();
+    const active = !!entitlement && entitlement.status === "ACTIVE" && (!entitlement.expiresAt || entitlement.expiresAt > now);
+    return {
+      active,
+      enforced: env.REQUIRE_SUBSCRIPTION,
+      status: entitlement?.status ?? "NONE",
+      expiresAt: entitlement?.expiresAt ?? null,
+      checkoutUrl: env.KIWIFY_CHECKOUT_URL
+    };
+  }
+};
+
+// apps/backend/src/utils/kiwify-signature.ts
+import crypto4 from "node:crypto";
+function verifyKiwifySignature(rawBody, signature, token) {
+  if (!signature) return false;
+  const expected = crypto4.createHmac("sha1", token).update(rawBody).digest("hex");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature);
+  return a.length === b.length && crypto4.timingSafeEqual(a, b);
+}
+
+// apps/backend/src/controllers/payment.controller.ts
+var PaymentController = class {
+  constructor(service15) {
+    this.service = service15;
+  }
+  service;
+  kiwifyWebhook = async (req, res) => {
+    const raw2 = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body ?? {}));
+    if (env.KIWIFY_WEBHOOK_TOKEN) {
+      const signature = req.query.signature ?? req.headers["x-kiwify-signature"];
+      if (!verifyKiwifySignature(raw2, signature, env.KIWIFY_WEBHOOK_TOKEN)) {
+        return res.status(401).json({ success: false, error: { message: "Assinatura inv\xE1lida", code: "INVALID_SIGNATURE" } });
+      }
+    }
+    let payload = {};
+    try {
+      payload = JSON.parse(raw2.toString("utf8"));
+    } catch {
+      payload = {};
+    }
+    const result = await this.service.handleKiwifyWebhook(payload);
+    console.log("[kiwify-webhook]", JSON.stringify(result));
+    return res.status(200).json({ success: true, data: result });
+  };
+  myAccess = async (req, res, next) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: getUserId(req) },
+        select: { email: true }
+      });
+      const access = await this.service.getAccess(user?.email ?? "");
+      const response = { success: true, data: access };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// apps/backend/src/routes/payment.routes.ts
 var router15 = Router15();
-router15.use("/auth", router);
-router15.use("/subjects", router2);
-router15.use("/exam-boards", router3);
-router15.use("/questions", router4);
-router15.use("/study", router5);
-router15.use("/documents", router6);
-router15.use("/study-plans", router7);
-router15.use("/flashcards", router8);
-router15.use("/gamification", router9);
-router15.use("/groups", router10);
-router15.use("/essays", router11);
-router15.use("/contests", router12);
-router15.use("/study-tasks", router13);
-router15.use("/dashboard", router14);
-router15.get("/health", (_req, res) => {
+var service14 = new PaymentService();
+var controller14 = new PaymentController(service14);
+router15.post("/kiwify/webhook", raw({ type: "*/*" }), controller14.kiwifyWebhook);
+router15.get("/me", authMiddleware, controller14.myAccess);
+
+// apps/backend/src/middlewares/subscription.middleware.ts
+async function requireSubscription(req, res, next) {
+  if (!env.REQUIRE_SUBSCRIPTION) {
+    return next();
+  }
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: getUserId(req) },
+      select: { email: true, role: true }
+    });
+    if (user?.role === "ADMIN") {
+      return next();
+    }
+    const entitlement = user ? await prisma.entitlement.findUnique({ where: { email: user.email.toLowerCase() } }) : null;
+    const active = !!entitlement && entitlement.status === "ACTIVE" && (!entitlement.expiresAt || entitlement.expiresAt > /* @__PURE__ */ new Date());
+    if (active) {
+      return next();
+    }
+    return res.status(403).json({
+      success: false,
+      error: { message: "Assinatura necess\xE1ria para acessar este recurso.", code: "SUBSCRIPTION_REQUIRED" }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// apps/backend/src/routes/index.ts
+var router16 = Router16();
+var gate = [authMiddleware, requireSubscription];
+router16.use("/auth", router);
+router16.use("/payments", router15);
+router16.use("/subjects", router2);
+router16.use("/exam-boards", router3);
+router16.use("/gamification", router9);
+router16.use("/groups", router10);
+router16.use("/questions", gate, router4);
+router16.use("/study", gate, router5);
+router16.use("/documents", gate, router6);
+router16.use("/study-plans", gate, router7);
+router16.use("/flashcards", gate, router8);
+router16.use("/essays", gate, router11);
+router16.use("/contests", gate, router12);
+router16.use("/study-tasks", gate, router13);
+router16.use("/dashboard", gate, router14);
+router16.get("/health", (_req, res) => {
   const response = {
     success: true,
     data: {
@@ -4132,7 +4286,7 @@ app.use(express.json({ limit: "10mb" }));
 var uploadsDir = path3.resolve("uploads");
 fs5.mkdirSync(uploadsDir, { recursive: true });
 app.use("/uploads", express.static(uploadsDir));
-app.use("/api", router15);
+app.use("/api", router16);
 var publicDir = path3.resolve("public");
 if (fs5.existsSync(publicDir)) {
   app.use(express.static(publicDir));

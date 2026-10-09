@@ -457,3 +457,24 @@ enum StudyTaskType {
   ESSAY
   MOCK_EXAM
 }
+
+enum EntitlementStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  REFUNDED
+}
+
+model Entitlement {
+  id          String            @id @default(cuid())
+  email       String            @unique
+  status      EntitlementStatus @default(ACTIVE)
+  provider    String            @default("kiwify")
+  externalRef String?
+  productId   String?
+  expiresAt   DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([email])
+}

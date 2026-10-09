@@ -22,11 +22,14 @@ import { HelpPage } from '@/pages/HelpPage';
 import { GettingStartedPage } from '@/pages/GettingStartedPage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { SubscriptionGate } from '@/features/subscription/components/SubscriptionGate';
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
-      <DashboardLayout>{children}</DashboardLayout>
+      <SubscriptionGate>
+        <DashboardLayout>{children}</DashboardLayout>
+      </SubscriptionGate>
     </ProtectedRoute>
   );
 }
