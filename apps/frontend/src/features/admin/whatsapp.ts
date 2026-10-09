@@ -3,19 +3,20 @@ import type { Contact } from './services/admin.service';
 const DEFAULT_COUNTRY_CODE = '55';
 
 export const WA_TEMPLATE_KEY = 'contacts-wa-template';
+export const WA_GROUP_LINK_KEY = 'contacts-wa-group-link';
 
 export const DEFAULT_WA_TEMPLATE = [
-  '🚀 *Passar em concurso ficou mais inteligente!*',
+  '🎯 *Grupo GRÁTIS de preparação para concursos!*',
   '',
-  'Oi! Já conhece o *Concurso AI*? É uma plataforma feita 100% para concurseiros, com inteligência artificial trabalhando a seu favor:',
+  'Oi! Tô abrindo um grupo no WhatsApp pra quem quer passar em concurso. Lá dentro tem:',
   '',
-  '✅ Questões inéditas no estilo da sua banca',
-  '📝 Correção de redação detalhada em minutos',
-  '🧠 Flashcards com revisão espaçada pra não esquecer',
-  '📅 Plano de estudos personalizado pro seu edital',
-  '📊 Estatísticas que mostram exatamente onde focar',
+  '📚 Dicas e materiais de estudo',
+  '📝 Questões e redações comentadas',
+  '📅 Avisos de editais e prazos importantes',
+  '🤖 Acesso ao *Concurso AI* — plataforma com inteligência artificial pra estudar melhor',
   '',
-  'Quer testar e ver como acelera a sua aprovação? Te mando o acesso agora. 😉',
+  'Bora entrar? É de graça 👇',
+  '{link}',
   '',
   '(Se não quiser receber, responda *SAIR* que não envio mais.)',
 ].join('\n');
@@ -30,9 +31,12 @@ export function normalizeWhatsAppNumber(phone: string | null): string | null {
   return digits;
 }
 
-export function applyTemplate(template: string, contact: Contact): string {
+export function applyTemplate(template: string, contact: Contact, groupLink = ''): string {
   const nome = contact.name?.trim() ?? '';
-  return template.replace(/\{nome\}/g, nome).trim();
+  return template
+    .replace(/\{nome\}/g, nome)
+    .replace(/\{link\}/g, groupLink.trim())
+    .trim();
 }
 
 export function buildWhatsAppLink(phone: string | null, message: string): string | null {

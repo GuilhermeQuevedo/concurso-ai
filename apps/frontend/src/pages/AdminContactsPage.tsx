@@ -5,15 +5,25 @@ import { adminService, type Contact } from '@/features/admin/services/admin.serv
 import {
   DEFAULT_WA_TEMPLATE,
   WA_TEMPLATE_KEY,
+  WA_GROUP_LINK_KEY,
   applyTemplate,
   buildWhatsAppLink,
 } from '@/features/admin/whatsapp';
+import { GroupCampaignCard } from '@/features/admin/components/GroupCampaignCard';
 
-function loadTemplate(): string {
+function loadStored(key: string, fallback: string): string {
   try {
-    return localStorage.getItem(WA_TEMPLATE_KEY) ?? DEFAULT_WA_TEMPLATE;
+    return localStorage.getItem(key) ?? fallback;
   } catch {
-    return DEFAULT_WA_TEMPLATE;
+    return fallback;
+  }
+}
+
+function persist(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* ignore */
   }
 }
 
@@ -22,15 +32,17 @@ export function AdminContactsPage() {
   const [text, setText] = useState('');
   const [source, setSource] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [template, setTemplate] = useState<string>(loadTemplate);
+  const [template, setTemplate] = useState<string>(() => loadStored(WA_TEMPLATE_KEY, DEFAULT_WA_TEMPLATE));
+  const [groupLink, setGroupLink] = useState<string>(() => loadStored(WA_GROUP_LINK_KEY, ''));
 
   const updateTemplate = (value: string) => {
     setTemplate(value);
-    try {
-      localStorage.setItem(WA_TEMPLATE_KEY, value);
-    } catch {
-      /* ignore */
-    }
+    persist(WA_TEMPLATE_KEY, value);
+  };
+
+  const updateGroupLink = (value: string) => {
+    setGroupLink(value);
+    persist(WA_GROUP_LINK_KEY, value);
   };
 
   const { data, isLoading } = useQuery({
@@ -105,33 +117,13 @@ export function AdminContactsPage() {
         )}
       </div>
 
-      <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-        <div className="mb-2 flex items-center gap-2">
-          <MessageCircle className="h-4 w-4 text-green-600" />
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Mensagem pronta (WhatsApp)</h2>
-        </div>
-        <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-          Use <code className="rounded bg-gray-100 px-1 dark:bg-gray-800">{'{nome}'}</code> para inserir o nome do contato.
-          O botão de cada contato abre o WhatsApp com esta mensagem já escrita — você revisa e envia manualmente.
-        </p>
-        <textarea
-          value={template}
-          onChange={(e) => updateTemplate(e.target.value)}
-          rows={4}
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+      <div className="mt-6">
+        <GroupCampaignCard
+          template={template}
+          groupLink={groupLink}
+          onTemplateChange={updateTemplate}
+          onGroupLinkChange={updateGroupLink}
         />
-        <div className="mt-2 flex justify-end">
-          <button
-            onClick={() => updateTemplate(DEFAULT_WA_TEMPLATE)}
-            className="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400"
-          >
-            Restaurar mensagem padrão
-          </button>
-        </div>
-        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
-          Envie somente para quem consentiu, <strong>um contato por vez</strong>, e inclua sempre a opção de descadastro.
-          Disparar a mesma mensagem para muitos números em sequência — mesmo manualmente — pode banir seu número no WhatsApp e infringir a LGPD.
-        </div>
       </div>
 
       <div className="mt-6">
@@ -165,6 +157,7 @@ export function AdminContactsPage() {
                     key={c.id}
                     contact={c}
                     template={template}
+                    groupLink={groupLink}
                     onDelete={() => deleteMutation.mutate(c.id)}
                   />
                 ))}
@@ -180,13 +173,15 @@ export function AdminContactsPage() {
 function ContactRow({
   contact,
   template,
+  groupLink,
   onDelete,
 }: {
   contact: Contact;
   template: string;
+  groupLink: string;
   onDelete: () => void;
 }) {
-  const waLink = buildWhatsAppLink(contact.phone, applyTemplate(template, contact));
+  const waLink = buildWhatsAppLink(contact.phone, applyTemplate(template, contact, groupLink));
   return (
     <tr className="text-gray-700 dark:text-gray-300">
       <td className="px-4 py-3">{contact.name ?? <span className="text-gray-400">—</span>}</td>
@@ -218,10 +213,10 @@ function ContactRow({
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700"
-            title="Abrir conversa no WhatsApp com a mensagem pronta"
+            title="Abrir conversa no WhatsApp com o convite pronto"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            Abrir
+            Convidar
           </a>
         ) : (
           <span className="text-xs text-gray-400">—</span>
