@@ -494,3 +494,15 @@ model Payment {
   @@index([email])
   @@index([createdAt])
 }
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String?
+  phone     String?
+  email     String?
+  notes     String?  @db.Text
+  source    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

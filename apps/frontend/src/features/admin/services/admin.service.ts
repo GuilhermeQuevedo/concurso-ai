@@ -28,6 +28,15 @@ export interface AdminUser {
   sessions: number;
 }
 
+export interface Contact {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  source: string | null;
+  createdAt: string;
+}
+
 export const adminService = {
   async getOverview(): Promise<AdminOverview> {
     const response = await api.get<ApiResponse<AdminOverview>>('/admin/overview');
@@ -37,5 +46,19 @@ export const adminService = {
   async getUsers(): Promise<AdminUser[]> {
     const response = await api.get<ApiResponse<AdminUser[]>>('/admin/users');
     return unwrapData(response);
+  },
+
+  async getContacts(): Promise<{ total: number; contacts: Contact[] }> {
+    const response = await api.get<ApiResponse<{ total: number; contacts: Contact[] }>>('/admin/contacts');
+    return unwrapData(response);
+  },
+
+  async importContacts(text: string, source?: string): Promise<{ parsed: number; imported: number }> {
+    const response = await api.post<ApiResponse<{ parsed: number; imported: number }>>('/admin/contacts/import', { text, source });
+    return unwrapData(response);
+  },
+
+  async deleteContact(id: string): Promise<void> {
+    await api.delete(`/admin/contacts/${id}`);
   },
 };

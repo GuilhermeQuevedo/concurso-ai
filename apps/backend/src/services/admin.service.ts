@@ -1,4 +1,5 @@
 import { prisma } from '../database/prisma.js';
+import { parseContacts } from '../utils/contact-parser.js';
 
 function daysAgo(days: number): Date {
   const d = new Date();
@@ -86,5 +87,30 @@ export class AdminService {
       flashcards: u._count.flashcards,
       sessions: u._count.studySessions,
     }));
+  }
+
+  async importContacts(raw: string, source?: string) {
+    const parsed = parseContacts(raw);
+    if (parsed.length === 0) {
+      return { parsed: 0, imported: 0 };
+    }
+
+    const result = await prisma.contact.createMany({
+      data: parsed.map((c) => ({ name: c.name, phone: c.phone, email: c.email, source: source ?? 'importacao' })),
+    });
+
+    return { parsed: parsed.length, imported: result.count };
+  }
+
+  async listContacts() {
+    const [contacts, total] = await Promise.all([
+      prisma.contact.findMany({ orderBy: { createdAt: 'desc' }, take: 1000 }),
+      prisma.contact.count(),
+    ]);
+    return { total, contacts };
+  }
+
+  async deleteContact(id: string) {
+    await prisma.contact.delete({ where: { id } });
   }
 }

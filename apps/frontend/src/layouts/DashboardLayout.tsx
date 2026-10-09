@@ -25,6 +25,7 @@ import {
   Library,
   TrendingUp,
   ShieldCheck,
+  Contact,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -181,6 +182,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
           {topItems.map((item) => renderItem(item))}
           {user?.role === 'ADMIN' && renderItem({ path: '/admin', label: 'Administração', icon: ShieldCheck })}
+          {user?.role === 'ADMIN' && renderItem({ path: '/admin/contatos', label: 'Possíveis Clientes', icon: Contact })}
 
           {navGroups.map((group) => {
             const isOpen = expanded.includes(group.key) || tourActive;

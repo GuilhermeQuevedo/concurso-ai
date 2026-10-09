@@ -4229,6 +4229,72 @@ router15.get("/me", authMiddleware, controller14.myAccess);
 // apps/backend/src/routes/admin.routes.ts
 import { Router as Router16 } from "express";
 
+// apps/backend/src/utils/contact-parser.ts
+var MAX_CONTACTS = 5e3;
+var EMAIL_RE = /[^\s,;]+@[^\s,;]+\.[^\s,;]+/;
+var LETTER_RE = /[a-zA-ZÀ-ÿ]/;
+function splitLine2(line) {
+  if (line.includes("	")) return line.split("	");
+  if (line.includes(";")) return line.split(";");
+  if (line.includes(",")) return line.split(",");
+  return line.split(/\s{2,}/);
+}
+function normalizePhone(value) {
+  const cleaned = value.replace(/[^\d+]/g, "");
+  const digits = cleaned.replace(/\D/g, "");
+  return digits.length >= 8 && digits.length <= 15 ? cleaned : null;
+}
+function digitCount(value) {
+  return value.replace(/\D/g, "").length;
+}
+function isHeaderLine(line) {
+  const l = line.toLowerCase();
+  const hasData = EMAIL_RE.test(line) || /\d{8,}/.test(line.replace(/\D/g, ""));
+  if (hasData) return false;
+  return ["nome", "telefone", "email", "e-mail", "whatsapp", "ddd", "phone", "name"].some(
+    (h) => l.includes(h)
+  );
+}
+function extractFromLine(parts) {
+  let email = null;
+  let phone = null;
+  const nameParts = [];
+  for (const part of parts) {
+    if (!email && EMAIL_RE.test(part)) {
+      email = (part.match(EMAIL_RE)?.[0] ?? part).toLowerCase();
+      continue;
+    }
+    const maybePhone = !LETTER_RE.test(part) ? normalizePhone(part) : null;
+    if (maybePhone) {
+      if (!phone || digitCount(maybePhone) > digitCount(phone)) phone = maybePhone;
+      continue;
+    }
+    if (LETTER_RE.test(part)) nameParts.push(part);
+  }
+  const name = nameParts.join(" ").trim() || null;
+  if (!name && !phone && !email) return null;
+  return { name, phone, email };
+}
+function parseContacts(raw2) {
+  const lines = raw2.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const result = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const line of lines) {
+    if (result.length >= MAX_CONTACTS) break;
+    if (isHeaderLine(line)) continue;
+    const parts = splitLine2(line).map((p) => p.trim()).filter(Boolean);
+    const contact = extractFromLine(parts);
+    if (!contact) continue;
+    const key = (contact.phone ? contact.phone.replace(/\D/g, "") : "") || contact.email || "";
+    if (key) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    result.push(contact);
+  }
+  return result;
+}
+
 // apps/backend/src/services/admin.service.ts
 function daysAgo(days) {
   const d = /* @__PURE__ */ new Date();
@@ -4311,6 +4377,26 @@ var AdminService = class {
       sessions: u._count.studySessions
     }));
   }
+  async importContacts(raw2, source) {
+    const parsed = parseContacts(raw2);
+    if (parsed.length === 0) {
+      return { parsed: 0, imported: 0 };
+    }
+    const result = await prisma.contact.createMany({
+      data: parsed.map((c) => ({ name: c.name, phone: c.phone, email: c.email, source: source ?? "importacao" }))
+    });
+    return { parsed: parsed.length, imported: result.count };
+  }
+  async listContacts() {
+    const [contacts, total] = await Promise.all([
+      prisma.contact.findMany({ orderBy: { createdAt: "desc" }, take: 1e3 }),
+      prisma.contact.count()
+    ]);
+    return { total, contacts };
+  }
+  async deleteContact(id) {
+    await prisma.contact.delete({ where: { id } });
+  }
 };
 
 // apps/backend/src/controllers/admin.controller.ts
@@ -4332,6 +4418,35 @@ var AdminController = class {
     try {
       const data = await this.service.getUsers();
       const response = { success: true, data };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  importContacts = async (req, res, next) => {
+    try {
+      const raw2 = typeof req.body?.text === "string" ? req.body.text : "";
+      const source = typeof req.body?.source === "string" ? req.body.source : void 0;
+      const data = await this.service.importContacts(raw2, source);
+      const response = { success: true, data };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  listContacts = async (_req, res, next) => {
+    try {
+      const data = await this.service.listContacts();
+      const response = { success: true, data };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  deleteContact = async (req, res, next) => {
+    try {
+      await this.service.deleteContact(req.params.id);
+      const response = { success: true, data: null };
       res.json(response);
     } catch (error) {
       next(error);
@@ -4365,6 +4480,9 @@ var controller15 = new AdminController(service15);
 router16.use(authMiddleware, requireAdmin);
 router16.get("/overview", controller15.overview);
 router16.get("/users", controller15.users);
+router16.get("/contacts", controller15.listContacts);
+router16.post("/contacts/import", controller15.importContacts);
+router16.delete("/contacts/:id", controller15.deleteContact);
 
 // apps/backend/src/middlewares/subscription.middleware.ts
 async function requireSubscription(req, res, next) {
