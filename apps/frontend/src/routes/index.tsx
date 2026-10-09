@@ -18,6 +18,7 @@ import { EssayPage } from '@/pages/EssayPage';
 import { ContestsPage } from '@/pages/ContestsPage';
 import { CalendarPage } from '@/pages/CalendarPage';
 import { MemorySimulatorPage } from '@/pages/MemorySimulatorPage';
+import { AdminPage } from '@/pages/AdminPage';
 import { HelpPage } from '@/pages/HelpPage';
 import { GettingStartedPage } from '@/pages/GettingStartedPage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
@@ -56,6 +57,7 @@ export function AppRoutes() {
       <Route path="/groups" element={<ProtectedLayout><GroupsPage /></ProtectedLayout>} />
       <Route path="/stats" element={<ProtectedLayout><StatsPage /></ProtectedLayout>} />
       <Route path="/memory-simulator" element={<ProtectedLayout><MemorySimulatorPage /></ProtectedLayout>} />
+      <Route path="/admin" element={<ProtectedLayout><AdminPage /></ProtectedLayout>} />
       <Route path="/settings" element={<ProtectedLayout><SettingsPage /></ProtectedLayout>} />
       <Route path="/help" element={<ProtectedLayout><HelpPage /></ProtectedLayout>} />
       <Route path="/getting-started" element={<ProtectedLayout><GettingStartedPage /></ProtectedLayout>} />

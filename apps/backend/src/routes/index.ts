@@ -15,6 +15,7 @@ import { contestRouter } from './contest.routes.js';
 import { studyTaskRouter } from './study-task.routes.js';
 import { dashboardRouter } from './dashboard.routes.js';
 import { paymentRouter } from './payment.routes.js';
+import { adminRouter } from './admin.routes.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { requireSubscription } from '../middlewares/subscription.middleware.js';
 
@@ -24,6 +25,7 @@ const gate = [authMiddleware, requireSubscription];
 
 router.use('/auth', authRouter);
 router.use('/payments', paymentRouter);
+router.use('/admin', adminRouter);
 router.use('/subjects', subjectRouter);
 router.use('/exam-boards', examBoardRouter);
 router.use('/gamification', gamificationRouter);

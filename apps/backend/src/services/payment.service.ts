@@ -48,6 +48,22 @@ function mapStatus(event: string): EntitlementStatus | null {
   return null;
 }
 
+function pickAmountCents(payload: Record<string, unknown>): number | null {
+  const commissions = unknown(payload.Commissions ?? payload.commissions);
+  const order = unknown(payload.order ?? payload.Order);
+  const candidates = [
+    commissions.charge_amount,
+    payload.charge_amount,
+    order.amount,
+    payload.amount,
+  ];
+  for (const value of candidates) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0) return Math.round(n);
+  }
+  return null;
+}
+
 export class PaymentService {
   async handleKiwifyWebhook(payload: Record<string, unknown>) {
     const email = pickEmail(payload);
@@ -66,6 +82,10 @@ export class PaymentService {
       where: { email },
       create: { email, status, provider: 'kiwify', externalRef, productId },
       update: { status, externalRef, productId },
+    });
+
+    await prisma.payment.create({
+      data: { email, event, status, amountCents: pickAmountCents(payload), provider: 'kiwify', externalRef, productId },
     });
 
     return { handled: true, email, event, status };

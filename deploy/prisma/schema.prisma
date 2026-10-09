@@ -478,3 +478,19 @@ model Entitlement {
 
   @@index([email])
 }
+
+model Payment {
+  id          String   @id @default(cuid())
+  email       String
+  event       String
+  status      String
+  amountCents Int?
+  currency    String   @default("BRL")
+  provider    String   @default("kiwify")
+  externalRef String?
+  productId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}

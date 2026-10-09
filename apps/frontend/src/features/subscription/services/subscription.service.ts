@@ -4,7 +4,7 @@ import type { ApiResponse } from '@concurso-ai/types';
 export interface AccessStatus {
   active: boolean;
   enforced: boolean;
-  status: 'NONE' | 'ACTIVE' | 'CANCELED' | 'EXPIRED' | 'REFUNDED';
+  status: 'NONE' | 'ACTIVE' | 'CANCELED' | 'EXPIRED' | 'REFUNDED' | 'ADMIN';
   expiresAt: string | null;
   checkoutUrl: string;
 }

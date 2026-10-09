@@ -6,9 +6,23 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { execSync } from 'node:child_process';
 import { env } from './config/env.js';
+import { prisma } from './database/prisma.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler } from './middlewares/error-handler.js';
 import { RATE_LIMIT } from '@concurso-ai/shared';
+
+async function bootstrapAdmin(): Promise<void> {
+  if (!env.ADMIN_EMAIL) return;
+  try {
+    const result = await prisma.user.updateMany({
+      where: { email: env.ADMIN_EMAIL.toLowerCase().trim() },
+      data: { role: 'ADMIN' },
+    });
+    console.log(`Admin bootstrap: ${result.count} usuário(s) promovido(s) para ADMIN.`);
+  } catch (error) {
+    console.error('Falha no bootstrap do admin:', error);
+  }
+}
 
 function applyMigrations(): void {
   try {
@@ -72,6 +86,7 @@ app.use(errorHandler);
 
 const server = app.listen(env.PORT, () => {
   console.log(`Server running on http://localhost:${env.PORT}`);
+  void bootstrapAdmin();
 });
 
 // IA local pode levar vários minutos em editais grandes

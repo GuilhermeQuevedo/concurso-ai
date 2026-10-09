@@ -35,8 +35,15 @@ export class PaymentController {
     try {
       const user = await prisma.user.findUnique({
         where: { id: getUserId(req) },
-        select: { email: true },
+        select: { email: true, role: true },
       });
+
+      if (user?.role === 'ADMIN') {
+        const data = { active: true, enforced: env.REQUIRE_SUBSCRIPTION, status: 'ADMIN', expiresAt: null, checkoutUrl: env.KIWIFY_CHECKOUT_URL };
+        const response: ApiResponse<typeof data> = { success: true, data };
+        return res.json(response);
+      }
+
       const access = await this.service.getAccess(user?.email ?? '');
       const response: ApiResponse<typeof access> = { success: true, data: access };
       res.json(response);

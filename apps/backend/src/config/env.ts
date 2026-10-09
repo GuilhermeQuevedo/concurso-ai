@@ -13,6 +13,7 @@ const envSchema = z.object({
   REQUIRE_SUBSCRIPTION: z.string().default('false').transform((v) => v === 'true'),
   KIWIFY_WEBHOOK_TOKEN: z.string().optional(),
   KIWIFY_CHECKOUT_URL: z.string().default(''),
+  ADMIN_EMAIL: z.string().optional(),
 });
 
 function loadEnv() {

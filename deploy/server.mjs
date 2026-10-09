@@ -23,7 +23,8 @@ var envSchema = z.object({
   OLLAMA_MODEL: z.string().default("qwen2.5:14b"),
   REQUIRE_SUBSCRIPTION: z.string().default("false").transform((v) => v === "true"),
   KIWIFY_WEBHOOK_TOKEN: z.string().optional(),
-  KIWIFY_CHECKOUT_URL: z.string().default("")
+  KIWIFY_CHECKOUT_URL: z.string().default(""),
+  ADMIN_EMAIL: z.string().optional()
 });
 function loadEnv() {
   const parsed = envSchema.safeParse(process.env);
@@ -35,8 +36,18 @@ function loadEnv() {
 }
 var env = loadEnv();
 
+// apps/backend/src/database/prisma.ts
+import { PrismaClient } from "@prisma/client";
+var globalForPrisma = globalThis;
+var prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"]
+});
+if (env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+
 // apps/backend/src/routes/index.ts
-import { Router as Router16 } from "express";
+import { Router as Router17 } from "express";
 
 // apps/backend/src/routes/auth.routes.ts
 import { Router } from "express";
@@ -255,16 +266,6 @@ var AuthService = class {
   }
 };
 
-// apps/backend/src/database/prisma.ts
-import { PrismaClient } from "@prisma/client";
-var globalForPrisma = globalThis;
-var prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"]
-});
-if (env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
-
 // apps/backend/src/repositories/auth.repository.ts
 var AuthRepository = class {
   async findUserByEmail(email) {
@@ -465,8 +466,8 @@ var SubjectService = class {
 
 // apps/backend/src/controllers/subject.controller.ts
 var SubjectController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -627,8 +628,8 @@ var ExamBoardService = class {
 
 // apps/backend/src/controllers/exam-board.controller.ts
 var ExamBoardController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -968,8 +969,8 @@ var QuestionService = class {
 
 // apps/backend/src/controllers/question.controller.ts
 var QuestionController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   generate = async (req, res, next) => {
@@ -2151,8 +2152,8 @@ var StudyService = class {
 
 // apps/backend/src/controllers/study.controller.ts
 var StudyController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   createSession = async (req, res, next) => {
@@ -2259,8 +2260,8 @@ import { Router as Router6 } from "express";
 
 // apps/backend/src/controllers/document.controller.ts
 var DocumentController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   upload = async (req, res, next) => {
@@ -2402,8 +2403,8 @@ var StudyPlanService = class {
 
 // apps/backend/src/controllers/study-plan.controller.ts
 var StudyPlanController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   create = async (req, res, next) => {
@@ -2706,8 +2707,8 @@ var FlashcardService = class {
 
 // apps/backend/src/controllers/flashcard.controller.ts
 var FlashcardController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   create = async (req, res, next) => {
@@ -2804,8 +2805,8 @@ import { Router as Router9 } from "express";
 
 // apps/backend/src/controllers/gamification.controller.ts
 var GamificationController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   getProfile = async (req, res, next) => {
@@ -2840,8 +2841,8 @@ import { Router as Router10 } from "express";
 
 // apps/backend/src/controllers/group.controller.ts
 var GroupController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   create = async (req, res, next) => {
@@ -3069,8 +3070,8 @@ var EssayService = class {
 
 // apps/backend/src/controllers/essay.controller.ts
 var EssayController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   submit = async (req, res, next) => {
@@ -3456,8 +3457,8 @@ var ContestReviewService = class {
 
 // apps/backend/src/controllers/contest.controller.ts
 var ContestController = class {
-  constructor(service15, reviewService2) {
-    this.service = service15;
+  constructor(service16, reviewService2) {
+    this.service = service16;
     this.reviewService = reviewService2;
   }
   service;
@@ -3850,8 +3851,8 @@ function dayKey(date) {
 
 // apps/backend/src/controllers/study-task.controller.ts
 var StudyTaskController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   generatePlan = async (req, res, next) => {
@@ -4029,8 +4030,8 @@ var DashboardService = class {
 
 // apps/backend/src/controllers/dashboard.controller.ts
 var DashboardController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   getSummary = async (req, res, next) => {
@@ -4111,6 +4112,21 @@ function mapStatus(event) {
   if (event in INACTIVE_EVENTS) return INACTIVE_EVENTS[event];
   return null;
 }
+function pickAmountCents(payload) {
+  const commissions = unknown(payload.Commissions ?? payload.commissions);
+  const order = unknown(payload.order ?? payload.Order);
+  const candidates = [
+    commissions.charge_amount,
+    payload.charge_amount,
+    order.amount,
+    payload.amount
+  ];
+  for (const value of candidates) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0) return Math.round(n);
+  }
+  return null;
+}
 var PaymentService = class {
   async handleKiwifyWebhook(payload) {
     const email = pickEmail(payload);
@@ -4126,6 +4142,9 @@ var PaymentService = class {
       where: { email },
       create: { email, status, provider: "kiwify", externalRef, productId },
       update: { status, externalRef, productId }
+    });
+    await prisma.payment.create({
+      data: { email, event, status, amountCents: pickAmountCents(payload), provider: "kiwify", externalRef, productId }
     });
     return { handled: true, email, event, status };
   }
@@ -4156,8 +4175,8 @@ function verifyKiwifySignature(rawBody, signature, token) {
 
 // apps/backend/src/controllers/payment.controller.ts
 var PaymentController = class {
-  constructor(service15) {
-    this.service = service15;
+  constructor(service16) {
+    this.service = service16;
   }
   service;
   kiwifyWebhook = async (req, res) => {
@@ -4182,8 +4201,13 @@ var PaymentController = class {
     try {
       const user = await prisma.user.findUnique({
         where: { id: getUserId(req) },
-        select: { email: true }
+        select: { email: true, role: true }
       });
+      if (user?.role === "ADMIN") {
+        const data = { active: true, enforced: env.REQUIRE_SUBSCRIPTION, status: "ADMIN", expiresAt: null, checkoutUrl: env.KIWIFY_CHECKOUT_URL };
+        const response2 = { success: true, data };
+        return res.json(response2);
+      }
       const access = await this.service.getAccess(user?.email ?? "");
       const response = { success: true, data: access };
       res.json(response);
@@ -4199,6 +4223,146 @@ var service14 = new PaymentService();
 var controller14 = new PaymentController(service14);
 router15.post("/kiwify/webhook", raw({ type: "*/*" }), controller14.kiwifyWebhook);
 router15.get("/me", authMiddleware, controller14.myAccess);
+
+// apps/backend/src/routes/admin.routes.ts
+import { Router as Router16 } from "express";
+
+// apps/backend/src/services/admin.service.ts
+function daysAgo(days) {
+  const d = /* @__PURE__ */ new Date();
+  d.setDate(d.getDate() - days);
+  return d;
+}
+var AdminService = class {
+  async getOverview() {
+    const since7 = daysAgo(7);
+    const since30 = daysAgo(30);
+    const [
+      totalUsers,
+      activeSubscribers,
+      newUsers7,
+      newUsers30,
+      questionsAnswered,
+      essays,
+      flashcards,
+      sessions,
+      contests,
+      revenueAgg,
+      paymentsCount
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.entitlement.count({ where: { status: "ACTIVE" } }),
+      prisma.user.count({ where: { createdAt: { gte: since7 } } }),
+      prisma.user.count({ where: { createdAt: { gte: since30 } } }),
+      prisma.questionAttempt.count(),
+      prisma.essay.count(),
+      prisma.flashcard.count(),
+      prisma.studySession.count(),
+      prisma.contest.count(),
+      prisma.payment.aggregate({ _sum: { amountCents: true }, where: { status: "ACTIVE" } }),
+      prisma.payment.count({ where: { status: "ACTIVE" } })
+    ]);
+    return {
+      users: { total: totalUsers, newLast7: newUsers7, newLast30: newUsers30 },
+      subscriptions: { active: activeSubscribers },
+      engagement: { questionsAnswered, essays, flashcards, sessions, contests },
+      revenue: {
+        receivedCents: revenueAgg._sum.amountCents ?? 0,
+        paymentsCount
+      }
+    };
+  }
+  async getUsers() {
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 300,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        streak: { select: { current: true, longest: true } },
+        _count: { select: { attempts: true, essays: true, flashcards: true, studySessions: true } }
+      }
+    });
+    const emails = users.map((u) => u.email.toLowerCase());
+    const entitlements = await prisma.entitlement.findMany({ where: { email: { in: emails } } });
+    const now = /* @__PURE__ */ new Date();
+    const entMap = new Map(
+      entitlements.map((e) => [
+        e.email,
+        e.status === "ACTIVE" && (!e.expiresAt || e.expiresAt > now)
+      ])
+    );
+    return users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      createdAt: u.createdAt,
+      activeSubscriber: entMap.get(u.email.toLowerCase()) ?? false,
+      streak: u.streak?.current ?? 0,
+      questionsAnswered: u._count.attempts,
+      essays: u._count.essays,
+      flashcards: u._count.flashcards,
+      sessions: u._count.studySessions
+    }));
+  }
+};
+
+// apps/backend/src/controllers/admin.controller.ts
+var AdminController = class {
+  constructor(service16) {
+    this.service = service16;
+  }
+  service;
+  overview = async (_req, res, next) => {
+    try {
+      const data = await this.service.getOverview();
+      const response = { success: true, data };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  users = async (_req, res, next) => {
+    try {
+      const data = await this.service.getUsers();
+      const response = { success: true, data };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// apps/backend/src/middlewares/admin.middleware.ts
+async function requireAdmin(req, res, next) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: getUserId(req) },
+      select: { role: true }
+    });
+    if (user?.role === "ADMIN") {
+      return next();
+    }
+    return res.status(403).json({
+      success: false,
+      error: { message: "Acesso restrito ao administrador.", code: "ADMIN_ONLY" }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// apps/backend/src/routes/admin.routes.ts
+var router16 = Router16();
+var service15 = new AdminService();
+var controller15 = new AdminController(service15);
+router16.use(authMiddleware, requireAdmin);
+router16.get("/overview", controller15.overview);
+router16.get("/users", controller15.users);
 
 // apps/backend/src/middlewares/subscription.middleware.ts
 async function requireSubscription(req, res, next) {
@@ -4228,24 +4392,25 @@ async function requireSubscription(req, res, next) {
 }
 
 // apps/backend/src/routes/index.ts
-var router16 = Router16();
+var router17 = Router17();
 var gate = [authMiddleware, requireSubscription];
-router16.use("/auth", router);
-router16.use("/payments", router15);
-router16.use("/subjects", router2);
-router16.use("/exam-boards", router3);
-router16.use("/gamification", router9);
-router16.use("/groups", router10);
-router16.use("/questions", gate, router4);
-router16.use("/study", gate, router5);
-router16.use("/documents", gate, router6);
-router16.use("/study-plans", gate, router7);
-router16.use("/flashcards", gate, router8);
-router16.use("/essays", gate, router11);
-router16.use("/contests", gate, router12);
-router16.use("/study-tasks", gate, router13);
-router16.use("/dashboard", gate, router14);
-router16.get("/health", (_req, res) => {
+router17.use("/auth", router);
+router17.use("/payments", router15);
+router17.use("/admin", router16);
+router17.use("/subjects", router2);
+router17.use("/exam-boards", router3);
+router17.use("/gamification", router9);
+router17.use("/groups", router10);
+router17.use("/questions", gate, router4);
+router17.use("/study", gate, router5);
+router17.use("/documents", gate, router6);
+router17.use("/study-plans", gate, router7);
+router17.use("/flashcards", gate, router8);
+router17.use("/essays", gate, router11);
+router17.use("/contests", gate, router12);
+router17.use("/study-tasks", gate, router13);
+router17.use("/dashboard", gate, router14);
+router17.get("/health", (_req, res) => {
   const response = {
     success: true,
     data: {
@@ -4257,6 +4422,18 @@ router16.get("/health", (_req, res) => {
 });
 
 // apps/backend/src/server.ts
+async function bootstrapAdmin() {
+  if (!env.ADMIN_EMAIL) return;
+  try {
+    const result = await prisma.user.updateMany({
+      where: { email: env.ADMIN_EMAIL.toLowerCase().trim() },
+      data: { role: "ADMIN" }
+    });
+    console.log(`Admin bootstrap: ${result.count} usu\xE1rio(s) promovido(s) para ADMIN.`);
+  } catch (error) {
+    console.error("Falha no bootstrap do admin:", error);
+  }
+}
 function applyMigrations() {
   try {
     const out = execSync(
@@ -4296,7 +4473,7 @@ app.use(express.json({ limit: "10mb" }));
 var uploadsDir = path3.resolve("uploads");
 fs5.mkdirSync(uploadsDir, { recursive: true });
 app.use("/uploads", express.static(uploadsDir));
-app.use("/api", router16);
+app.use("/api", router17);
 var publicDir = path3.resolve("public");
 if (fs5.existsSync(publicDir)) {
   app.use(express.static(publicDir));
@@ -4310,6 +4487,7 @@ if (fs5.existsSync(publicDir)) {
 app.use(errorHandler);
 var server = app.listen(env.PORT, () => {
   console.log(`Server running on http://localhost:${env.PORT}`);
+  void bootstrapAdmin();
 });
 server.requestTimeout = 66e4;
 export {
