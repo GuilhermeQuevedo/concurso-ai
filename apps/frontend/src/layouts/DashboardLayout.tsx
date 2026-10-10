@@ -64,6 +64,7 @@ const navGroups: NavGroup[] = [
     label: 'Estudos',
     icon: GraduationCap,
     items: [
+      { path: '/study-kit', label: 'Gerar com IA (PDF)', icon: Sparkles },
       { path: '/generate', label: 'Gerar Questões', icon: Sparkles },
       { path: '/essays', label: 'Redações', icon: PenLine },
       { path: '/flashcards', label: 'Flashcards', icon: Layers },
