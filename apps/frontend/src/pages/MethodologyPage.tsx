@@ -24,6 +24,7 @@ interface Method {
   icon: LucideIcon;
   title: string;
   science: string;
+  study?: string;
   app: string[];
 }
 
@@ -43,6 +44,7 @@ const SECTIONS: Section[] = [
         title: 'Repetição espaçada',
         science:
           'Estudar distribuído no tempo retém muito mais que estudar tudo de uma vez na véspera.',
+        study: 'Payne & Wenger (1996)',
         app: [
           'Os flashcards usam o algoritmo SM-2: cada card volta em intervalos crescentes (1 → 6 → 15 → 30+ dias).',
           'Acertou com facilidade? O card demora mais pra voltar. Errou? Volta amanhã.',
@@ -53,6 +55,7 @@ const SECTIONS: Section[] = [
         title: 'Curva do esquecimento',
         science:
           'A maior parte do esquecimento acontece nos primeiros dias; depois estabiliza. A 1ª revisão precisa ser cedo.',
+        study: 'Ebbinghaus (1885)',
         app: [
           'A primeira revisão é agendada logo (mesmo dia/dia seguinte), antes da queda mais forte.',
           'O "Simulador de Memória" mostra visualmente a curva e o efeito das revisões.',
@@ -63,6 +66,7 @@ const SECTIONS: Section[] = [
         title: 'Recordação ativa (não releitura)',
         science:
           'Produzir a resposta de memória fixa muito mais que reconhecê-la pronta — e reler é a estratégia mais fraca.',
+        study: 'Roediger & Karpicke (2006)',
         app: [
           'Na revisão, você tenta lembrar a resposta antes de virar o card.',
           'As questões exigem que você produza/escolha a resposta, não só reconhecer o texto.',
@@ -73,6 +77,7 @@ const SECTIONS: Section[] = [
         title: 'Significado vence forma',
         science:
           'Processar o significado gera memória muito melhor que decorar som ou aparência das palavras.',
+        study: 'Craik & Tulving (1975)',
         app: [
           'As questões cobram compreensão ("por quê", "qual a diferença", "aplique a um caso"), não decoreba.',
           'Cada questão vem com explicação da certa e de por que cada errada está errada.',
@@ -83,6 +88,7 @@ const SECTIONS: Section[] = [
         title: 'Elaboração e autorreferência',
         science:
           'Relacionar o conteúdo ao que você já sabe — e à sua própria vida — é a forma mais eficaz de memorizar.',
+        study: 'Craik & Tulving (1975); Rogers et al. (1977)',
         app: [
           'Após ver a resposta, você escreve "explique com suas palavras ou dê um exemplo da sua vida".',
           'Sua elaboração fica salva no card e serve de pista nas próximas revisões.',
@@ -93,6 +99,7 @@ const SECTIONS: Section[] = [
         title: 'Pistas graduais',
         science:
           'Às vezes a informação está lá, mas falta a pista para recuperá-la. Dicas parciais puxam a memória com esforço.',
+        study: 'Tulving (1974)',
         app: [
           'Antes de revelar a resposta, o botão "Dica gradual" mostra o começo dela em 3 níveis.',
         ],
@@ -102,6 +109,7 @@ const SECTIONS: Section[] = [
         title: 'Efeito de posição serial',
         science:
           'Lembramos melhor o início e o fim de uma lista; o meio é o mais frágil.',
+        study: 'Glanzer & Cunitz (1966)',
         app: [
           'A ordem dos flashcards é embaralhada a cada revisão, para nenhum card ficar sempre no meio.',
         ],
@@ -111,6 +119,7 @@ const SECTIONS: Section[] = [
         title: 'Blocos curtos (memória de trabalho)',
         science:
           'A memória de trabalho segura poucos itens por vez (cerca de 7). Blocos grandes demais sobrecarregam.',
+        study: 'Miller (1956)',
         app: [
           'O conteúdo é quebrado em blocos curtos e um foco por tela, evitando excesso de itens novos de uma vez.',
         ],
@@ -120,6 +129,7 @@ const SECTIONS: Section[] = [
         title: 'Memória é reconstrução',
         science:
           'Lembramos o essencial e reconstruímos o resto; a versão errada pode se consolidar, e erramos a fonte do que lembramos.',
+        study: 'Bartlett (1932); Loftus & Palmer (1974)',
         app: [
           'Feedback correto imediato após cada erro, para a versão errada não se fixar.',
           'Cada flashcard gerado registra de qual material veio.',
@@ -136,6 +146,7 @@ const SECTIONS: Section[] = [
         title: 'Pomodoro',
         science:
           'Trabalhar em blocos focados de tempo com pausas curtas sustenta a concentração e evita a fadiga, que derruba o rendimento.',
+        study: 'Francesco Cirillo (1980s)',
         app: [
           'Timer de Pomodoro no painel: ciclos de foco seguidos de pausa curta.',
           'Mantém sessões consistentes sem esgotar a atenção ao longo do dia.',
@@ -146,6 +157,7 @@ const SECTIONS: Section[] = [
         title: 'Técnica Feynman',
         science:
           'Explicar um conceito com palavras simples, como se ensinasse a alguém, revela o que você realmente entendeu e o que ainda está confuso.',
+        study: 'Richard Feynman',
         app: [
           'O prompt de elaboração pede que você explique a resposta com suas próprias palavras.',
           'Se não consegue explicar de forma simples, é sinal claro de que aquele ponto precisa de mais revisão.',
@@ -155,7 +167,8 @@ const SECTIONS: Section[] = [
         icon: Zap,
         title: 'Check-in de energia',
         science:
-          'O rendimento varia com seu nível de energia ao longo do dia. Saber como você está ajuda a dosar o esforço.',
+          'O rendimento varia com seu nível de energia/ativação ao longo do dia. Saber como você está ajuda a dosar o esforço.',
+        study: 'Yerkes & Dodson (1908)',
         app: [
           'Um check-in rápido registra sua energia do dia.',
           'Use conteúdo novo (mais exigente) nos picos e revisão leve quando estiver mais cansado.',
@@ -166,6 +179,7 @@ const SECTIONS: Section[] = [
         title: 'Modo prova (simulado)',
         science:
           'Estudar em condições parecidas com a prova (tempo, formato, sem consulta) faz a memória recuperar melhor na hora que importa.',
+        study: 'Godden & Baddeley (1975)',
         app: [
           'O Modo Simulado replica a prova: você responde tudo e só vê o gabarito no final, com cronômetro.',
           'Treina gestão de tempo e recuperação sob pressão real.',
@@ -182,6 +196,7 @@ const SECTIONS: Section[] = [
         title: 'Metas progressivas',
         science:
           'Hábitos se constroem reforçando passos cada vez mais próximos do alvo — começando pequeno e crescendo.',
+        study: 'Skinner (modelagem)',
         app: [
           'Meta diária ajustável e dificuldade das questões em degraus (reconhecer → recordar → aplicar).',
         ],
@@ -191,6 +206,7 @@ const SECTIONS: Section[] = [
         title: 'Recompensar domínio, não presença',
         science:
           'Recompensar apenas "aparecer" pode reduzir a motivação. O que funciona é recompensar progresso real.',
+        study: 'Lepper, Greene & Nisbett (1973)',
         app: [
           'Os pontos vêm de desempenho: questão certa, sessão concluída, revisão feita, streak — não de só abrir o app.',
           'O progresso de conhecimento tem destaque, acima da pontuação.',
@@ -201,6 +217,7 @@ const SECTIONS: Section[] = [
         title: 'Pressão na medida certa',
         science:
           'O desempenho melhora com a pressão até um ponto; ansiedade demais piora. O ideal é uma pressão moderada.',
+        study: 'Yerkes & Dodson (1908)',
         app: [
           'Cronômetro opcional; Modo Estudo mais calmo e Modo Simulado para treinar pressão de prova.',
           'Sem contagens agressivas ou rankings públicos por padrão.',
@@ -211,6 +228,7 @@ const SECTIONS: Section[] = [
         title: 'Gatilho do hábito',
         science:
           'Um sinal fixo (horário, aviso) indica quando estudar e ajuda o hábito a se formar.',
+        study: 'Estímulo discriminativo (Skinner)',
         app: [
           'Notificações avisam quando há flashcards e tarefas do dia pendentes.',
           'O Quadro (Kanban) e o calendário mantêm as tarefas sempre à vista.',
@@ -266,7 +284,8 @@ function MethodCard({ method }: { method: Method }) {
         </div>
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{method.title}</h3>
       </div>
-      <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">{method.science}</p>
+      <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">{method.science}</p>
+      {method.study && <p className="mb-3 text-[11px] font-medium text-gray-400">📖 {method.study}</p>}
       <div className="mt-auto rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
         <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-green-600 dark:text-green-400">
           Na plataforma
