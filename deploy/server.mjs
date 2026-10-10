@@ -1,6 +1,7 @@
 import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);
 
 // apps/backend/src/server.ts
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
