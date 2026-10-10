@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/engrama.svg" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+        } catch (e) {}
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Engrama — O que você estuda, fica</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,8 +20,8 @@
       href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/index-9GuQgvpo.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-w_YMRGSf.css">
+    <script type="module" crossorigin src="/assets/index-CMwgrsOu.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-C9vEGjUK.css">
   </head>
   <body>
     <div id="root"></div>
