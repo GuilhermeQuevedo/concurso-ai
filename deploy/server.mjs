@@ -25,7 +25,6 @@ var envSchema = z.object({
   OLLAMA_MODEL: z.string().default("qwen2.5:14b"),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
-  EDITAL_MAX_PAGES: z.coerce.number().int().positive().default(50),
   WEEKLY_ESSAY_LIMIT: z.coerce.number().int().nonnegative().default(1),
   REQUIRE_SUBSCRIPTION: z.string().default("false").transform((v) => v === "true"),
   KIWIFY_WEBHOOK_TOKEN: z.string().optional(),
@@ -3233,17 +3232,12 @@ import { Router as Router12 } from "express";
 // apps/backend/src/utils/pdf.ts
 import fs2 from "node:fs/promises";
 import { PDFParse as PDFParse2 } from "pdf-parse";
-async function extractPdf(filePath) {
+async function extractPdfText(filePath) {
   const data = await fs2.readFile(filePath);
   const parser = new PDFParse2({ data: new Uint8Array(data) });
   await parser.load();
   const result = await parser.getText();
-  const pages = result.total ?? (Array.isArray(result.pages) ? result.pages.length : 0);
-  return { text: result.text.trim(), pages };
-}
-async function extractPdfText(filePath) {
-  const { text } = await extractPdf(filePath);
-  return text;
+  return result.text.trim();
 }
 
 // apps/backend/src/services/essay.service.ts
@@ -3576,22 +3570,7 @@ var ContestService = class {
     });
   }
   async createFromEdital(userId, file, focus) {
-    let content;
-    if (file.mimetype === "application/pdf") {
-      const pdf = await extractPdf(file.path);
-      if (pdf.pages > env.EDITAL_MAX_PAGES) {
-        await fs4.unlink(file.path).catch(() => {
-        });
-        throw new AppError(
-          400,
-          "EDITAL_TOO_LONG",
-          `O edital tem ${pdf.pages} p\xE1ginas. O limite \xE9 ${env.EDITAL_MAX_PAGES}. Envie apenas as p\xE1ginas do conte\xFAdo program\xE1tico.`
-        );
-      }
-      content = pdf.text;
-    } else {
-      content = decodeTextBuffer(await fs4.readFile(file.path)).trim();
-    }
+    const content = file.mimetype === "application/pdf" ? await extractPdfText(file.path) : decodeTextBuffer(await fs4.readFile(file.path)).trim();
     await fs4.unlink(file.path).catch(() => {
     });
     if (content.length < 200) {
