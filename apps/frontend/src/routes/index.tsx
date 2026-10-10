@@ -7,6 +7,7 @@ import { SubjectsPage } from '@/pages/SubjectsPage';
 import { ExamBoardsPage } from '@/pages/ExamBoardsPage';
 import { GeneratePage } from '@/pages/GeneratePage';
 import { StudyKitPage } from '@/pages/StudyKitPage';
+import { BoardPage } from '@/pages/BoardPage';
 import StudyPage from '@/pages/StudyPage';
 import { DocumentsPage } from '@/pages/DocumentsPage';
 import { FlashcardsPage } from '@/pages/FlashcardsPage';
@@ -54,6 +55,7 @@ export function AppRoutes() {
       <Route path="/flashcards" element={<ProtectedLayout><FlashcardsPage /></ProtectedLayout>} />
       <Route path="/achievements" element={<ProtectedLayout><AchievementsPage /></ProtectedLayout>} />
       <Route path="/study-plan" element={<ProtectedLayout><StudyPlanPage /></ProtectedLayout>} />
+      <Route path="/board" element={<ProtectedLayout><BoardPage /></ProtectedLayout>} />
       <Route path="/contests" element={<ProtectedLayout><ContestsPage /></ProtectedLayout>} />
       <Route path="/calendar" element={<ProtectedLayout><CalendarPage /></ProtectedLayout>} />
       <Route path="/essays" element={<ProtectedLayout><EssayPage /></ProtectedLayout>} />

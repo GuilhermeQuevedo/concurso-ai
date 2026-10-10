@@ -26,10 +26,12 @@ import {
   TrendingUp,
   ShieldCheck,
   Contact,
+  LayoutGrid,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTour } from '@/features/tour/useTour';
+import { useReviewNotifications } from '@/features/notifications/useReviewNotifications';
 
 interface NavItem {
   path: string;
@@ -57,6 +59,7 @@ const navGroups: NavGroup[] = [
       { path: '/contests', label: 'Meus Concursos', icon: Target },
       { path: '/calendar', label: 'Calendário', icon: CalendarClock },
       { path: '/study-plan', label: 'Plano de Estudos', icon: CalendarDays },
+      { path: '/board', label: 'Quadro (Kanban)', icon: LayoutGrid },
     ],
   },
   {
@@ -113,6 +116,7 @@ function loadExpanded(pathname: string): string[] {
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { active: tourActive } = useTour();
+  useReviewNotifications();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
