@@ -57,6 +57,17 @@ export class FlashcardController {
     }
   };
 
+  elaborate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const text = typeof req.body?.elaboration === 'string' ? req.body.elaboration : '';
+      const card = await this.service.saveElaboration(getUserId(req), req.params.id as string, text);
+      const response: ApiResponse<typeof card> = { success: true, data: card };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   list = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const subjectId = req.query.subjectId as string | undefined;

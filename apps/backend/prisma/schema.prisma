@@ -233,14 +233,16 @@ model Flashcard {
   id         String   @id @default(cuid())
   userId     String
   subjectId  String
-  front      String   @db.Text
-  back       String   @db.Text
-  interval   Int      @default(1)
-  easeFactor Float    @default(2.5)
-  repetition Int      @default(0)
-  nextReview DateTime @default(now())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  front       String   @db.Text
+  back        String   @db.Text
+  source      String?
+  elaboration String?  @db.Text
+  interval    Int      @default(1)
+  easeFactor  Float    @default(2.5)
+  repetition  Int      @default(0)
+  nextReview  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   subject Subject @relation(fields: [subjectId], references: [id])

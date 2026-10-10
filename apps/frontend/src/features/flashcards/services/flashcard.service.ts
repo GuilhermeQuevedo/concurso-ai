@@ -7,6 +7,8 @@ export interface FlashcardDTO {
   subjectId: string;
   front: string;
   back: string;
+  source?: string | null;
+  elaboration?: string | null;
   interval: number;
   easeFactor: number;
   repetition: number;
@@ -54,6 +56,11 @@ export const flashcardService = {
 
   async review(id: string, quality: number): Promise<FlashcardDTO> {
     const response = await api.patch<ApiResponse<FlashcardDTO>>(`/flashcards/${id}/review`, { quality });
+    return unwrapData(response);
+  },
+
+  async saveElaboration(id: string, elaboration: string): Promise<FlashcardDTO> {
+    const response = await api.patch<ApiResponse<FlashcardDTO>>(`/flashcards/${id}/elaboration`, { elaboration });
     return unwrapData(response);
   },
 

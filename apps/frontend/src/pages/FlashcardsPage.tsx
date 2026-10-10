@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Layers, Plus, Trash2, Loader2, RotateCcw, Eye, Sparkles, FileUp } from 'lucide-react';
+import { Layers, Plus, Trash2, Loader2, RotateCcw, Sparkles, FileUp } from 'lucide-react';
 import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
 import { flashcardService, type FlashcardDTO } from '@/features/flashcards/services/flashcard.service';
 import { GenerateFlashcardsForm } from '@/features/flashcards/components/GenerateFlashcardsForm';
 import { ImportFlashcardsForm } from '@/features/flashcards/components/ImportFlashcardsForm';
+import { ReviewMode } from '@/features/flashcards/components/ReviewMode';
 
 type View = 'list' | 'review' | 'create' | 'generate' | 'import';
 
@@ -195,143 +196,15 @@ export function FlashcardsPage() {
               </div>
               <p className="mb-1 text-sm font-medium text-gray-900 dark:text-white line-clamp-2">{card.front}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{card.back}</p>
-              <p className="mt-2 text-xs text-gray-400">
+              {card.source && (
+                <p className="mt-2 truncate text-[11px] text-gray-400">Fonte: {card.source}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-400">
                 Próxima revisão: {new Date(card.nextReview).toLocaleDateString('pt-BR')}
               </p>
             </div>
           ))}
         </div>
-      )}
-    </div>
-  );
-}
-
-// Prévia do intervalo do SM-2 (espelha o backend) para mostrar em cada botão
-function previewInterval(card: FlashcardDTO, quality: number): string {
-  if (quality < 3) return '< 1 dia';
-  let interval: number;
-  if (card.repetition === 0) interval = 1;
-  else if (card.repetition === 1) interval = 6;
-  else interval = Math.round(card.interval * card.easeFactor);
-  if (interval <= 1) return '1 dia';
-  if (interval < 30) return `${interval} dias`;
-  const months = Math.round(interval / 30);
-  return months <= 1 ? '1 mês' : `${months} meses`;
-}
-
-const QUALITY_BUTTONS = [
-  { quality: 0, key: '1', label: 'De novo', color: 'bg-red-500 hover:bg-red-600' },
-  { quality: 3, key: '2', label: 'Difícil', color: 'bg-orange-500 hover:bg-orange-600' },
-  { quality: 4, key: '3', label: 'Bom', color: 'bg-blue-500 hover:bg-blue-600' },
-  { quality: 5, key: '4', label: 'Fácil', color: 'bg-green-500 hover:bg-green-600' },
-];
-
-function ReviewMode({ cards, onBack }: { cards: FlashcardDTO[]; onBack: () => void }) {
-  const queryClient = useQueryClient();
-  const [index, setIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-
-  const reviewMutation = useMutation({
-    mutationFn: ({ id, quality }: { id: string; quality: number }) => flashcardService.review(id, quality),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['flashcard-stats'] });
-      setFlipped(false);
-      setIndex((prev) => prev + 1);
-    },
-  });
-
-  const card = cards[index];
-  const done = cards.length === 0 || index >= cards.length;
-
-  const rate = useCallback(
-    (quality: number) => {
-      if (!card || reviewMutation.isPending) return;
-      reviewMutation.mutate({ id: card.id, quality });
-    },
-    [card, reviewMutation],
-  );
-
-  // Atalhos de teclado estilo Anki: espaço/enter vira; 1-4 avalia
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (done) return;
-      if (!flipped && (e.code === 'Space' || e.code === 'Enter')) {
-        e.preventDefault();
-        setFlipped(true);
-        return;
-      }
-      if (flipped) {
-        const btn = QUALITY_BUTTONS.find((b) => b.key === e.key);
-        if (btn) {
-          e.preventDefault();
-          rate(btn.quality);
-        }
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [flipped, done, rate]);
-
-  if (done) {
-    return (
-      <div className="mx-auto max-w-md text-center py-12">
-        <RotateCcw className="mx-auto mb-3 h-10 w-10 text-green-500" />
-        <h2 className="mb-2 text-lg font-bold text-gray-900 dark:text-white">Revisão concluída!</h2>
-        <p className="mb-4 text-sm text-gray-500">Você revisou {index} card(s).</p>
-        <button onClick={onBack} className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700">Voltar</button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto max-w-lg">
-      <div className="mb-4 flex items-center justify-between">
-        <button onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400">← Voltar</button>
-        <span className="text-sm text-gray-500">{index + 1} / {cards.length}</span>
-      </div>
-
-      <div
-        onClick={() => !flipped && setFlipped(true)}
-        className="mb-4 cursor-pointer rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900 min-h-[220px] flex flex-col items-center justify-center"
-      >
-        {!flipped ? (
-          <>
-            <p className="text-lg text-gray-900 dark:text-white">{card.front}</p>
-            <p className="mt-4 flex items-center gap-1 text-xs text-gray-400">
-              <Eye className="h-3 w-3" /> Clique ou aperte espaço para ver a resposta
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">{card.front}</p>
-            <hr className="mb-3 w-16 border-gray-200 dark:border-gray-700" />
-            <p className="text-lg font-medium text-gray-900 dark:text-white">{card.back}</p>
-          </>
-        )}
-      </div>
-
-      {flipped ? (
-        <div className="grid grid-cols-4 gap-2">
-          {QUALITY_BUTTONS.map((btn) => (
-            <button
-              key={btn.quality}
-              onClick={() => rate(btn.quality)}
-              disabled={reviewMutation.isPending}
-              className={`flex flex-col items-center rounded-lg px-2 py-2 text-white ${btn.color} disabled:opacity-50`}
-            >
-              <span className="text-sm font-medium">{btn.label}</span>
-              <span className="text-[10px] opacity-80">{previewInterval(card, btn.quality)}</span>
-              <span className="mt-0.5 rounded bg-white/20 px-1 text-[10px]">{btn.key}</span>
-            </button>
-          ))}
-        </div>
-      ) : (
-        <button
-          onClick={() => setFlipped(true)}
-          className="w-full rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
-        >
-          Mostrar resposta <span className="opacity-70">(espaço)</span>
-        </button>
       )}
     </div>
   );

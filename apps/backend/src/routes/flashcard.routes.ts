@@ -16,6 +16,7 @@ router.get('/due', authMiddleware, controller.getDue);
 router.get('/stats', authMiddleware, controller.getStats);
 router.get('/', authMiddleware, controller.list);
 router.patch('/:id/review', authMiddleware, controller.review);
+router.patch('/:id/elaboration', authMiddleware, controller.elaborate);
 router.delete('/:id', authMiddleware, controller.delete);
 
 export { router as flashcardRouter };

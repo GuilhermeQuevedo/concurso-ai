@@ -2770,6 +2770,14 @@ function parseFlashcardText(raw2) {
 
 // apps/backend/src/services/flashcard.service.ts
 var MAX_GENERATED_CARDS = 30;
+function shuffle(items) {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
 var FlashcardService = class {
   constructor(aiProvider4) {
     this.aiProvider = aiProvider4;
@@ -2786,12 +2794,14 @@ var FlashcardService = class {
       throw new AppError(404, "SUBJECT_NOT_FOUND", "Disciplina n\xE3o encontrada");
     }
     let content = dto.text?.trim() ?? "";
+    let source = null;
     if (!content && dto.documentId) {
       const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
       if (!doc || doc.userId !== userId) {
         throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
       }
       content = doc.content;
+      source = doc.name;
     }
     if (content.length < 50) {
       throw new AppError(400, "CONTENT_TOO_SHORT", "Envie um texto ou documento com conte\xFAdo suficiente para gerar flashcards.");
@@ -2805,7 +2815,7 @@ var FlashcardService = class {
     return prisma.$transaction(
       generated.map(
         (card) => prisma.flashcard.create({
-          data: { userId, subjectId: dto.subjectId, front: card.front, back: card.back }
+          data: { userId, subjectId: dto.subjectId, front: card.front, back: card.back, source }
         })
       )
     );
@@ -2834,7 +2844,7 @@ var FlashcardService = class {
     return { imported: cards.length, skipped };
   }
   async getDueCards(userId, subjectId) {
-    return prisma.flashcard.findMany({
+    const cards = await prisma.flashcard.findMany({
       where: {
         userId,
         nextReview: { lte: /* @__PURE__ */ new Date() },
@@ -2843,6 +2853,17 @@ var FlashcardService = class {
       orderBy: { nextReview: "asc" },
       take: 20,
       include: { subject: true }
+    });
+    return shuffle(cards);
+  }
+  async saveElaboration(userId, cardId, elaboration) {
+    const card = await prisma.flashcard.findUnique({ where: { id: cardId } });
+    if (!card || card.userId !== userId) {
+      throw new AppError(404, "CARD_NOT_FOUND", "Flashcard n\xE3o encontrado");
+    }
+    return prisma.flashcard.update({
+      where: { id: cardId },
+      data: { elaboration: elaboration.trim() || null }
     });
   }
   async review(userId, cardId, dto) {
@@ -2957,6 +2978,16 @@ var FlashcardController = class {
       next(error);
     }
   };
+  elaborate = async (req, res, next) => {
+    try {
+      const text = typeof req.body?.elaboration === "string" ? req.body.elaboration : "";
+      const card = await this.service.saveElaboration(getUserId(req), req.params.id, text);
+      const response = { success: true, data: card };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
   list = async (req, res, next) => {
     try {
       const subjectId = req.query.subjectId;
@@ -2998,6 +3029,7 @@ router8.get("/due", authMiddleware, controller7.getDue);
 router8.get("/stats", authMiddleware, controller7.getStats);
 router8.get("/", authMiddleware, controller7.list);
 router8.patch("/:id/review", authMiddleware, controller7.review);
+router8.patch("/:id/elaboration", authMiddleware, controller7.elaborate);
 router8.delete("/:id", authMiddleware, controller7.delete);
 
 // apps/backend/src/routes/study-kit.routes.ts

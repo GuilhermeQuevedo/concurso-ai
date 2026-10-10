@@ -27,6 +27,15 @@ interface ImportFlashcardsDTO {
 
 const MAX_GENERATED_CARDS = 30;
 
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export class FlashcardService {
   constructor(private readonly aiProvider: IAIProvider) {}
 
@@ -43,12 +52,14 @@ export class FlashcardService {
     }
 
     let content = dto.text?.trim() ?? '';
+    let source: string | null = null;
     if (!content && dto.documentId) {
       const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
       if (!doc || doc.userId !== userId) {
         throw new AppError(404, 'DOCUMENT_NOT_FOUND', 'Documento não encontrado');
       }
       content = doc.content;
+      source = doc.name;
     }
 
     if (content.length < 50) {
@@ -65,7 +76,7 @@ export class FlashcardService {
     return prisma.$transaction(
       generated.map((card) =>
         prisma.flashcard.create({
-          data: { userId, subjectId: dto.subjectId, front: card.front, back: card.back },
+          data: { userId, subjectId: dto.subjectId, front: card.front, back: card.back, source },
         }),
       ),
     );
@@ -99,7 +110,7 @@ export class FlashcardService {
   }
 
   async getDueCards(userId: string, subjectId?: string) {
-    return prisma.flashcard.findMany({
+    const cards = await prisma.flashcard.findMany({
       where: {
         userId,
         nextReview: { lte: new Date() },
@@ -108,6 +119,20 @@ export class FlashcardService {
       orderBy: { nextReview: 'asc' },
       take: 20,
       include: { subject: true },
+    });
+    // Embaralha para evitar o efeito de posição serial (primazia/recência):
+    // nenhum card fica sempre no começo, meio ou fim das revisões.
+    return shuffle(cards);
+  }
+
+  async saveElaboration(userId: string, cardId: string, elaboration: string) {
+    const card = await prisma.flashcard.findUnique({ where: { id: cardId } });
+    if (!card || card.userId !== userId) {
+      throw new AppError(404, 'CARD_NOT_FOUND', 'Flashcard não encontrado');
+    }
+    return prisma.flashcard.update({
+      where: { id: cardId },
+      data: { elaboration: elaboration.trim() || null },
     });
   }
 
