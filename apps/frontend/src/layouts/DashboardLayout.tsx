@@ -181,9 +181,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         }`}
       >
         <div className="flex h-16 items-center gap-2.5 border-b border-gray-200 px-5 dark:border-gray-800">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-sm shadow-primary-600/30">
-            <EngramaLogo className="h-5 w-5 text-white" />
-          </div>
+          <EngramaLogo className="h-9 w-9 shrink-0 rounded-xl shadow-sm" />
           <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">engrama</span>
         </div>
 

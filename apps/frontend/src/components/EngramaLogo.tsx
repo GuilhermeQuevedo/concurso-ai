@@ -1,26 +1,24 @@
-// Logo da marca Engrama: um "E" feito de conexões (o traço da memória).
-// As três hastes lembram os três estágios da memória; o nó do meio, em
-// âmbar, é o conteúdo que foi codificado e ficou. Usa currentColor nas
-// hastes/nós para herdar a cor do contexto (branco no header colorido, etc.).
+// Ícone oficial da marca Engrama: "E" de hastes arredondadas em Papel sobre
+// fundo Tinta; nós branco no topo e na base; nó central em Âmbar (o conteúdo
+// que foi codificado e ficou). Vetor — nítido em qualquer tamanho.
 export function EngramaLogo({ className }: { className?: string }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 24 24"
-      fill="none"
+      viewBox="0 0 1024 1024"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <path d="M6 5V19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M6 5H17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M6 12H14.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M6 19H17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="6" cy="5" r="1.5" fill="currentColor" />
-      <circle cx="6" cy="19" r="1.5" fill="currentColor" />
-      <circle cx="17" cy="5" r="1.3" fill="currentColor" />
-      <circle cx="17" cy="19" r="1.3" fill="currentColor" />
-      <circle cx="14.5" cy="12" r="1.3" fill="currentColor" />
-      <circle cx="6" cy="12" r="2.4" fill="#F2A93B" />
+      <rect width="1024" height="1024" rx="232" fill="#121A33" />
+      <g stroke="#F5F6F8" strokeWidth="60" strokeLinecap="round" fill="none">
+        <path d="M360 302V722" />
+        <path d="M360 302H662" />
+        <path d="M360 512H556" />
+        <path d="M360 722H662" />
+      </g>
+      <circle cx="688" cy="302" r="56" fill="#F5F6F8" />
+      <circle cx="688" cy="722" r="56" fill="#F5F6F8" />
+      <circle cx="598" cy="512" r="74" fill="#F2A93B" />
     </svg>
   );
 }
