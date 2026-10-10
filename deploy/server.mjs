@@ -934,8 +934,9 @@ var QuestionService = class {
       quantity: dto.quantity,
       context: context || void 0
     });
+    const kept = await this.auditQuestions(generated, subjectName);
     const saved = await prisma.$transaction(
-      generated.map(
+      kept.map(
         (q) => prisma.question.create({
           data: {
             statement: htmlToPlainText(q.statement),
@@ -953,6 +954,23 @@ var QuestionService = class {
       )
     );
     return saved;
+  }
+  // Auditoria: um segundo "resolvedor" responde cada questão às cegas e
+  // descartamos as que não batem com o gabarito. Se a auditoria falhar ou
+  // reprovar demais (possível modelo instável), mantém todas por segurança.
+  async auditQuestions(generated, subjectName) {
+    if (generated.length === 0) return generated;
+    try {
+      const answers = await this.aiProvider.answerQuestions({
+        subject: subjectName,
+        questions: generated.map((q) => ({ statement: q.statement, alternatives: q.alternatives }))
+      });
+      if (answers.length !== generated.length) return generated;
+      const agreed = generated.filter((q, i) => answers[i] && answers[i] === q.correctAnswer.trim().toUpperCase());
+      return agreed.length >= Math.ceil(generated.length / 2) ? agreed : generated;
+    } catch {
+      return generated;
+    }
   }
   async getBySubject(subjectId) {
     return prisma.question.findMany({
@@ -1320,6 +1338,33 @@ REGRAS OBRIGAT\xD3RIAS:
 
 Responda APENAS com o resumo em Markdown, sem pre\xE2mbulo.`;
 }
+var auditResponseSchema = z6.object({
+  answers: z6.array(z6.object({ index: z6.number().int(), letter: z6.string().min(1) }))
+});
+function buildAuditPrompt(params) {
+  const subjectBlock = params.subject ? ` de ${params.subject}` : "";
+  const blocks = params.questions.map((q, i) => {
+    const alts = q.alternatives.map((a) => `${a.letter}) ${a.text}`).join("\n");
+    return `[index ${i}]
+${q.statement}
+${alts}`;
+  }).join("\n\n");
+  return `Voc\xEA \xE9 um candidato experiente resolvendo uma prova de concurso${subjectBlock}. Resolva CADA quest\xE3o escolhendo a \xDANICA alternativa correta, usando apenas seu conhecimento t\xE9cnico. N\xE3o explique, n\xE3o comente \u2014 apenas escolha.
+
+${blocks}
+
+Responda APENAS com JSON v\xE1lido, sem markdown, uma resposta por quest\xE3o (use o index informado):
+{ "answers": [ { "index": 0, "letter": "A" } ] }`;
+}
+function mapAuditAnswers(parsed, count) {
+  const out = new Array(count).fill("");
+  for (const a of parsed.answers) {
+    if (a.index >= 0 && a.index < count) {
+      out[a.index] = a.letter.trim().charAt(0).toUpperCase();
+    }
+  }
+  return out;
+}
 function stripJsonMarkdown(raw2) {
   return raw2.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 }
@@ -1378,6 +1423,17 @@ var GeminiProvider = class {
   }
   async generateSummary(params) {
     return this.callApi(buildSummaryPrompt(params), 2, false);
+  }
+  async answerQuestions(params) {
+    if (params.questions.length === 0) return [];
+    try {
+      const raw2 = await this.callApi(buildAuditPrompt(params));
+      const parsed = auditResponseSchema.safeParse(JSON.parse(stripJsonMarkdown(raw2)));
+      if (!parsed.success) return [];
+      return mapAuditAnswers(parsed.data, params.questions.length);
+    } catch {
+      return [];
+    }
   }
   async generateFlashcards(params) {
     const raw2 = await this.callApi(buildFlashcardsPrompt(params));
@@ -1542,6 +1598,17 @@ var OllamaProvider = class {
     const text = await this.callApi(buildSummaryPrompt(params), false);
     return text.trim();
   }
+  async answerQuestions(params) {
+    if (params.questions.length === 0) return [];
+    try {
+      const raw2 = await this.callApi(buildAuditPrompt(params));
+      const parsed = auditResponseSchema.safeParse(JSON.parse(stripJsonMarkdown(raw2)));
+      if (!parsed.success) return [];
+      return mapAuditAnswers(parsed.data, params.questions.length);
+    } catch {
+      return [];
+    }
+  }
   async generateFlashcards(params) {
     const raw2 = await this.callApi(buildFlashcardsPrompt(params));
     const parsed = this.parseJson(raw2, "gera\xE7\xE3o de flashcards");
@@ -1644,6 +1711,17 @@ var ClaudeProvider = class {
   }
   async generateSummary(params) {
     return this.callText(buildSummaryPrompt(params));
+  }
+  async answerQuestions(params) {
+    if (params.questions.length === 0) return [];
+    try {
+      const raw2 = await this.callText(buildAuditPrompt(params));
+      const parsed = auditResponseSchema.safeParse(JSON.parse(stripJsonMarkdown(raw2)));
+      if (!parsed.success) return [];
+      return mapAuditAnswers(parsed.data, params.questions.length);
+    } catch {
+      return [];
+    }
   }
   async generateFlashcards(params) {
     const raw2 = await this.callText(buildFlashcardsPrompt(params));
@@ -1850,6 +1928,9 @@ Associe cada conceito a um exemplo do dia a dia para fixar melhor.`;
 - **Defini\xE7\xF5es** e **classifica\xE7\xF5es** costumam ser cobradas.
 - Aten\xE7\xE3o \xE0s exce\xE7\xF5es e prazos citados no material.`;
   }
+  async answerQuestions(params) {
+    return params.questions.map(() => "C");
+  }
 };
 
 // apps/backend/src/providers/composite.provider.ts
@@ -1874,6 +1955,9 @@ var CompositeAIProvider = class {
   }
   generateSummary(params) {
     return this.bulk.generateSummary(params);
+  }
+  answerQuestions(params) {
+    return this.bulk.answerQuestions(params);
   }
   gradeEssay(params) {
     return this.essay.gradeEssay(params);

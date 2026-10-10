@@ -114,6 +114,16 @@ export interface GenerateSummaryParams {
   subject?: string;
 }
 
+export interface AuditQuestion {
+  statement: string;
+  alternatives: { letter: string; text: string }[];
+}
+
+export interface AnswerQuestionsParams {
+  questions: AuditQuestion[];
+  subject?: string;
+}
+
 export interface IAIProvider {
   generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]>;
   gradeEssay(params: GradeEssayParams): Promise<EssayGradeResult>;
@@ -122,4 +132,5 @@ export interface IAIProvider {
   generateTopicContent(params: TopicContentParams): Promise<string>;
   generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]>;
   generateSummary(params: GenerateSummaryParams): Promise<string>;
+  answerQuestions(params: AnswerQuestionsParams): Promise<string[]>;
 }

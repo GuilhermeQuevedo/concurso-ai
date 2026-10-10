@@ -6,6 +6,7 @@ import type {
   TopicContentParams,
   GenerateFlashcardsParams,
   GenerateSummaryParams,
+  AnswerQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
 
 export const questionsResponseSchema = z.object({
@@ -342,6 +343,40 @@ REGRAS OBRIGATÓRIAS:
 4. Seja conciso: de 250 a 500 palavras.
 
 Responda APENAS com o resumo em Markdown, sem preâmbulo.`;
+}
+
+export const auditResponseSchema = z.object({
+  answers: z.array(z.object({ index: z.number().int(), letter: z.string().min(1) })),
+});
+
+export function buildAuditPrompt(params: AnswerQuestionsParams): string {
+  const subjectBlock = params.subject ? ` de ${params.subject}` : '';
+  const blocks = params.questions
+    .map((q, i) => {
+      const alts = q.alternatives.map((a) => `${a.letter}) ${a.text}`).join('\n');
+      return `[index ${i}]\n${q.statement}\n${alts}`;
+    })
+    .join('\n\n');
+
+  return `Você é um candidato experiente resolvendo uma prova de concurso${subjectBlock}. Resolva CADA questão escolhendo a ÚNICA alternativa correta, usando apenas seu conhecimento técnico. Não explique, não comente — apenas escolha.
+
+${blocks}
+
+Responda APENAS com JSON válido, sem markdown, uma resposta por questão (use o index informado):
+{ "answers": [ { "index": 0, "letter": "A" } ] }`;
+}
+
+export function mapAuditAnswers(
+  parsed: { answers: { index: number; letter: string }[] },
+  count: number,
+): string[] {
+  const out = new Array<string>(count).fill('');
+  for (const a of parsed.answers) {
+    if (a.index >= 0 && a.index < count) {
+      out[a.index] = a.letter.trim().charAt(0).toUpperCase();
+    }
+  }
+  return out;
 }
 
 export function stripJsonMarkdown(raw: string): string {

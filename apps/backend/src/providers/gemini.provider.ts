@@ -12,6 +12,7 @@ import type {
   GenerateFlashcardsParams,
   GeneratedFlashcard,
   GenerateSummaryParams,
+  AnswerQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
@@ -22,6 +23,9 @@ import {
   buildTopicContentPrompt,
   buildFlashcardsPrompt,
   buildSummaryPrompt,
+  buildAuditPrompt,
+  auditResponseSchema,
+  mapAuditAnswers,
   questionsResponseSchema,
   essayResponseSchema,
   caseStudyResponseSchema,
@@ -104,6 +108,18 @@ export class GeminiProvider implements IAIProvider {
 
   async generateSummary(params: GenerateSummaryParams): Promise<string> {
     return this.callApi(buildSummaryPrompt(params), 2, false);
+  }
+
+  async answerQuestions(params: AnswerQuestionsParams): Promise<string[]> {
+    if (params.questions.length === 0) return [];
+    try {
+      const raw = await this.callApi(buildAuditPrompt(params));
+      const parsed = auditResponseSchema.safeParse(JSON.parse(stripJsonMarkdown(raw)));
+      if (!parsed.success) return [];
+      return mapAuditAnswers(parsed.data, params.questions.length);
+    } catch {
+      return [];
+    }
   }
 
   async generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]> {

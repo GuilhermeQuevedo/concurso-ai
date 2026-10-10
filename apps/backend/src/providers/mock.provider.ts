@@ -12,6 +12,7 @@ import type {
   GenerateFlashcardsParams,
   GeneratedFlashcard,
   GenerateSummaryParams,
+  AnswerQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
 
 export class MockProvider implements IAIProvider {
@@ -177,5 +178,10 @@ Associe cada conceito a um exemplo do dia a dia para fixar melhor.`;
 ### Para revisar
 - **Definições** e **classificações** costumam ser cobradas.
 - Atenção às exceções e prazos citados no material.`;
+  }
+
+  async answerQuestions(params: AnswerQuestionsParams): Promise<string[]> {
+    // No mock, a questão correta é sempre "C" — o auditor "acerta" todas.
+    return params.questions.map(() => 'C');
   }
 }

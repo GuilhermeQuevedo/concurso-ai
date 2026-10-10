@@ -1,4 +1,4 @@
-import type { IAIProvider } from '../interfaces/ai.interfaces.js';
+import type { IAIProvider, GeneratedQuestion } from '../interfaces/ai.interfaces.js';
 import type { GenerateQuestionsDTO } from '../validators/question.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -90,8 +90,10 @@ export class QuestionService {
       context: context || undefined,
     });
 
+    const kept = await this.auditQuestions(generated, subjectName);
+
     const saved = await prisma.$transaction(
-      generated.map((q) =>
+      kept.map((q) =>
         prisma.question.create({
           data: {
             statement: htmlToPlainText(q.statement),
@@ -110,6 +112,25 @@ export class QuestionService {
     );
 
     return saved;
+  }
+
+  // Auditoria: um segundo "resolvedor" responde cada questão às cegas e
+  // descartamos as que não batem com o gabarito. Se a auditoria falhar ou
+  // reprovar demais (possível modelo instável), mantém todas por segurança.
+  private async auditQuestions(generated: GeneratedQuestion[], subjectName: string): Promise<GeneratedQuestion[]> {
+    if (generated.length === 0) return generated;
+    try {
+      const answers = await this.aiProvider.answerQuestions({
+        subject: subjectName,
+        questions: generated.map((q) => ({ statement: q.statement, alternatives: q.alternatives })),
+      });
+      if (answers.length !== generated.length) return generated;
+
+      const agreed = generated.filter((q, i) => answers[i] && answers[i] === q.correctAnswer.trim().toUpperCase());
+      return agreed.length >= Math.ceil(generated.length / 2) ? agreed : generated;
+    } catch {
+      return generated;
+    }
   }
 
   async getBySubject(subjectId: string) {

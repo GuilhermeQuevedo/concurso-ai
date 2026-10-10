@@ -16,6 +16,7 @@ import type {
   GenerateFlashcardsParams,
   GeneratedFlashcard,
   GenerateSummaryParams,
+  AnswerQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
@@ -26,6 +27,9 @@ import {
   buildTopicContentPrompt,
   buildFlashcardsPrompt,
   buildSummaryPrompt,
+  buildAuditPrompt,
+  auditResponseSchema,
+  mapAuditAnswers,
   questionsResponseSchema,
   essayResponseSchema,
   caseStudyResponseSchema,
@@ -94,6 +98,18 @@ export class ClaudeProvider implements IAIProvider {
 
   async generateSummary(params: GenerateSummaryParams): Promise<string> {
     return this.callText(buildSummaryPrompt(params));
+  }
+
+  async answerQuestions(params: AnswerQuestionsParams): Promise<string[]> {
+    if (params.questions.length === 0) return [];
+    try {
+      const raw = await this.callText(buildAuditPrompt(params));
+      const parsed = auditResponseSchema.safeParse(JSON.parse(stripJsonMarkdown(raw)));
+      if (!parsed.success) return [];
+      return mapAuditAnswers(parsed.data, params.questions.length);
+    } catch {
+      return [];
+    }
   }
 
   async generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]> {

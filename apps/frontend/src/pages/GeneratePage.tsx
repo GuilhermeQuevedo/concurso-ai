@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Play, Building2, Calendar, Tag, Search, X } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Play, Building2, Calendar, Tag, Search, X, ShieldCheck } from 'lucide-react';
 import { contentService, type SubjectDTO, type ExamBoardDTO } from '@/features/content/services/content.service';
 import { questionService, type QuestionDTO, type GenerateParams } from '@/features/questions/services/question.service';
 import { documentService } from '@/features/documents/services/document.service';
+import { GenerationProgressModal } from '@/features/questions/components/GenerationProgressModal';
 import { htmlToPlainText } from '@/lib/html';
 
 const difficultyOptions = [
@@ -94,6 +95,11 @@ export function GeneratePage() {
 
   return (
     <div>
+      <GenerationProgressModal
+        open={generateMutation.isPending}
+        quantity={quantity}
+        subjectName={selectedSubjectName}
+      />
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gerar Questões</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -305,9 +311,15 @@ export function GeneratePage() {
       {questions.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {questions.length} questão(ões) gerada(s)
-            </h2>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {questions.length} questão(ões) gerada(s)
+              </h2>
+              <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Auditadas pela IA — um segundo modelo conferiu cada gabarito
+              </p>
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => navigate('/study', { state: { questions, mode: 'STUDY', subjectId, examBoardId: examBoardId || undefined, difficulty: difficulty || undefined } })}
