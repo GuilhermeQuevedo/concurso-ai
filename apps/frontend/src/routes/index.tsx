@@ -23,6 +23,7 @@ import { MemorySimulatorPage } from '@/pages/MemorySimulatorPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { AdminContactsPage } from '@/pages/AdminContactsPage';
 import { HelpPage } from '@/pages/HelpPage';
+import { MethodologyPage } from '@/pages/MethodologyPage';
 import { GettingStartedPage } from '@/pages/GettingStartedPage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
@@ -66,6 +67,7 @@ export function AppRoutes() {
       <Route path="/admin/contatos" element={<ProtectedLayout><AdminContactsPage /></ProtectedLayout>} />
       <Route path="/settings" element={<ProtectedLayout><SettingsPage /></ProtectedLayout>} />
       <Route path="/help" element={<ProtectedLayout><HelpPage /></ProtectedLayout>} />
+      <Route path="/metodologia" element={<ProtectedLayout><MethodologyPage /></ProtectedLayout>} />
       <Route path="/getting-started" element={<ProtectedLayout><GettingStartedPage /></ProtectedLayout>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

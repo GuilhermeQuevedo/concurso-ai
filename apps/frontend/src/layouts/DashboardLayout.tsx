@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   Contact,
   LayoutGrid,
+  FlaskConical,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -99,6 +100,7 @@ const navGroups: NavGroup[] = [
 const bottomItems: NavItem[] = [
   { path: '/settings', label: 'Configurações', icon: Settings },
   { path: '/help', label: 'Ajuda', icon: HelpCircle },
+  { path: '/metodologia', label: 'Metodologia', icon: FlaskConical },
 ];
 
 const STORAGE_KEY = 'nav-expanded-groups';
