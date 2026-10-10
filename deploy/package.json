@@ -17,6 +17,7 @@
     "db:deploy": "prisma migrate deploy"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "@prisma/client": "^6.9.0",
     "prisma": "^6.9.0",
     "bcrypt": "^5.1.0",

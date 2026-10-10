@@ -15,6 +15,7 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "@concurso-ai/shared": "workspace:*",
     "@concurso-ai/types": "workspace:*",
     "@prisma/client": "^6.9.0",

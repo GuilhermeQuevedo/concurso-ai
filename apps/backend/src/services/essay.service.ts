@@ -4,9 +4,20 @@ import { extractPdfText } from '../utils/pdf.js';
 import type { SubmitEssayDTO } from '../validators/essay.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
+import { env } from '../config/env.js';
 import { GroupService } from './group.service.js';
 
 const ESSAY_SUBMISSION_POINTS = 1;
+
+function startOfWeek(): Date {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = (day + 6) % 7;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - diff);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
 
 interface SubmitParams {
   dto: SubmitEssayDTO;
@@ -28,6 +39,8 @@ export class EssayService {
     if (isCaseStudy && !dto.caseStatement?.trim()) {
       throw new AppError(400, 'MISSING_CASE_STATEMENT', 'Informe o enunciado do caso para a correção do estudo de caso.');
     }
+
+    await this.assertWeeklyQuota(userId);
 
     let content = dto.content ?? '';
     if (!content && file && file.mimetype === 'application/pdf') {
@@ -83,6 +96,25 @@ export class EssayService {
         data: { status: 'ERROR' },
       });
       throw error;
+    }
+  }
+
+  private async assertWeeklyQuota(userId: string) {
+    if (env.WEEKLY_ESSAY_LIMIT <= 0) return;
+
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+    if (user?.role === 'ADMIN') return;
+
+    const usedThisWeek = await prisma.essay.count({
+      where: { userId, createdAt: { gte: startOfWeek() }, status: { not: 'ERROR' } },
+    });
+
+    if (usedThisWeek >= env.WEEKLY_ESSAY_LIMIT) {
+      throw new AppError(
+        429,
+        'WEEKLY_ESSAY_LIMIT',
+        `Você já usou sua correção de redação desta semana (limite: ${env.WEEKLY_ESSAY_LIMIT}). Volte na próxima semana.`,
+      );
     }
   }
 

@@ -9,6 +9,7 @@ const outDir = path.join(repoRoot, 'deploy');
 
 // Dependências de runtime que ficam no node_modules do host (instaladas via npm install)
 const external = [
+  '@anthropic-ai/sdk',
   '@prisma/client',
   '.prisma/client',
   'bcrypt',
@@ -23,6 +24,7 @@ const external = [
 ];
 
 const runtimeDependencies = {
+  '@anthropic-ai/sdk': '^0.132.1',
   '@prisma/client': '^6.9.0',
   prisma: '^6.9.0',
   bcrypt: '^5.1.0',
@@ -106,6 +108,13 @@ async function main() {
       '# IA: mock por enquanto. Troque para gemini quando tiver a chave.',
       'AI_PROVIDER=mock',
       '# GEMINI_API_KEY="sua-chave-aqui"',
+      '# Redação no Claude (qualidade) e o resto no provider barato:',
+      '# AI_ESSAY_PROVIDER=claude',
+      '# ANTHROPIC_API_KEY="sua-chave-anthropic"',
+      '# ANTHROPIC_MODEL=claude-sonnet-5-5',
+      '# Limites de custo:',
+      'EDITAL_MAX_PAGES=50',
+      'WEEKLY_ESSAY_LIMIT=1',
       '# Pagamentos (Kiwify). Ligue o bloqueio só quando for cobrar.',
       'REQUIRE_SUBSCRIPTION=false',
       '# KIWIFY_WEBHOOK_TOKEN="token-do-webhook-do-kiwify"',

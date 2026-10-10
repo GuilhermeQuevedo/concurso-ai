@@ -18,10 +18,15 @@ var envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
-  AI_PROVIDER: z.enum(["gemini", "ollama", "mock"]).default("mock"),
+  AI_PROVIDER: z.enum(["gemini", "ollama", "mock", "claude"]).default("mock"),
+  AI_ESSAY_PROVIDER: z.enum(["gemini", "ollama", "mock", "claude"]).optional(),
   GEMINI_API_KEY: z.string().optional(),
   OLLAMA_URL: z.string().default("http://localhost:11434"),
   OLLAMA_MODEL: z.string().default("qwen2.5:14b"),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
+  EDITAL_MAX_PAGES: z.coerce.number().int().positive().default(50),
+  WEEKLY_ESSAY_LIMIT: z.coerce.number().int().nonnegative().default(1),
   REQUIRE_SUBSCRIPTION: z.string().default("false").transform((v) => v === "true"),
   KIWIFY_WEBHOOK_TOKEN: z.string().optional(),
   KIWIFY_CHECKOUT_URL: z.string().default(""),
@@ -1552,6 +1557,101 @@ var OllamaProvider = class {
   }
 };
 
+// apps/backend/src/providers/claude.provider.ts
+import { readFileSync } from "node:fs";
+import Anthropic from "@anthropic-ai/sdk";
+var IMAGE_MEDIA_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+function asImageMediaType(mime) {
+  return IMAGE_MEDIA_TYPES.includes(mime) ? mime : null;
+}
+var ClaudeProvider = class {
+  constructor(apiKey, model) {
+    this.model = model;
+    this.client = new Anthropic({ apiKey });
+  }
+  model;
+  client;
+  async generateQuestions(params) {
+    const raw2 = await this.callText(buildQuestionsPrompt(params));
+    const parsed = questionsResponseSchema.safeParse(this.parseJson(raw2, "gera\xE7\xE3o de quest\xF5es"));
+    if (!parsed.success) {
+      throw new AppError(502, "AI_INVALID_FORMAT", `Formato de resposta inv\xE1lido: ${parsed.error.message}`);
+    }
+    return parsed.data.questions;
+  }
+  async gradeEssay(params) {
+    const raw2 = await this.callText(buildEssayPrompt(params), params.filePath, params.fileMimeType);
+    const parsed = essayResponseSchema.safeParse(this.parseJson(raw2, "corre\xE7\xE3o de reda\xE7\xE3o"));
+    if (!parsed.success) {
+      throw new AppError(502, "AI_INVALID_FORMAT", `Formato de corre\xE7\xE3o inv\xE1lido: ${parsed.error.message}`);
+    }
+    return parsed.data;
+  }
+  async gradeCaseStudy(params) {
+    const raw2 = await this.callText(buildCaseStudyPrompt(params), params.filePath, params.fileMimeType);
+    const parsed = caseStudyResponseSchema.safeParse(this.parseJson(raw2, "corre\xE7\xE3o de estudo de caso"));
+    if (!parsed.success) {
+      throw new AppError(502, "AI_INVALID_FORMAT", `Formato de corre\xE7\xE3o inv\xE1lido: ${parsed.error.message}`);
+    }
+    return parsed.data;
+  }
+  async parseEdital(params) {
+    const raw2 = await this.callText(buildEditalPrompt(truncateEdital(params.content), params.focus));
+    const parsed = editalResponseSchema.safeParse(this.parseJson(raw2, "an\xE1lise de edital"));
+    if (!parsed.success) {
+      throw new AppError(502, "AI_INVALID_FORMAT", `Formato de an\xE1lise de edital inv\xE1lido: ${parsed.error.message}`);
+    }
+    return parsed.data;
+  }
+  async generateTopicContent(params) {
+    return this.callText(buildTopicContentPrompt(params));
+  }
+  async generateFlashcards(params) {
+    const raw2 = await this.callText(buildFlashcardsPrompt(params));
+    const parsed = flashcardsResponseSchema.safeParse(this.parseJson(raw2, "gera\xE7\xE3o de flashcards"));
+    if (!parsed.success) {
+      throw new AppError(502, "AI_INVALID_FORMAT", `Formato de flashcards inv\xE1lido: ${parsed.error.message}`);
+    }
+    return parsed.data.flashcards;
+  }
+  parseJson(raw2, context) {
+    try {
+      return JSON.parse(stripJsonMarkdown(raw2));
+    } catch {
+      throw new AppError(502, "AI_INVALID_JSON", `Claude retornou JSON inv\xE1lido na ${context}`);
+    }
+  }
+  buildContent(prompt, filePath, mimeType) {
+    const imageType = filePath ? asImageMediaType(mimeType) : null;
+    if (filePath && imageType) {
+      const data = readFileSync(filePath).toString("base64");
+      return [
+        { type: "image", source: { type: "base64", media_type: imageType, data } },
+        { type: "text", text: prompt }
+      ];
+    }
+    return [{ type: "text", text: prompt }];
+  }
+  async callText(prompt, filePath, mimeType) {
+    try {
+      const response = await this.client.messages.create({
+        model: this.model,
+        max_tokens: 8e3,
+        messages: [{ role: "user", content: this.buildContent(prompt, filePath, mimeType) }]
+      });
+      const text = response.content.filter((block) => block.type === "text").map((block) => block.text).join("").trim();
+      if (!text) {
+        throw new AppError(502, "AI_EMPTY_RESPONSE", "Claude retornou resposta vazia");
+      }
+      return text;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      const message = error instanceof Error ? error.message : "erro desconhecido";
+      throw new AppError(502, "AI_API_ERROR", `Falha na API da Claude: ${message}`);
+    }
+  }
+};
+
 // apps/backend/src/providers/mock.provider.ts
 var MockProvider = class {
   async generateQuestions(params) {
@@ -1698,22 +1798,63 @@ Associe cada conceito a um exemplo do dia a dia para fixar melhor.`;
   }
 };
 
+// apps/backend/src/providers/composite.provider.ts
+var CompositeAIProvider = class {
+  constructor(bulk, essay) {
+    this.bulk = bulk;
+    this.essay = essay;
+  }
+  bulk;
+  essay;
+  generateQuestions(params) {
+    return this.bulk.generateQuestions(params);
+  }
+  parseEdital(params) {
+    return this.bulk.parseEdital(params);
+  }
+  generateTopicContent(params) {
+    return this.bulk.generateTopicContent(params);
+  }
+  generateFlashcards(params) {
+    return this.bulk.generateFlashcards(params);
+  }
+  gradeEssay(params) {
+    return this.essay.gradeEssay(params);
+  }
+  gradeCaseStudy(params) {
+    return this.essay.gradeCaseStudy(params);
+  }
+};
+
 // apps/backend/src/providers/ai.factory.ts
-function createAIProvider() {
-  switch (env.AI_PROVIDER) {
-    case "gemini": {
+function buildProvider(kind) {
+  switch (kind) {
+    case "gemini":
       if (!env.GEMINI_API_KEY) {
-        throw new Error("GEMINI_API_KEY is required when AI_PROVIDER=gemini");
+        throw new Error("GEMINI_API_KEY is required when the provider is gemini");
       }
       return new GeminiProvider(env.GEMINI_API_KEY);
-    }
     case "ollama":
       return new OllamaProvider(env.OLLAMA_URL, env.OLLAMA_MODEL);
+    case "claude":
+      if (!env.ANTHROPIC_API_KEY) {
+        throw new Error("ANTHROPIC_API_KEY is required when the provider is claude");
+      }
+      return new ClaudeProvider(env.ANTHROPIC_API_KEY, env.ANTHROPIC_MODEL);
     case "mock":
-      return new MockProvider();
     default:
       return new MockProvider();
   }
+}
+function createAIProvider() {
+  const bulkKind = env.AI_PROVIDER;
+  const essayKind = env.AI_ESSAY_PROVIDER ?? bulkKind;
+  const bulk = buildProvider(bulkKind);
+  if (essayKind === bulkKind) {
+    return bulk;
+  }
+  const essay = buildProvider(essayKind);
+  return new CompositeAIProvider(bulk, essay);
 }
 
 // apps/backend/src/routes/question.routes.ts
@@ -2930,16 +3071,30 @@ import { Router as Router11 } from "express";
 // apps/backend/src/utils/pdf.ts
 import fs2 from "node:fs/promises";
 import { PDFParse as PDFParse2 } from "pdf-parse";
-async function extractPdfText(filePath) {
+async function extractPdf(filePath) {
   const data = await fs2.readFile(filePath);
   const parser = new PDFParse2({ data: new Uint8Array(data) });
   await parser.load();
   const result = await parser.getText();
-  return result.text.trim();
+  const pages = result.total ?? (Array.isArray(result.pages) ? result.pages.length : 0);
+  return { text: result.text.trim(), pages };
+}
+async function extractPdfText(filePath) {
+  const { text } = await extractPdf(filePath);
+  return text;
 }
 
 // apps/backend/src/services/essay.service.ts
 var ESSAY_SUBMISSION_POINTS = 1;
+function startOfWeek() {
+  const now = /* @__PURE__ */ new Date();
+  const day = now.getDay();
+  const diff = (day + 6) % 7;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - diff);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
 var EssayService = class {
   constructor(aiProvider4) {
     this.aiProvider = aiProvider4;
@@ -2955,6 +3110,7 @@ var EssayService = class {
     if (isCaseStudy && !dto.caseStatement?.trim()) {
       throw new AppError(400, "MISSING_CASE_STATEMENT", "Informe o enunciado do caso para a corre\xE7\xE3o do estudo de caso.");
     }
+    await this.assertWeeklyQuota(userId);
     let content = dto.content ?? "";
     if (!content && file && file.mimetype === "application/pdf") {
       content = await extractPdfText(file.path);
@@ -3002,6 +3158,21 @@ var EssayService = class {
         data: { status: "ERROR" }
       });
       throw error;
+    }
+  }
+  async assertWeeklyQuota(userId) {
+    if (env.WEEKLY_ESSAY_LIMIT <= 0) return;
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+    if (user?.role === "ADMIN") return;
+    const usedThisWeek = await prisma.essay.count({
+      where: { userId, createdAt: { gte: startOfWeek() }, status: { not: "ERROR" } }
+    });
+    if (usedThisWeek >= env.WEEKLY_ESSAY_LIMIT) {
+      throw new AppError(
+        429,
+        "WEEKLY_ESSAY_LIMIT",
+        `Voc\xEA j\xE1 usou sua corre\xE7\xE3o de reda\xE7\xE3o desta semana (limite: ${env.WEEKLY_ESSAY_LIMIT}). Volte na pr\xF3xima semana.`
+      );
     }
   }
   async gradeDissertativa(dto, content, file) {
@@ -3243,7 +3414,22 @@ var ContestService = class {
     });
   }
   async createFromEdital(userId, file, focus) {
-    const content = file.mimetype === "application/pdf" ? await extractPdfText(file.path) : decodeTextBuffer(await fs4.readFile(file.path)).trim();
+    let content;
+    if (file.mimetype === "application/pdf") {
+      const pdf = await extractPdf(file.path);
+      if (pdf.pages > env.EDITAL_MAX_PAGES) {
+        await fs4.unlink(file.path).catch(() => {
+        });
+        throw new AppError(
+          400,
+          "EDITAL_TOO_LONG",
+          `O edital tem ${pdf.pages} p\xE1ginas. O limite \xE9 ${env.EDITAL_MAX_PAGES}. Envie apenas as p\xE1ginas do conte\xFAdo program\xE1tico.`
+        );
+      }
+      content = pdf.text;
+    } else {
+      content = decodeTextBuffer(await fs4.readFile(file.path)).trim();
+    }
     await fs4.unlink(file.path).catch(() => {
     });
     if (content.length < 200) {

@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises';
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
-import { extractPdfText } from '../utils/pdf.js';
+import { extractPdf } from '../utils/pdf.js';
 import { decodeTextBuffer } from '../utils/text-encoding.js';
+import { env } from '../config/env.js';
 import type { CreateContestDTO, UpdateContestDTO } from '../validators/contest.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -32,10 +33,21 @@ export class ContestService {
   }
 
   async createFromEdital(userId: string, file: UploadedFile, focus?: string) {
-    const content =
-      file.mimetype === 'application/pdf'
-        ? await extractPdfText(file.path)
-        : decodeTextBuffer(await fs.readFile(file.path)).trim();
+    let content: string;
+    if (file.mimetype === 'application/pdf') {
+      const pdf = await extractPdf(file.path);
+      if (pdf.pages > env.EDITAL_MAX_PAGES) {
+        await fs.unlink(file.path).catch(() => {});
+        throw new AppError(
+          400,
+          'EDITAL_TOO_LONG',
+          `O edital tem ${pdf.pages} páginas. O limite é ${env.EDITAL_MAX_PAGES}. Envie apenas as páginas do conteúdo programático.`,
+        );
+      }
+      content = pdf.text;
+    } else {
+      content = decodeTextBuffer(await fs.readFile(file.path)).trim();
+    }
     await fs.unlink(file.path).catch(() => {});
 
     if (content.length < 200) {
