@@ -16,6 +16,7 @@ import {
   Trophy,
   CalendarDays,
   Users,
+  User,
   HelpCircle,
   PenLine,
   Target,
@@ -99,6 +100,7 @@ const navGroups: NavGroup[] = [
 ];
 
 const bottomItems: NavItem[] = [
+  { path: '/profile', label: 'Perfil', icon: User },
   { path: '/settings', label: 'Configurações', icon: Settings },
   { path: '/help', label: 'Ajuda', icon: HelpCircle },
   { path: '/metodologia', label: 'Metodologia', icon: FlaskConical },
