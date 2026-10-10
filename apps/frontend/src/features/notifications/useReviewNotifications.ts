@@ -35,7 +35,7 @@ async function notifyIfDue(): Promise<void> {
     if (pendingTasks > 0) parts.push(`${pendingTasks} tarefa(s) de hoje`);
 
     new Notification('Hora de estudar 📚', {
-      body: `Você tem ${parts.join(' e ')} no Concurso AI.`,
+      body: `Você tem ${parts.join(' e ')} no Engrama.`,
     });
 
     try {

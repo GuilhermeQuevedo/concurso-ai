@@ -26,7 +26,7 @@ export function SubscriptionGate({ children }: { children: React.ReactNode }) {
         </div>
         <h1 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">Acesso exclusivo para assinantes</h1>
         <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-          Assine o Concurso AI para liberar questões com IA, flashcards, redações e seu plano de estudos completo.
+          Assine o Engrama para liberar questões com IA, flashcards, redações e seu plano de estudos completo.
         </p>
 
         {data.checkoutUrl ? (

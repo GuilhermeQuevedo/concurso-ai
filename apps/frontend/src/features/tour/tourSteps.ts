@@ -9,7 +9,7 @@ export interface TourStep {
 export const TOUR_STEPS: TourStep[] = [
   {
     placement: 'center',
-    title: 'Bem-vindo ao Concurso AI! 👋',
+    title: 'Bem-vindo ao Engrama! 👋',
     text: 'Em menos de 1 minuto eu te mostro o essencial pra você já começar a estudar. Pode pular quando quiser.',
   },
   {

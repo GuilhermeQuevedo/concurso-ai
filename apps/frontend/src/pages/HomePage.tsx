@@ -33,12 +33,15 @@ export function HomePage() {
         <div className="mb-6 flex items-center justify-center gap-2">
           <Brain className="h-10 w-10 text-primary-600" />
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Concurso <span className="text-primary-600">AI</span>
+            Engrama
           </h1>
         </div>
 
-        <p className="mx-auto mb-2 max-w-xl text-lg text-gray-600 dark:text-gray-400">
-          Plataforma de estudos para concursos com IA.
+        <p className="mx-auto mb-2 max-w-xl text-xl font-semibold text-primary-600">
+          Onde o estudo vira memória.
+        </p>
+        <p className="mx-auto mb-2 max-w-xl text-base text-gray-600 dark:text-gray-400">
+          Plataforma de estudos para concursos que usa a ciência da memória para você aprender e não esquecer.
         </p>
         <p className="mx-auto mb-10 max-w-xl text-sm text-gray-500 dark:text-gray-500">
           Projeto em fase de testes — uso gratuito e sem fins comerciais.

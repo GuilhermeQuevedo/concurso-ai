@@ -183,7 +183,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-sm shadow-primary-600/30">
             <Brain className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Concurso AI</span>
+          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Engrama</span>
         </div>
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
@@ -251,7 +251,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
           <Brain className="h-6 w-6 text-primary-600" />
-          <span className="font-bold text-gray-900 dark:text-white">Concurso AI</span>
+          <span className="font-bold text-gray-900 dark:text-white">Engrama</span>
         </header>
 
         <main className="flex-1 p-6">{children}</main>

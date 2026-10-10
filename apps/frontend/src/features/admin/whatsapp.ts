@@ -13,7 +13,7 @@ export const DEFAULT_WA_TEMPLATE = [
   '📚 Dicas e materiais de estudo',
   '📝 Questões e redações comentadas',
   '📅 Avisos de editais e prazos importantes',
-  '🤖 Acesso ao *Concurso AI* — plataforma com inteligência artificial pra estudar melhor',
+  '🤖 Acesso ao *Engrama* — plataforma com inteligência artificial pra estudar melhor',
   '',
   'Bora entrar? É de graça 👇',
   '{link}',
