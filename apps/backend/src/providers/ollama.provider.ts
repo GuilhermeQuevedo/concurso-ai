@@ -11,6 +11,7 @@ import type {
   TopicContentParams,
   GenerateFlashcardsParams,
   GeneratedFlashcard,
+  GenerateSummaryParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
@@ -20,6 +21,7 @@ import {
   buildEditalPrompt,
   buildTopicContentPrompt,
   buildFlashcardsPrompt,
+  buildSummaryPrompt,
   questionsResponseSchema,
   essayResponseSchema,
   caseStudyResponseSchema,
@@ -102,6 +104,11 @@ export class OllamaProvider implements IAIProvider {
 
   async generateTopicContent(params: TopicContentParams): Promise<string> {
     const text = await this.callApi(buildTopicContentPrompt(params), false);
+    return text.trim();
+  }
+
+  async generateSummary(params: GenerateSummaryParams): Promise<string> {
+    const text = await this.callApi(buildSummaryPrompt(params), false);
     return text.trim();
   }
 

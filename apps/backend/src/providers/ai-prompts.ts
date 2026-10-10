@@ -5,6 +5,7 @@ import type {
   GradeCaseStudyParams,
   TopicContentParams,
   GenerateFlashcardsParams,
+  GenerateSummaryParams,
 } from '../interfaces/ai.interfaces.js';
 
 export const questionsResponseSchema = z.object({
@@ -302,6 +303,26 @@ O material deve conter, em português, formatado em Markdown:
 3. Uma dica prática de memorização ou resolução
 
 Seja direto e didático. Use listas e negrito para destacar o essencial. Não invente legislação nem dados; se citar leis, cite apenas as reconhecidas. Escreva de 200 a 400 palavras. Responda APENAS com o material em Markdown, sem preâmbulo.`;
+}
+
+const SUMMARY_MAX_CONTENT = 16000;
+
+export function buildSummaryPrompt(params: GenerateSummaryParams): string {
+  const content = params.content.slice(0, SUMMARY_MAX_CONTENT);
+  const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : '';
+
+  return `Você é um professor experiente que prepara candidatos para concursos públicos brasileiros. Resuma o CONTEÚDO DE ESTUDO abaixo${subjectBlock} de forma objetiva e didática, para revisão rápida.
+
+CONTEÚDO DE ESTUDO:
+${content}
+
+REGRAS OBRIGATÓRIAS:
+1. Baseie-se ESTRITAMENTE no conteúdo fornecido — não acrescente fatos que não estejam no texto.
+2. Destaque os pontos mais importantes (definições, classificações, prazos, exceções).
+3. Use Markdown: títulos, listas e **negrito** no essencial.
+4. Seja conciso: de 250 a 500 palavras.
+
+Responda APENAS com o resumo em Markdown, sem preâmbulo.`;
 }
 
 export function stripJsonMarkdown(raw: string): string {

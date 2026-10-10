@@ -11,6 +11,7 @@ import type {
   TopicContentParams,
   GenerateFlashcardsParams,
   GeneratedFlashcard,
+  GenerateSummaryParams,
 } from '../interfaces/ai.interfaces.js';
 
 export class CompositeAIProvider implements IAIProvider {
@@ -33,6 +34,10 @@ export class CompositeAIProvider implements IAIProvider {
 
   generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]> {
     return this.bulk.generateFlashcards(params);
+  }
+
+  generateSummary(params: GenerateSummaryParams): Promise<string> {
+    return this.bulk.generateSummary(params);
   }
 
   gradeEssay(params: GradeEssayParams): Promise<EssayGradeResult> {

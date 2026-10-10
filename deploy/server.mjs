@@ -54,7 +54,7 @@ if (env.NODE_ENV !== "production") {
 }
 
 // apps/backend/src/routes/index.ts
-import { Router as Router17 } from "express";
+import { Router as Router18 } from "express";
 
 // apps/backend/src/routes/auth.routes.ts
 import { Router } from "express";
@@ -473,8 +473,8 @@ var SubjectService = class {
 
 // apps/backend/src/controllers/subject.controller.ts
 var SubjectController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -635,8 +635,8 @@ var ExamBoardService = class {
 
 // apps/backend/src/controllers/exam-board.controller.ts
 var ExamBoardController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -976,8 +976,8 @@ var QuestionService = class {
 
 // apps/backend/src/controllers/question.controller.ts
 var QuestionController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   generate = async (req, res, next) => {
@@ -1291,6 +1291,23 @@ O material deve conter, em portugu\xEAs, formatado em Markdown:
 
 Seja direto e did\xE1tico. Use listas e negrito para destacar o essencial. N\xE3o invente legisla\xE7\xE3o nem dados; se citar leis, cite apenas as reconhecidas. Escreva de 200 a 400 palavras. Responda APENAS com o material em Markdown, sem pre\xE2mbulo.`;
 }
+var SUMMARY_MAX_CONTENT = 16e3;
+function buildSummaryPrompt(params) {
+  const content = params.content.slice(0, SUMMARY_MAX_CONTENT);
+  const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : "";
+  return `Voc\xEA \xE9 um professor experiente que prepara candidatos para concursos p\xFAblicos brasileiros. Resuma o CONTE\xDADO DE ESTUDO abaixo${subjectBlock} de forma objetiva e did\xE1tica, para revis\xE3o r\xE1pida.
+
+CONTE\xDADO DE ESTUDO:
+${content}
+
+REGRAS OBRIGAT\xD3RIAS:
+1. Baseie-se ESTRITAMENTE no conte\xFAdo fornecido \u2014 n\xE3o acrescente fatos que n\xE3o estejam no texto.
+2. Destaque os pontos mais importantes (defini\xE7\xF5es, classifica\xE7\xF5es, prazos, exce\xE7\xF5es).
+3. Use Markdown: t\xEDtulos, listas e **negrito** no essencial.
+4. Seja conciso: de 250 a 500 palavras.
+
+Responda APENAS com o resumo em Markdown, sem pre\xE2mbulo.`;
+}
 function stripJsonMarkdown(raw2) {
   return raw2.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 }
@@ -1346,6 +1363,9 @@ var GeminiProvider = class {
   }
   async generateTopicContent(params) {
     return this.callApi(buildTopicContentPrompt(params), 2, false);
+  }
+  async generateSummary(params) {
+    return this.callApi(buildSummaryPrompt(params), 2, false);
   }
   async generateFlashcards(params) {
     const raw2 = await this.callApi(buildFlashcardsPrompt(params));
@@ -1506,6 +1526,10 @@ var OllamaProvider = class {
     const text = await this.callApi(buildTopicContentPrompt(params), false);
     return text.trim();
   }
+  async generateSummary(params) {
+    const text = await this.callApi(buildSummaryPrompt(params), false);
+    return text.trim();
+  }
   async generateFlashcards(params) {
     const raw2 = await this.callApi(buildFlashcardsPrompt(params));
     const parsed = this.parseJson(raw2, "gera\xE7\xE3o de flashcards");
@@ -1605,6 +1629,9 @@ var ClaudeProvider = class {
   }
   async generateTopicContent(params) {
     return this.callText(buildTopicContentPrompt(params));
+  }
+  async generateSummary(params) {
+    return this.callText(buildSummaryPrompt(params));
   }
   async generateFlashcards(params) {
     const raw2 = await this.callText(buildFlashcardsPrompt(params));
@@ -1796,6 +1823,21 @@ Associe cada conceito a um exemplo do dia a dia para fixar melhor.`;
       back: `[MOCK] Resposta ${i + 1} baseada no conte\xFAdo enviado, resumindo o conceito principal.`
     }));
   }
+  async generateSummary(params) {
+    const subject = params.subject ? ` de *${params.subject}*` : "";
+    return `## Resumo${subject} (MOCK)
+
+**[MOCK]** Resumo gerado a partir do conte\xFAdo enviado (${params.content.length} caracteres).
+
+### Pontos principais
+- Conceito-chave 1 extra\xEDdo do material.
+- Conceito-chave 2 com destaque para o que mais cai em prova.
+- Conceito-chave 3 relacionando o conte\xFAdo a aplica\xE7\xF5es pr\xE1ticas.
+
+### Para revisar
+- **Defini\xE7\xF5es** e **classifica\xE7\xF5es** costumam ser cobradas.
+- Aten\xE7\xE3o \xE0s exce\xE7\xF5es e prazos citados no material.`;
+  }
 };
 
 // apps/backend/src/providers/composite.provider.ts
@@ -1817,6 +1859,9 @@ var CompositeAIProvider = class {
   }
   generateFlashcards(params) {
     return this.bulk.generateFlashcards(params);
+  }
+  generateSummary(params) {
+    return this.bulk.generateSummary(params);
   }
   gradeEssay(params) {
     return this.essay.gradeEssay(params);
@@ -2295,8 +2340,8 @@ var StudyService = class {
 
 // apps/backend/src/controllers/study.controller.ts
 var StudyController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   createSession = async (req, res, next) => {
@@ -2403,8 +2448,8 @@ import { Router as Router6 } from "express";
 
 // apps/backend/src/controllers/document.controller.ts
 var DocumentController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   upload = async (req, res, next) => {
@@ -2546,8 +2591,8 @@ var StudyPlanService = class {
 
 // apps/backend/src/controllers/study-plan.controller.ts
 var StudyPlanController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   create = async (req, res, next) => {
@@ -2850,8 +2895,8 @@ var FlashcardService = class {
 
 // apps/backend/src/controllers/flashcard.controller.ts
 var FlashcardController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   create = async (req, res, next) => {
@@ -2943,13 +2988,117 @@ router8.get("/", authMiddleware, controller7.list);
 router8.patch("/:id/review", authMiddleware, controller7.review);
 router8.delete("/:id", authMiddleware, controller7.delete);
 
-// apps/backend/src/routes/gamification.routes.ts
+// apps/backend/src/routes/study-kit.routes.ts
 import { Router as Router9 } from "express";
+
+// apps/backend/src/services/study-kit.service.ts
+var StudyKitService = class {
+  constructor(aiProvider4) {
+    this.aiProvider = aiProvider4;
+    this.flashcardService = new FlashcardService(aiProvider4);
+    this.questionService = new QuestionService(aiProvider4);
+  }
+  aiProvider;
+  flashcardService;
+  questionService;
+  async generate(userId, dto) {
+    const document = await prisma.document.findUnique({ where: { id: dto.documentId } });
+    if (!document || document.userId !== userId) {
+      throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
+    }
+    if (document.content.trim().length < 50) {
+      throw new AppError(400, "CONTENT_TOO_SHORT", "O documento n\xE3o tem conte\xFAdo suficiente para gerar material.");
+    }
+    const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
+    if (!subject) {
+      throw new AppError(404, "SUBJECT_NOT_FOUND", "Disciplina n\xE3o encontrada");
+    }
+    const result = { summary: null, summaryDocumentId: null, flashcards: 0, questions: 0 };
+    if (dto.outputs.includes("summary")) {
+      const summary = await this.aiProvider.generateSummary({ content: document.content, subject: subject.name });
+      const saved = await prisma.document.create({
+        data: {
+          userId,
+          name: `Resumo \u2014 ${document.name}`,
+          type: "MARKDOWN",
+          content: summary,
+          subjectId: dto.subjectId
+        },
+        select: { id: true }
+      });
+      result.summary = summary;
+      result.summaryDocumentId = saved.id;
+    }
+    if (dto.outputs.includes("flashcards")) {
+      const cards = await this.flashcardService.generateFromContent(userId, {
+        subjectId: dto.subjectId,
+        count: dto.flashcardsCount ?? 10,
+        documentId: dto.documentId
+      });
+      result.flashcards = cards.length;
+    }
+    if (dto.outputs.includes("questions")) {
+      const questions = await this.questionService.generate(userId, {
+        subjectId: dto.subjectId,
+        quantity: dto.questionsCount ?? 5,
+        documentId: dto.documentId,
+        examBoardId: dto.examBoardId,
+        difficulty: dto.difficulty,
+        topic: dto.topic
+      });
+      result.questions = questions.length;
+    }
+    return result;
+  }
+};
+
+// apps/backend/src/validators/study-kit.validators.ts
+import { z as z8 } from "zod";
+var generateStudyKitSchema = z8.object({
+  documentId: z8.string().min(1),
+  subjectId: z8.string().min(1),
+  outputs: z8.array(z8.enum(["summary", "flashcards", "questions"])).min(1),
+  flashcardsCount: z8.number().int().min(1).max(30).optional(),
+  questionsCount: z8.number().int().min(1).max(10).optional(),
+  examBoardId: z8.string().min(1).optional(),
+  difficulty: z8.enum(["EASY", "MEDIUM", "HARD"]).optional(),
+  topic: z8.string().max(200).optional()
+});
+
+// apps/backend/src/controllers/study-kit.controller.ts
+var StudyKitController = class {
+  constructor(service17) {
+    this.service = service17;
+  }
+  service;
+  generate = async (req, res, next) => {
+    try {
+      const parsed = generateStudyKitSchema.safeParse(req.body);
+      if (!parsed.success) {
+        throw new AppError(400, "INVALID_INPUT", parsed.error.issues[0]?.message ?? "Dados inv\xE1lidos");
+      }
+      const data = await this.service.generate(getUserId(req), parsed.data);
+      const response = { success: true, data };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// apps/backend/src/routes/study-kit.routes.ts
+var router9 = Router9();
+var service8 = new StudyKitService(createAIProvider());
+var controller8 = new StudyKitController(service8);
+router9.post("/generate", authMiddleware, controller8.generate);
+
+// apps/backend/src/routes/gamification.routes.ts
+import { Router as Router10 } from "express";
 
 // apps/backend/src/controllers/gamification.controller.ts
 var GamificationController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   getProfile = async (req, res, next) => {
@@ -2973,19 +3122,19 @@ var GamificationController = class {
 };
 
 // apps/backend/src/routes/gamification.routes.ts
-var router9 = Router9();
-var service8 = new GamificationService();
-var controller8 = new GamificationController(service8);
-router9.get("/profile", authMiddleware, controller8.getProfile);
-router9.post("/check", authMiddleware, controller8.checkAchievements);
+var router10 = Router10();
+var service9 = new GamificationService();
+var controller9 = new GamificationController(service9);
+router10.get("/profile", authMiddleware, controller9.getProfile);
+router10.post("/check", authMiddleware, controller9.checkAchievements);
 
 // apps/backend/src/routes/group.routes.ts
-import { Router as Router10 } from "express";
+import { Router as Router11 } from "express";
 
 // apps/backend/src/controllers/group.controller.ts
 var GroupController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   create = async (req, res, next) => {
@@ -3054,19 +3203,19 @@ var GroupController = class {
 };
 
 // apps/backend/src/routes/group.routes.ts
-var router10 = Router10();
-var service9 = new GroupService();
-var controller9 = new GroupController(service9);
-router10.post("/", authMiddleware, controller9.create);
-router10.post("/join", authMiddleware, controller9.join);
-router10.get("/", authMiddleware, controller9.listMyGroups);
-router10.get("/:id", authMiddleware, controller9.getById);
-router10.get("/:id/ranking", authMiddleware, controller9.getRanking);
-router10.get("/:id/feed", authMiddleware, controller9.getFeed);
-router10.delete("/:id/leave", authMiddleware, controller9.leave);
+var router11 = Router11();
+var service10 = new GroupService();
+var controller10 = new GroupController(service10);
+router11.post("/", authMiddleware, controller10.create);
+router11.post("/join", authMiddleware, controller10.join);
+router11.get("/", authMiddleware, controller10.listMyGroups);
+router11.get("/:id", authMiddleware, controller10.getById);
+router11.get("/:id/ranking", authMiddleware, controller10.getRanking);
+router11.get("/:id/feed", authMiddleware, controller10.getFeed);
+router11.delete("/:id/leave", authMiddleware, controller10.leave);
 
 // apps/backend/src/routes/essay.routes.ts
-import { Router as Router11 } from "express";
+import { Router as Router12 } from "express";
 
 // apps/backend/src/utils/pdf.ts
 import fs2 from "node:fs/promises";
@@ -3243,8 +3392,8 @@ var EssayService = class {
 
 // apps/backend/src/controllers/essay.controller.ts
 var EssayController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   submit = async (req, res, next) => {
@@ -3325,34 +3474,34 @@ var essayUpload = multer2({
 });
 
 // apps/backend/src/validators/essay.validators.ts
-import { z as z8 } from "zod";
-var submitEssaySchema = z8.object({
-  body: z8.object({
-    type: z8.enum(["DISSERTATIVA", "ESTUDO_CASO"]).default("DISSERTATIVA"),
-    title: z8.string().min(3).max(200),
-    theme: z8.string().min(3).max(500),
-    content: z8.string().max(15e3).optional(),
+import { z as z9 } from "zod";
+var submitEssaySchema = z9.object({
+  body: z9.object({
+    type: z9.enum(["DISSERTATIVA", "ESTUDO_CASO"]).default("DISSERTATIVA"),
+    title: z9.string().min(3).max(200),
+    theme: z9.string().min(3).max(500),
+    content: z9.string().max(15e3).optional(),
     // Campos específicos de estudo de caso (chegam como string no multipart)
-    role: z8.string().max(200).optional(),
-    examBoard: z8.string().max(200).optional(),
-    caseStatement: z8.string().max(8e3).optional(),
-    answerKey: z8.string().max(8e3).optional(),
-    lineLimit: z8.coerce.number().int().min(1).max(200).optional()
+    role: z9.string().max(200).optional(),
+    examBoard: z9.string().max(200).optional(),
+    caseStatement: z9.string().max(8e3).optional(),
+    answerKey: z9.string().max(8e3).optional(),
+    lineLimit: z9.coerce.number().int().min(1).max(200).optional()
   })
 });
 
 // apps/backend/src/routes/essay.routes.ts
-var router11 = Router11();
+var router12 = Router12();
 var aiProvider2 = createAIProvider();
-var service10 = new EssayService(aiProvider2);
-var controller10 = new EssayController(service10);
-router11.post("/", authMiddleware, essayUpload.single("file"), validateRequest(submitEssaySchema), controller10.submit);
-router11.get("/", authMiddleware, controller10.list);
-router11.get("/:id", authMiddleware, controller10.getById);
-router11.delete("/:id", authMiddleware, controller10.delete);
+var service11 = new EssayService(aiProvider2);
+var controller11 = new EssayController(service11);
+router12.post("/", authMiddleware, essayUpload.single("file"), validateRequest(submitEssaySchema), controller11.submit);
+router12.get("/", authMiddleware, controller11.list);
+router12.get("/:id", authMiddleware, controller11.getById);
+router12.delete("/:id", authMiddleware, controller11.delete);
 
 // apps/backend/src/routes/contest.routes.ts
-import { Router as Router12 } from "express";
+import { Router as Router13 } from "express";
 
 // apps/backend/src/services/contest.service.ts
 import fs4 from "node:fs/promises";
@@ -3645,8 +3794,8 @@ var ContestReviewService = class {
 
 // apps/backend/src/controllers/contest.controller.ts
 var ContestController = class {
-  constructor(service16, reviewService2) {
-    this.service = service16;
+  constructor(service17, reviewService2) {
+    this.service = service17;
     this.reviewService = reviewService2;
   }
   service;
@@ -3779,73 +3928,73 @@ var ContestController = class {
 };
 
 // apps/backend/src/validators/contest.validators.ts
-import { z as z9 } from "zod";
-var createContestSchema = z9.object({
-  body: z9.object({
-    name: z9.string().min(3).max(200),
-    organization: z9.string().max(200).optional(),
-    examBoard: z9.string().max(100).optional(),
-    role: z9.string().max(200).optional(),
-    examDate: z9.string().datetime().or(z9.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional()
+import { z as z10 } from "zod";
+var createContestSchema = z10.object({
+  body: z10.object({
+    name: z10.string().min(3).max(200),
+    organization: z10.string().max(200).optional(),
+    examBoard: z10.string().max(100).optional(),
+    role: z10.string().max(200).optional(),
+    examDate: z10.string().datetime().or(z10.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional()
   })
 });
-var updateContestSchema = z9.object({
-  body: z9.object({
-    name: z9.string().min(3).max(200).optional(),
-    organization: z9.string().max(200).nullable().optional(),
-    examBoard: z9.string().max(100).nullable().optional(),
-    role: z9.string().max(200).nullable().optional(),
-    examDate: z9.string().datetime().or(z9.string().regex(/^\d{4}-\d{2}-\d{2}$/)).nullable().optional(),
-    status: z9.enum(["PLANNED", "STUDYING", "DONE", "ARCHIVED"]).optional()
+var updateContestSchema = z10.object({
+  body: z10.object({
+    name: z10.string().min(3).max(200).optional(),
+    organization: z10.string().max(200).nullable().optional(),
+    examBoard: z10.string().max(100).nullable().optional(),
+    role: z10.string().max(200).nullable().optional(),
+    examDate: z10.string().datetime().or(z10.string().regex(/^\d{4}-\d{2}-\d{2}$/)).nullable().optional(),
+    status: z10.enum(["PLANNED", "STUDYING", "DONE", "ARCHIVED"]).optional()
   })
 });
-var updateSyllabusItemSchema = z9.object({
-  body: z9.object({
-    studied: z9.boolean()
+var updateSyllabusItemSchema = z10.object({
+  body: z10.object({
+    studied: z10.boolean()
   })
 });
-var setImportanceSchema = z9.object({
-  body: z9.object({
-    discipline: z9.string().min(1).max(200),
-    importance: z9.number().int().min(1).max(10)
+var setImportanceSchema = z10.object({
+  body: z10.object({
+    discipline: z10.string().min(1).max(200),
+    importance: z10.number().int().min(1).max(10)
   })
 });
-var completeReviewSchema = z9.object({
-  body: z9.object({
-    completed: z9.boolean()
+var completeReviewSchema = z10.object({
+  body: z10.object({
+    completed: z10.boolean()
   })
 });
 
 // apps/backend/src/routes/contest.routes.ts
-var router12 = Router12();
+var router13 = Router13();
 var aiProvider3 = createAIProvider();
-var service11 = new ContestService(aiProvider3);
+var service12 = new ContestService(aiProvider3);
 var reviewService = new ContestReviewService();
-var controller11 = new ContestController(service11, reviewService);
-router12.post("/", authMiddleware, validateRequest(createContestSchema), controller11.create);
-router12.post("/from-edital", authMiddleware, upload.single("file"), controller11.createFromEdital);
-router12.get("/", authMiddleware, controller11.list);
-router12.get("/reviews/due", authMiddleware, controller11.listDueReviews);
-router12.post(
+var controller12 = new ContestController(service12, reviewService);
+router13.post("/", authMiddleware, validateRequest(createContestSchema), controller12.create);
+router13.post("/from-edital", authMiddleware, upload.single("file"), controller12.createFromEdital);
+router13.get("/", authMiddleware, controller12.list);
+router13.get("/reviews/due", authMiddleware, controller12.listDueReviews);
+router13.post(
   "/reviews/:reviewId/complete",
   authMiddleware,
   validateRequest(completeReviewSchema),
-  controller11.completeReview
+  controller12.completeReview
 );
-router12.get("/:id", authMiddleware, controller11.getById);
-router12.patch("/:id", authMiddleware, validateRequest(updateContestSchema), controller11.update);
-router12.patch("/:id/importance", authMiddleware, validateRequest(setImportanceSchema), controller11.setImportance);
-router12.delete("/:id", authMiddleware, controller11.delete);
-router12.patch(
+router13.get("/:id", authMiddleware, controller12.getById);
+router13.patch("/:id", authMiddleware, validateRequest(updateContestSchema), controller12.update);
+router13.patch("/:id/importance", authMiddleware, validateRequest(setImportanceSchema), controller12.setImportance);
+router13.delete("/:id", authMiddleware, controller12.delete);
+router13.patch(
   "/syllabus/:itemId",
   authMiddleware,
   validateRequest(updateSyllabusItemSchema),
-  controller11.updateSyllabusItem
+  controller12.updateSyllabusItem
 );
-router12.get("/syllabus/:itemId/content", authMiddleware, controller11.getTopicContent);
+router13.get("/syllabus/:itemId/content", authMiddleware, controller12.getTopicContent);
 
 // apps/backend/src/routes/study-task.routes.ts
-import { Router as Router13 } from "express";
+import { Router as Router14 } from "express";
 
 // apps/backend/src/services/study-task.service.ts
 var REVIEW_DURATION = 15;
@@ -4039,8 +4188,8 @@ function dayKey(date) {
 
 // apps/backend/src/controllers/study-task.controller.ts
 var StudyTaskController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   generatePlan = async (req, res, next) => {
@@ -4099,38 +4248,38 @@ var StudyTaskController = class {
 };
 
 // apps/backend/src/validators/study-task.validators.ts
-import { z as z10 } from "zod";
-var generatePlanSchema = z10.object({
-  body: z10.object({
-    contestId: z10.string().min(1),
-    minutesPerDay: z10.number().int().min(30).max(720).default(120),
-    studyWeekdays: z10.array(z10.number().int().min(0).max(6)).min(1).default([1, 2, 3, 4, 5, 6])
+import { z as z11 } from "zod";
+var generatePlanSchema = z11.object({
+  body: z11.object({
+    contestId: z11.string().min(1),
+    minutesPerDay: z11.number().int().min(30).max(720).default(120),
+    studyWeekdays: z11.array(z11.number().int().min(0).max(6)).min(1).default([1, 2, 3, 4, 5, 6])
   })
 });
-var listTasksSchema = z10.object({
-  query: z10.object({
-    from: z10.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    to: z10.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+var listTasksSchema = z11.object({
+  query: z11.object({
+    from: z11.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    to: z11.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
   })
 });
-var updateTaskSchema = z10.object({
-  body: z10.object({
-    completed: z10.boolean()
+var updateTaskSchema = z11.object({
+  body: z11.object({
+    completed: z11.boolean()
   })
 });
 
 // apps/backend/src/routes/study-task.routes.ts
-var router13 = Router13();
-var service12 = new StudyTaskService();
-var controller12 = new StudyTaskController(service12);
-router13.post("/generate", authMiddleware, validateRequest(generatePlanSchema), controller12.generatePlan);
-router13.get("/", authMiddleware, validateRequest(listTasksSchema), controller12.list);
-router13.get("/today", authMiddleware, controller12.today);
-router13.patch("/:id", authMiddleware, validateRequest(updateTaskSchema), controller12.update);
-router13.delete("/contest/:contestId", authMiddleware, controller12.clearPlan);
+var router14 = Router14();
+var service13 = new StudyTaskService();
+var controller13 = new StudyTaskController(service13);
+router14.post("/generate", authMiddleware, validateRequest(generatePlanSchema), controller13.generatePlan);
+router14.get("/", authMiddleware, validateRequest(listTasksSchema), controller13.list);
+router14.get("/today", authMiddleware, controller13.today);
+router14.patch("/:id", authMiddleware, validateRequest(updateTaskSchema), controller13.update);
+router14.delete("/contest/:contestId", authMiddleware, controller13.clearPlan);
 
 // apps/backend/src/routes/dashboard.routes.ts
-import { Router as Router14 } from "express";
+import { Router as Router15 } from "express";
 
 // apps/backend/src/services/dashboard.service.ts
 var HEATMAP_DAYS = 182;
@@ -4218,8 +4367,8 @@ var DashboardService = class {
 
 // apps/backend/src/controllers/dashboard.controller.ts
 var DashboardController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   getSummary = async (req, res, next) => {
@@ -4243,22 +4392,22 @@ var DashboardController = class {
 };
 
 // apps/backend/src/validators/dashboard.validators.ts
-import { z as z11 } from "zod";
-var setDailyGoalSchema = z11.object({
-  body: z11.object({
-    dailyGoal: z11.number().int().min(1).max(500)
+import { z as z12 } from "zod";
+var setDailyGoalSchema = z12.object({
+  body: z12.object({
+    dailyGoal: z12.number().int().min(1).max(500)
   })
 });
 
 // apps/backend/src/routes/dashboard.routes.ts
-var router14 = Router14();
-var service13 = new DashboardService();
-var controller13 = new DashboardController(service13);
-router14.get("/", authMiddleware, controller13.getSummary);
-router14.patch("/daily-goal", authMiddleware, validateRequest(setDailyGoalSchema), controller13.setDailyGoal);
+var router15 = Router15();
+var service14 = new DashboardService();
+var controller14 = new DashboardController(service14);
+router15.get("/", authMiddleware, controller14.getSummary);
+router15.patch("/daily-goal", authMiddleware, validateRequest(setDailyGoalSchema), controller14.setDailyGoal);
 
 // apps/backend/src/routes/payment.routes.ts
-import { Router as Router15, raw } from "express";
+import { Router as Router16, raw } from "express";
 
 // apps/backend/src/services/payment.service.ts
 var ACTIVE_EVENTS = [
@@ -4363,8 +4512,8 @@ function verifyKiwifySignature(rawBody, signature, token) {
 
 // apps/backend/src/controllers/payment.controller.ts
 var PaymentController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   kiwifyWebhook = async (req, res) => {
@@ -4406,14 +4555,14 @@ var PaymentController = class {
 };
 
 // apps/backend/src/routes/payment.routes.ts
-var router15 = Router15();
-var service14 = new PaymentService();
-var controller14 = new PaymentController(service14);
-router15.post("/kiwify/webhook", raw({ type: "*/*" }), controller14.kiwifyWebhook);
-router15.get("/me", authMiddleware, controller14.myAccess);
+var router16 = Router16();
+var service15 = new PaymentService();
+var controller15 = new PaymentController(service15);
+router16.post("/kiwify/webhook", raw({ type: "*/*" }), controller15.kiwifyWebhook);
+router16.get("/me", authMiddleware, controller15.myAccess);
 
 // apps/backend/src/routes/admin.routes.ts
-import { Router as Router16 } from "express";
+import { Router as Router17 } from "express";
 
 // apps/backend/src/utils/contact-parser.ts
 var MAX_CONTACTS = 5e3;
@@ -4587,8 +4736,8 @@ var AdminService = class {
 
 // apps/backend/src/controllers/admin.controller.ts
 var AdminController = class {
-  constructor(service16) {
-    this.service = service16;
+  constructor(service17) {
+    this.service = service17;
   }
   service;
   overview = async (_req, res, next) => {
@@ -4660,15 +4809,15 @@ async function requireAdmin(req, res, next) {
 }
 
 // apps/backend/src/routes/admin.routes.ts
-var router16 = Router16();
-var service15 = new AdminService();
-var controller15 = new AdminController(service15);
-router16.use(authMiddleware, requireAdmin);
-router16.get("/overview", controller15.overview);
-router16.get("/users", controller15.users);
-router16.get("/contacts", controller15.listContacts);
-router16.post("/contacts/import", controller15.importContacts);
-router16.delete("/contacts/:id", controller15.deleteContact);
+var router17 = Router17();
+var service16 = new AdminService();
+var controller16 = new AdminController(service16);
+router17.use(authMiddleware, requireAdmin);
+router17.get("/overview", controller16.overview);
+router17.get("/users", controller16.users);
+router17.get("/contacts", controller16.listContacts);
+router17.post("/contacts/import", controller16.importContacts);
+router17.delete("/contacts/:id", controller16.deleteContact);
 
 // apps/backend/src/middlewares/subscription.middleware.ts
 async function requireSubscription(req, res, next) {
@@ -4698,25 +4847,26 @@ async function requireSubscription(req, res, next) {
 }
 
 // apps/backend/src/routes/index.ts
-var router17 = Router17();
+var router18 = Router18();
 var gate = [authMiddleware, requireSubscription];
-router17.use("/auth", router);
-router17.use("/payments", router15);
-router17.use("/admin", router16);
-router17.use("/subjects", router2);
-router17.use("/exam-boards", router3);
-router17.use("/gamification", router9);
-router17.use("/groups", router10);
-router17.use("/questions", gate, router4);
-router17.use("/study", gate, router5);
-router17.use("/documents", gate, router6);
-router17.use("/study-plans", gate, router7);
-router17.use("/flashcards", gate, router8);
-router17.use("/essays", gate, router11);
-router17.use("/contests", gate, router12);
-router17.use("/study-tasks", gate, router13);
-router17.use("/dashboard", gate, router14);
-router17.get("/health", (_req, res) => {
+router18.use("/auth", router);
+router18.use("/payments", router16);
+router18.use("/admin", router17);
+router18.use("/subjects", router2);
+router18.use("/exam-boards", router3);
+router18.use("/gamification", router10);
+router18.use("/groups", router11);
+router18.use("/questions", gate, router4);
+router18.use("/study", gate, router5);
+router18.use("/documents", gate, router6);
+router18.use("/study-plans", gate, router7);
+router18.use("/flashcards", gate, router8);
+router18.use("/study-kit", gate, router9);
+router18.use("/essays", gate, router12);
+router18.use("/contests", gate, router13);
+router18.use("/study-tasks", gate, router14);
+router18.use("/dashboard", gate, router15);
+router18.get("/health", (_req, res) => {
   const response = {
     success: true,
     data: {
@@ -4789,7 +4939,7 @@ app.use(express.json({ limit: "10mb" }));
 var uploadsDir = path3.resolve("uploads");
 fs5.mkdirSync(uploadsDir, { recursive: true });
 app.use("/uploads", express.static(uploadsDir));
-app.use("/api", router17);
+app.use("/api", router18);
 var publicDir = path3.resolve("public");
 if (fs5.existsSync(publicDir)) {
   app.use(express.static(publicDir));

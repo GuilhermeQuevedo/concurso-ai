@@ -11,6 +11,7 @@ import type {
   TopicContentParams,
   GenerateFlashcardsParams,
   GeneratedFlashcard,
+  GenerateSummaryParams,
 } from '../interfaces/ai.interfaces.js';
 
 export class MockProvider implements IAIProvider {
@@ -160,5 +161,21 @@ Associe cada conceito a um exemplo do dia a dia para fixar melhor.`;
       front: `[MOCK] Pergunta ${i + 1} sobre ${subject}?`,
       back: `[MOCK] Resposta ${i + 1} baseada no conteúdo enviado, resumindo o conceito principal.`,
     }));
+  }
+
+  async generateSummary(params: GenerateSummaryParams): Promise<string> {
+    const subject = params.subject ? ` de *${params.subject}*` : '';
+    return `## Resumo${subject} (MOCK)
+
+**[MOCK]** Resumo gerado a partir do conteúdo enviado (${params.content.length} caracteres).
+
+### Pontos principais
+- Conceito-chave 1 extraído do material.
+- Conceito-chave 2 com destaque para o que mais cai em prova.
+- Conceito-chave 3 relacionando o conteúdo a aplicações práticas.
+
+### Para revisar
+- **Definições** e **classificações** costumam ser cobradas.
+- Atenção às exceções e prazos citados no material.`;
   }
 }

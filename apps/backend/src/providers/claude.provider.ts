@@ -15,6 +15,7 @@ import type {
   TopicContentParams,
   GenerateFlashcardsParams,
   GeneratedFlashcard,
+  GenerateSummaryParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
@@ -24,6 +25,7 @@ import {
   buildEditalPrompt,
   buildTopicContentPrompt,
   buildFlashcardsPrompt,
+  buildSummaryPrompt,
   questionsResponseSchema,
   essayResponseSchema,
   caseStudyResponseSchema,
@@ -88,6 +90,10 @@ export class ClaudeProvider implements IAIProvider {
 
   async generateTopicContent(params: TopicContentParams): Promise<string> {
     return this.callText(buildTopicContentPrompt(params));
+  }
+
+  async generateSummary(params: GenerateSummaryParams): Promise<string> {
+    return this.callText(buildSummaryPrompt(params));
   }
 
   async generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]> {

@@ -109,6 +109,11 @@ export interface GenerateFlashcardsParams {
   count: number;
 }
 
+export interface GenerateSummaryParams {
+  content: string;
+  subject?: string;
+}
+
 export interface IAIProvider {
   generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]>;
   gradeEssay(params: GradeEssayParams): Promise<EssayGradeResult>;
@@ -116,4 +121,5 @@ export interface IAIProvider {
   parseEdital(params: ParseEditalParams): Promise<EditalParseResult>;
   generateTopicContent(params: TopicContentParams): Promise<string>;
   generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]>;
+  generateSummary(params: GenerateSummaryParams): Promise<string>;
 }
