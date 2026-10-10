@@ -33,7 +33,7 @@ import {
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTour } from '@/features/tour/useTour';
 import { useReviewNotifications } from '@/features/notifications/useReviewNotifications';
-import { EngramaLogo } from '@/components/EngramaLogo';
+import { EngramaWordmark } from '@/components/EngramaWordmark';
 
 interface NavItem {
   path: string;
@@ -180,9 +180,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           sidebarOpen || tourActive ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-16 items-center gap-2.5 border-b border-gray-200 px-5 dark:border-gray-800">
-          <EngramaLogo className="h-9 w-9 shrink-0 rounded-xl shadow-sm" />
-          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">engrama</span>
+        <div className="flex h-16 items-center border-b border-gray-200 px-5 dark:border-gray-800">
+          <EngramaWordmark logoClass="h-8 w-8" textClass="text-xl text-gray-900 dark:text-white" />
         </div>
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
@@ -249,8 +248,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <button onClick={() => setSidebarOpen(true)} className="text-gray-600 dark:text-gray-400">
             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
-          <EngramaLogo className="h-6 w-6 text-primary-600" />
-          <span className="font-bold text-gray-900 dark:text-white">engrama</span>
+          <EngramaWordmark logoClass="h-7 w-7" textClass="text-lg text-gray-900 dark:text-white" />
         </header>
 
         <main className="flex-1 p-6">{children}</main>

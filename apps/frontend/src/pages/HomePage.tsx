@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
 import { BookOpen, Users, Sparkles, Layers, Trophy } from 'lucide-react';
-import { EngramaLogo } from '@/components/EngramaLogo';
+import { EngramaWordmark } from '@/components/EngramaWordmark';
 
 const features = [
   {
@@ -31,11 +31,8 @@ export function HomePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-white px-4 dark:from-gray-900 dark:to-gray-950">
       <div className="mx-auto max-w-3xl text-center">
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <EngramaLogo className="h-10 w-10 text-primary-600" />
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
-            engrama
-          </h1>
+        <div className="mb-6 flex justify-center">
+          <EngramaWordmark logoClass="h-11 w-11" textClass="text-4xl text-gray-900 dark:text-white" />
         </div>
 
         <p className="mx-auto mb-2 max-w-xl text-xl font-semibold text-primary-600">
