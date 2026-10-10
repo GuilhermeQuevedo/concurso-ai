@@ -20,6 +20,7 @@ import { authService } from '@/features/auth/services/auth.service';
 import { subscriptionService } from '@/features/subscription/services/subscription.service';
 import { NotificationsCard } from '@/features/notifications/NotificationsCard';
 import { AccountSecurity } from '@/features/profile/components/AccountSecurity';
+import { DangerZone } from '@/features/profile/components/DangerZone';
 
 const PLAN_LABEL: Record<string, string> = {
   NONE: 'Sem assinatura',
@@ -174,6 +175,8 @@ export function ProfilePage() {
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">Conta e segurança</h3>
         <AccountSecurity currentEmail={user?.email ?? ''} />
       </div>
+
+      <DangerZone />
 
       <button
         onClick={handleLogout}

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { flashcardService } from '@/features/flashcards/services/flashcard.service';
 import { studyTaskService } from '@/features/calendar/services/study-task.service';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 const LAST_NOTIFIED_KEY = 'review-notif-last';
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
@@ -49,9 +50,13 @@ async function notifyIfDue(): Promise<void> {
 }
 
 export function useReviewNotifications(): void {
+  const { user } = useAuth();
+  const paused = !!user?.pausedUntil && new Date(user.pausedUntil) > new Date();
+
   useEffect(() => {
+    if (paused) return;
     void notifyIfDue();
     const id = window.setInterval(() => void notifyIfDue(), CHECK_INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, []);
+  }, [paused]);
 }

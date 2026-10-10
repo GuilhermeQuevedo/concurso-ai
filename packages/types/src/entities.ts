@@ -11,6 +11,7 @@ export interface User {
   targetRole: string | null;
   dailyGoal: number;
   emailVerified: boolean;
+  pausedUntil: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -40,4 +40,13 @@ export const authService = {
     const response = await api.patch<ApiResponse<User>>('/auth/email', data);
     return unwrapData(response);
   },
+
+  async setPause(days: number): Promise<User> {
+    const response = await api.patch<ApiResponse<User>>('/auth/pause', { days });
+    return unwrapData(response);
+  },
+
+  async resetAccount(password: string): Promise<void> {
+    await api.post('/auth/reset-account', { password });
+  },
 };

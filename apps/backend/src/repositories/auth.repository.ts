@@ -17,9 +17,30 @@ export class AuthRepository implements IAuthRepository {
 
   async updateUser(
     id: string,
-    data: { name?: string; email?: string; password?: string; dailyGoal?: number },
+    data: { name?: string; email?: string; password?: string; dailyGoal?: number; pausedUntil?: Date | null },
   ): Promise<User> {
     return prisma.user.update({ where: { id }, data });
+  }
+
+  async resetUserData(userId: string): Promise<void> {
+    const where = { userId };
+    await prisma.$transaction([
+      prisma.questionAttempt.deleteMany({ where }),
+      prisma.studySession.deleteMany({ where }),
+      prisma.favorite.deleteMany({ where }),
+      prisma.note.deleteMany({ where }),
+      prisma.flashcard.deleteMany({ where }),
+      prisma.achievement.deleteMany({ where }),
+      prisma.groupActivity.deleteMany({ where }),
+      prisma.topicReview.deleteMany({ where }),
+      prisma.studyTask.deleteMany({ where }),
+      prisma.studyPlan.deleteMany({ where }),
+      prisma.essay.deleteMany({ where }),
+      prisma.document.deleteMany({ where }),
+      prisma.groupMember.deleteMany({ where }),
+      prisma.streak.deleteMany({ where }),
+      prisma.contest.deleteMany({ where }),
+    ]);
   }
 
   async createSession(data: {

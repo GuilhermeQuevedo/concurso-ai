@@ -192,6 +192,22 @@ var AuthController = class {
       next(error);
     }
   };
+  setPause = async (req, res, next) => {
+    try {
+      const profile = await this.authService.setPause(getUserId(req), req.body);
+      res.json({ success: true, data: profile });
+    } catch (error) {
+      next(error);
+    }
+  };
+  resetAccount = async (req, res, next) => {
+    try {
+      await this.authService.resetAccount(getUserId(req), req.body);
+      res.json({ success: true, data: null });
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
 // apps/backend/src/services/auth.service.ts
@@ -318,6 +334,24 @@ var AuthService = class {
     void password;
     return profile;
   }
+  async setPause(userId, dto) {
+    const pausedUntil = dto.days > 0 ? new Date(Date.now() + dto.days * 864e5) : null;
+    const user = await this.authRepository.updateUser(userId, { pausedUntil });
+    const { password, ...profile } = user;
+    void password;
+    return profile;
+  }
+  async resetAccount(userId, dto) {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new AppError(404, "USER_NOT_FOUND", "Usu\xE1rio n\xE3o encontrado");
+    }
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) {
+      throw new AppError(400, "INVALID_PASSWORD", "Senha incorreta");
+    }
+    await this.authRepository.resetUserData(userId);
+  }
   async validateToken(token) {
     return verifyAccessToken(token);
   }
@@ -348,6 +382,26 @@ var AuthRepository = class {
   }
   async updateUser(id, data) {
     return prisma.user.update({ where: { id }, data });
+  }
+  async resetUserData(userId) {
+    const where = { userId };
+    await prisma.$transaction([
+      prisma.questionAttempt.deleteMany({ where }),
+      prisma.studySession.deleteMany({ where }),
+      prisma.favorite.deleteMany({ where }),
+      prisma.note.deleteMany({ where }),
+      prisma.flashcard.deleteMany({ where }),
+      prisma.achievement.deleteMany({ where }),
+      prisma.groupActivity.deleteMany({ where }),
+      prisma.topicReview.deleteMany({ where }),
+      prisma.studyTask.deleteMany({ where }),
+      prisma.studyPlan.deleteMany({ where }),
+      prisma.essay.deleteMany({ where }),
+      prisma.document.deleteMany({ where }),
+      prisma.groupMember.deleteMany({ where }),
+      prisma.streak.deleteMany({ where }),
+      prisma.contest.deleteMany({ where })
+    ]);
   }
   async createSession(data) {
     return prisma.session.create({ data });
@@ -440,6 +494,12 @@ var changeEmailSchema = z2.object({
   newEmail: z2.string().email(),
   password: z2.string().min(1)
 });
+var resetAccountSchema = z2.object({
+  password: z2.string().min(1)
+});
+var pauseSchema = z2.object({
+  days: z2.coerce.number().int().min(0).max(365)
+});
 
 // apps/backend/src/routes/auth.routes.ts
 var authRepository = new AuthRepository();
@@ -460,6 +520,8 @@ router.get("/profile", authMiddleware, authController.profile);
 router.patch("/profile", authMiddleware, validate(updateProfileSchema), authController.updateProfile);
 router.patch("/password", authMiddleware, authLimiter, validate(changePasswordSchema), authController.changePassword);
 router.patch("/email", authMiddleware, authLimiter, validate(changeEmailSchema), authController.changeEmail);
+router.patch("/pause", authMiddleware, validate(pauseSchema), authController.setPause);
+router.post("/reset-account", authMiddleware, authLimiter, validate(resetAccountSchema), authController.resetAccount);
 
 // apps/backend/src/routes/subject.routes.ts
 import { Router as Router2 } from "express";

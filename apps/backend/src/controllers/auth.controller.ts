@@ -7,6 +7,8 @@ import type {
   UpdateProfileDTO,
   ChangePasswordDTO,
   ChangeEmailDTO,
+  ResetAccountDTO,
+  PauseDTO,
 } from '../validators/auth.validators.js';
 import type { ApiResponse, AuthTokens } from '@concurso-ai/types';
 import { getUserId } from '../utils/request.js';
@@ -86,6 +88,24 @@ export class AuthController {
     try {
       const profile = await this.authService.changeEmail(getUserId(req), req.body as ChangeEmailDTO);
       res.json({ success: true, data: profile });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  setPause = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const profile = await this.authService.setPause(getUserId(req), req.body as PauseDTO);
+      res.json({ success: true, data: profile });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetAccount = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.authService.resetAccount(getUserId(req), req.body as ResetAccountDTO);
+      res.json({ success: true, data: null });
     } catch (error) {
       next(error);
     }

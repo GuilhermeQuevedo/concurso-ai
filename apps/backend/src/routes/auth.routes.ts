@@ -13,6 +13,8 @@ import {
   updateProfileSchema,
   changePasswordSchema,
   changeEmailSchema,
+  resetAccountSchema,
+  pauseSchema,
 } from '../validators/auth.validators.js';
 
 const authRepository = new AuthRepository();
@@ -36,5 +38,7 @@ router.get('/profile', authMiddleware, authController.profile);
 router.patch('/profile', authMiddleware, validate(updateProfileSchema), authController.updateProfile);
 router.patch('/password', authMiddleware, authLimiter, validate(changePasswordSchema), authController.changePassword);
 router.patch('/email', authMiddleware, authLimiter, validate(changeEmailSchema), authController.changeEmail);
+router.patch('/pause', authMiddleware, validate(pauseSchema), authController.setPause);
+router.post('/reset-account', authMiddleware, authLimiter, validate(resetAccountSchema), authController.resetAccount);
 
 export { router as authRouter };

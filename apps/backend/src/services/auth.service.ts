@@ -9,6 +9,8 @@ import type {
   UpdateProfileDTO,
   ChangePasswordDTO,
   ChangeEmailDTO,
+  ResetAccountDTO,
+  PauseDTO,
 } from '../validators/auth.validators.js';
 
 export class AuthService {
@@ -125,6 +127,26 @@ export class AuthService {
     const { password, ...profile } = updated;
     void password;
     return profile;
+  }
+
+  async setPause(userId: string, dto: PauseDTO) {
+    const pausedUntil = dto.days > 0 ? new Date(Date.now() + dto.days * 86400000) : null;
+    const user = await this.authRepository.updateUser(userId, { pausedUntil });
+    const { password, ...profile } = user;
+    void password;
+    return profile;
+  }
+
+  async resetAccount(userId: string, dto: ResetAccountDTO): Promise<void> {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
+    }
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) {
+      throw new AppError(400, 'INVALID_PASSWORD', 'Senha incorreta');
+    }
+    await this.authRepository.resetUserData(userId);
   }
 
   async validateToken(token: string) {

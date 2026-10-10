@@ -31,9 +31,19 @@ export const changeEmailSchema = z.object({
   password: z.string().min(1),
 });
 
+export const resetAccountSchema = z.object({
+  password: z.string().min(1),
+});
+
+export const pauseSchema = z.object({
+  days: z.coerce.number().int().min(0).max(365),
+});
+
 export type RegisterDTO = z.infer<typeof registerSchema>;
 export type LoginDTO = z.infer<typeof loginSchema>;
 export type RefreshDTO = z.infer<typeof refreshSchema>;
 export type UpdateProfileDTO = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordDTO = z.infer<typeof changePasswordSchema>;
 export type ChangeEmailDTO = z.infer<typeof changeEmailSchema>;
+export type ResetAccountDTO = z.infer<typeof resetAccountSchema>;
+export type PauseDTO = z.infer<typeof pauseSchema>;

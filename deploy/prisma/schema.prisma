@@ -19,6 +19,7 @@ model User {
   targetRole    String?
   dailyGoal     Int      @default(30)
   emailVerified Boolean  @default(false)
+  pausedUntil   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
