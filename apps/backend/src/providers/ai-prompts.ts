@@ -90,12 +90,31 @@ export function truncateEdital(content: string, maxChars = EDITAL_MAX_CHARS): st
   return `${head}\n\n[... trecho intermediário do edital omitido ...]\n\n${tail}`;
 }
 
+// Amostra representativa do documento inteiro: em vez de pegar só o começo,
+// distribui "janelas" ao longo de todo o conteúdo. Mantém o custo limitado
+// (maxChars) e faz a IA enxergar o material todo, não apenas a primeira página.
+export function sampleContent(content: string, maxChars: number, windows = 5): string {
+  const text = content.trim();
+  if (text.length <= maxChars) return text;
+
+  const windowSize = Math.floor(maxChars / windows);
+  const step = Math.max(windowSize, Math.floor((text.length - windowSize) / (windows - 1)));
+  const parts: string[] = [];
+  for (let i = 0; i < windows; i++) {
+    const start = Math.min(i * step, text.length - windowSize);
+    parts.push(text.slice(start, start + windowSize));
+  }
+  return parts.join('\n\n[... trecho omitido ...]\n\n');
+}
+
+const QUESTIONS_MAX_CONTEXT = 14000;
+
 export function buildQuestionsPrompt(params: GenerateQuestionsParams): string {
   const difficultyMap = { EASY: 'fácil', MEDIUM: 'média', HARD: 'difícil' };
   const diffText = params.difficulty ? difficultyMap[params.difficulty] : 'variada';
 
   const contextBlock = params.context
-    ? `\nMATERIAL DE ESTUDO DO CANDIDATO (baseie-se ESTRITAMENTE neste material — cada questão deve poder ser respondida com o que está aqui; não cobre nada que não esteja no texto):\n${params.context}\n`
+    ? `\nMATERIAL DE ESTUDO DO CANDIDATO (trechos ao longo do material; baseie-se ESTRITAMENTE neste material — cada questão deve poder ser respondida com o que está aqui; não cobre nada que não esteja no texto):\n${sampleContent(params.context, QUESTIONS_MAX_CONTEXT)}\n`
     : '';
 
   return `Você é um elaborador experiente de questões de concursos públicos brasileiros. Gere ${params.quantity} questão(ões) de múltipla escolha sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
@@ -265,10 +284,10 @@ export const flashcardsResponseSchema = z.object({
 });
 
 export function buildFlashcardsPrompt(params: GenerateFlashcardsParams): string {
-  const content = params.content.slice(0, FLASHCARD_MAX_CONTENT);
+  const content = sampleContent(params.content, FLASHCARD_MAX_CONTENT);
   const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : '';
 
-  return `Você é um especialista em técnicas de memorização para concursos públicos. A partir do CONTEÚDO DE ESTUDO abaixo${subjectBlock}, crie ${params.count} flashcards de pergunta e resposta para revisão espaçada.
+  return `Você é um especialista em técnicas de memorização para concursos públicos. A partir do CONTEÚDO DE ESTUDO abaixo${subjectBlock} (trechos ao longo de todo o material), crie ${params.count} flashcards de pergunta e resposta para revisão espaçada.
 
 CONTEÚDO DE ESTUDO:
 ${content}
@@ -308,10 +327,10 @@ Seja direto e didático. Use listas e negrito para destacar o essencial. Não in
 const SUMMARY_MAX_CONTENT = 16000;
 
 export function buildSummaryPrompt(params: GenerateSummaryParams): string {
-  const content = params.content.slice(0, SUMMARY_MAX_CONTENT);
+  const content = sampleContent(params.content, SUMMARY_MAX_CONTENT);
   const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : '';
 
-  return `Você é um professor experiente que prepara candidatos para concursos públicos brasileiros. Resuma o CONTEÚDO DE ESTUDO abaixo${subjectBlock} de forma objetiva e didática, para revisão rápida.
+  return `Você é um professor experiente que prepara candidatos para concursos públicos brasileiros. Resuma o CONTEÚDO DE ESTUDO abaixo${subjectBlock} (trechos ao longo de todo o material) de forma objetiva e didática, para revisão rápida.
 
 CONTEÚDO DE ESTUDO:
 ${content}

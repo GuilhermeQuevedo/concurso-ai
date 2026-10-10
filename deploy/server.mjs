@@ -1099,12 +1099,25 @@ function truncateEdital(content, maxChars = EDITAL_MAX_CHARS) {
 
 ${tail}`;
 }
+function sampleContent(content, maxChars, windows = 5) {
+  const text = content.trim();
+  if (text.length <= maxChars) return text;
+  const windowSize = Math.floor(maxChars / windows);
+  const step = Math.max(windowSize, Math.floor((text.length - windowSize) / (windows - 1)));
+  const parts = [];
+  for (let i = 0; i < windows; i++) {
+    const start = Math.min(i * step, text.length - windowSize);
+    parts.push(text.slice(start, start + windowSize));
+  }
+  return parts.join("\n\n[... trecho omitido ...]\n\n");
+}
+var QUESTIONS_MAX_CONTEXT = 14e3;
 function buildQuestionsPrompt(params) {
   const difficultyMap = { EASY: "f\xE1cil", MEDIUM: "m\xE9dia", HARD: "dif\xEDcil" };
   const diffText = params.difficulty ? difficultyMap[params.difficulty] : "variada";
   const contextBlock = params.context ? `
-MATERIAL DE ESTUDO DO CANDIDATO (baseie-se ESTRITAMENTE neste material \u2014 cada quest\xE3o deve poder ser respondida com o que est\xE1 aqui; n\xE3o cobre nada que n\xE3o esteja no texto):
-${params.context}
+MATERIAL DE ESTUDO DO CANDIDATO (trechos ao longo do material; baseie-se ESTRITAMENTE neste material \u2014 cada quest\xE3o deve poder ser respondida com o que est\xE1 aqui; n\xE3o cobre nada que n\xE3o esteja no texto):
+${sampleContent(params.context, QUESTIONS_MAX_CONTEXT)}
 ` : "";
   return `Voc\xEA \xE9 um elaborador experiente de quest\xF5es de concursos p\xFAblicos brasileiros. Gere ${params.quantity} quest\xE3o(\xF5es) de m\xFAltipla escolha sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ""}.
 
@@ -1255,9 +1268,9 @@ var flashcardsResponseSchema = z6.object({
   flashcards: z6.array(z6.object({ front: z6.string().min(1), back: z6.string().min(1) })).min(1)
 });
 function buildFlashcardsPrompt(params) {
-  const content = params.content.slice(0, FLASHCARD_MAX_CONTENT);
+  const content = sampleContent(params.content, FLASHCARD_MAX_CONTENT);
   const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : "";
-  return `Voc\xEA \xE9 um especialista em t\xE9cnicas de memoriza\xE7\xE3o para concursos p\xFAblicos. A partir do CONTE\xDADO DE ESTUDO abaixo${subjectBlock}, crie ${params.count} flashcards de pergunta e resposta para revis\xE3o espa\xE7ada.
+  return `Voc\xEA \xE9 um especialista em t\xE9cnicas de memoriza\xE7\xE3o para concursos p\xFAblicos. A partir do CONTE\xDADO DE ESTUDO abaixo${subjectBlock} (trechos ao longo de todo o material), crie ${params.count} flashcards de pergunta e resposta para revis\xE3o espa\xE7ada.
 
 CONTE\xDADO DE ESTUDO:
 ${content}
@@ -1293,9 +1306,9 @@ Seja direto e did\xE1tico. Use listas e negrito para destacar o essencial. N\xE3
 }
 var SUMMARY_MAX_CONTENT = 16e3;
 function buildSummaryPrompt(params) {
-  const content = params.content.slice(0, SUMMARY_MAX_CONTENT);
+  const content = sampleContent(params.content, SUMMARY_MAX_CONTENT);
   const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : "";
-  return `Voc\xEA \xE9 um professor experiente que prepara candidatos para concursos p\xFAblicos brasileiros. Resuma o CONTE\xDADO DE ESTUDO abaixo${subjectBlock} de forma objetiva e did\xE1tica, para revis\xE3o r\xE1pida.
+  return `Voc\xEA \xE9 um professor experiente que prepara candidatos para concursos p\xFAblicos brasileiros. Resuma o CONTE\xDADO DE ESTUDO abaixo${subjectBlock} (trechos ao longo de todo o material) de forma objetiva e did\xE1tica, para revis\xE3o r\xE1pida.
 
 CONTE\xDADO DE ESTUDO:
 ${content}
