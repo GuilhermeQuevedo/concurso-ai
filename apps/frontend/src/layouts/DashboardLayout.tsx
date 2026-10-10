@@ -33,6 +33,7 @@ import {
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTour } from '@/features/tour/useTour';
 import { useReviewNotifications } from '@/features/notifications/useReviewNotifications';
+import { EngramaLogo } from '@/components/EngramaLogo';
 
 interface NavItem {
   path: string;
@@ -181,9 +182,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       >
         <div className="flex h-16 items-center gap-2.5 border-b border-gray-200 px-5 dark:border-gray-800">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-sm shadow-primary-600/30">
-            <Brain className="h-5 w-5 text-white" />
+            <EngramaLogo className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Engrama</span>
+          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">engrama</span>
         </div>
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
@@ -250,8 +251,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <button onClick={() => setSidebarOpen(true)} className="text-gray-600 dark:text-gray-400">
             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
-          <Brain className="h-6 w-6 text-primary-600" />
-          <span className="font-bold text-gray-900 dark:text-white">Engrama</span>
+          <EngramaLogo className="h-6 w-6 text-primary-600" />
+          <span className="font-bold text-gray-900 dark:text-white">engrama</span>
         </header>
 
         <main className="flex-1 p-6">{children}</main>

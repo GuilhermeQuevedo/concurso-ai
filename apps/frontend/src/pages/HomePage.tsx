@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
-import { Brain, BookOpen, Users, Sparkles, Layers, Trophy } from 'lucide-react';
+import { BookOpen, Users, Sparkles, Layers, Trophy } from 'lucide-react';
+import { EngramaLogo } from '@/components/EngramaLogo';
 
 const features = [
   {
@@ -31,14 +32,14 @@ export function HomePage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-white px-4 dark:from-gray-900 dark:to-gray-950">
       <div className="mx-auto max-w-3xl text-center">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <Brain className="h-10 w-10 text-primary-600" />
+          <EngramaLogo className="h-10 w-10 text-primary-600" />
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Engrama
+            engrama
           </h1>
         </div>
 
         <p className="mx-auto mb-2 max-w-xl text-xl font-semibold text-primary-600">
-          Onde o estudo vira memória.
+          O que você estuda, fica.
         </p>
         <p className="mx-auto mb-2 max-w-xl text-base text-gray-600 dark:text-gray-400">
           Plataforma de estudos para concursos que usa a ciência da memória para você aprender e não esquecer.
