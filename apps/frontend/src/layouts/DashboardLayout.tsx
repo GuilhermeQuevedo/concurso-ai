@@ -222,7 +222,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="border-t border-gray-200 p-3 dark:border-gray-800">
-          <div className="mb-2 flex items-center gap-3 rounded-xl px-2 py-2">
+          <Link
+            to="/profile"
+            onClick={() => setSidebarOpen(false)}
+            className="mb-2 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/70"
+          >
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-sm font-semibold text-white shadow-sm">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
@@ -232,7 +236,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </p>
               <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-950/40 dark:hover:text-red-400"

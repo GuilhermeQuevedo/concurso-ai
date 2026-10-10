@@ -1,6 +1,13 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { AuthService } from '../services/auth.service.js';
-import type { RegisterDTO, LoginDTO, RefreshDTO } from '../validators/auth.validators.js';
+import type {
+  RegisterDTO,
+  LoginDTO,
+  RefreshDTO,
+  UpdateProfileDTO,
+  ChangePasswordDTO,
+  ChangeEmailDTO,
+} from '../validators/auth.validators.js';
 import type { ApiResponse, AuthTokens } from '@concurso-ai/types';
 import { getUserId } from '../utils/request.js';
 
@@ -51,6 +58,33 @@ export class AuthController {
     try {
       const userId = getUserId(req);
       const profile = await this.authService.getProfile(userId);
+      res.json({ success: true, data: profile });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const profile = await this.authService.updateProfile(getUserId(req), req.body as UpdateProfileDTO);
+      res.json({ success: true, data: profile });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  changePassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.authService.changePassword(getUserId(req), req.body as ChangePasswordDTO);
+      res.json({ success: true, data: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  changeEmail = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const profile = await this.authService.changeEmail(getUserId(req), req.body as ChangeEmailDTO);
       res.json({ success: true, data: profile });
     } catch (error) {
       next(error);

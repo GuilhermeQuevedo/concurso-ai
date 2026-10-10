@@ -3,7 +3,13 @@ import { AUTH } from '@concurso-ai/shared';
 import { AppError } from '../middlewares/error-handler.js';
 import type { IAuthRepository, AuthTokens } from '../interfaces/auth.interfaces.js';
 import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '../utils/jwt.js';
-import type { RegisterDTO, LoginDTO } from '../validators/auth.validators.js';
+import type {
+  RegisterDTO,
+  LoginDTO,
+  UpdateProfileDTO,
+  ChangePasswordDTO,
+  ChangeEmailDTO,
+} from '../validators/auth.validators.js';
 
 export class AuthService {
   constructor(private readonly authRepository: IAuthRepository) {}
@@ -75,6 +81,48 @@ export class AuthService {
     }
 
     const { password, ...profile } = user;
+    void password;
+    return profile;
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDTO) {
+    const data: { name?: string; dailyGoal?: number } = {};
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.dailyGoal !== undefined) data.dailyGoal = dto.dailyGoal;
+    const user = await this.authRepository.updateUser(userId, data);
+    const { password, ...profile } = user;
+    void password;
+    return profile;
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDTO): Promise<void> {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
+    }
+    const valid = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!valid) {
+      throw new AppError(400, 'INVALID_PASSWORD', 'Senha atual incorreta');
+    }
+    const hashed = await bcrypt.hash(dto.newPassword, AUTH.BCRYPT_SALT_ROUNDS);
+    await this.authRepository.updateUser(userId, { password: hashed });
+  }
+
+  async changeEmail(userId: string, dto: ChangeEmailDTO) {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
+    }
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) {
+      throw new AppError(400, 'INVALID_PASSWORD', 'Senha incorreta');
+    }
+    const existing = await this.authRepository.findUserByEmail(dto.newEmail);
+    if (existing && existing.id !== userId) {
+      throw new AppError(409, 'EMAIL_EXISTS', 'E-mail já cadastrado');
+    }
+    const updated = await this.authRepository.updateUser(userId, { email: dto.newEmail });
+    const { password, ...profile } = updated;
     void password;
     return profile;
   }

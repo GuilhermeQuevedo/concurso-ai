@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, phone: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -62,6 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
   };
 
+  const refreshProfile = useCallback(async () => {
+    const profile = await authService.getProfile();
+    setUser(profile);
+  }, []);
+
   const logout = async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
@@ -83,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        refreshProfile,
       }}
     >
       {children}

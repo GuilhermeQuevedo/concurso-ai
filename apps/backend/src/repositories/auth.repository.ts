@@ -15,6 +15,13 @@ export class AuthRepository implements IAuthRepository {
     return prisma.user.create({ data });
   }
 
+  async updateUser(
+    id: string,
+    data: { name?: string; email?: string; password?: string; dailyGoal?: number },
+  ): Promise<User> {
+    return prisma.user.update({ where: { id }, data });
+  }
+
   async createSession(data: {
     userId: string;
     refreshToken: string;

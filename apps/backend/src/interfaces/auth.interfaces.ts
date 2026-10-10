@@ -4,6 +4,7 @@ export interface IAuthRepository {
   findUserByEmail(email: string): Promise<User | null>;
   findUserById(id: string): Promise<User | null>;
   createUser(data: { name: string; email: string; phone: string; password: string }): Promise<User>;
+  updateUser(id: string, data: { name?: string; email?: string; password?: string; dailyGoal?: number }): Promise<User>;
   createSession(data: { userId: string; refreshToken: string; expiresAt: Date }): Promise<Session>;
   findSessionByToken(refreshToken: string): Promise<Session | null>;
   deleteSession(id: string): Promise<void>;

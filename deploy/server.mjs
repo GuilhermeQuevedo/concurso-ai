@@ -168,6 +168,30 @@ var AuthController = class {
       next(error);
     }
   };
+  updateProfile = async (req, res, next) => {
+    try {
+      const profile = await this.authService.updateProfile(getUserId(req), req.body);
+      res.json({ success: true, data: profile });
+    } catch (error) {
+      next(error);
+    }
+  };
+  changePassword = async (req, res, next) => {
+    try {
+      await this.authService.changePassword(getUserId(req), req.body);
+      res.json({ success: true, data: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+  changeEmail = async (req, res, next) => {
+    try {
+      const profile = await this.authService.changeEmail(getUserId(req), req.body);
+      res.json({ success: true, data: profile });
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
 // apps/backend/src/services/auth.service.ts
@@ -255,6 +279,45 @@ var AuthService = class {
     void password;
     return profile;
   }
+  async updateProfile(userId, dto) {
+    const data = {};
+    if (dto.name !== void 0) data.name = dto.name;
+    if (dto.dailyGoal !== void 0) data.dailyGoal = dto.dailyGoal;
+    const user = await this.authRepository.updateUser(userId, data);
+    const { password, ...profile } = user;
+    void password;
+    return profile;
+  }
+  async changePassword(userId, dto) {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new AppError(404, "USER_NOT_FOUND", "Usu\xE1rio n\xE3o encontrado");
+    }
+    const valid = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!valid) {
+      throw new AppError(400, "INVALID_PASSWORD", "Senha atual incorreta");
+    }
+    const hashed = await bcrypt.hash(dto.newPassword, AUTH.BCRYPT_SALT_ROUNDS);
+    await this.authRepository.updateUser(userId, { password: hashed });
+  }
+  async changeEmail(userId, dto) {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new AppError(404, "USER_NOT_FOUND", "Usu\xE1rio n\xE3o encontrado");
+    }
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) {
+      throw new AppError(400, "INVALID_PASSWORD", "Senha incorreta");
+    }
+    const existing = await this.authRepository.findUserByEmail(dto.newEmail);
+    if (existing && existing.id !== userId) {
+      throw new AppError(409, "EMAIL_EXISTS", "E-mail j\xE1 cadastrado");
+    }
+    const updated = await this.authRepository.updateUser(userId, { email: dto.newEmail });
+    const { password, ...profile } = updated;
+    void password;
+    return profile;
+  }
   async validateToken(token) {
     return verifyAccessToken(token);
   }
@@ -282,6 +345,9 @@ var AuthRepository = class {
   }
   async createUser(data) {
     return prisma.user.create({ data });
+  }
+  async updateUser(id, data) {
+    return prisma.user.update({ where: { id }, data });
   }
   async createSession(data) {
     return prisma.session.create({ data });
@@ -362,6 +428,18 @@ var loginSchema = z2.object({
 var refreshSchema = z2.object({
   refreshToken: z2.string().min(1)
 });
+var updateProfileSchema = z2.object({
+  name: z2.string().min(2).max(100).optional(),
+  dailyGoal: z2.coerce.number().int().min(5).max(500).optional()
+});
+var changePasswordSchema = z2.object({
+  currentPassword: z2.string().min(1),
+  newPassword: z2.string().min(8).max(100)
+});
+var changeEmailSchema = z2.object({
+  newEmail: z2.string().email(),
+  password: z2.string().min(1)
+});
 
 // apps/backend/src/routes/auth.routes.ts
 var authRepository = new AuthRepository();
@@ -379,6 +457,9 @@ router.post("/login", authLimiter, validate(loginSchema), authController.login);
 router.post("/refresh", validate(refreshSchema), authController.refresh);
 router.post("/logout", validate(refreshSchema), authController.logout);
 router.get("/profile", authMiddleware, authController.profile);
+router.patch("/profile", authMiddleware, validate(updateProfileSchema), authController.updateProfile);
+router.patch("/password", authMiddleware, authLimiter, validate(changePasswordSchema), authController.changePassword);
+router.patch("/email", authMiddleware, authLimiter, validate(changeEmailSchema), authController.changeEmail);
 
 // apps/backend/src/routes/subject.routes.ts
 import { Router as Router2 } from "express";

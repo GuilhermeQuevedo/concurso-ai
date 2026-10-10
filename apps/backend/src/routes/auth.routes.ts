@@ -6,7 +6,14 @@ import { AuthService } from '../services/auth.service.js';
 import { AuthRepository } from '../repositories/auth.repository.js';
 import { validate } from '../middlewares/validate.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import { registerSchema, loginSchema, refreshSchema } from '../validators/auth.validators.js';
+import {
+  registerSchema,
+  loginSchema,
+  refreshSchema,
+  updateProfileSchema,
+  changePasswordSchema,
+  changeEmailSchema,
+} from '../validators/auth.validators.js';
 
 const authRepository = new AuthRepository();
 const authService = new AuthService(authRepository);
@@ -26,5 +33,8 @@ router.post('/login', authLimiter, validate(loginSchema), authController.login);
 router.post('/refresh', validate(refreshSchema), authController.refresh);
 router.post('/logout', validate(refreshSchema), authController.logout);
 router.get('/profile', authMiddleware, authController.profile);
+router.patch('/profile', authMiddleware, validate(updateProfileSchema), authController.updateProfile);
+router.patch('/password', authMiddleware, authLimiter, validate(changePasswordSchema), authController.changePassword);
+router.patch('/email', authMiddleware, authLimiter, validate(changeEmailSchema), authController.changeEmail);
 
 export { router as authRouter };

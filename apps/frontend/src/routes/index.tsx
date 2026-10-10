@@ -15,6 +15,7 @@ import { AchievementsPage } from '@/pages/AchievementsPage';
 import { StudyPlanPage } from '@/pages/StudyPlanPage';
 import { StatsPage } from '@/pages/StatsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { GroupsPage } from '@/pages/GroupsPage';
 import { EssayPage } from '@/pages/EssayPage';
 import { ContestsPage } from '@/pages/ContestsPage';
@@ -66,6 +67,7 @@ export function AppRoutes() {
       <Route path="/admin" element={<ProtectedLayout><AdminPage /></ProtectedLayout>} />
       <Route path="/admin/contatos" element={<ProtectedLayout><AdminContactsPage /></ProtectedLayout>} />
       <Route path="/settings" element={<ProtectedLayout><SettingsPage /></ProtectedLayout>} />
+      <Route path="/profile" element={<ProtectedLayout><ProfilePage /></ProtectedLayout>} />
       <Route path="/help" element={<ProtectedLayout><HelpPage /></ProtectedLayout>} />
       <Route path="/metodologia" element={<ProtectedLayout><MethodologyPage /></ProtectedLayout>} />
       <Route path="/getting-started" element={<ProtectedLayout><GettingStartedPage /></ProtectedLayout>} />

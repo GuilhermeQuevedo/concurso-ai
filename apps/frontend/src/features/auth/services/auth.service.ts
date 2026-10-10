@@ -26,4 +26,18 @@ export const authService = {
     const response = await api.get<ApiResponse<User>>('/auth/profile');
     return unwrapData(response);
   },
+
+  async updateProfile(data: { name?: string; dailyGoal?: number }): Promise<User> {
+    const response = await api.patch<ApiResponse<User>>('/auth/profile', data);
+    return unwrapData(response);
+  },
+
+  async changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
+    await api.patch('/auth/password', data);
+  },
+
+  async changeEmail(data: { newEmail: string; password: string }): Promise<User> {
+    const response = await api.patch<ApiResponse<User>>('/auth/email', data);
+    return unwrapData(response);
+  },
 };
