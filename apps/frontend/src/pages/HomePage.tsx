@@ -38,11 +38,8 @@ export function HomePage() {
         <p className="mx-auto mb-2 max-w-xl text-xl font-semibold text-primary-600">
           O que você estuda, fica.
         </p>
-        <p className="mx-auto mb-2 max-w-xl text-base text-gray-600 dark:text-gray-400">
+        <p className="mx-auto mb-10 max-w-xl text-base text-gray-600 dark:text-gray-400">
           Plataforma de estudos para concursos que usa a ciência da memória para você aprender e não esquecer.
-        </p>
-        <p className="mx-auto mb-10 max-w-xl text-sm text-gray-500 dark:text-gray-500">
-          Projeto em fase de testes — uso gratuito e sem fins comerciais.
         </p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
