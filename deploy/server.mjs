@@ -8,6 +8,7 @@ import helmet from "helmet";
 import rateLimit2 from "express-rate-limit";
 import path3 from "node:path";
 import fs5 from "node:fs";
+import crypto5 from "node:crypto";
 import { execSync } from "node:child_process";
 import bcrypt2 from "bcrypt";
 
@@ -5170,9 +5171,30 @@ function applyMigrations() {
 if (env.NODE_ENV === "production") {
   applyMigrations();
 }
+function inlineScriptCspHashes() {
+  try {
+    const html = fs5.readFileSync(path3.resolve("public", "index.html"), "utf8");
+    const hashes = [];
+    for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
+      const digest = crypto5.createHash("sha256").update(match[1], "utf8").digest("base64");
+      hashes.push(`'sha256-${digest}'`);
+    }
+    return hashes;
+  } catch {
+    return [];
+  }
+}
 var app = express();
 app.set("trust proxy", 1);
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "script-src": ["'self'", ...inlineScriptCspHashes()]
+      }
+    }
+  })
+);
 app.use(
   cors({
     origin: env.CORS_ORIGIN,

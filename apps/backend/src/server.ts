@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 import bcrypt from 'bcrypt';
 import { env } from './config/env.js';
@@ -57,10 +58,34 @@ if (env.NODE_ENV === 'production') {
   applyMigrations();
 }
 
+// CSP exige liberar explicitamente os scripts inline do index.html (ex.: init de
+// tema antes do paint). Calculamos o hash em runtime para nunca ficar defasado.
+function inlineScriptCspHashes(): string[] {
+  try {
+    const html = fs.readFileSync(path.resolve('public', 'index.html'), 'utf8');
+    const hashes: string[] = [];
+    for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
+      const digest = crypto.createHash('sha256').update(match[1], 'utf8').digest('base64');
+      hashes.push(`'sha256-${digest}'`);
+    }
+    return hashes;
+  } catch {
+    return [];
+  }
+}
+
 const app: ReturnType<typeof express> = express();
 
 app.set('trust proxy', 1);
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        'script-src': ["'self'", ...inlineScriptCspHashes()],
+      },
+    },
+  }),
+);
 app.use(
   cors({
     origin: env.CORS_ORIGIN,
