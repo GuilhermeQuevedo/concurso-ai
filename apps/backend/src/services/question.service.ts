@@ -133,6 +133,29 @@ export class QuestionService {
     }
   }
 
+  async importFromContent(subjectId: string, content: string, subjectName: string) {
+    const extracted = await this.aiProvider.extractQuestions({ content, subject: subjectName });
+    if (extracted.length === 0) return [];
+
+    return prisma.$transaction(
+      extracted.map((q) =>
+        prisma.question.create({
+          data: {
+            statement: htmlToPlainText(q.statement),
+            alternatives: q.alternatives.map((a) => ({ letter: a.letter, text: htmlToPlainText(a.text) })),
+            correctAnswer: q.correctAnswer,
+            explanation: htmlToPlainText(q.explanation),
+            difficulty: q.difficulty,
+            comments: [],
+            subjectId,
+            source: 'IMPORTED',
+            aiModel: null,
+          },
+        }),
+      ),
+    );
+  }
+
   async getBySubject(subjectId: string) {
     return prisma.question.findMany({
       where: { subjectId },

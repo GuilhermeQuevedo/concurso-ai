@@ -17,10 +17,12 @@ import type {
   GeneratedFlashcard,
   GenerateSummaryParams,
   AnswerQuestionsParams,
+  ExtractQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
   buildQuestionsPrompt,
+  buildExtractQuestionsPrompt,
   buildEssayPrompt,
   buildCaseStudyPrompt,
   buildEditalPrompt,
@@ -59,6 +61,15 @@ export class ClaudeProvider implements IAIProvider {
   async generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]> {
     const raw = await this.callText(buildQuestionsPrompt(params));
     const parsed = questionsResponseSchema.safeParse(this.parseJson(raw, 'geração de questões'));
+    if (!parsed.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de resposta inválido: ${parsed.error.message}`);
+    }
+    return parsed.data.questions;
+  }
+
+  async extractQuestions(params: ExtractQuestionsParams): Promise<GeneratedQuestion[]> {
+    const raw = await this.callText(buildExtractQuestionsPrompt(params.content, params.subject));
+    const parsed = questionsResponseSchema.safeParse(this.parseJson(raw, 'extração de questões'));
     if (!parsed.success) {
       throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de resposta inválido: ${parsed.error.message}`);
     }

@@ -42,6 +42,25 @@ export class ContestService {
       throw new AppError(400, 'EDITAL_TOO_SHORT', 'Não foi possível extrair texto suficiente do edital. Verifique se o PDF contém texto (não apenas imagens).');
     }
 
+    const document = await prisma.document.create({
+      data: { userId, name: file.originalname, type: 'PDF', content },
+    });
+
+    return this.buildFromContent(userId, content, document.id, focus);
+  }
+
+  async createFromContent(userId: string, documentId: string, focus?: string) {
+    const document = await prisma.document.findUnique({ where: { id: documentId } });
+    if (!document || document.userId !== userId) {
+      throw new AppError(404, 'DOCUMENT_NOT_FOUND', 'Documento não encontrado');
+    }
+    if (document.content.trim().length < 200) {
+      throw new AppError(400, 'EDITAL_TOO_SHORT', 'O documento não tem texto suficiente para extrair o conteúdo programático.');
+    }
+    return this.buildFromContent(userId, document.content, document.id, focus);
+  }
+
+  private async buildFromContent(userId: string, content: string, documentId: string, focus?: string) {
     const trimmedFocus = focus?.trim() || undefined;
     const parsed = await this.aiProvider.parseEdital({ content, focus: trimmedFocus });
 
@@ -49,15 +68,6 @@ export class ContestService {
       parsed.focusDisciplines && parsed.focusDisciplines.length > 0
         ? new Set(parsed.focusDisciplines.map((d) => d.toLowerCase().trim()))
         : null;
-
-    const document = await prisma.document.create({
-      data: {
-        userId,
-        name: file.originalname,
-        type: 'PDF',
-        content,
-      },
-    });
 
     return prisma.contest.create({
       data: {
@@ -68,7 +78,7 @@ export class ContestService {
         role: parsed.role,
         focus: trimmedFocus ?? null,
         examDate: parsed.examDate ? new Date(parsed.examDate) : null,
-        editalDocumentId: document.id,
+        editalDocumentId: documentId,
         syllabus: {
           create: parsed.syllabus.flatMap((entry, disciplineIndex) =>
             entry.topics.map((topic, topicIndex) => ({

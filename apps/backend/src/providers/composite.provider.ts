@@ -13,6 +13,7 @@ import type {
   GeneratedFlashcard,
   GenerateSummaryParams,
   AnswerQuestionsParams,
+  ExtractQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
 
 export class CompositeAIProvider implements IAIProvider {
@@ -23,6 +24,10 @@ export class CompositeAIProvider implements IAIProvider {
 
   generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]> {
     return this.bulk.generateQuestions(params);
+  }
+
+  extractQuestions(params: ExtractQuestionsParams): Promise<GeneratedQuestion[]> {
+    return this.bulk.extractQuestions(params);
   }
 
   parseEdital(params: ParseEditalParams): Promise<EditalParseResult> {

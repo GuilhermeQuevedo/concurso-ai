@@ -1191,6 +1191,27 @@ var QuestionService = class {
       return generated;
     }
   }
+  async importFromContent(subjectId, content, subjectName) {
+    const extracted = await this.aiProvider.extractQuestions({ content, subject: subjectName });
+    if (extracted.length === 0) return [];
+    return prisma.$transaction(
+      extracted.map(
+        (q) => prisma.question.create({
+          data: {
+            statement: htmlToPlainText(q.statement),
+            alternatives: q.alternatives.map((a) => ({ letter: a.letter, text: htmlToPlainText(a.text) })),
+            correctAnswer: q.correctAnswer,
+            explanation: htmlToPlainText(q.explanation),
+            difficulty: q.difficulty,
+            comments: [],
+            subjectId,
+            source: "IMPORTED",
+            aiModel: null
+          }
+        })
+      )
+    );
+  }
   async getBySubject(subjectId) {
     return prisma.question.findMany({
       where: { subjectId },
@@ -1386,6 +1407,40 @@ Responda APENAS com JSON v\xE1lido no seguinte formato, sem markdown ou texto ad
       "correctAnswer": "C",
       "explanation": "Explica\xE7\xE3o detalhada",
       "difficulty": "${params.difficulty ?? "MEDIUM"}"
+    }
+  ]
+}`;
+}
+function buildExtractQuestionsPrompt(content, subject) {
+  return `Voc\xEA \xE9 um especialista em bancas de concursos. O texto abaixo \xE9 uma LISTA DE QUEST\xD5ES j\xE1 existente${subject ? ` sobre "${subject}"` : ""}. Sua tarefa \xE9 EXTRAIR fielmente as quest\xF5es de m\xFAltipla escolha presentes no texto \u2014 N\xC3O invente quest\xF5es novas.
+
+TEXTO (lista de quest\xF5es):
+${sampleContent(content, QUESTIONS_MAX_CONTEXT)}
+
+REGRAS OBRIGAT\xD3RIAS:
+1. Extraia cada quest\xE3o como aparece, com seu enunciado e suas alternativas
+2. Normalize para exatamente 5 alternativas (A, B, C, D, E); se a quest\xE3o original tiver menos, complete com distratores plaus\xEDveis coerentes com o tema
+3. Se o gabarito estiver indicado no texto, use-o em "correctAnswer"; caso contr\xE1rio, determine a alternativa correta pelo conte\xFAdo
+4. Em "explanation", justifique a resposta correta; se o texto j\xE1 trouxer coment\xE1rio/justificativa, aproveite-o
+5. Defina "difficulty" como EASY, MEDIUM ou HARD conforme a complexidade
+6. Ignore cabe\xE7alhos, numera\xE7\xE3o solta e texto que n\xE3o seja quest\xE3o
+7. N\xE3o repita quest\xF5es
+
+Responda APENAS com JSON v\xE1lido neste formato, sem markdown:
+{
+  "questions": [
+    {
+      "statement": "Enunciado da quest\xE3o",
+      "alternatives": [
+        {"letter": "A", "text": "..."},
+        {"letter": "B", "text": "..."},
+        {"letter": "C", "text": "..."},
+        {"letter": "D", "text": "..."},
+        {"letter": "E", "text": "..."}
+      ],
+      "correctAnswer": "C",
+      "explanation": "Justificativa",
+      "difficulty": "MEDIUM"
     }
   ]
 }`;
@@ -1608,6 +1663,15 @@ var GeminiProvider = class {
     }
     return result.data.questions;
   }
+  async extractQuestions(params) {
+    const raw2 = await this.callApi(buildExtractQuestionsPrompt(params.content, params.subject));
+    const parsed = this.parseJson(raw2, "extra\xE7\xE3o de quest\xF5es");
+    const result = questionsResponseSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new AppError(502, "AI_INVALID_FORMAT", `Formato de resposta inv\xE1lido: ${result.error.message}`);
+    }
+    return result.data.questions;
+  }
   async gradeEssay(params) {
     const prompt = buildEssayPrompt(params);
     const raw2 = params.filePath && params.fileMimeType?.startsWith("image/") ? await this.callApiWithImage(prompt, params.filePath, params.fileMimeType) : await this.callApi(prompt);
@@ -1767,6 +1831,15 @@ var OllamaProvider = class {
     }
     return result.data.questions;
   }
+  async extractQuestions(params) {
+    const raw2 = await this.callApi(buildExtractQuestionsPrompt(params.content, params.subject));
+    const parsed = this.parseJson(raw2, "extra\xE7\xE3o de quest\xF5es");
+    const result = questionsResponseSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new AppError(502, "AI_INVALID_FORMAT", `Formato de resposta inv\xE1lido do modelo local: ${result.error.message}`);
+    }
+    return result.data.questions;
+  }
   async gradeEssay(params) {
     if (!params.content && params.fileMimeType?.startsWith("image/")) {
       throw new AppError(
@@ -1901,6 +1974,14 @@ var ClaudeProvider = class {
     }
     return parsed.data.questions;
   }
+  async extractQuestions(params) {
+    const raw2 = await this.callText(buildExtractQuestionsPrompt(params.content, params.subject));
+    const parsed = questionsResponseSchema.safeParse(this.parseJson(raw2, "extra\xE7\xE3o de quest\xF5es"));
+    if (!parsed.success) {
+      throw new AppError(502, "AI_INVALID_FORMAT", `Formato de resposta inv\xE1lido: ${parsed.error.message}`);
+    }
+    return parsed.data.questions;
+  }
   async gradeEssay(params) {
     const raw2 = await this.callText(buildEssayPrompt(params), params.filePath, params.fileMimeType);
     const parsed = essayResponseSchema.safeParse(this.parseJson(raw2, "corre\xE7\xE3o de reda\xE7\xE3o"));
@@ -2010,6 +2091,23 @@ var MockProvider = class {
       });
     }
     return questions;
+  }
+  async extractQuestions(params) {
+    return [
+      {
+        statement: `[MOCK] Quest\xE3o extra\xEDda da lista${params.subject ? ` sobre ${params.subject}` : ""}. Qual alternativa est\xE1 correta?`,
+        alternatives: [
+          { letter: "A", text: "Alternativa A" },
+          { letter: "B", text: "Alternativa B (correta)" },
+          { letter: "C", text: "Alternativa C" },
+          { letter: "D", text: "Alternativa D" },
+          { letter: "E", text: "Alternativa E" }
+        ],
+        correctAnswer: "B",
+        explanation: "[MOCK] Justificativa da quest\xE3o extra\xEDda.",
+        difficulty: "MEDIUM"
+      }
+    ];
   }
   async gradeEssay(_params) {
     const cacScore = Math.floor(Math.random() * 10) + 25;
@@ -2162,6 +2260,9 @@ var CompositeAIProvider = class {
   essay;
   generateQuestions(params) {
     return this.bulk.generateQuestions(params);
+  }
+  extractQuestions(params) {
+    return this.bulk.extractQuestions(params);
   }
   parseEdital(params) {
     return this.bulk.parseEdital(params);
@@ -2761,263 +2862,256 @@ router5.get("/history", authMiddleware, controller4.getHistory);
 // apps/backend/src/routes/document.routes.ts
 import { Router as Router6 } from "express";
 
-// apps/backend/src/controllers/document.controller.ts
-var DocumentController = class {
-  constructor(service18) {
-    this.service = service18;
+// apps/backend/src/services/contest.service.ts
+import fs3 from "node:fs/promises";
+
+// apps/backend/src/utils/pdf.ts
+import fs2 from "node:fs/promises";
+import { PDFParse as PDFParse2 } from "pdf-parse";
+async function extractPdfText(filePath) {
+  const data = await fs2.readFile(filePath);
+  const parser = new PDFParse2({ data: new Uint8Array(data) });
+  await parser.load();
+  const result = await parser.getText();
+  return result.text.trim();
+}
+
+// apps/backend/src/utils/spaced-repetition.ts
+var REVIEW_INTERVALS = [1, 3, 7, 15, 40, 60];
+function startOfDay(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+function buildReviewSchedule(from, intervals = REVIEW_INTERVALS) {
+  const base = startOfDay(from);
+  return intervals.map((intervalDays, index) => ({
+    index,
+    intervalDays,
+    scheduledFor: addDays(base, intervalDays)
+  }));
+}
+
+// apps/backend/src/utils/priority.ts
+var WEIGHT_IMPORTANCE = 0.45;
+var WEIGHT_OVERDUE = 0.35;
+var WEIGHT_COVERAGE = 0.2;
+var OVERDUE_SATURATION = 3;
+function computeDisciplinePriority(input) {
+  const importanceNorm = clamp01(input.importance / 10);
+  const overdueNorm = clamp01(input.dueReviews / OVERDUE_SATURATION);
+  const coverageGap = input.totalTopics > 0 ? clamp01((input.totalTopics - input.studiedTopics) / input.totalTopics) : 0;
+  const score = WEIGHT_IMPORTANCE * importanceNorm + WEIGHT_OVERDUE * overdueNorm + WEIGHT_COVERAGE * coverageGap;
+  return Math.round(score * 1e3) / 100;
+}
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
+}
+
+// apps/backend/src/services/contest.service.ts
+var ContestService = class {
+  constructor(aiProvider4) {
+    this.aiProvider = aiProvider4;
   }
-  service;
-  upload = async (req, res, next) => {
-    try {
-      if (!req.file) {
-        throw new AppError(400, "NO_FILE", "Nenhum arquivo enviado");
-      }
-      const subjectId = req.body.subjectId;
-      const kind = req.body.kind;
-      const doc = await this.service.upload(getUserId(req), req.file, subjectId, kind);
-      const response = { success: true, data: doc };
-      res.status(201).json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  list = async (req, res, next) => {
-    try {
-      const subjectId = req.query.subjectId;
-      const docs = await this.service.list(getUserId(req), subjectId);
-      const response = { success: true, data: docs };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  getById = async (req, res, next) => {
-    try {
-      const doc = await this.service.getById(getUserId(req), req.params.id);
-      const response = { success: true, data: doc };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  updateKind = async (req, res, next) => {
-    try {
-      const doc = await this.service.updateKind(
-        getUserId(req),
-        req.params.id,
-        req.body.kind
-      );
-      const response = { success: true, data: doc };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  delete = async (req, res, next) => {
-    try {
-      await this.service.delete(getUserId(req), req.params.id);
-      const response = { success: true, data: null };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-
-// apps/backend/src/validators/document.validators.ts
-import { z as z8 } from "zod";
-var documentKindSchema = z8.enum([
-  "EDITAL",
-  "EMENTA",
-  "CRONOGRAMA",
-  "MATERIAL",
-  "LISTA_QUESTOES",
-  "OUTRO"
-]);
-var documentParamsSchema = z8.object({
-  params: z8.object({
-    id: z8.string().min(1)
-  })
-});
-var documentQuerySchema = z8.object({
-  subjectId: z8.string().min(1).optional()
-});
-var updateDocumentKindSchema = z8.object({
-  body: z8.object({
-    kind: documentKindSchema
-  })
-});
-
-// apps/backend/src/routes/document.routes.ts
-var router6 = Router6();
-var service5 = new DocumentService();
-var controller5 = new DocumentController(service5);
-router6.post("/", authMiddleware, upload.single("file"), controller5.upload);
-router6.get("/", authMiddleware, controller5.list);
-router6.get("/:id", authMiddleware, controller5.getById);
-router6.patch("/:id/kind", authMiddleware, validateRequest(updateDocumentKindSchema), controller5.updateKind);
-router6.delete("/:id", authMiddleware, controller5.delete);
-
-// apps/backend/src/routes/study-plan.routes.ts
-import { Router as Router7 } from "express";
-
-// apps/backend/src/services/study-plan.service.ts
-var StudyPlanService = class {
+  aiProvider;
   async create(userId, dto) {
-    await prisma.studyPlan.updateMany({
-      where: { userId, active: true },
-      data: { active: false }
-    });
-    return prisma.studyPlan.create({
+    return prisma.contest.create({
       data: {
         userId,
         name: dto.name,
-        startDate: new Date(dto.startDate),
-        endDate: new Date(dto.endDate),
-        items: {
-          create: dto.items.map((item) => ({
-            subjectId: item.subjectId,
-            dayOfWeek: item.dayOfWeek,
-            duration: item.duration
-          }))
+        organization: dto.organization ?? null,
+        examBoard: dto.examBoard ?? null,
+        role: dto.role ?? null,
+        examDate: dto.examDate ? new Date(dto.examDate) : null
+      },
+      include: { syllabus: true }
+    });
+  }
+  async createFromEdital(userId, file, focus) {
+    const content = file.mimetype === "application/pdf" ? await extractPdfText(file.path) : decodeTextBuffer(await fs3.readFile(file.path)).trim();
+    await fs3.unlink(file.path).catch(() => {
+    });
+    if (content.length < 200) {
+      throw new AppError(400, "EDITAL_TOO_SHORT", "N\xE3o foi poss\xEDvel extrair texto suficiente do edital. Verifique se o PDF cont\xE9m texto (n\xE3o apenas imagens).");
+    }
+    const document = await prisma.document.create({
+      data: { userId, name: file.originalname, type: "PDF", content }
+    });
+    return this.buildFromContent(userId, content, document.id, focus);
+  }
+  async createFromContent(userId, documentId, focus) {
+    const document = await prisma.document.findUnique({ where: { id: documentId } });
+    if (!document || document.userId !== userId) {
+      throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
+    }
+    if (document.content.trim().length < 200) {
+      throw new AppError(400, "EDITAL_TOO_SHORT", "O documento n\xE3o tem texto suficiente para extrair o conte\xFAdo program\xE1tico.");
+    }
+    return this.buildFromContent(userId, document.content, document.id, focus);
+  }
+  async buildFromContent(userId, content, documentId, focus) {
+    const trimmedFocus = focus?.trim() || void 0;
+    const parsed = await this.aiProvider.parseEdital({ content, focus: trimmedFocus });
+    const focusSet = parsed.focusDisciplines && parsed.focusDisciplines.length > 0 ? new Set(parsed.focusDisciplines.map((d) => d.toLowerCase().trim())) : null;
+    return prisma.contest.create({
+      data: {
+        userId,
+        name: parsed.name,
+        organization: parsed.organization,
+        examBoard: parsed.examBoard,
+        role: parsed.role,
+        focus: trimmedFocus ?? null,
+        examDate: parsed.examDate ? new Date(parsed.examDate) : null,
+        editalDocumentId: documentId,
+        syllabus: {
+          create: parsed.syllabus.flatMap(
+            (entry, disciplineIndex) => entry.topics.map((topic, topicIndex) => ({
+              discipline: entry.discipline,
+              topic,
+              order: disciplineIndex * 1e3 + topicIndex,
+              focus: focusSet ? focusSet.has(entry.discipline.toLowerCase().trim()) : true
+            }))
+          )
         }
       },
-      include: { items: { include: { subject: true } } }
+      include: { syllabus: { orderBy: { order: "asc" } } }
     });
   }
-  async getActive(userId) {
-    return prisma.studyPlan.findFirst({
-      where: { userId, active: true },
-      include: { items: { include: { subject: true } } }
-    });
-  }
-  async list(userId) {
-    return prisma.studyPlan.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      include: { items: { include: { subject: true } } }
-    });
-  }
-  async toggleItemComplete(userId, itemId) {
-    const item = await prisma.studyPlanItem.findUnique({
+  async getTopicContent(userId, itemId) {
+    const item = await prisma.contestSyllabusItem.findUnique({
       where: { id: itemId },
-      include: { plan: true }
+      include: { contest: { select: { userId: true, examBoard: true, focus: true } } }
     });
-    if (!item || item.plan.userId !== userId) {
-      throw new AppError(404, "ITEM_NOT_FOUND", "Item n\xE3o encontrado");
+    if (!item || item.contest.userId !== userId) {
+      throw new AppError(404, "SYLLABUS_ITEM_NOT_FOUND", "Item do conte\xFAdo program\xE1tico n\xE3o encontrado");
     }
-    return prisma.studyPlanItem.update({
+    if (item.content) {
+      return { id: item.id, content: item.content };
+    }
+    const content = await this.aiProvider.generateTopicContent({
+      discipline: item.discipline,
+      topic: item.topic,
+      examBoard: item.contest.examBoard,
+      focus: item.contest.focus
+    });
+    await prisma.contestSyllabusItem.update({
       where: { id: itemId },
-      data: { completed: !item.completed }
+      data: { content }
+    });
+    return { id: item.id, content };
+  }
+  async listByUser(userId) {
+    const contests = await prisma.contest.findMany({
+      where: { userId, status: { not: "ARCHIVED" } },
+      orderBy: [{ examDate: "asc" }, { createdAt: "desc" }],
+      include: {
+        _count: { select: { syllabus: true } },
+        syllabus: { where: { studied: true }, select: { id: true } }
+      }
+    });
+    return contests.map(({ syllabus, _count, ...contest }) => ({
+      ...contest,
+      totalTopics: _count.syllabus,
+      studiedTopics: syllabus.length
+    }));
+  }
+  async getById(userId, contestId) {
+    const contest = await prisma.contest.findUnique({
+      where: { id: contestId },
+      include: {
+        syllabus: {
+          orderBy: { order: "asc" },
+          include: { reviews: { orderBy: { index: "asc" } } }
+        }
+      }
+    });
+    if (!contest || contest.userId !== userId) {
+      throw new AppError(404, "CONTEST_NOT_FOUND", "Concurso n\xE3o encontrado");
+    }
+    return { ...contest, disciplines: this.buildDisciplineStats(contest.syllabus) };
+  }
+  buildDisciplineStats(syllabus) {
+    const dueCutoff = addDays(startOfDay(/* @__PURE__ */ new Date()), 1);
+    const groups = /* @__PURE__ */ new Map();
+    for (const item of syllabus) {
+      const list = groups.get(item.discipline) ?? [];
+      list.push(item);
+      groups.set(item.discipline, list);
+    }
+    return Array.from(groups.entries()).map(([discipline, items]) => {
+      const studied = items.filter((i) => i.studied).length;
+      const dueReviews = items.reduce(
+        (acc, i) => acc + i.reviews.filter((r) => !r.completedAt && r.scheduledFor < dueCutoff).length,
+        0
+      );
+      const importance = items[0]?.importance ?? 5;
+      return {
+        discipline,
+        inFocus: items.some((i) => i.focus),
+        total: items.length,
+        studied,
+        dueReviews,
+        importance,
+        priority: computeDisciplinePriority({ importance, totalTopics: items.length, studiedTopics: studied, dueReviews })
+      };
+    }).sort((a, b) => b.priority - a.priority);
+  }
+  async setImportance(userId, contestId, discipline, importance) {
+    await this.getById(userId, contestId);
+    await prisma.contestSyllabusItem.updateMany({
+      where: { contestId, discipline },
+      data: { importance }
+    });
+    return this.getById(userId, contestId);
+  }
+  async update(userId, contestId, dto) {
+    await this.getById(userId, contestId);
+    return prisma.contest.update({
+      where: { id: contestId },
+      data: {
+        ...dto.name !== void 0 ? { name: dto.name } : {},
+        ...dto.organization !== void 0 ? { organization: dto.organization } : {},
+        ...dto.examBoard !== void 0 ? { examBoard: dto.examBoard } : {},
+        ...dto.role !== void 0 ? { role: dto.role } : {},
+        ...dto.examDate !== void 0 ? { examDate: dto.examDate ? new Date(dto.examDate) : null } : {},
+        ...dto.status !== void 0 ? { status: dto.status } : {}
+      },
+      include: { syllabus: { orderBy: { order: "asc" } } }
     });
   }
-  async delete(userId, planId) {
-    const plan = await prisma.studyPlan.findUnique({ where: { id: planId } });
-    if (!plan || plan.userId !== userId) {
-      throw new AppError(404, "PLAN_NOT_FOUND", "Plano n\xE3o encontrado");
-    }
-    await prisma.studyPlan.delete({ where: { id: planId } });
+  async delete(userId, contestId) {
+    await this.getById(userId, contestId);
+    await prisma.contest.delete({ where: { id: contestId } });
   }
-  async generateSuggestion(userId) {
-    const subjectAttempts = await prisma.questionAttempt.findMany({
-      where: { userId },
-      include: { question: { select: { subjectId: true } } }
+  async updateSyllabusItem(userId, itemId, studied) {
+    const item = await prisma.contestSyllabusItem.findUnique({
+      where: { id: itemId },
+      include: { contest: { select: { userId: true } }, reviews: { select: { id: true } } }
     });
-    const subjectStats = {};
-    for (const attempt of subjectAttempts) {
-      const sid = attempt.question.subjectId;
-      if (!subjectStats[sid]) subjectStats[sid] = { total: 0, correct: 0 };
-      subjectStats[sid].total++;
-      if (attempt.isCorrect) subjectStats[sid].correct++;
+    if (!item || item.contest.userId !== userId) {
+      throw new AppError(404, "SYLLABUS_ITEM_NOT_FOUND", "Item do conte\xFAdo program\xE1tico n\xE3o encontrado");
     }
-    const subjects = await prisma.subject.findMany({
-      where: { id: { in: Object.keys(subjectStats) } }
+    if (studied && item.reviews.length === 0) {
+      const schedule = buildReviewSchedule(/* @__PURE__ */ new Date());
+      await prisma.topicReview.createMany({
+        data: schedule.map((r) => ({ ...r, userId, syllabusItemId: itemId }))
+      });
+    }
+    if (!studied) {
+      await prisma.topicReview.deleteMany({ where: { syllabusItemId: itemId } });
+    }
+    return prisma.contestSyllabusItem.update({
+      where: { id: itemId },
+      data: { studied, firstStudiedAt: studied ? item.firstStudiedAt ?? /* @__PURE__ */ new Date() : null },
+      include: { reviews: { orderBy: { index: "asc" } } }
     });
-    const ranked = subjects.map((s) => ({
-      subjectId: s.id,
-      name: s.name,
-      accuracy: subjectStats[s.id] ? Math.round(subjectStats[s.id].correct / subjectStats[s.id].total * 100) : 0,
-      total: subjectStats[s.id]?.total ?? 0
-    })).sort((a, b) => a.accuracy - b.accuracy);
-    return ranked;
   }
 };
-
-// apps/backend/src/controllers/study-plan.controller.ts
-var StudyPlanController = class {
-  constructor(service18) {
-    this.service = service18;
-  }
-  service;
-  create = async (req, res, next) => {
-    try {
-      const plan = await this.service.create(getUserId(req), req.body);
-      const response = { success: true, data: plan };
-      res.status(201).json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  getActive = async (req, res, next) => {
-    try {
-      const plan = await this.service.getActive(getUserId(req));
-      const response = { success: true, data: plan };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  list = async (req, res, next) => {
-    try {
-      const plans = await this.service.list(getUserId(req));
-      const response = { success: true, data: plans };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  toggleItem = async (req, res, next) => {
-    try {
-      const item = await this.service.toggleItemComplete(getUserId(req), req.params.itemId);
-      const response = { success: true, data: item };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  delete = async (req, res, next) => {
-    try {
-      await this.service.delete(getUserId(req), req.params.id);
-      const response = { success: true, data: null };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-  suggest = async (req, res, next) => {
-    try {
-      const suggestion = await this.service.generateSuggestion(getUserId(req));
-      const response = { success: true, data: suggestion };
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-
-// apps/backend/src/routes/study-plan.routes.ts
-var router7 = Router7();
-var service6 = new StudyPlanService();
-var controller6 = new StudyPlanController(service6);
-router7.post("/", authMiddleware, controller6.create);
-router7.get("/active", authMiddleware, controller6.getActive);
-router7.get("/suggest", authMiddleware, controller6.suggest);
-router7.get("/", authMiddleware, controller6.list);
-router7.patch("/items/:itemId/toggle", authMiddleware, controller6.toggleItem);
-router7.delete("/:id", authMiddleware, controller6.delete);
-
-// apps/backend/src/routes/flashcard.routes.ts
-import { Router as Router8 } from "express";
 
 // apps/backend/src/utils/flashcard-parser.ts
 var MAX_CARDS = 1e3;
@@ -3268,6 +3362,400 @@ var FlashcardService = class {
   }
 };
 
+// apps/backend/src/services/study-kit.service.ts
+var StudyKitService = class {
+  constructor(aiProvider4) {
+    this.aiProvider = aiProvider4;
+    this.flashcardService = new FlashcardService(aiProvider4);
+    this.questionService = new QuestionService(aiProvider4);
+  }
+  aiProvider;
+  flashcardService;
+  questionService;
+  async generate(userId, dto) {
+    const document = await prisma.document.findUnique({ where: { id: dto.documentId } });
+    if (!document || document.userId !== userId) {
+      throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
+    }
+    if (document.content.trim().length < 50) {
+      throw new AppError(400, "CONTENT_TOO_SHORT", "O documento n\xE3o tem conte\xFAdo suficiente para gerar material.");
+    }
+    const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
+    if (!subject) {
+      throw new AppError(404, "SUBJECT_NOT_FOUND", "Disciplina n\xE3o encontrada");
+    }
+    const result = { summary: null, summaryDocumentId: null, flashcards: 0, questions: 0 };
+    if (dto.outputs.includes("summary")) {
+      const summary = await this.aiProvider.generateSummary({ content: document.content, subject: subject.name });
+      const saved = await prisma.document.create({
+        data: {
+          userId,
+          name: `Resumo \u2014 ${document.name}`,
+          type: "MARKDOWN",
+          content: summary,
+          subjectId: dto.subjectId
+        },
+        select: { id: true }
+      });
+      result.summary = summary;
+      result.summaryDocumentId = saved.id;
+    }
+    if (dto.outputs.includes("flashcards")) {
+      const cards = await this.flashcardService.generateFromContent(userId, {
+        subjectId: dto.subjectId,
+        count: dto.flashcardsCount ?? 10,
+        documentId: dto.documentId
+      });
+      result.flashcards = cards.length;
+    }
+    if (dto.outputs.includes("questions")) {
+      const questions = await this.questionService.generate(userId, {
+        subjectId: dto.subjectId,
+        quantity: dto.questionsCount ?? 5,
+        documentId: dto.documentId,
+        examBoardId: dto.examBoardId,
+        difficulty: dto.difficulty,
+        topic: dto.topic
+      });
+      result.questions = questions.length;
+    }
+    return result;
+  }
+};
+
+// apps/backend/src/services/document-process.service.ts
+var DocumentProcessService = class {
+  contestService;
+  studyKitService;
+  questionService;
+  constructor(aiProvider4) {
+    this.contestService = new ContestService(aiProvider4);
+    this.studyKitService = new StudyKitService(aiProvider4);
+    this.questionService = new QuestionService(aiProvider4);
+  }
+  async process(userId, documentId) {
+    const document = await prisma.document.findUnique({ where: { id: documentId } });
+    if (!document || document.userId !== userId) {
+      throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
+    }
+    switch (document.kind) {
+      case "EDITAL":
+      case "EMENTA":
+      case "CRONOGRAMA": {
+        const contest = await this.contestService.createFromContent(userId, documentId);
+        return { pipeline: "objetivo", contestId: contest.id, title: contest.name };
+      }
+      case "LISTA_QUESTOES": {
+        const subject = await this.ensureSubject(document.subjectId, document.name);
+        const imported = await this.questionService.importFromContent(
+          subject.id,
+          document.content,
+          subject.name
+        );
+        return { pipeline: "questoes", subjectId: subject.id, imported: imported.length };
+      }
+      case "MATERIAL":
+      case "OUTRO":
+      default: {
+        const subject = await this.ensureSubject(document.subjectId, document.name);
+        const result = await this.studyKitService.generate(userId, {
+          documentId,
+          subjectId: subject.id,
+          outputs: ["summary", "flashcards", "questions"],
+          flashcardsCount: 10,
+          questionsCount: 5
+        });
+        return {
+          pipeline: "kit",
+          subjectId: subject.id,
+          summary: Boolean(result.summary),
+          flashcards: result.flashcards,
+          questions: result.questions
+        };
+      }
+    }
+  }
+  async ensureSubject(subjectId, documentName) {
+    if (subjectId) {
+      const existing = await prisma.subject.findUnique({ where: { id: subjectId } });
+      if (existing) return existing;
+    }
+    const name = documentName.replace(/\.[a-z0-9]+$/i, "").trim().slice(0, 80) || "Material importado";
+    return prisma.subject.create({ data: { name } });
+  }
+};
+
+// apps/backend/src/controllers/document.controller.ts
+var DocumentController = class {
+  constructor(service18, processService2) {
+    this.service = service18;
+    this.processService = processService2;
+  }
+  service;
+  processService;
+  upload = async (req, res, next) => {
+    try {
+      if (!req.file) {
+        throw new AppError(400, "NO_FILE", "Nenhum arquivo enviado");
+      }
+      const subjectId = req.body.subjectId;
+      const kind = req.body.kind;
+      const doc = await this.service.upload(getUserId(req), req.file, subjectId, kind);
+      const response = { success: true, data: doc };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  list = async (req, res, next) => {
+    try {
+      const subjectId = req.query.subjectId;
+      const docs = await this.service.list(getUserId(req), subjectId);
+      const response = { success: true, data: docs };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  getById = async (req, res, next) => {
+    try {
+      const doc = await this.service.getById(getUserId(req), req.params.id);
+      const response = { success: true, data: doc };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  updateKind = async (req, res, next) => {
+    try {
+      const doc = await this.service.updateKind(
+        getUserId(req),
+        req.params.id,
+        req.body.kind
+      );
+      const response = { success: true, data: doc };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  process = async (req, res, next) => {
+    try {
+      const result = await this.processService.process(getUserId(req), req.params.id);
+      const response = { success: true, data: result };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  delete = async (req, res, next) => {
+    try {
+      await this.service.delete(getUserId(req), req.params.id);
+      const response = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// apps/backend/src/validators/document.validators.ts
+import { z as z8 } from "zod";
+var documentKindSchema = z8.enum([
+  "EDITAL",
+  "EMENTA",
+  "CRONOGRAMA",
+  "MATERIAL",
+  "LISTA_QUESTOES",
+  "OUTRO"
+]);
+var documentParamsSchema = z8.object({
+  params: z8.object({
+    id: z8.string().min(1)
+  })
+});
+var documentQuerySchema = z8.object({
+  subjectId: z8.string().min(1).optional()
+});
+var updateDocumentKindSchema = z8.object({
+  body: z8.object({
+    kind: documentKindSchema
+  })
+});
+
+// apps/backend/src/routes/document.routes.ts
+var router6 = Router6();
+var service5 = new DocumentService();
+var processService = new DocumentProcessService(createAIProvider());
+var controller5 = new DocumentController(service5, processService);
+router6.post("/", authMiddleware, upload.single("file"), controller5.upload);
+router6.get("/", authMiddleware, controller5.list);
+router6.get("/:id", authMiddleware, controller5.getById);
+router6.patch("/:id/kind", authMiddleware, validateRequest(updateDocumentKindSchema), controller5.updateKind);
+router6.post("/:id/process", authMiddleware, controller5.process);
+router6.delete("/:id", authMiddleware, controller5.delete);
+
+// apps/backend/src/routes/study-plan.routes.ts
+import { Router as Router7 } from "express";
+
+// apps/backend/src/services/study-plan.service.ts
+var StudyPlanService = class {
+  async create(userId, dto) {
+    await prisma.studyPlan.updateMany({
+      where: { userId, active: true },
+      data: { active: false }
+    });
+    return prisma.studyPlan.create({
+      data: {
+        userId,
+        name: dto.name,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        items: {
+          create: dto.items.map((item) => ({
+            subjectId: item.subjectId,
+            dayOfWeek: item.dayOfWeek,
+            duration: item.duration
+          }))
+        }
+      },
+      include: { items: { include: { subject: true } } }
+    });
+  }
+  async getActive(userId) {
+    return prisma.studyPlan.findFirst({
+      where: { userId, active: true },
+      include: { items: { include: { subject: true } } }
+    });
+  }
+  async list(userId) {
+    return prisma.studyPlan.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: { items: { include: { subject: true } } }
+    });
+  }
+  async toggleItemComplete(userId, itemId) {
+    const item = await prisma.studyPlanItem.findUnique({
+      where: { id: itemId },
+      include: { plan: true }
+    });
+    if (!item || item.plan.userId !== userId) {
+      throw new AppError(404, "ITEM_NOT_FOUND", "Item n\xE3o encontrado");
+    }
+    return prisma.studyPlanItem.update({
+      where: { id: itemId },
+      data: { completed: !item.completed }
+    });
+  }
+  async delete(userId, planId) {
+    const plan = await prisma.studyPlan.findUnique({ where: { id: planId } });
+    if (!plan || plan.userId !== userId) {
+      throw new AppError(404, "PLAN_NOT_FOUND", "Plano n\xE3o encontrado");
+    }
+    await prisma.studyPlan.delete({ where: { id: planId } });
+  }
+  async generateSuggestion(userId) {
+    const subjectAttempts = await prisma.questionAttempt.findMany({
+      where: { userId },
+      include: { question: { select: { subjectId: true } } }
+    });
+    const subjectStats = {};
+    for (const attempt of subjectAttempts) {
+      const sid = attempt.question.subjectId;
+      if (!subjectStats[sid]) subjectStats[sid] = { total: 0, correct: 0 };
+      subjectStats[sid].total++;
+      if (attempt.isCorrect) subjectStats[sid].correct++;
+    }
+    const subjects = await prisma.subject.findMany({
+      where: { id: { in: Object.keys(subjectStats) } }
+    });
+    const ranked = subjects.map((s) => ({
+      subjectId: s.id,
+      name: s.name,
+      accuracy: subjectStats[s.id] ? Math.round(subjectStats[s.id].correct / subjectStats[s.id].total * 100) : 0,
+      total: subjectStats[s.id]?.total ?? 0
+    })).sort((a, b) => a.accuracy - b.accuracy);
+    return ranked;
+  }
+};
+
+// apps/backend/src/controllers/study-plan.controller.ts
+var StudyPlanController = class {
+  constructor(service18) {
+    this.service = service18;
+  }
+  service;
+  create = async (req, res, next) => {
+    try {
+      const plan = await this.service.create(getUserId(req), req.body);
+      const response = { success: true, data: plan };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  getActive = async (req, res, next) => {
+    try {
+      const plan = await this.service.getActive(getUserId(req));
+      const response = { success: true, data: plan };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  list = async (req, res, next) => {
+    try {
+      const plans = await this.service.list(getUserId(req));
+      const response = { success: true, data: plans };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  toggleItem = async (req, res, next) => {
+    try {
+      const item = await this.service.toggleItemComplete(getUserId(req), req.params.itemId);
+      const response = { success: true, data: item };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  delete = async (req, res, next) => {
+    try {
+      await this.service.delete(getUserId(req), req.params.id);
+      const response = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  suggest = async (req, res, next) => {
+    try {
+      const suggestion = await this.service.generateSuggestion(getUserId(req));
+      const response = { success: true, data: suggestion };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// apps/backend/src/routes/study-plan.routes.ts
+var router7 = Router7();
+var service6 = new StudyPlanService();
+var controller6 = new StudyPlanController(service6);
+router7.post("/", authMiddleware, controller6.create);
+router7.get("/active", authMiddleware, controller6.getActive);
+router7.get("/suggest", authMiddleware, controller6.suggest);
+router7.get("/", authMiddleware, controller6.list);
+router7.patch("/items/:itemId/toggle", authMiddleware, controller6.toggleItem);
+router7.delete("/:id", authMiddleware, controller6.delete);
+
+// apps/backend/src/routes/flashcard.routes.ts
+import { Router as Router8 } from "express";
+
 // apps/backend/src/controllers/flashcard.controller.ts
 var FlashcardController = class {
   constructor(service18) {
@@ -3376,67 +3864,6 @@ router8.delete("/:id", authMiddleware, controller7.delete);
 
 // apps/backend/src/routes/study-kit.routes.ts
 import { Router as Router9 } from "express";
-
-// apps/backend/src/services/study-kit.service.ts
-var StudyKitService = class {
-  constructor(aiProvider4) {
-    this.aiProvider = aiProvider4;
-    this.flashcardService = new FlashcardService(aiProvider4);
-    this.questionService = new QuestionService(aiProvider4);
-  }
-  aiProvider;
-  flashcardService;
-  questionService;
-  async generate(userId, dto) {
-    const document = await prisma.document.findUnique({ where: { id: dto.documentId } });
-    if (!document || document.userId !== userId) {
-      throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
-    }
-    if (document.content.trim().length < 50) {
-      throw new AppError(400, "CONTENT_TOO_SHORT", "O documento n\xE3o tem conte\xFAdo suficiente para gerar material.");
-    }
-    const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
-    if (!subject) {
-      throw new AppError(404, "SUBJECT_NOT_FOUND", "Disciplina n\xE3o encontrada");
-    }
-    const result = { summary: null, summaryDocumentId: null, flashcards: 0, questions: 0 };
-    if (dto.outputs.includes("summary")) {
-      const summary = await this.aiProvider.generateSummary({ content: document.content, subject: subject.name });
-      const saved = await prisma.document.create({
-        data: {
-          userId,
-          name: `Resumo \u2014 ${document.name}`,
-          type: "MARKDOWN",
-          content: summary,
-          subjectId: dto.subjectId
-        },
-        select: { id: true }
-      });
-      result.summary = summary;
-      result.summaryDocumentId = saved.id;
-    }
-    if (dto.outputs.includes("flashcards")) {
-      const cards = await this.flashcardService.generateFromContent(userId, {
-        subjectId: dto.subjectId,
-        count: dto.flashcardsCount ?? 10,
-        documentId: dto.documentId
-      });
-      result.flashcards = cards.length;
-    }
-    if (dto.outputs.includes("questions")) {
-      const questions = await this.questionService.generate(userId, {
-        subjectId: dto.subjectId,
-        quantity: dto.questionsCount ?? 5,
-        documentId: dto.documentId,
-        examBoardId: dto.examBoardId,
-        difficulty: dto.difficulty,
-        topic: dto.topic
-      });
-      result.questions = questions.length;
-    }
-    return result;
-  }
-};
 
 // apps/backend/src/validators/study-kit.validators.ts
 import { z as z9 } from "zod";
@@ -3602,17 +4029,6 @@ router11.delete("/:id/leave", authMiddleware, controller10.leave);
 
 // apps/backend/src/routes/essay.routes.ts
 import { Router as Router12 } from "express";
-
-// apps/backend/src/utils/pdf.ts
-import fs2 from "node:fs/promises";
-import { PDFParse as PDFParse2 } from "pdf-parse";
-async function extractPdfText(filePath) {
-  const data = await fs2.readFile(filePath);
-  const parser = new PDFParse2({ data: new Uint8Array(data) });
-  await parser.load();
-  const result = await parser.getText();
-  return result.text.trim();
-}
 
 // apps/backend/src/services/essay.service.ts
 var ESSAY_SUBMISSION_POINTS = 1;
@@ -3823,11 +4239,11 @@ var EssayController = class {
 import multer2 from "multer";
 import path2 from "node:path";
 import crypto3 from "node:crypto";
-import fs3 from "node:fs";
+import fs4 from "node:fs";
 var UPLOAD_DIR2 = path2.resolve("uploads/essays");
 var MAX_FILE_SIZE2 = 10 * 1024 * 1024;
-if (!fs3.existsSync(UPLOAD_DIR2)) {
-  fs3.mkdirSync(UPLOAD_DIR2, { recursive: true });
+if (!fs4.existsSync(UPLOAD_DIR2)) {
+  fs4.mkdirSync(UPLOAD_DIR2, { recursive: true });
 }
 var ALLOWED_MIMES2 = {
   "application/pdf": true,
@@ -3883,238 +4299,6 @@ router12.delete("/:id", authMiddleware, controller11.delete);
 
 // apps/backend/src/routes/contest.routes.ts
 import { Router as Router13 } from "express";
-
-// apps/backend/src/services/contest.service.ts
-import fs4 from "node:fs/promises";
-
-// apps/backend/src/utils/spaced-repetition.ts
-var REVIEW_INTERVALS = [1, 3, 7, 15, 40, 60];
-function startOfDay(date) {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-function addDays(date, days) {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-}
-function buildReviewSchedule(from, intervals = REVIEW_INTERVALS) {
-  const base = startOfDay(from);
-  return intervals.map((intervalDays, index) => ({
-    index,
-    intervalDays,
-    scheduledFor: addDays(base, intervalDays)
-  }));
-}
-
-// apps/backend/src/utils/priority.ts
-var WEIGHT_IMPORTANCE = 0.45;
-var WEIGHT_OVERDUE = 0.35;
-var WEIGHT_COVERAGE = 0.2;
-var OVERDUE_SATURATION = 3;
-function computeDisciplinePriority(input) {
-  const importanceNorm = clamp01(input.importance / 10);
-  const overdueNorm = clamp01(input.dueReviews / OVERDUE_SATURATION);
-  const coverageGap = input.totalTopics > 0 ? clamp01((input.totalTopics - input.studiedTopics) / input.totalTopics) : 0;
-  const score = WEIGHT_IMPORTANCE * importanceNorm + WEIGHT_OVERDUE * overdueNorm + WEIGHT_COVERAGE * coverageGap;
-  return Math.round(score * 1e3) / 100;
-}
-function clamp01(value) {
-  return Math.max(0, Math.min(1, value));
-}
-
-// apps/backend/src/services/contest.service.ts
-var ContestService = class {
-  constructor(aiProvider4) {
-    this.aiProvider = aiProvider4;
-  }
-  aiProvider;
-  async create(userId, dto) {
-    return prisma.contest.create({
-      data: {
-        userId,
-        name: dto.name,
-        organization: dto.organization ?? null,
-        examBoard: dto.examBoard ?? null,
-        role: dto.role ?? null,
-        examDate: dto.examDate ? new Date(dto.examDate) : null
-      },
-      include: { syllabus: true }
-    });
-  }
-  async createFromEdital(userId, file, focus) {
-    const content = file.mimetype === "application/pdf" ? await extractPdfText(file.path) : decodeTextBuffer(await fs4.readFile(file.path)).trim();
-    await fs4.unlink(file.path).catch(() => {
-    });
-    if (content.length < 200) {
-      throw new AppError(400, "EDITAL_TOO_SHORT", "N\xE3o foi poss\xEDvel extrair texto suficiente do edital. Verifique se o PDF cont\xE9m texto (n\xE3o apenas imagens).");
-    }
-    const trimmedFocus = focus?.trim() || void 0;
-    const parsed = await this.aiProvider.parseEdital({ content, focus: trimmedFocus });
-    const focusSet = parsed.focusDisciplines && parsed.focusDisciplines.length > 0 ? new Set(parsed.focusDisciplines.map((d) => d.toLowerCase().trim())) : null;
-    const document = await prisma.document.create({
-      data: {
-        userId,
-        name: file.originalname,
-        type: "PDF",
-        content
-      }
-    });
-    return prisma.contest.create({
-      data: {
-        userId,
-        name: parsed.name,
-        organization: parsed.organization,
-        examBoard: parsed.examBoard,
-        role: parsed.role,
-        focus: trimmedFocus ?? null,
-        examDate: parsed.examDate ? new Date(parsed.examDate) : null,
-        editalDocumentId: document.id,
-        syllabus: {
-          create: parsed.syllabus.flatMap(
-            (entry, disciplineIndex) => entry.topics.map((topic, topicIndex) => ({
-              discipline: entry.discipline,
-              topic,
-              order: disciplineIndex * 1e3 + topicIndex,
-              focus: focusSet ? focusSet.has(entry.discipline.toLowerCase().trim()) : true
-            }))
-          )
-        }
-      },
-      include: { syllabus: { orderBy: { order: "asc" } } }
-    });
-  }
-  async getTopicContent(userId, itemId) {
-    const item = await prisma.contestSyllabusItem.findUnique({
-      where: { id: itemId },
-      include: { contest: { select: { userId: true, examBoard: true, focus: true } } }
-    });
-    if (!item || item.contest.userId !== userId) {
-      throw new AppError(404, "SYLLABUS_ITEM_NOT_FOUND", "Item do conte\xFAdo program\xE1tico n\xE3o encontrado");
-    }
-    if (item.content) {
-      return { id: item.id, content: item.content };
-    }
-    const content = await this.aiProvider.generateTopicContent({
-      discipline: item.discipline,
-      topic: item.topic,
-      examBoard: item.contest.examBoard,
-      focus: item.contest.focus
-    });
-    await prisma.contestSyllabusItem.update({
-      where: { id: itemId },
-      data: { content }
-    });
-    return { id: item.id, content };
-  }
-  async listByUser(userId) {
-    const contests = await prisma.contest.findMany({
-      where: { userId, status: { not: "ARCHIVED" } },
-      orderBy: [{ examDate: "asc" }, { createdAt: "desc" }],
-      include: {
-        _count: { select: { syllabus: true } },
-        syllabus: { where: { studied: true }, select: { id: true } }
-      }
-    });
-    return contests.map(({ syllabus, _count, ...contest }) => ({
-      ...contest,
-      totalTopics: _count.syllabus,
-      studiedTopics: syllabus.length
-    }));
-  }
-  async getById(userId, contestId) {
-    const contest = await prisma.contest.findUnique({
-      where: { id: contestId },
-      include: {
-        syllabus: {
-          orderBy: { order: "asc" },
-          include: { reviews: { orderBy: { index: "asc" } } }
-        }
-      }
-    });
-    if (!contest || contest.userId !== userId) {
-      throw new AppError(404, "CONTEST_NOT_FOUND", "Concurso n\xE3o encontrado");
-    }
-    return { ...contest, disciplines: this.buildDisciplineStats(contest.syllabus) };
-  }
-  buildDisciplineStats(syllabus) {
-    const dueCutoff = addDays(startOfDay(/* @__PURE__ */ new Date()), 1);
-    const groups = /* @__PURE__ */ new Map();
-    for (const item of syllabus) {
-      const list = groups.get(item.discipline) ?? [];
-      list.push(item);
-      groups.set(item.discipline, list);
-    }
-    return Array.from(groups.entries()).map(([discipline, items]) => {
-      const studied = items.filter((i) => i.studied).length;
-      const dueReviews = items.reduce(
-        (acc, i) => acc + i.reviews.filter((r) => !r.completedAt && r.scheduledFor < dueCutoff).length,
-        0
-      );
-      const importance = items[0]?.importance ?? 5;
-      return {
-        discipline,
-        inFocus: items.some((i) => i.focus),
-        total: items.length,
-        studied,
-        dueReviews,
-        importance,
-        priority: computeDisciplinePriority({ importance, totalTopics: items.length, studiedTopics: studied, dueReviews })
-      };
-    }).sort((a, b) => b.priority - a.priority);
-  }
-  async setImportance(userId, contestId, discipline, importance) {
-    await this.getById(userId, contestId);
-    await prisma.contestSyllabusItem.updateMany({
-      where: { contestId, discipline },
-      data: { importance }
-    });
-    return this.getById(userId, contestId);
-  }
-  async update(userId, contestId, dto) {
-    await this.getById(userId, contestId);
-    return prisma.contest.update({
-      where: { id: contestId },
-      data: {
-        ...dto.name !== void 0 ? { name: dto.name } : {},
-        ...dto.organization !== void 0 ? { organization: dto.organization } : {},
-        ...dto.examBoard !== void 0 ? { examBoard: dto.examBoard } : {},
-        ...dto.role !== void 0 ? { role: dto.role } : {},
-        ...dto.examDate !== void 0 ? { examDate: dto.examDate ? new Date(dto.examDate) : null } : {},
-        ...dto.status !== void 0 ? { status: dto.status } : {}
-      },
-      include: { syllabus: { orderBy: { order: "asc" } } }
-    });
-  }
-  async delete(userId, contestId) {
-    await this.getById(userId, contestId);
-    await prisma.contest.delete({ where: { id: contestId } });
-  }
-  async updateSyllabusItem(userId, itemId, studied) {
-    const item = await prisma.contestSyllabusItem.findUnique({
-      where: { id: itemId },
-      include: { contest: { select: { userId: true } }, reviews: { select: { id: true } } }
-    });
-    if (!item || item.contest.userId !== userId) {
-      throw new AppError(404, "SYLLABUS_ITEM_NOT_FOUND", "Item do conte\xFAdo program\xE1tico n\xE3o encontrado");
-    }
-    if (studied && item.reviews.length === 0) {
-      const schedule = buildReviewSchedule(/* @__PURE__ */ new Date());
-      await prisma.topicReview.createMany({
-        data: schedule.map((r) => ({ ...r, userId, syllabusItemId: itemId }))
-      });
-    }
-    if (!studied) {
-      await prisma.topicReview.deleteMany({ where: { syllabusItemId: itemId } });
-    }
-    return prisma.contestSyllabusItem.update({
-      where: { id: itemId },
-      data: { studied, firstStudiedAt: studied ? item.firstStudiedAt ?? /* @__PURE__ */ new Date() : null },
-      include: { reviews: { orderBy: { index: "asc" } } }
-    });
-  }
-};
 
 // apps/backend/src/services/contest-review.service.ts
 var ContestReviewService = class {

@@ -41,6 +41,11 @@ export interface UploadedDocumentDTO extends DocumentDTO {
   kindAutoDetected: boolean;
 }
 
+export type ProcessResult =
+  | { pipeline: 'objetivo'; contestId: string; title: string }
+  | { pipeline: 'kit'; subjectId: string; summary: boolean; flashcards: number; questions: number }
+  | { pipeline: 'questoes'; subjectId: string; imported: number };
+
 export const documentService = {
   async upload(
     file: File,
@@ -65,6 +70,11 @@ export const documentService = {
 
   async updateKind(id: string, kind: DocumentKind): Promise<DocumentDTO> {
     const response = await api.patch<ApiResponse<DocumentDTO>>(`/documents/${id}/kind`, { kind });
+    return unwrapData(response);
+  },
+
+  async process(id: string): Promise<ProcessResult> {
+    const response = await api.post<ApiResponse<ProcessResult>>(`/documents/${id}/process`);
     return unwrapData(response);
   },
 

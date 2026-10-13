@@ -124,8 +124,14 @@ export interface AnswerQuestionsParams {
   subject?: string;
 }
 
+export interface ExtractQuestionsParams {
+  content: string;
+  subject?: string;
+}
+
 export interface IAIProvider {
   generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]>;
+  extractQuestions(params: ExtractQuestionsParams): Promise<GeneratedQuestion[]>;
   gradeEssay(params: GradeEssayParams): Promise<EssayGradeResult>;
   gradeCaseStudy(params: GradeCaseStudyParams): Promise<CaseStudyResult>;
   parseEdital(params: ParseEditalParams): Promise<EditalParseResult>;

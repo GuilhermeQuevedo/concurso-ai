@@ -13,10 +13,12 @@ import type {
   GeneratedFlashcard,
   GenerateSummaryParams,
   AnswerQuestionsParams,
+  ExtractQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
   buildQuestionsPrompt,
+  buildExtractQuestionsPrompt,
   buildEssayPrompt,
   buildCaseStudyPrompt,
   buildEditalPrompt,
@@ -49,6 +51,16 @@ export class OllamaProvider implements IAIProvider {
     const raw = await this.callApi(buildQuestionsPrompt(params));
     const parsed = this.parseJson(raw, 'geração de questões');
 
+    const result = questionsResponseSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de resposta inválido do modelo local: ${result.error.message}`);
+    }
+    return result.data.questions;
+  }
+
+  async extractQuestions(params: ExtractQuestionsParams): Promise<GeneratedQuestion[]> {
+    const raw = await this.callApi(buildExtractQuestionsPrompt(params.content, params.subject));
+    const parsed = this.parseJson(raw, 'extração de questões');
     const result = questionsResponseSchema.safeParse(parsed);
     if (!result.success) {
       throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de resposta inválido do modelo local: ${result.error.message}`);

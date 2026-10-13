@@ -154,6 +154,41 @@ Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adic
 }`;
 }
 
+export function buildExtractQuestionsPrompt(content: string, subject?: string): string {
+  return `Você é um especialista em bancas de concursos. O texto abaixo é uma LISTA DE QUESTÕES já existente${subject ? ` sobre "${subject}"` : ''}. Sua tarefa é EXTRAIR fielmente as questões de múltipla escolha presentes no texto — NÃO invente questões novas.
+
+TEXTO (lista de questões):
+${sampleContent(content, QUESTIONS_MAX_CONTEXT)}
+
+REGRAS OBRIGATÓRIAS:
+1. Extraia cada questão como aparece, com seu enunciado e suas alternativas
+2. Normalize para exatamente 5 alternativas (A, B, C, D, E); se a questão original tiver menos, complete com distratores plausíveis coerentes com o tema
+3. Se o gabarito estiver indicado no texto, use-o em "correctAnswer"; caso contrário, determine a alternativa correta pelo conteúdo
+4. Em "explanation", justifique a resposta correta; se o texto já trouxer comentário/justificativa, aproveite-o
+5. Defina "difficulty" como EASY, MEDIUM ou HARD conforme a complexidade
+6. Ignore cabeçalhos, numeração solta e texto que não seja questão
+7. Não repita questões
+
+Responda APENAS com JSON válido neste formato, sem markdown:
+{
+  "questions": [
+    {
+      "statement": "Enunciado da questão",
+      "alternatives": [
+        {"letter": "A", "text": "..."},
+        {"letter": "B", "text": "..."},
+        {"letter": "C", "text": "..."},
+        {"letter": "D", "text": "..."},
+        {"letter": "E", "text": "..."}
+      ],
+      "correctAnswer": "C",
+      "explanation": "Justificativa",
+      "difficulty": "MEDIUM"
+    }
+  ]
+}`;
+}
+
 export function buildEssayPrompt(params: GradeEssayParams): string {
   const contentBlock = params.content
     ? `\nREDAÇÃO DO CANDIDATO:\n${params.content}`

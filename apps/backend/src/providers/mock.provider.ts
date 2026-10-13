@@ -13,6 +13,7 @@ import type {
   GeneratedFlashcard,
   GenerateSummaryParams,
   AnswerQuestionsParams,
+  ExtractQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
 
 export class MockProvider implements IAIProvider {
@@ -38,6 +39,24 @@ export class MockProvider implements IAIProvider {
     }
 
     return questions;
+  }
+
+  async extractQuestions(params: ExtractQuestionsParams): Promise<GeneratedQuestion[]> {
+    return [
+      {
+        statement: `[MOCK] Questão extraída da lista${params.subject ? ` sobre ${params.subject}` : ''}. Qual alternativa está correta?`,
+        alternatives: [
+          { letter: 'A', text: 'Alternativa A' },
+          { letter: 'B', text: 'Alternativa B (correta)' },
+          { letter: 'C', text: 'Alternativa C' },
+          { letter: 'D', text: 'Alternativa D' },
+          { letter: 'E', text: 'Alternativa E' },
+        ],
+        correctAnswer: 'B',
+        explanation: '[MOCK] Justificativa da questão extraída.',
+        difficulty: 'MEDIUM',
+      },
+    ];
   }
 
   async gradeEssay(_params: GradeEssayParams): Promise<EssayGradeResult> {

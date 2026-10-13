@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, FileText, Trash2, Loader2, FileUp, Trophy } from 'lucide-react';
+import { Upload, FileText, Trash2, Loader2, FileUp, Trophy, Sparkles } from 'lucide-react';
 import { rankingService } from '@/features/rankings/services/ranking.service';
 import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
 import {
@@ -8,12 +9,23 @@ import {
   type DocumentDTO,
   type DocumentKind,
   type UploadedDocumentDTO,
+  type ProcessResult,
   KIND_LABELS,
   KIND_OPTIONS,
 } from '@/features/documents/services/document.service';
 
+const ACTION_LABELS: Record<DocumentKind, string> = {
+  EDITAL: 'Criar objetivo',
+  EMENTA: 'Criar objetivo',
+  CRONOGRAMA: 'Criar objetivo',
+  MATERIAL: 'Gerar kit de estudo',
+  LISTA_QUESTOES: 'Importar questões',
+  OUTRO: 'Gerar kit de estudo',
+};
+
 export function DocumentsPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [subjectFilter, setSubjectFilter] = useState('');
   const [uploadSubject, setUploadSubject] = useState('');
@@ -59,6 +71,21 @@ export function DocumentsPage() {
     mutationFn: (doc: DocumentDTO) =>
       rankingService.suggest({ documentId: doc.id, title: doc.name }),
     onSuccess: (_data, doc) => setSuggestedDocId(doc.id),
+  });
+
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [processResult, setProcessResult] = useState<ProcessResult | null>(null);
+  const processMutation = useMutation({
+    mutationFn: (doc: DocumentDTO) => documentService.process(doc.id),
+    onMutate: (doc) => {
+      setProcessingId(doc.id);
+      setProcessResult(null);
+    },
+    onSuccess: (result) => {
+      setProcessResult(result);
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+    },
+    onSettled: () => setProcessingId(null),
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,6 +182,64 @@ export function DocumentsPage() {
         <p className="mt-2 text-xs text-gray-400">Formatos: PDF, TXT, Markdown, HTML. Máximo 10MB.</p>
       </div>
 
+      {processMutation.isError && (
+        <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/30">
+          Não foi possível processar o documento. Verifique se ele tem texto suficiente e tente de novo.
+        </p>
+      )}
+      {processResult && (
+        <div className="mb-4 rounded-xl border border-primary-300 bg-primary-50 p-4 dark:border-primary-800 dark:bg-primary-950/30">
+          {processResult.pipeline === 'objetivo' && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-gray-800 dark:text-gray-200">
+                Objetivo <strong>{processResult.title}</strong> criado com o conteúdo programático.
+              </p>
+              <button
+                onClick={() => navigate('/contests')}
+                className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700"
+              >
+                Ver em Meus Objetivos
+              </button>
+            </div>
+          )}
+          {processResult.pipeline === 'kit' && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-gray-800 dark:text-gray-200">
+                Kit gerado: {processResult.summary ? 'resumo, ' : ''}
+                {processResult.flashcards} flashcards e {processResult.questions} questões.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigate('/flashcards')}
+                  className="rounded-lg border border-primary-400 px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900/40"
+                >
+                  Flashcards
+                </button>
+                <button
+                  onClick={() => navigate('/generate')}
+                  className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700"
+                >
+                  Praticar questões
+                </button>
+              </div>
+            </div>
+          )}
+          {processResult.pipeline === 'questoes' && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-gray-800 dark:text-gray-200">
+                {processResult.imported} questões importadas da lista.
+              </p>
+              <button
+                onClick={() => navigate('/generate')}
+                className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700"
+              >
+                Praticar agora
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           Seus documentos ({documents.length})
@@ -203,6 +288,22 @@ export function DocumentsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => processMutation.mutate(doc)}
+                  disabled={processingId !== null}
+                  title="Processar este documento conforme o tipo"
+                  className="flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {processingId === doc.id ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Processando…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5" /> {ACTION_LABELS[doc.kind ?? 'OUTRO']}
+                    </>
+                  )}
+                </button>
                 {suggestedDocId === doc.id ? (
                   <span className="text-xs font-medium text-green-600">Sugerido ao admin ✓</span>
                 ) : (
