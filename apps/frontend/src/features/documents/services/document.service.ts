@@ -73,8 +73,11 @@ export const documentService = {
     return unwrapData(response);
   },
 
-  async process(id: string): Promise<ProcessResult> {
-    const response = await api.post<ApiResponse<ProcessResult>>(`/documents/${id}/process`);
+  async process(id: string, focus?: string): Promise<ProcessResult> {
+    const response = await api.post<ApiResponse<ProcessResult>>(
+      `/documents/${id}/process`,
+      focus ? { focus } : {},
+    );
     return unwrapData(response);
   },
 

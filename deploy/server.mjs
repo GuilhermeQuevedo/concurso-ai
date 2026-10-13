@@ -3433,7 +3433,7 @@ var DocumentProcessService = class {
     this.studyKitService = new StudyKitService(aiProvider4);
     this.questionService = new QuestionService(aiProvider4);
   }
-  async process(userId, documentId) {
+  async process(userId, documentId, focus) {
     const document = await prisma.document.findUnique({ where: { id: documentId } });
     if (!document || document.userId !== userId) {
       throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
@@ -3442,7 +3442,7 @@ var DocumentProcessService = class {
       case "EDITAL":
       case "EMENTA":
       case "CRONOGRAMA": {
-        const contest = await this.contestService.createFromContent(userId, documentId);
+        const contest = await this.contestService.createFromContent(userId, documentId, focus);
         return { pipeline: "objetivo", contestId: contest.id, title: contest.name };
       }
       case "LISTA_QUESTOES": {
@@ -3541,7 +3541,8 @@ var DocumentController = class {
   };
   process = async (req, res, next) => {
     try {
-      const result = await this.processService.process(getUserId(req), req.params.id);
+      const focus = typeof req.body?.focus === "string" ? req.body.focus : void 0;
+      const result = await this.processService.process(getUserId(req), req.params.id, focus);
       const response = { success: true, data: result };
       res.json(response);
     } catch (error) {

@@ -70,7 +70,8 @@ export class DocumentController {
 
   process = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.processService.process(getUserId(req), req.params.id as string);
+      const focus = typeof req.body?.focus === 'string' ? req.body.focus : undefined;
+      const result = await this.processService.process(getUserId(req), req.params.id as string, focus);
       const response: ApiResponse<typeof result> = { success: true, data: result };
       res.json(response);
     } catch (error) {
