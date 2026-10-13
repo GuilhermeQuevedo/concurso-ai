@@ -13,7 +13,15 @@ export class DocumentController {
         throw new AppError(400, 'NO_FILE', 'Nenhum arquivo enviado');
       }
       const subjectId = req.body.subjectId as string | undefined;
-      const doc = await this.service.upload(getUserId(req), req.file, subjectId);
+      const kind = req.body.kind as
+        | 'EDITAL'
+        | 'EMENTA'
+        | 'CRONOGRAMA'
+        | 'MATERIAL'
+        | 'LISTA_QUESTOES'
+        | 'OUTRO'
+        | undefined;
+      const doc = await this.service.upload(getUserId(req), req.file, subjectId, kind);
       const response: ApiResponse<typeof doc> = { success: true, data: doc };
       res.status(201).json(response);
     } catch (error) {
@@ -35,6 +43,20 @@ export class DocumentController {
   getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const doc = await this.service.getById(getUserId(req), req.params.id as string);
+      const response: ApiResponse<typeof doc> = { success: true, data: doc };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateKind = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const doc = await this.service.updateKind(
+        getUserId(req),
+        req.params.id as string,
+        req.body.kind,
+      );
       const response: ApiResponse<typeof doc> = { success: true, data: doc };
       res.json(response);
     } catch (error) {

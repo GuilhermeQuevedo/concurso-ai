@@ -40,6 +40,7 @@ export class AuthRepository implements IAuthRepository {
       prisma.groupMember.deleteMany({ where }),
       prisma.streak.deleteMany({ where }),
       prisma.contest.deleteMany({ where }),
+      prisma.rankingParticipant.deleteMany({ where }),
     ]);
   }
 

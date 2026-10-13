@@ -35,7 +35,7 @@ export function GeneratePlanForm({ onClose }: { onClose: () => void }) {
       queryClient.invalidateQueries({ queryKey: ['study-tasks'] });
       onClose();
     },
-    onError: () => setError('Erro ao gerar o plano. Verifique se o concurso tem data de prova futura e tópicos pendentes.'),
+    onError: () => setError('Erro ao gerar o plano. Verifique se o objetivo tem data de prova futura e tópicos pendentes.'),
   });
 
   const toggleWeekday = (day: number) => {
@@ -61,12 +61,12 @@ export function GeneratePlanForm({ onClose }: { onClose: () => void }) {
 
       {eligible.length === 0 ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
-          Nenhum concurso com data de prova futura. Cadastre um concurso com data em "Meus Concursos".
+          Nenhum objetivo com data de prova futura. Cadastre um em "Meus Objetivos".
         </p>
       ) : (
         <div className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Concurso</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Objetivo</label>
             <select
               value={contestId}
               onChange={(e) => setContestId(e.target.value)}

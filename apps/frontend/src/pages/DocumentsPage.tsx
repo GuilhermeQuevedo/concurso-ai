@@ -1,14 +1,24 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, FileText, Trash2, Loader2, FileUp } from 'lucide-react';
+import { Upload, FileText, Trash2, Loader2, FileUp, Trophy } from 'lucide-react';
+import { rankingService } from '@/features/rankings/services/ranking.service';
 import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
-import { documentService, type DocumentDTO } from '@/features/documents/services/document.service';
+import {
+  documentService,
+  type DocumentDTO,
+  type DocumentKind,
+  type UploadedDocumentDTO,
+  KIND_LABELS,
+  KIND_OPTIONS,
+} from '@/features/documents/services/document.service';
 
 export function DocumentsPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [subjectFilter, setSubjectFilter] = useState('');
   const [uploadSubject, setUploadSubject] = useState('');
+  const [uploadKind, setUploadKind] = useState<DocumentKind | ''>('');
+  const [lastUpload, setLastUpload] = useState<UploadedDocumentDTO | null>(null);
 
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects'],
@@ -21,8 +31,13 @@ export function DocumentsPage() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => documentService.upload(file, uploadSubject || undefined),
-    onSuccess: () => {
+    mutationFn: (file: File) =>
+      documentService.upload(file, {
+        subjectId: uploadSubject || undefined,
+        kind: uploadKind || undefined,
+      }),
+    onSuccess: (uploaded) => {
+      setLastUpload(uploaded);
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
@@ -31,6 +46,19 @@ export function DocumentsPage() {
   const deleteMutation = useMutation({
     mutationFn: documentService.delete,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents'] }),
+  });
+
+  const changeKindMutation = useMutation({
+    mutationFn: ({ id, kind }: { id: string; kind: DocumentKind }) =>
+      documentService.updateKind(id, kind),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents'] }),
+  });
+
+  const [suggestedDocId, setSuggestedDocId] = useState<string | null>(null);
+  const suggestRankingMutation = useMutation({
+    mutationFn: (doc: DocumentDTO) =>
+      rankingService.suggest({ documentId: doc.id, title: doc.name }),
+    onSuccess: (_data, doc) => setSuggestedDocId(doc.id),
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +87,23 @@ export function DocumentsPage() {
       <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Enviar documento</h2>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
+              O que é este arquivo?
+            </label>
+            <select
+              value={uploadKind}
+              onChange={(e) => setUploadKind(e.target.value as DocumentKind | '')}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">Detectar automaticamente</option>
+              {KIND_OPTIONS.map((k) => (
+                <option key={k} value={k}>
+                  {KIND_LABELS[k]}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="flex-1">
             <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
               Disciplina (opcional)
@@ -101,8 +146,11 @@ export function DocumentsPage() {
         {uploadMutation.isError && (
           <p className="mt-2 text-sm text-red-500">Erro ao enviar arquivo. Verifique o formato (PDF, TXT, MD, HTML) e tamanho (máx 10MB).</p>
         )}
-        {uploadMutation.isSuccess && (
-          <p className="mt-2 text-sm text-green-600">Documento enviado com sucesso!</p>
+        {uploadMutation.isSuccess && lastUpload && (
+          <p className="mt-2 text-sm text-green-600">
+            Documento enviado! Identificado como <strong>{KIND_LABELS[lastUpload.kind]}</strong>
+            {lastUpload.kindAutoDetected ? ' (detectado automaticamente — ajuste abaixo se precisar).' : '.'}
+          </p>
         )}
         <p className="mt-2 text-xs text-gray-400">Formatos: PDF, TXT, Markdown, HTML. Máximo 10MB.</p>
       </div>
@@ -154,13 +202,41 @@ export function DocumentsPage() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => deleteMutation.mutate(doc.id)}
-                disabled={deleteMutation.isPending}
-                className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {suggestedDocId === doc.id ? (
+                  <span className="text-xs font-medium text-green-600">Sugerido ao admin ✓</span>
+                ) : (
+                  <button
+                    onClick={() => suggestRankingMutation.mutate(doc)}
+                    disabled={suggestRankingMutation.isPending}
+                    title="Sugerir um ranking global a partir deste documento"
+                    className="flex items-center gap-1 rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-600 transition-colors hover:bg-primary-50 hover:text-primary-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-primary-950/30"
+                  >
+                    <Trophy className="h-3.5 w-3.5" /> Sugerir ranking
+                  </button>
+                )}
+                <select
+                  value={doc.kind ?? 'OUTRO'}
+                  onChange={(e) =>
+                    changeKindMutation.mutate({ id: doc.id, kind: e.target.value as DocumentKind })
+                  }
+                  disabled={changeKindMutation.isPending}
+                  className="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                >
+                  {KIND_OPTIONS.map((k) => (
+                    <option key={k} value={k}>
+                      {KIND_LABELS[k]}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => deleteMutation.mutate(doc.id)}
+                  disabled={deleteMutation.isPending}
+                  className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>

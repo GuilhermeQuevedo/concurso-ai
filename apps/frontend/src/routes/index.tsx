@@ -21,6 +21,7 @@ import { EssayPage } from '@/pages/EssayPage';
 import { ContestsPage } from '@/pages/ContestsPage';
 import { CalendarPage } from '@/pages/CalendarPage';
 import { MemorySimulatorPage } from '@/pages/MemorySimulatorPage';
+import { RankingsPage } from '@/pages/RankingsPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { AdminContactsPage } from '@/pages/AdminContactsPage';
 import { HelpPage } from '@/pages/HelpPage';
@@ -64,6 +65,7 @@ export function AppRoutes() {
       <Route path="/groups" element={<ProtectedLayout><GroupsPage /></ProtectedLayout>} />
       <Route path="/stats" element={<ProtectedLayout><StatsPage /></ProtectedLayout>} />
       <Route path="/memory-simulator" element={<ProtectedLayout><MemorySimulatorPage /></ProtectedLayout>} />
+      <Route path="/rankings" element={<ProtectedLayout><RankingsPage /></ProtectedLayout>} />
       <Route path="/admin" element={<ProtectedLayout><AdminPage /></ProtectedLayout>} />
       <Route path="/admin/contatos" element={<ProtectedLayout><AdminContactsPage /></ProtectedLayout>} />
       <Route path="/settings" element={<ProtectedLayout><SettingsPage /></ProtectedLayout>} />

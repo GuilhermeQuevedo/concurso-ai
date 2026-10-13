@@ -53,7 +53,7 @@ const sections: GuideSection[] = [
         question: 'Como começo a usar a plataforma?',
         steps: [
           { icon: PenLine, text: 'Crie sua conta com nome, e-mail e telefone na tela de cadastro' },
-          { icon: BookOpen, text: 'Vá em "Disciplinas" no menu e cadastre as matérias do seu concurso' },
+          { icon: BookOpen, text: 'Vá em "Disciplinas" no menu e cadastre as matérias do seu edital, curso ou objetivo' },
           { icon: Sparkles, text: 'Vá em "Gerar Questões", escolha disciplina, banca e quantidade' },
           { icon: CheckCircle2, text: 'Clique em "Modo Estudo" ou "Modo Simulado" e comece!' },
         ],
@@ -100,7 +100,7 @@ const sections: GuideSection[] = [
           { icon: MousePointerClick, text: 'Clique no botão "Nova Banca"' },
           { icon: PenLine, text: 'Digite o nome da banca (ex: CESPE, FCC, FGV) e salve' },
         ],
-        tip: 'Bancas são as organizadoras dos concursos. Cadastre para a IA gerar questões no estilo certo.',
+        tip: 'Bancas são as organizadoras das provas. Cadastre para a IA gerar questões no estilo certo.',
         link: { label: 'Ir para Bancas', path: '/exam-boards' },
       },
       {
@@ -193,7 +193,7 @@ const sections: GuideSection[] = [
         steps: [
           { icon: MousePointerClick, text: 'Clique em "Competição" no menu lateral' },
           { icon: MousePointerClick, text: 'Clique no botão "Criar Grupo"' },
-          { icon: PenLine, text: 'Dê um nome para o grupo (ex: "Turma do Concurso") e uma descrição opcional' },
+          { icon: PenLine, text: 'Dê um nome para o grupo (ex: "Turma de Estudos") e uma descrição opcional' },
           { icon: CheckCircle2, text: 'Clique em "Criar" — um código de 6 letras será gerado automaticamente' },
           { icon: Share2, text: 'Compartilhe esse código com seus amigos para eles entrarem!' },
         ],

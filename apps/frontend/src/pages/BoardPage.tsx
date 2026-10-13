@@ -87,7 +87,7 @@ export function BoardPage() {
         </div>
       ) : tasks.length === 0 ? (
         <p className="rounded-xl border border-dashed border-gray-300 py-16 text-center text-sm text-gray-400 dark:border-gray-700">
-          Nenhuma tarefa ainda. Gere um plano de estudos a partir de um concurso para preencher o quadro.
+          Nenhuma tarefa ainda. Gere um plano de estudos a partir de um objetivo para preencher o quadro.
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

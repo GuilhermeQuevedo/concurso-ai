@@ -29,7 +29,7 @@ export function AdminPage() {
         <Card icon={Users} color="text-blue-600" label="Usuários" value={String(overview.users.total)} hint={`+${overview.users.newLast7} em 7d · +${overview.users.newLast30} em 30d`} />
         <Card icon={CreditCard} color="text-green-600" label="Assinantes ativos" value={String(overview.subscriptions.active)} />
         <Card icon={DollarSign} color="text-emerald-600" label="Recebido" value={formatBRL(overview.revenue.receivedCents)} hint={`${overview.revenue.paymentsCount} pagamento(s)`} />
-        <Card icon={Target} color="text-purple-600" label="Concursos" value={String(overview.engagement.contests)} />
+        <Card icon={Target} color="text-purple-600" label="Objetivos" value={String(overview.engagement.contests)} />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

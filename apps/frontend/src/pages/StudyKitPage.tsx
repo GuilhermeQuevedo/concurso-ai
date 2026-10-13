@@ -39,7 +39,7 @@ export function StudyKitPage() {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error('Selecione um PDF.');
-      const doc = await documentService.upload(file, subjectId);
+      const doc = await documentService.upload(file, { subjectId });
       return studyKitService.generate({
         documentId: doc.id,
         subjectId,
@@ -71,7 +71,7 @@ export function StudyKitPage() {
       <div className="mb-4 flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-300">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
-          É um <strong>edital</strong>? Use <Link to="/contests" className="font-semibold underline">Meus Concursos</Link> para extrair o conteúdo programático. Esta tela é para <strong>materiais de estudo</strong> (apostilas, PDFs de conteúdo).
+          É um <strong>edital</strong>? Use <Link to="/contests" className="font-semibold underline">Meus Objetivos</Link> para extrair o conteúdo programático. Esta tela é para <strong>materiais de estudo</strong> (apostilas, PDFs de conteúdo).
         </span>
       </div>
 

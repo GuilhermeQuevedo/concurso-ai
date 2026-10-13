@@ -39,6 +39,8 @@ model User {
   contests      Contest[]
   studyTasks    StudyTask[]
   topicReviews  TopicReview[]
+  rankingParticipations RankingParticipant[]
+  createdRankings       RankingBoard[]       @relation("RankingCreator")
 }
 
 model Session {
@@ -66,6 +68,7 @@ model Subject {
   questions      Question[]
   planItems      StudyPlanItem[]
   flashcards     Flashcard[]
+  rankings       RankingBoard[]
 
   @@index([parentId])
 }
@@ -143,11 +146,13 @@ model Document {
   userId    String
   name      String
   type      DocumentType
+  kind      DocumentKind @default(OUTRO)
   content   String       @db.LongText
   subjectId String?
   createdAt DateTime     @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rankings RankingBoard[]
 
   @@index([userId])
 }
@@ -319,6 +324,21 @@ enum DocumentType {
   TXT
   HTML
   MARKDOWN
+}
+
+enum DocumentKind {
+  EDITAL
+  EMENTA
+  CRONOGRAMA
+  MATERIAL
+  LISTA_QUESTOES
+  OUTRO
+}
+
+enum RankingStatus {
+  SUGGESTED
+  APPROVED
+  REJECTED
 }
 
 enum GroupRole {
@@ -508,4 +528,38 @@ model Contact {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+model RankingBoard {
+  id           String        @id @default(cuid())
+  title        String
+  description  String?       @db.Text
+  documentId   String?
+  subjectId    String?
+  status       RankingStatus @default(SUGGESTED)
+  createdById  String?
+  approvedById String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  document     Document?            @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  subject      Subject?             @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  createdBy    User?                @relation("RankingCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  participants RankingParticipant[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model RankingParticipant {
+  id        String   @id @default(cuid())
+  rankingId String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  ranking RankingBoard @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([rankingId, userId])
+  @@index([userId])
 }

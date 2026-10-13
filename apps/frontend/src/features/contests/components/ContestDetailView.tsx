@@ -155,7 +155,7 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
 
       {disciplines.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
-          Nenhum conteúdo programático cadastrado para este concurso.
+          Nenhum conteúdo programático cadastrado para este objetivo.
         </div>
       ) : (
         <div className="space-y-3">

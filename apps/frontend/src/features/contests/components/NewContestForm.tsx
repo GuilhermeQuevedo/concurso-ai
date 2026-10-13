@@ -17,7 +17,7 @@ export function NewContestForm({ onBack, onCreated }: { onBack: () => void; onCr
         Voltar
       </button>
 
-      <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">Novo Concurso</h2>
+      <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">Novo Objetivo de Estudo</h2>
 
       <div className="mb-4 flex gap-2">
         <ModeButton active={mode === 'edital'} onClick={() => setMode('edital')} label="A partir do edital (IA)" />
@@ -166,7 +166,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            Analisar Edital e Criar Concurso
+            Analisar Edital e Criar Objetivo
           </>
         )}
       </button>
@@ -199,7 +199,7 @@ function ManualForm({ onCreated }: { onCreated: (id: string) => void }) {
 
   return (
     <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <Field label="Nome do concurso *" value={name} onChange={setName} placeholder="Ex: SEEDF — Professor de Sociologia" />
+      <Field label="Nome do objetivo *" value={name} onChange={setName} placeholder="Ex: SEEDF — Professor de Sociologia" />
       <Field label="Órgão" value={organization} onChange={setOrganization} placeholder="Ex: Secretaria de Educação do DF" />
       <Field label="Banca" value={examBoard} onChange={setExamBoard} placeholder="Ex: CESPE/CEBRASPE" />
       <Field label="Cargo" value={role} onChange={setRole} placeholder="Ex: Professor de Educação Básica" />
@@ -215,7 +215,7 @@ function ManualForm({ onCreated }: { onCreated: (id: string) => void }) {
 
       {mutation.isError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-          Erro ao criar concurso. Tente novamente.
+          Erro ao criar. Tente novamente. Tente novamente.
         </div>
       )}
 
@@ -225,7 +225,7 @@ function ManualForm({ onCreated }: { onCreated: (id: string) => void }) {
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-5 py-3 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
       >
         {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        Criar Concurso
+        Criar Objetivo
       </button>
     </div>
   );

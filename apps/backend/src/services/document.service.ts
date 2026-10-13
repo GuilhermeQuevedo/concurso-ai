@@ -4,6 +4,7 @@ import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { mimeToDocType } from '../middlewares/upload.js';
 import { decodeTextBuffer } from '../utils/text-encoding.js';
+import { detectDocumentKind, DOCUMENT_KINDS, type DocumentKind } from '../utils/document-kind.js';
 
 interface UploadedFile {
   originalname: string;
@@ -13,7 +14,7 @@ interface UploadedFile {
 }
 
 export class DocumentService {
-  async upload(userId: string, file: UploadedFile, subjectId?: string) {
+  async upload(userId: string, file: UploadedFile, subjectId?: string, kind?: DocumentKind) {
     if (subjectId) {
       const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
       if (!subject) {
@@ -23,12 +24,15 @@ export class DocumentService {
 
     const content = await this.extractText(file);
     const docType = mimeToDocType(file.mimetype);
+    const suggestedKind = detectDocumentKind(content);
+    const finalKind = kind ?? suggestedKind;
 
     const document = await prisma.document.create({
       data: {
         userId,
         name: file.originalname,
         type: docType as 'PDF' | 'TXT' | 'HTML' | 'MARKDOWN' | 'DOCX',
+        kind: finalKind,
         content,
         subjectId: subjectId ?? null,
       },
@@ -36,7 +40,18 @@ export class DocumentService {
 
     await fs.unlink(file.path).catch(() => {});
 
-    return document;
+    return { ...document, suggestedKind, kindAutoDetected: !kind };
+  }
+
+  async updateKind(userId: string, id: string, kind: DocumentKind) {
+    if (!DOCUMENT_KINDS.includes(kind)) {
+      throw new AppError(400, 'INVALID_KIND', 'Tipo de documento inválido');
+    }
+    const doc = await prisma.document.findUnique({ where: { id } });
+    if (!doc || doc.userId !== userId) {
+      throw new AppError(404, 'DOCUMENT_NOT_FOUND', 'Documento não encontrado');
+    }
+    return prisma.document.update({ where: { id }, data: { kind } });
   }
 
   async list(userId: string, subjectId?: string) {
@@ -47,6 +62,7 @@ export class DocumentService {
         id: true,
         name: true,
         type: true,
+        kind: true,
         subjectId: true,
         createdAt: true,
         content: false,

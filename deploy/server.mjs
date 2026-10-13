@@ -55,7 +55,7 @@ if (env.NODE_ENV !== "production") {
 }
 
 // apps/backend/src/routes/index.ts
-import { Router as Router18 } from "express";
+import { Router as Router19 } from "express";
 
 // apps/backend/src/routes/auth.routes.ts
 import { Router } from "express";
@@ -402,7 +402,8 @@ var AuthRepository = class {
       prisma.document.deleteMany({ where }),
       prisma.groupMember.deleteMany({ where }),
       prisma.streak.deleteMany({ where }),
-      prisma.contest.deleteMany({ where })
+      prisma.contest.deleteMany({ where }),
+      prisma.rankingParticipant.deleteMany({ where })
     ]);
   }
   async createSession(data) {
@@ -617,8 +618,8 @@ var SubjectService = class {
 
 // apps/backend/src/controllers/subject.controller.ts
 var SubjectController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -779,8 +780,8 @@ var ExamBoardService = class {
 
 // apps/backend/src/controllers/exam-board.controller.ts
 var ExamBoardController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -912,9 +913,68 @@ function decodeTextBuffer(buffer) {
   return utf8;
 }
 
+// apps/backend/src/utils/document-kind.ts
+var DOCUMENT_KINDS = [
+  "EDITAL",
+  "EMENTA",
+  "CRONOGRAMA",
+  "MATERIAL",
+  "LISTA_QUESTOES",
+  "OUTRO"
+];
+var SIGNALS = {
+  EDITAL: [
+    /\bedital\b/i,
+    /concurso\s+p[úu]blico/i,
+    /processo\s+seletivo/i,
+    /\bvagas?\b/i,
+    /\binscri[çc][õo]es\b/i,
+    /\bbanca\b/i,
+    /\bremunera[çc][ãa]o\b/i,
+    /\bcargo\b/i
+  ],
+  EMENTA: [
+    /\bementa\b/i,
+    /plano\s+de\s+ensino/i,
+    /\bbibliografia\b/i,
+    /carga\s+hor[áa]ria/i,
+    /unidade\s+curricular/i,
+    /\bdisciplina\b/i,
+    /objetivos\s+de\s+aprendizagem/i
+  ],
+  CRONOGRAMA: [
+    /\bcronograma\b/i,
+    /\bcalend[áa]rio\b/i,
+    /semana\s*\d+/i,
+    /\bsegunda\b.*\bter[çc]a\b/i,
+    /\d{1,2}\s*[/-]\s*\d{1,2}/
+  ],
+  LISTA_QUESTOES: [
+    /\bgabarito\b/i,
+    /\balternativas?\b/i,
+    /quest[ãa]o\s*\d+/i,
+    /\(\s*[a-eA-E]\s*\)/,
+    /\bresposta\s+correta\b/i
+  ],
+  MATERIAL: [/\bresumo\b/i, /\bap[oó]stila\b/i, /\bcap[íi]tulo\b/i, /\bconceito\b/i, /\bintrodu[çc][ãa]o\b/i]
+};
+function detectDocumentKind(text) {
+  const sample = text.slice(0, 6e3);
+  let best = "OUTRO";
+  let bestScore = 0;
+  for (const kind of Object.keys(SIGNALS)) {
+    const score = SIGNALS[kind].reduce((acc, re) => acc + (re.test(sample) ? 1 : 0), 0);
+    if (score > bestScore) {
+      bestScore = score;
+      best = kind;
+    }
+  }
+  return bestScore >= 2 ? best : "OUTRO";
+}
+
 // apps/backend/src/services/document.service.ts
 var DocumentService = class {
-  async upload(userId, file, subjectId) {
+  async upload(userId, file, subjectId, kind) {
     if (subjectId) {
       const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
       if (!subject) {
@@ -923,18 +983,31 @@ var DocumentService = class {
     }
     const content = await this.extractText(file);
     const docType = mimeToDocType(file.mimetype);
+    const suggestedKind = detectDocumentKind(content);
+    const finalKind = kind ?? suggestedKind;
     const document = await prisma.document.create({
       data: {
         userId,
         name: file.originalname,
         type: docType,
+        kind: finalKind,
         content,
         subjectId: subjectId ?? null
       }
     });
     await fs.unlink(file.path).catch(() => {
     });
-    return document;
+    return { ...document, suggestedKind, kindAutoDetected: !kind };
+  }
+  async updateKind(userId, id, kind) {
+    if (!DOCUMENT_KINDS.includes(kind)) {
+      throw new AppError(400, "INVALID_KIND", "Tipo de documento inv\xE1lido");
+    }
+    const doc = await prisma.document.findUnique({ where: { id } });
+    if (!doc || doc.userId !== userId) {
+      throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
+    }
+    return prisma.document.update({ where: { id }, data: { kind } });
   }
   async list(userId, subjectId) {
     return prisma.document.findMany({
@@ -944,6 +1017,7 @@ var DocumentService = class {
         id: true,
         name: true,
         type: true,
+        kind: true,
         subjectId: true,
         createdAt: true,
         content: false
@@ -1138,8 +1212,8 @@ var QuestionService = class {
 
 // apps/backend/src/controllers/question.controller.ts
 var QuestionController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   generate = async (req, res, next) => {
@@ -2581,8 +2655,8 @@ var StudyService = class {
 
 // apps/backend/src/controllers/study.controller.ts
 var StudyController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   createSession = async (req, res, next) => {
@@ -2689,8 +2763,8 @@ import { Router as Router6 } from "express";
 
 // apps/backend/src/controllers/document.controller.ts
 var DocumentController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   upload = async (req, res, next) => {
@@ -2699,7 +2773,8 @@ var DocumentController = class {
         throw new AppError(400, "NO_FILE", "Nenhum arquivo enviado");
       }
       const subjectId = req.body.subjectId;
-      const doc = await this.service.upload(getUserId(req), req.file, subjectId);
+      const kind = req.body.kind;
+      const doc = await this.service.upload(getUserId(req), req.file, subjectId, kind);
       const response = { success: true, data: doc };
       res.status(201).json(response);
     } catch (error) {
@@ -2725,6 +2800,19 @@ var DocumentController = class {
       next(error);
     }
   };
+  updateKind = async (req, res, next) => {
+    try {
+      const doc = await this.service.updateKind(
+        getUserId(req),
+        req.params.id,
+        req.body.kind
+      );
+      const response = { success: true, data: doc };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
   delete = async (req, res, next) => {
     try {
       await this.service.delete(getUserId(req), req.params.id);
@@ -2736,6 +2824,30 @@ var DocumentController = class {
   };
 };
 
+// apps/backend/src/validators/document.validators.ts
+import { z as z8 } from "zod";
+var documentKindSchema = z8.enum([
+  "EDITAL",
+  "EMENTA",
+  "CRONOGRAMA",
+  "MATERIAL",
+  "LISTA_QUESTOES",
+  "OUTRO"
+]);
+var documentParamsSchema = z8.object({
+  params: z8.object({
+    id: z8.string().min(1)
+  })
+});
+var documentQuerySchema = z8.object({
+  subjectId: z8.string().min(1).optional()
+});
+var updateDocumentKindSchema = z8.object({
+  body: z8.object({
+    kind: documentKindSchema
+  })
+});
+
 // apps/backend/src/routes/document.routes.ts
 var router6 = Router6();
 var service5 = new DocumentService();
@@ -2743,6 +2855,7 @@ var controller5 = new DocumentController(service5);
 router6.post("/", authMiddleware, upload.single("file"), controller5.upload);
 router6.get("/", authMiddleware, controller5.list);
 router6.get("/:id", authMiddleware, controller5.getById);
+router6.patch("/:id/kind", authMiddleware, validateRequest(updateDocumentKindSchema), controller5.updateKind);
 router6.delete("/:id", authMiddleware, controller5.delete);
 
 // apps/backend/src/routes/study-plan.routes.ts
@@ -2832,8 +2945,8 @@ var StudyPlanService = class {
 
 // apps/backend/src/controllers/study-plan.controller.ts
 var StudyPlanController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   create = async (req, res, next) => {
@@ -3157,8 +3270,8 @@ var FlashcardService = class {
 
 // apps/backend/src/controllers/flashcard.controller.ts
 var FlashcardController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   create = async (req, res, next) => {
@@ -3326,22 +3439,22 @@ var StudyKitService = class {
 };
 
 // apps/backend/src/validators/study-kit.validators.ts
-import { z as z8 } from "zod";
-var generateStudyKitSchema = z8.object({
-  documentId: z8.string().min(1),
-  subjectId: z8.string().min(1),
-  outputs: z8.array(z8.enum(["summary", "flashcards", "questions"])).min(1),
-  flashcardsCount: z8.number().int().min(1).max(30).optional(),
-  questionsCount: z8.number().int().min(1).max(10).optional(),
-  examBoardId: z8.string().min(1).optional(),
-  difficulty: z8.enum(["EASY", "MEDIUM", "HARD"]).optional(),
-  topic: z8.string().max(200).optional()
+import { z as z9 } from "zod";
+var generateStudyKitSchema = z9.object({
+  documentId: z9.string().min(1),
+  subjectId: z9.string().min(1),
+  outputs: z9.array(z9.enum(["summary", "flashcards", "questions"])).min(1),
+  flashcardsCount: z9.number().int().min(1).max(30).optional(),
+  questionsCount: z9.number().int().min(1).max(10).optional(),
+  examBoardId: z9.string().min(1).optional(),
+  difficulty: z9.enum(["EASY", "MEDIUM", "HARD"]).optional(),
+  topic: z9.string().max(200).optional()
 });
 
 // apps/backend/src/controllers/study-kit.controller.ts
 var StudyKitController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   generate = async (req, res, next) => {
@@ -3370,8 +3483,8 @@ import { Router as Router10 } from "express";
 
 // apps/backend/src/controllers/gamification.controller.ts
 var GamificationController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   getProfile = async (req, res, next) => {
@@ -3406,8 +3519,8 @@ import { Router as Router11 } from "express";
 
 // apps/backend/src/controllers/group.controller.ts
 var GroupController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   create = async (req, res, next) => {
@@ -3660,8 +3773,8 @@ var EssayService = class {
 
 // apps/backend/src/controllers/essay.controller.ts
 var EssayController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   submit = async (req, res, next) => {
@@ -3742,19 +3855,19 @@ var essayUpload = multer2({
 });
 
 // apps/backend/src/validators/essay.validators.ts
-import { z as z9 } from "zod";
-var submitEssaySchema = z9.object({
-  body: z9.object({
-    type: z9.enum(["DISSERTATIVA", "ESTUDO_CASO"]).default("DISSERTATIVA"),
-    title: z9.string().min(3).max(200),
-    theme: z9.string().min(3).max(500),
-    content: z9.string().max(15e3).optional(),
+import { z as z10 } from "zod";
+var submitEssaySchema = z10.object({
+  body: z10.object({
+    type: z10.enum(["DISSERTATIVA", "ESTUDO_CASO"]).default("DISSERTATIVA"),
+    title: z10.string().min(3).max(200),
+    theme: z10.string().min(3).max(500),
+    content: z10.string().max(15e3).optional(),
     // Campos específicos de estudo de caso (chegam como string no multipart)
-    role: z9.string().max(200).optional(),
-    examBoard: z9.string().max(200).optional(),
-    caseStatement: z9.string().max(8e3).optional(),
-    answerKey: z9.string().max(8e3).optional(),
-    lineLimit: z9.coerce.number().int().min(1).max(200).optional()
+    role: z10.string().max(200).optional(),
+    examBoard: z10.string().max(200).optional(),
+    caseStatement: z10.string().max(8e3).optional(),
+    answerKey: z10.string().max(8e3).optional(),
+    lineLimit: z10.coerce.number().int().min(1).max(200).optional()
   })
 });
 
@@ -4047,8 +4160,8 @@ var ContestReviewService = class {
 
 // apps/backend/src/controllers/contest.controller.ts
 var ContestController = class {
-  constructor(service17, reviewService2) {
-    this.service = service17;
+  constructor(service18, reviewService2) {
+    this.service = service18;
     this.reviewService = reviewService2;
   }
   service;
@@ -4181,40 +4294,40 @@ var ContestController = class {
 };
 
 // apps/backend/src/validators/contest.validators.ts
-import { z as z10 } from "zod";
-var createContestSchema = z10.object({
-  body: z10.object({
-    name: z10.string().min(3).max(200),
-    organization: z10.string().max(200).optional(),
-    examBoard: z10.string().max(100).optional(),
-    role: z10.string().max(200).optional(),
-    examDate: z10.string().datetime().or(z10.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional()
+import { z as z11 } from "zod";
+var createContestSchema = z11.object({
+  body: z11.object({
+    name: z11.string().min(3).max(200),
+    organization: z11.string().max(200).optional(),
+    examBoard: z11.string().max(100).optional(),
+    role: z11.string().max(200).optional(),
+    examDate: z11.string().datetime().or(z11.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional()
   })
 });
-var updateContestSchema = z10.object({
-  body: z10.object({
-    name: z10.string().min(3).max(200).optional(),
-    organization: z10.string().max(200).nullable().optional(),
-    examBoard: z10.string().max(100).nullable().optional(),
-    role: z10.string().max(200).nullable().optional(),
-    examDate: z10.string().datetime().or(z10.string().regex(/^\d{4}-\d{2}-\d{2}$/)).nullable().optional(),
-    status: z10.enum(["PLANNED", "STUDYING", "DONE", "ARCHIVED"]).optional()
+var updateContestSchema = z11.object({
+  body: z11.object({
+    name: z11.string().min(3).max(200).optional(),
+    organization: z11.string().max(200).nullable().optional(),
+    examBoard: z11.string().max(100).nullable().optional(),
+    role: z11.string().max(200).nullable().optional(),
+    examDate: z11.string().datetime().or(z11.string().regex(/^\d{4}-\d{2}-\d{2}$/)).nullable().optional(),
+    status: z11.enum(["PLANNED", "STUDYING", "DONE", "ARCHIVED"]).optional()
   })
 });
-var updateSyllabusItemSchema = z10.object({
-  body: z10.object({
-    studied: z10.boolean()
+var updateSyllabusItemSchema = z11.object({
+  body: z11.object({
+    studied: z11.boolean()
   })
 });
-var setImportanceSchema = z10.object({
-  body: z10.object({
-    discipline: z10.string().min(1).max(200),
-    importance: z10.number().int().min(1).max(10)
+var setImportanceSchema = z11.object({
+  body: z11.object({
+    discipline: z11.string().min(1).max(200),
+    importance: z11.number().int().min(1).max(10)
   })
 });
-var completeReviewSchema = z10.object({
-  body: z10.object({
-    completed: z10.boolean()
+var completeReviewSchema = z11.object({
+  body: z11.object({
+    completed: z11.boolean()
   })
 });
 
@@ -4441,8 +4554,8 @@ function dayKey(date) {
 
 // apps/backend/src/controllers/study-task.controller.ts
 var StudyTaskController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   generatePlan = async (req, res, next) => {
@@ -4501,23 +4614,23 @@ var StudyTaskController = class {
 };
 
 // apps/backend/src/validators/study-task.validators.ts
-import { z as z11 } from "zod";
-var generatePlanSchema = z11.object({
-  body: z11.object({
-    contestId: z11.string().min(1),
-    minutesPerDay: z11.number().int().min(30).max(720).default(120),
-    studyWeekdays: z11.array(z11.number().int().min(0).max(6)).min(1).default([1, 2, 3, 4, 5, 6])
+import { z as z12 } from "zod";
+var generatePlanSchema = z12.object({
+  body: z12.object({
+    contestId: z12.string().min(1),
+    minutesPerDay: z12.number().int().min(30).max(720).default(120),
+    studyWeekdays: z12.array(z12.number().int().min(0).max(6)).min(1).default([1, 2, 3, 4, 5, 6])
   })
 });
-var listTasksSchema = z11.object({
-  query: z11.object({
-    from: z11.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    to: z11.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+var listTasksSchema = z12.object({
+  query: z12.object({
+    from: z12.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    to: z12.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
   })
 });
-var updateTaskSchema = z11.object({
-  body: z11.object({
-    completed: z11.boolean()
+var updateTaskSchema = z12.object({
+  body: z12.object({
+    completed: z12.boolean()
   })
 });
 
@@ -4620,8 +4733,8 @@ var DashboardService = class {
 
 // apps/backend/src/controllers/dashboard.controller.ts
 var DashboardController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   getSummary = async (req, res, next) => {
@@ -4645,10 +4758,10 @@ var DashboardController = class {
 };
 
 // apps/backend/src/validators/dashboard.validators.ts
-import { z as z12 } from "zod";
-var setDailyGoalSchema = z12.object({
-  body: z12.object({
-    dailyGoal: z12.number().int().min(1).max(500)
+import { z as z13 } from "zod";
+var setDailyGoalSchema = z13.object({
+  body: z13.object({
+    dailyGoal: z13.number().int().min(1).max(500)
   })
 });
 
@@ -4765,8 +4878,8 @@ function verifyKiwifySignature(rawBody, signature, token) {
 
 // apps/backend/src/controllers/payment.controller.ts
 var PaymentController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   kiwifyWebhook = async (req, res) => {
@@ -4989,8 +5102,8 @@ var AdminService = class {
 
 // apps/backend/src/controllers/admin.controller.ts
 var AdminController = class {
-  constructor(service17) {
-    this.service = service17;
+  constructor(service18) {
+    this.service = service18;
   }
   service;
   overview = async (_req, res, next) => {
@@ -5072,6 +5185,262 @@ router17.get("/contacts", controller16.listContacts);
 router17.post("/contacts/import", controller16.importContacts);
 router17.delete("/contacts/:id", controller16.deleteContact);
 
+// apps/backend/src/routes/ranking.routes.ts
+import { Router as Router18 } from "express";
+
+// apps/backend/src/services/ranking.service.ts
+var CORRECT_WEIGHT = 10;
+var STREAK_WEIGHT = 5;
+var RankingService = class {
+  async suggest(userId, dto) {
+    let subjectId = dto.subjectId ?? null;
+    if (dto.documentId) {
+      const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
+      if (!doc || doc.userId !== userId) {
+        throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
+      }
+      if (!subjectId) subjectId = doc.subjectId;
+    }
+    return prisma.rankingBoard.create({
+      data: {
+        title: dto.title,
+        description: dto.description ?? null,
+        documentId: dto.documentId ?? null,
+        subjectId,
+        createdById: userId,
+        status: "SUGGESTED"
+      }
+    });
+  }
+  async listApproved() {
+    return prisma.rankingBoard.findMany({
+      where: { status: "APPROVED" },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        subjectId: true,
+        createdAt: true,
+        subject: { select: { name: true } },
+        _count: { select: { participants: true } }
+      }
+    });
+  }
+  async listPending() {
+    return prisma.rankingBoard.findMany({
+      where: { status: "SUGGESTED" },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        createdAt: true,
+        document: { select: { name: true, kind: true } },
+        subject: { select: { name: true } },
+        createdBy: { select: { name: true, email: true } }
+      }
+    });
+  }
+  async setStatus(id, adminId, status) {
+    const board = await prisma.rankingBoard.findUnique({ where: { id } });
+    if (!board) throw new AppError(404, "RANKING_NOT_FOUND", "Ranking n\xE3o encontrado");
+    return prisma.rankingBoard.update({
+      where: { id },
+      data: { status, approvedById: adminId }
+    });
+  }
+  async join(userId, rankingId) {
+    const board = await prisma.rankingBoard.findUnique({ where: { id: rankingId } });
+    if (!board || board.status !== "APPROVED") {
+      throw new AppError(404, "RANKING_NOT_FOUND", "Ranking n\xE3o dispon\xEDvel");
+    }
+    return prisma.rankingParticipant.upsert({
+      where: { rankingId_userId: { rankingId, userId } },
+      create: { rankingId, userId },
+      update: {}
+    });
+  }
+  async leave(userId, rankingId) {
+    await prisma.rankingParticipant.delete({ where: { rankingId_userId: { rankingId, userId } } }).catch(() => {
+    });
+  }
+  async leaderboard(rankingId, currentUserId) {
+    const board = await prisma.rankingBoard.findUnique({
+      where: { id: rankingId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        subjectId: true,
+        status: true,
+        subject: { select: { name: true } }
+      }
+    });
+    if (!board || board.status !== "APPROVED") {
+      throw new AppError(404, "RANKING_NOT_FOUND", "Ranking n\xE3o dispon\xEDvel");
+    }
+    const participants = await prisma.rankingParticipant.findMany({
+      where: { rankingId },
+      select: { userId: true }
+    });
+    const userIds = participants.map((p) => p.userId);
+    if (userIds.length === 0) {
+      return { board, joined: false, entries: [] };
+    }
+    const attemptWhere = board.subjectId ? { userId: { in: userIds }, question: { subjectId: board.subjectId } } : { userId: { in: userIds } };
+    const [totals, corrects, streaks, users] = await Promise.all([
+      prisma.questionAttempt.groupBy({
+        by: ["userId"],
+        where: attemptWhere,
+        _count: { _all: true }
+      }),
+      prisma.questionAttempt.groupBy({
+        by: ["userId"],
+        where: { ...attemptWhere, isCorrect: true },
+        _count: { _all: true }
+      }),
+      prisma.streak.findMany({
+        where: { userId: { in: userIds } },
+        select: { userId: true, current: true }
+      }),
+      prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, name: true, avatar: true }
+      })
+    ]);
+    const totalMap = new Map(totals.map((t) => [t.userId, t._count._all]));
+    const correctMap = new Map(corrects.map((c) => [c.userId, c._count._all]));
+    const streakMap = new Map(streaks.map((s) => [s.userId, s.current]));
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    const entries = userIds.map((uid) => {
+      const correct = correctMap.get(uid) ?? 0;
+      const total = totalMap.get(uid) ?? 0;
+      const streak = streakMap.get(uid) ?? 0;
+      const user = userMap.get(uid);
+      return {
+        userId: uid,
+        name: user?.name ?? "Aluno",
+        avatar: user?.avatar ?? null,
+        correct,
+        total,
+        streak,
+        score: correct * CORRECT_WEIGHT + streak * STREAK_WEIGHT,
+        isCurrentUser: uid === currentUserId
+      };
+    }).sort((a, b) => b.score - a.score || b.correct - a.correct).map((entry, index) => ({ ...entry, position: index + 1 }));
+    return {
+      board,
+      joined: userIds.includes(currentUserId),
+      entries
+    };
+  }
+};
+
+// apps/backend/src/controllers/ranking.controller.ts
+var RankingController = class {
+  constructor(service18) {
+    this.service = service18;
+  }
+  service;
+  suggest = async (req, res, next) => {
+    try {
+      const board = await this.service.suggest(getUserId(req), req.body);
+      const response = { success: true, data: board };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  listApproved = async (_req, res, next) => {
+    try {
+      const boards = await this.service.listApproved();
+      const response = { success: true, data: boards };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  leaderboard = async (req, res, next) => {
+    try {
+      const data = await this.service.leaderboard(req.params.id, getUserId(req));
+      const response = { success: true, data };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  join = async (req, res, next) => {
+    try {
+      await this.service.join(getUserId(req), req.params.id);
+      const response = { success: true, data: null };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  leave = async (req, res, next) => {
+    try {
+      await this.service.leave(getUserId(req), req.params.id);
+      const response = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  listPending = async (_req, res, next) => {
+    try {
+      const boards = await this.service.listPending();
+      const response = { success: true, data: boards };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  approve = async (req, res, next) => {
+    try {
+      const board = await this.service.setStatus(req.params.id, getUserId(req), "APPROVED");
+      const response = { success: true, data: board };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  reject = async (req, res, next) => {
+    try {
+      const board = await this.service.setStatus(req.params.id, getUserId(req), "REJECTED");
+      const response = { success: true, data: board };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// apps/backend/src/validators/ranking.validators.ts
+import { z as z14 } from "zod";
+var suggestRankingSchema = z14.object({
+  body: z14.object({
+    title: z14.string().min(3).max(120),
+    description: z14.string().max(500).optional(),
+    documentId: z14.string().min(1).optional(),
+    subjectId: z14.string().min(1).optional()
+  })
+});
+
+// apps/backend/src/routes/ranking.routes.ts
+var router18 = Router18();
+var service17 = new RankingService();
+var controller17 = new RankingController(service17);
+router18.get("/", authMiddleware, controller17.listApproved);
+router18.post("/suggest", authMiddleware, validateRequest(suggestRankingSchema), controller17.suggest);
+router18.get("/pending", authMiddleware, requireAdmin, controller17.listPending);
+router18.get("/:id/leaderboard", authMiddleware, controller17.leaderboard);
+router18.post("/:id/join", authMiddleware, controller17.join);
+router18.delete("/:id/join", authMiddleware, controller17.leave);
+router18.post("/:id/approve", authMiddleware, requireAdmin, controller17.approve);
+router18.post("/:id/reject", authMiddleware, requireAdmin, controller17.reject);
+
 // apps/backend/src/middlewares/subscription.middleware.ts
 async function requireSubscription(req, res, next) {
   if (!env.REQUIRE_SUBSCRIPTION) {
@@ -5100,26 +5469,27 @@ async function requireSubscription(req, res, next) {
 }
 
 // apps/backend/src/routes/index.ts
-var router18 = Router18();
+var router19 = Router19();
 var gate = [authMiddleware, requireSubscription];
-router18.use("/auth", router);
-router18.use("/payments", router16);
-router18.use("/admin", router17);
-router18.use("/subjects", router2);
-router18.use("/exam-boards", router3);
-router18.use("/gamification", router10);
-router18.use("/groups", router11);
-router18.use("/questions", gate, router4);
-router18.use("/study", gate, router5);
-router18.use("/documents", gate, router6);
-router18.use("/study-plans", gate, router7);
-router18.use("/flashcards", gate, router8);
-router18.use("/study-kit", gate, router9);
-router18.use("/essays", gate, router12);
-router18.use("/contests", gate, router13);
-router18.use("/study-tasks", gate, router14);
-router18.use("/dashboard", gate, router15);
-router18.get("/health", (_req, res) => {
+router19.use("/auth", router);
+router19.use("/payments", router16);
+router19.use("/admin", router17);
+router19.use("/subjects", router2);
+router19.use("/exam-boards", router3);
+router19.use("/gamification", router10);
+router19.use("/groups", router11);
+router19.use("/questions", gate, router4);
+router19.use("/study", gate, router5);
+router19.use("/documents", gate, router6);
+router19.use("/study-plans", gate, router7);
+router19.use("/flashcards", gate, router8);
+router19.use("/study-kit", gate, router9);
+router19.use("/essays", gate, router12);
+router19.use("/contests", gate, router13);
+router19.use("/study-tasks", gate, router14);
+router19.use("/dashboard", gate, router15);
+router19.use("/rankings", gate, router18);
+router19.get("/health", (_req, res) => {
   const response = {
     success: true,
     data: {
@@ -5213,7 +5583,7 @@ app.use(express.json({ limit: "10mb" }));
 var uploadsDir = path3.resolve("uploads");
 fs5.mkdirSync(uploadsDir, { recursive: true });
 app.use("/uploads", express.static(uploadsDir));
-app.use("/api", router18);
+app.use("/api", router19);
 var publicDir = path3.resolve("public");
 if (fs5.existsSync(publicDir)) {
   app.use(express.static(publicDir));

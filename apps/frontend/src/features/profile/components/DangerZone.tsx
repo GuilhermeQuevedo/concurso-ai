@@ -77,7 +77,7 @@ export function DangerZone() {
           <h3 className="font-semibold text-gray-900 dark:text-white">Resetar conta</h3>
         </div>
         <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-          Apaga <strong>todos os seus dados de estudo</strong> (questões, flashcards, redações, concursos, plano e progresso). Seu login e e-mail são mantidos. Esta ação não pode ser desfeita.
+          Apaga <strong>todos os seus dados de estudo</strong> (questões, flashcards, redações, objetivos, plano e progresso). Seu login e e-mail são mantidos. Esta ação não pode ser desfeita.
         </p>
         <button
           onClick={() => { setConfirmOpen(true); setPassword(''); }}

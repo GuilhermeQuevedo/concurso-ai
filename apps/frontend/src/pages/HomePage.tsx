@@ -39,7 +39,7 @@ export function HomePage() {
           O que você estuda, fica.
         </p>
         <p className="mx-auto mb-10 max-w-xl text-base text-gray-600 dark:text-gray-400">
-          Plataforma de estudos para concursos que usa a ciência da memória para você aprender e não esquecer.
+          Estude para qualquer prova ou seleção usando a ciência da memória — para você aprender e não esquecer.
         </p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

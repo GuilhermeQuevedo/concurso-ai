@@ -44,7 +44,7 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     selector: '[data-tour="/contests"]',
-    title: 'Meus Concursos (o coração)',
+    title: 'Meus Objetivos (o coração)',
     text: 'Suba o edital aqui. Cada tópico ganha revisão espaçada automática e um score de prioridade pra você saber o que estudar primeiro.',
   },
   {
@@ -75,6 +75,6 @@ export const TOUR_STEPS: TourStep[] = [
   {
     placement: 'center',
     title: 'Pronto pra começar! 🚀',
-    text: 'Dica de ouro: suba seu edital em "Meus Concursos" e deixe a plataforma montar suas revisões. Bons estudos!',
+    text: 'Dica de ouro: suba seu edital em "Meus Objetivos" e deixe a plataforma montar suas revisões. Bons estudos!',
   },
 ];
