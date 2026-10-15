@@ -41,6 +41,7 @@ model User {
   topicReviews  TopicReview[]
   rankingParticipations RankingParticipant[]
   createdRankings       RankingBoard[]       @relation("RankingCreator")
+  questionSets          QuestionSet[]
 }
 
 model Session {
@@ -69,6 +70,7 @@ model Subject {
   planItems      StudyPlanItem[]
   flashcards     Flashcard[]
   rankings       RankingBoard[]
+  questionSets   QuestionSet[]
 
   @@index([parentId])
 }
@@ -100,6 +102,7 @@ model Question {
   examBoard ExamBoard? @relation(fields: [examBoardId], references: [id])
   attempts  QuestionAttempt[]
   favorites Favorite[]
+  setItems  QuestionSetItem[]
 
   @@index([subjectId])
   @@index([examBoardId])
@@ -562,4 +565,33 @@ model RankingParticipant {
 
   @@unique([rankingId, userId])
   @@index([userId])
+}
+
+model QuestionSet {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  subjectId     String?
+  mode          String    @default("STUDY")
+  createdAt     DateTime  @default(now())
+  lastAttemptAt DateTime?
+
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject?          @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  items   QuestionSetItem[]
+
+  @@index([userId])
+}
+
+model QuestionSetItem {
+  id         String @id @default(cuid())
+  setId      String
+  questionId String
+  order      Int    @default(0)
+
+  set      QuestionSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([setId, questionId])
+  @@index([questionId])
 }

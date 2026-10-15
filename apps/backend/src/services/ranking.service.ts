@@ -76,6 +76,12 @@ export class RankingService {
     });
   }
 
+  async delete(id: string) {
+    const board = await prisma.rankingBoard.findUnique({ where: { id } });
+    if (!board) throw new AppError(404, 'RANKING_NOT_FOUND', 'Ranking não encontrado');
+    await prisma.rankingBoard.delete({ where: { id } });
+  }
+
   async join(userId: string, rankingId: string) {
     const board = await prisma.rankingBoard.findUnique({ where: { id: rankingId } });
     if (!board || board.status !== 'APPROVED') {

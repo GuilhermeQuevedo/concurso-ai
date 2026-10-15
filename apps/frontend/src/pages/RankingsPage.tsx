@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Medal, Trophy, Users, Loader2, Check, X, Flame, Target } from 'lucide-react';
+import { Medal, Trophy, Users, Loader2, Check, X, Flame, Target, Trash2 } from 'lucide-react';
 import { rankingService } from '@/features/rankings/services/ranking.service';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
@@ -28,6 +28,20 @@ export function RankingsPage() {
       queryClient.invalidateQueries({ queryKey: ['rankings'] });
     },
   });
+
+  const removeRanking = useMutation({
+    mutationFn: (id: string) => rankingService.remove(id),
+    onSuccess: (_d, id) => {
+      if (selectedId === id) setSelectedId(null);
+      queryClient.invalidateQueries({ queryKey: ['rankings'] });
+    },
+  });
+
+  const handleDelete = (id: string, title: string) => {
+    if (window.confirm(`Apagar o ranking "${title}"? Essa ação não pode ser desfeita.`)) {
+      removeRanking.mutate(id);
+    }
+  };
 
   return (
     <div>
@@ -73,6 +87,14 @@ export function RankingsPage() {
                   >
                     <X className="h-3.5 w-3.5" /> Recusar
                   </button>
+                  <button
+                    onClick={() => handleDelete(p.id, p.title)}
+                    disabled={removeRanking.isPending}
+                    title="Apagar"
+                    className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/40"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -94,16 +116,29 @@ export function RankingsPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {boards.map((b) => (
-            <button
+            <div
               key={b.id}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelectedId(b.id)}
-              className={`rounded-xl border p-4 text-left transition-colors ${
+              onKeyDown={(e) => e.key === 'Enter' && setSelectedId(b.id)}
+              className={`relative cursor-pointer rounded-xl border p-4 text-left transition-colors ${
                 selectedId === b.id
                   ? 'border-primary-500 bg-primary-50 dark:border-primary-600 dark:bg-primary-950/30'
                   : 'border-gray-200 bg-white hover:border-primary-300 dark:border-gray-800 dark:bg-gray-900'
               }`}
             >
-              <p className="font-semibold text-gray-900 dark:text-white">{b.title}</p>
+              {isAdmin && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(b.id, b.title); }}
+                  disabled={removeRanking.isPending}
+                  title="Apagar ranking"
+                  className="absolute right-2 top-2 rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+              <p className="pr-7 font-semibold text-gray-900 dark:text-white">{b.title}</p>
               {b.description && (
                 <p className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
                   {b.description}
@@ -113,7 +148,7 @@ export function RankingsPage() {
                 <Users className="h-3.5 w-3.5" /> {b._count.participants} participando
                 {b.subject && <span>· {b.subject.name}</span>}
               </p>
-            </button>
+            </div>
           ))}
         </div>
       )}

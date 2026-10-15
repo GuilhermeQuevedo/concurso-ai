@@ -55,7 +55,7 @@ if (env.NODE_ENV !== "production") {
 }
 
 // apps/backend/src/routes/index.ts
-import { Router as Router19 } from "express";
+import { Router as Router20 } from "express";
 
 // apps/backend/src/routes/auth.routes.ts
 import { Router } from "express";
@@ -403,7 +403,8 @@ var AuthRepository = class {
       prisma.groupMember.deleteMany({ where }),
       prisma.streak.deleteMany({ where }),
       prisma.contest.deleteMany({ where }),
-      prisma.rankingParticipant.deleteMany({ where })
+      prisma.rankingParticipant.deleteMany({ where }),
+      prisma.questionSet.deleteMany({ where })
     ]);
   }
   async createSession(data) {
@@ -618,8 +619,8 @@ var SubjectService = class {
 
 // apps/backend/src/controllers/subject.controller.ts
 var SubjectController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -780,8 +781,8 @@ var ExamBoardService = class {
 
 // apps/backend/src/controllers/exam-board.controller.ts
 var ExamBoardController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   getAll = async (_req, res, next) => {
@@ -1233,8 +1234,8 @@ var QuestionService = class {
 
 // apps/backend/src/controllers/question.controller.ts
 var QuestionController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   generate = async (req, res, next) => {
@@ -2756,8 +2757,8 @@ var StudyService = class {
 
 // apps/backend/src/controllers/study.controller.ts
 var StudyController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   createSession = async (req, res, next) => {
@@ -3487,8 +3488,8 @@ var DocumentProcessService = class {
 
 // apps/backend/src/controllers/document.controller.ts
 var DocumentController = class {
-  constructor(service18, processService2) {
-    this.service = service18;
+  constructor(service19, processService2) {
+    this.service = service19;
     this.processService = processService2;
   }
   service;
@@ -3683,8 +3684,8 @@ var StudyPlanService = class {
 
 // apps/backend/src/controllers/study-plan.controller.ts
 var StudyPlanController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   create = async (req, res, next) => {
@@ -3759,8 +3760,8 @@ import { Router as Router8 } from "express";
 
 // apps/backend/src/controllers/flashcard.controller.ts
 var FlashcardController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   create = async (req, res, next) => {
@@ -3881,8 +3882,8 @@ var generateStudyKitSchema = z9.object({
 
 // apps/backend/src/controllers/study-kit.controller.ts
 var StudyKitController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   generate = async (req, res, next) => {
@@ -3911,8 +3912,8 @@ import { Router as Router10 } from "express";
 
 // apps/backend/src/controllers/gamification.controller.ts
 var GamificationController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   getProfile = async (req, res, next) => {
@@ -3947,8 +3948,8 @@ import { Router as Router11 } from "express";
 
 // apps/backend/src/controllers/group.controller.ts
 var GroupController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   create = async (req, res, next) => {
@@ -4190,8 +4191,8 @@ var EssayService = class {
 
 // apps/backend/src/controllers/essay.controller.ts
 var EssayController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   submit = async (req, res, next) => {
@@ -4345,8 +4346,8 @@ var ContestReviewService = class {
 
 // apps/backend/src/controllers/contest.controller.ts
 var ContestController = class {
-  constructor(service18, reviewService2) {
-    this.service = service18;
+  constructor(service19, reviewService2) {
+    this.service = service19;
     this.reviewService = reviewService2;
   }
   service;
@@ -4739,8 +4740,8 @@ function dayKey(date) {
 
 // apps/backend/src/controllers/study-task.controller.ts
 var StudyTaskController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   generatePlan = async (req, res, next) => {
@@ -4918,8 +4919,8 @@ var DashboardService = class {
 
 // apps/backend/src/controllers/dashboard.controller.ts
 var DashboardController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   getSummary = async (req, res, next) => {
@@ -5063,8 +5064,8 @@ function verifyKiwifySignature(rawBody, signature, token) {
 
 // apps/backend/src/controllers/payment.controller.ts
 var PaymentController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   kiwifyWebhook = async (req, res) => {
@@ -5287,8 +5288,8 @@ var AdminService = class {
 
 // apps/backend/src/controllers/admin.controller.ts
 var AdminController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   overview = async (_req, res, next) => {
@@ -5435,6 +5436,11 @@ var RankingService = class {
       data: { status, approvedById: adminId }
     });
   }
+  async delete(id) {
+    const board = await prisma.rankingBoard.findUnique({ where: { id } });
+    if (!board) throw new AppError(404, "RANKING_NOT_FOUND", "Ranking n\xE3o encontrado");
+    await prisma.rankingBoard.delete({ where: { id } });
+  }
   async join(userId, rankingId) {
     const board = await prisma.rankingBoard.findUnique({ where: { id: rankingId } });
     if (!board || board.status !== "APPROVED") {
@@ -5524,8 +5530,8 @@ var RankingService = class {
 
 // apps/backend/src/controllers/ranking.controller.ts
 var RankingController = class {
-  constructor(service18) {
-    this.service = service18;
+  constructor(service19) {
+    this.service = service19;
   }
   service;
   suggest = async (req, res, next) => {
@@ -5600,6 +5606,15 @@ var RankingController = class {
       next(error);
     }
   };
+  remove = async (req, res, next) => {
+    try {
+      await this.service.delete(req.params.id);
+      const response = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
 // apps/backend/src/validators/ranking.validators.ts
@@ -5625,6 +5640,239 @@ router18.post("/:id/join", authMiddleware, controller17.join);
 router18.delete("/:id/join", authMiddleware, controller17.leave);
 router18.post("/:id/approve", authMiddleware, requireAdmin, controller17.approve);
 router18.post("/:id/reject", authMiddleware, requireAdmin, controller17.reject);
+router18.delete("/:id", authMiddleware, requireAdmin, controller17.remove);
+
+// apps/backend/src/routes/question-set.routes.ts
+import { Router as Router19 } from "express";
+
+// apps/backend/src/services/question-set.service.ts
+var QuestionSetService = class {
+  questionService;
+  constructor(aiProvider4) {
+    this.questionService = new QuestionService(aiProvider4);
+  }
+  async list(userId) {
+    const sets = await prisma.questionSet.findMany({
+      where: { userId },
+      orderBy: [{ lastAttemptAt: "desc" }, { createdAt: "desc" }],
+      include: {
+        subject: { select: { name: true } },
+        items: { select: { questionId: true } }
+      }
+    });
+    const result = [];
+    for (const s of sets) {
+      const qIds = s.items.map((i) => i.questionId);
+      let answered = 0;
+      if (qIds.length > 0) {
+        const distinct = await prisma.questionAttempt.findMany({
+          where: { userId, questionId: { in: qIds } },
+          distinct: ["questionId"],
+          select: { questionId: true }
+        });
+        answered = distinct.length;
+      }
+      result.push({
+        id: s.id,
+        name: s.name,
+        mode: s.mode,
+        subject: s.subject,
+        createdAt: s.createdAt,
+        lastAttemptAt: s.lastAttemptAt,
+        total: qIds.length,
+        answered
+      });
+    }
+    return result;
+  }
+  async generate(userId, dto) {
+    const questions = await this.questionService.generate(userId, {
+      subjectId: dto.subjectId,
+      quantity: dto.quantity,
+      examBoardId: dto.examBoardId,
+      difficulty: dto.difficulty,
+      topic: dto.topic,
+      documentId: dto.documentId
+    });
+    if (questions.length === 0) {
+      throw new AppError(400, "NO_QUESTIONS", "N\xE3o foi poss\xEDvel gerar quest\xF5es para esta configura\xE7\xE3o.");
+    }
+    const subject = await prisma.subject.findUnique({
+      where: { id: dto.subjectId },
+      select: { name: true }
+    });
+    return prisma.questionSet.create({
+      data: {
+        userId,
+        name: dto.name?.trim() || this.defaultName(subject?.name),
+        subjectId: dto.subjectId,
+        mode: dto.mode ?? "STUDY",
+        items: { create: questions.map((q, i) => ({ questionId: q.id, order: i })) }
+      },
+      select: { id: true, name: true }
+    });
+  }
+  async createManual(userId, dto) {
+    const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
+    if (!subject) {
+      throw new AppError(404, "SUBJECT_NOT_FOUND", "Disciplina n\xE3o encontrada");
+    }
+    const created = await prisma.$transaction(
+      dto.questions.map(
+        (q) => prisma.question.create({
+          data: {
+            statement: q.statement,
+            alternatives: q.alternatives,
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation ?? "",
+            difficulty: q.difficulty,
+            comments: [],
+            subjectId: dto.subjectId,
+            source: "MANUAL"
+          },
+          select: { id: true }
+        })
+      )
+    );
+    return prisma.questionSet.create({
+      data: {
+        userId,
+        name: dto.name.trim(),
+        subjectId: dto.subjectId,
+        mode: dto.mode ?? "STUDY",
+        items: { create: created.map((c, i) => ({ questionId: c.id, order: i })) }
+      },
+      select: { id: true, name: true }
+    });
+  }
+  async getById(userId, id) {
+    const set = await prisma.questionSet.findUnique({
+      where: { id },
+      include: {
+        items: {
+          orderBy: { order: "asc" },
+          include: { question: { include: { subject: true, examBoard: true } } }
+        }
+      }
+    });
+    if (!set || set.userId !== userId) {
+      throw new AppError(404, "SET_NOT_FOUND", "Simulado n\xE3o encontrado");
+    }
+    await prisma.questionSet.update({ where: { id }, data: { lastAttemptAt: /* @__PURE__ */ new Date() } });
+    return {
+      id: set.id,
+      name: set.name,
+      mode: set.mode,
+      questions: set.items.map((i) => i.question)
+    };
+  }
+  async delete(userId, id) {
+    const set = await prisma.questionSet.findUnique({ where: { id }, select: { userId: true } });
+    if (!set || set.userId !== userId) {
+      throw new AppError(404, "SET_NOT_FOUND", "Simulado n\xE3o encontrado");
+    }
+    await prisma.questionSet.delete({ where: { id } });
+  }
+  defaultName(subjectName) {
+    const date = (/* @__PURE__ */ new Date()).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    return `${subjectName ?? "Simulado"} - ${date}`;
+  }
+};
+
+// apps/backend/src/controllers/question-set.controller.ts
+var QuestionSetController = class {
+  constructor(service19) {
+    this.service = service19;
+  }
+  service;
+  list = async (req, res, next) => {
+    try {
+      const sets = await this.service.list(getUserId(req));
+      const response = { success: true, data: sets };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  generate = async (req, res, next) => {
+    try {
+      const set = await this.service.generate(getUserId(req), req.body);
+      const response = { success: true, data: set };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  createManual = async (req, res, next) => {
+    try {
+      const set = await this.service.createManual(getUserId(req), req.body);
+      const response = { success: true, data: set };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  getById = async (req, res, next) => {
+    try {
+      const set = await this.service.getById(getUserId(req), req.params.id);
+      const response = { success: true, data: set };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+  remove = async (req, res, next) => {
+    try {
+      await this.service.delete(getUserId(req), req.params.id);
+      const response = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// apps/backend/src/validators/question-set.validators.ts
+import { z as z15 } from "zod";
+var difficulty = z15.enum(["EASY", "MEDIUM", "HARD"]);
+var generateQuestionSetSchema = z15.object({
+  body: z15.object({
+    name: z15.string().max(120).optional(),
+    subjectId: z15.string().min(1),
+    quantity: z15.number().int().min(1).max(20),
+    examBoardId: z15.string().min(1).optional(),
+    difficulty: difficulty.optional(),
+    topic: z15.string().max(200).optional(),
+    documentId: z15.string().min(1).optional(),
+    mode: z15.enum(["STUDY", "EXAM"]).optional()
+  })
+});
+var createManualSetSchema = z15.object({
+  body: z15.object({
+    name: z15.string().min(2).max(120),
+    subjectId: z15.string().min(1),
+    mode: z15.enum(["STUDY", "EXAM"]).optional(),
+    questions: z15.array(
+      z15.object({
+        statement: z15.string().min(3),
+        alternatives: z15.array(z15.object({ letter: z15.string().min(1).max(2), text: z15.string().min(1) })).min(2).max(5),
+        correctAnswer: z15.string().min(1).max(2),
+        explanation: z15.string().optional(),
+        difficulty
+      })
+    ).min(1).max(50)
+  })
+});
+
+// apps/backend/src/routes/question-set.routes.ts
+var router19 = Router19();
+var service18 = new QuestionSetService(createAIProvider());
+var controller18 = new QuestionSetController(service18);
+router19.get("/", authMiddleware, controller18.list);
+router19.post("/generate", authMiddleware, validateRequest(generateQuestionSetSchema), controller18.generate);
+router19.post("/manual", authMiddleware, validateRequest(createManualSetSchema), controller18.createManual);
+router19.get("/:id", authMiddleware, controller18.getById);
+router19.delete("/:id", authMiddleware, controller18.remove);
 
 // apps/backend/src/middlewares/subscription.middleware.ts
 async function requireSubscription(req, res, next) {
@@ -5654,27 +5902,28 @@ async function requireSubscription(req, res, next) {
 }
 
 // apps/backend/src/routes/index.ts
-var router19 = Router19();
+var router20 = Router20();
 var gate = [authMiddleware, requireSubscription];
-router19.use("/auth", router);
-router19.use("/payments", router16);
-router19.use("/admin", router17);
-router19.use("/subjects", router2);
-router19.use("/exam-boards", router3);
-router19.use("/gamification", router10);
-router19.use("/groups", router11);
-router19.use("/questions", gate, router4);
-router19.use("/study", gate, router5);
-router19.use("/documents", gate, router6);
-router19.use("/study-plans", gate, router7);
-router19.use("/flashcards", gate, router8);
-router19.use("/study-kit", gate, router9);
-router19.use("/essays", gate, router12);
-router19.use("/contests", gate, router13);
-router19.use("/study-tasks", gate, router14);
-router19.use("/dashboard", gate, router15);
-router19.use("/rankings", gate, router18);
-router19.get("/health", (_req, res) => {
+router20.use("/auth", router);
+router20.use("/payments", router16);
+router20.use("/admin", router17);
+router20.use("/subjects", router2);
+router20.use("/exam-boards", router3);
+router20.use("/gamification", router10);
+router20.use("/groups", router11);
+router20.use("/questions", gate, router4);
+router20.use("/study", gate, router5);
+router20.use("/documents", gate, router6);
+router20.use("/study-plans", gate, router7);
+router20.use("/flashcards", gate, router8);
+router20.use("/study-kit", gate, router9);
+router20.use("/essays", gate, router12);
+router20.use("/contests", gate, router13);
+router20.use("/study-tasks", gate, router14);
+router20.use("/dashboard", gate, router15);
+router20.use("/rankings", gate, router18);
+router20.use("/question-sets", gate, router19);
+router20.get("/health", (_req, res) => {
   const response = {
     success: true,
     data: {
@@ -5768,7 +6017,7 @@ app.use(express.json({ limit: "10mb" }));
 var uploadsDir = path3.resolve("uploads");
 fs5.mkdirSync(uploadsDir, { recursive: true });
 app.use("/uploads", express.static(uploadsDir));
-app.use("/api", router19);
+app.use("/api", router20);
 var publicDir = path3.resolve("public");
 if (fs5.existsSync(publicDir)) {
   app.use(express.static(publicDir));

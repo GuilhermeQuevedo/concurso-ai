@@ -85,4 +85,14 @@ export class RankingController {
       next(error);
     }
   };
+
+  remove = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.service.delete(req.params.id as string);
+      const response: ApiResponse<null> = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

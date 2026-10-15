@@ -87,4 +87,8 @@ export const rankingService = {
   async reject(id: string): Promise<void> {
     await api.post(`/rankings/${id}/reject`);
   },
+
+  async remove(id: string): Promise<void> {
+    await api.delete(`/rankings/${id}`);
+  },
 };

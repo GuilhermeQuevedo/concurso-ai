@@ -19,5 +19,6 @@ router.post('/:id/join', authMiddleware, controller.join);
 router.delete('/:id/join', authMiddleware, controller.leave);
 router.post('/:id/approve', authMiddleware, requireAdmin, controller.approve);
 router.post('/:id/reject', authMiddleware, requireAdmin, controller.reject);
+router.delete('/:id', authMiddleware, requireAdmin, controller.remove);
 
 export { router as rankingRouter };
