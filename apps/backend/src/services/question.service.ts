@@ -5,6 +5,9 @@ import { AppError } from '../middlewares/error-handler.js';
 import { DocumentService } from './document.service.js';
 import { htmlToPlainText } from '../utils/html.js';
 
+export const ESSAY_ANSWER = 'S';
+const MIN_AUDIT_ALTERNATIVES = 2;
+
 export class QuestionService {
   private readonly documentService = new DocumentService();
 
@@ -17,7 +20,7 @@ export class QuestionService {
     }
 
     // Com documento escolhido, gera ancorado nas anotações do aluno (pula o banco)
-    if (dto.documentId) {
+    if (dto.documentId || dto.content) {
       return this.generateWithAI(userId, dto, subject.name);
     }
 
@@ -71,7 +74,9 @@ export class QuestionService {
     }
 
     let context: string;
-    if (dto.documentId) {
+    if (dto.content?.trim()) {
+      context = dto.content;
+    } else if (dto.documentId) {
       const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
       if (!doc || doc.userId !== userId) {
         throw new AppError(404, 'DOCUMENT_NOT_FOUND', 'Documento não encontrado');
@@ -88,6 +93,8 @@ export class QuestionService {
       difficulty: dto.difficulty,
       quantity: dto.quantity,
       context: context || undefined,
+      questionType: dto.questionType,
+      cloneStyle: dto.cloneStyle,
     });
 
     const kept = await this.auditQuestions(generated, subjectName);
@@ -98,7 +105,7 @@ export class QuestionService {
           data: {
             statement: htmlToPlainText(q.statement),
             alternatives: q.alternatives.map((a) => ({ letter: a.letter, text: htmlToPlainText(a.text) })),
-            correctAnswer: q.correctAnswer,
+            correctAnswer: q.alternatives.length === 0 ? ESSAY_ANSWER : q.correctAnswer,
             explanation: htmlToPlainText(q.explanation),
             difficulty: q.difficulty,
             comments: [],
@@ -118,16 +125,20 @@ export class QuestionService {
   // descartamos as que não batem com o gabarito. Se a auditoria falhar ou
   // reprovar demais (possível modelo instável), mantém todas por segurança.
   private async auditQuestions(generated: GeneratedQuestion[], subjectName: string): Promise<GeneratedQuestion[]> {
-    if (generated.length === 0) return generated;
+    const objective = generated.filter((q) => q.alternatives.length >= MIN_AUDIT_ALTERNATIVES);
+    if (objective.length === 0) return generated;
     try {
       const answers = await this.aiProvider.answerQuestions({
         subject: subjectName,
-        questions: generated.map((q) => ({ statement: q.statement, alternatives: q.alternatives })),
+        questions: objective.map((q) => ({ statement: q.statement, alternatives: q.alternatives })),
       });
-      if (answers.length !== generated.length) return generated;
+      if (answers.length !== objective.length) return generated;
 
-      const agreed = generated.filter((q, i) => answers[i] && answers[i] === q.correctAnswer.trim().toUpperCase());
-      return agreed.length >= Math.ceil(generated.length / 2) ? agreed : generated;
+      const agreed = new Set(
+        objective.filter((q, i) => answers[i] && answers[i] === q.correctAnswer.trim().toUpperCase()),
+      );
+      if (agreed.size < Math.ceil(objective.length / 2)) return generated;
+      return generated.filter((q) => q.alternatives.length < MIN_AUDIT_ALTERNATIVES || agreed.has(q));
     } catch {
       return generated;
     }

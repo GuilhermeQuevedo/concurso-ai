@@ -36,6 +36,16 @@ export class QuestionSetController {
     }
   };
 
+  rename = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const set = await this.service.rename(getUserId(req), req.params.id as string, req.body.name);
+      const response: ApiResponse<typeof set> = { success: true, data: set };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const set = await this.service.getById(getUserId(req), req.params.id as string);

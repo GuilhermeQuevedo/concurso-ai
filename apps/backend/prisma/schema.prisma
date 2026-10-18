@@ -575,6 +575,7 @@ model QuestionSet {
   name          String
   subjectId     String?
   mode          String    @default("STUDY")
+  questionType  String    @default("MULTIPLE_5")
   createdAt     DateTime  @default(now())
   lastAttemptAt DateTime?
 

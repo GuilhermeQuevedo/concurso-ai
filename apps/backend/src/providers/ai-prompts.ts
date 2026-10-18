@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type {
   GenerateQuestionsParams,
+  QuestionType,
   GradeEssayParams,
   GradeCaseStudyParams,
   TopicContentParams,
@@ -13,7 +14,7 @@ export const questionsResponseSchema = z.object({
   questions: z.array(
     z.object({
       statement: z.string(),
-      alternatives: z.array(z.object({ letter: z.string(), text: z.string() })).min(4).max(5),
+      alternatives: z.array(z.object({ letter: z.string(), text: z.string() })).max(5),
       correctAnswer: z.string(),
       explanation: z.string(),
       difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
@@ -110,48 +111,66 @@ export function sampleContent(content: string, maxChars: number, windows = 5): s
 
 const QUESTIONS_MAX_CONTEXT = 14000;
 
+const ALT_LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
+
+function typeInstructions(type: QuestionType): string {
+  switch (type) {
+    case 'MULTIPLE_4':
+      return 'Cada questão deve ter exatamente 4 alternativas (A, B, C, D), com UMA única correta.';
+    case 'TRUE_FALSE':
+      return 'Cada questão é uma afirmação para julgar como CERTO ou ERRADO. Use exatamente 2 alternativas: {"letter":"C","text":"Certo"} e {"letter":"E","text":"Errado"}; correctAnswer é "C" ou "E". Equilibre afirmações certas e erradas.';
+    case 'ESSAY':
+      return 'Cada questão é SUBJETIVA (resposta dissertativa curta). Use "alternatives": [] e "correctAnswer": "S". Em "explanation" escreva a resposta esperada, com os pontos-chave que uma boa resposta deve conter.';
+    case 'MIXED':
+      return 'Varie o formato entre as questões: múltipla escolha com 5 alternativas (A–E), múltipla escolha com 4 (A–D), certo/errado (alternativas C e E, texto "Certo" e "Errado") e subjetiva ("alternatives": [] e "correctAnswer": "S", com a resposta esperada em "explanation").';
+    default:
+      return 'Cada questão deve ter exatamente 5 alternativas (A, B, C, D, E), com UMA única correta.';
+  }
+}
+
+function exampleItem(type: QuestionType, difficulty: string): string {
+  const alternatives =
+    type === 'ESSAY'
+      ? '[]'
+      : type === 'TRUE_FALSE'
+        ? '[{"letter":"C","text":"Certo"},{"letter":"E","text":"Errado"}]'
+        : JSON.stringify(
+            ALT_LETTERS.slice(0, type === 'MULTIPLE_4' ? 4 : 5).map((letter) => ({ letter, text: `Texto da alternativa ${letter}` })),
+          );
+  const correct = type === 'ESSAY' ? 'S' : 'C';
+  return `{"statement":"Enunciado da questão","alternatives":${alternatives},"correctAnswer":"${correct}","explanation":"Explicação detalhada","difficulty":"${difficulty}"}`;
+}
+
 export function buildQuestionsPrompt(params: GenerateQuestionsParams): string {
   const difficultyMap = { EASY: 'fácil', MEDIUM: 'média', HARD: 'difícil' };
   const diffText = params.difficulty ? difficultyMap[params.difficulty] : 'variada';
+  const type = params.questionType ?? 'MULTIPLE_5';
 
+  const styleNote = params.cloneStyle
+    ? '\nCLONADOR DE PROVA: o material abaixo é uma prova/lista de referência. Imite o ESTILO dela (tamanho dos enunciados, tom, tipo de cobrança e pegadinhas da banca) sem copiar as questões.\n'
+    : '';
   const contextBlock = params.context
-    ? `\nMATERIAL DE ESTUDO DO CANDIDATO (trechos ao longo do material; baseie-se ESTRITAMENTE neste material — cada questão deve poder ser respondida com o que está aqui; não cobre nada que não esteja no texto):\n${sampleContent(params.context, QUESTIONS_MAX_CONTEXT)}\n`
+    ? `\nMATERIAL DE ESTUDO DO CANDIDATO (trechos ao longo do material; baseie-se ESTRITAMENTE neste material — cada questão deve poder ser respondida com o que está aqui; não cobre nada que não esteja no texto):${styleNote}\n${sampleContent(params.context, QUESTIONS_MAX_CONTEXT)}\n`
     : '';
 
-  return `Você é um elaborador experiente de questões de concursos públicos brasileiros. Gere ${params.quantity} questão(ões) de múltipla escolha sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
+  return `Você é um elaborador experiente de questões de concursos públicos brasileiros. Gere ${params.quantity} questão(ões) sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
 
 ${params.examBoard ? `Estilo da banca: ${params.examBoard}. Siga o padrão de elaboração dessa banca.` : ''}
 Dificuldade: ${diffText}.
 ${contextBlock}
 
 REGRAS OBRIGATÓRIAS:
-1. Cada questão deve ter exatamente 5 alternativas (A, B, C, D, E)
-2. Apenas UMA alternativa inequivocamente correta por questão — as demais devem estar claramente erradas para quem domina o conteúdo, sem ambiguidade
-3. O enunciado deve ser claro, autocontido e direto: uma única pergunta, sem duplas negações, sem "pegadinhas" de redação confusa
+1. ${typeInstructions(type)}
+2. Em questões objetivas, apenas UMA alternativa inequivocamente correta — as demais devem estar claramente erradas para quem domina o conteúdo, sem ambiguidade
+3. O enunciado deve ser claro, autocontido e direto, sem duplas negações nem "pegadinhas" de redação confusa
 4. As alternativas erradas devem ser plausíveis (erros comuns de candidatos), curtas e com estrutura gramatical semelhante à correta
 5. NÃO invente leis, artigos, números ou datas; se não tiver certeza de um dado, não o utilize
-6. A explicação deve justificar por que a alternativa correta está certa e por que CADA uma das outras está errada
+6. A explicação deve justificar a resposta correta e, nas objetivas, por que CADA uma das outras está errada
 7. Use linguagem formal e técnica adequada para concursos
 8. Varie a posição da resposta correta entre as questões
 
 Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adicional:
-{
-  "questions": [
-    {
-      "statement": "Enunciado da questão",
-      "alternatives": [
-        {"letter": "A", "text": "Texto da alternativa A"},
-        {"letter": "B", "text": "Texto da alternativa B"},
-        {"letter": "C", "text": "Texto da alternativa C"},
-        {"letter": "D", "text": "Texto da alternativa D"},
-        {"letter": "E", "text": "Texto da alternativa E"}
-      ],
-      "correctAnswer": "C",
-      "explanation": "Explicação detalhada",
-      "difficulty": "${params.difficulty ?? 'MEDIUM'}"
-    }
-  ]
-}`;
+{"questions":[${exampleItem(type, params.difficulty ?? 'MEDIUM')}]}`;
 }
 
 export function buildExtractQuestionsPrompt(content: string, subject?: string): string {

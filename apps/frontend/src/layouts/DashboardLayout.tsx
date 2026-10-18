@@ -263,7 +263,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         <main className="flex-1 p-6">{children}</main>
 
-        {location.pathname !== '/help' && (
+        {location.pathname !== '/help' && location.pathname !== '/study' && (
           <Link
             to="/help"
             data-tour="help"
