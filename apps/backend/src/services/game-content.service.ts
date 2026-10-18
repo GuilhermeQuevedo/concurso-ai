@@ -4,13 +4,14 @@ import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { htmlToPlainText } from '../utils/html.js';
 import type { GameType, RoundItem } from '../utils/game-scoring.js';
+import { estimateRetention } from '../utils/retention.js';
+import { shuffle } from '../utils/shuffle.js';
 
 const ROUND_SIZE = 6;
 const QUIZ_SIZE = 8;
 const TRILHA_SIZE = 5;
 const MIN_CARDS = 4;
 const MAX_OPTION_CHARS = 160;
-const DAY_MS = 86400000;
 
 interface CardRow {
   id: string;
@@ -20,15 +21,6 @@ interface CardRow {
   easeFactor: number;
   nextReview: Date;
   subject: { name: string };
-}
-
-export function shuffle<T>(list: T[]): T[] {
-  const out = [...list];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
 }
 
 function clip(text: string): string {
@@ -49,14 +41,6 @@ function buildHints(card: CardRow): string[] {
     `Começa com: ${words.slice(0, 3).join(' ')}…`,
     `Metade da resposta: ${words.slice(0, half).join(' ')}…`,
   ];
-}
-
-// Curva do esquecimento: retenção estimada cai exponencialmente desde a última revisão
-export function estimateRetention(card: CardRow, now = Date.now()): number {
-  const lastReview = card.nextReview.getTime() - card.interval * DAY_MS;
-  const elapsedDays = Math.max(0, (now - lastReview) / DAY_MS);
-  const stability = Math.max(1, card.interval * card.easeFactor);
-  return Math.min(1, Math.max(0, Math.exp(-elapsedDays / stability)));
 }
 
 export class GameContentService {
