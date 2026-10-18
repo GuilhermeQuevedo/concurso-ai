@@ -19,6 +19,7 @@ import { paymentRouter } from './payment.routes.js';
 import { adminRouter } from './admin.routes.js';
 import { rankingRouter } from './ranking.routes.js';
 import { questionSetRouter } from './question-set.routes.js';
+import { gameRouter } from './game.routes.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { requireSubscription } from '../middlewares/subscription.middleware.js';
 
@@ -45,6 +46,7 @@ router.use('/study-tasks', gate, studyTaskRouter);
 router.use('/dashboard', gate, dashboardRouter);
 router.use('/rankings', gate, rankingRouter);
 router.use('/question-sets', gate, questionSetRouter);
+router.use('/games', gate, gameRouter);
 
 router.get('/health', (_req, res) => {
   const response: ApiResponse<{ status: string; timestamp: string }> = {
