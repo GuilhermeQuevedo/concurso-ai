@@ -43,26 +43,51 @@ function buildHints(card: CardRow): string[] {
   ];
 }
 
+export interface GameSource {
+  subjectId?: string;
+  deckId?: string;
+  questionSetId?: string;
+}
+
+const QUESTION_GAMES: GameType[] = ['DUELO', 'TRILHA'];
+
+function assertSourceFits(game: GameType, source: GameSource): void {
+  const isQuiz = QUESTION_GAMES.includes(game);
+  if (isQuiz && source.deckId) {
+    throw new AppError(400, 'SOURCE_MISMATCH', 'Este jogo usa questões. Escolha um simulado.');
+  }
+  if (!isQuiz && source.questionSetId) {
+    throw new AppError(400, 'SOURCE_MISMATCH', 'Este jogo usa flashcards. Escolha um deck.');
+  }
+}
+
 export class GameContentService {
-  async build(userId: string, game: GameType, subjectId?: string): Promise<RoundItem[]> {
+  async build(userId: string, game: GameType, source: GameSource): Promise<RoundItem[]> {
+    assertSourceFits(game, source);
     switch (game) {
       case 'DUELO':
-        return this.quizItems(subjectId, QUIZ_SIZE, 5);
+        return this.quizItems(userId, source, QUIZ_SIZE, 5);
       case 'TRILHA':
-        if (!subjectId) throw new AppError(400, 'SUBJECT_REQUIRED', 'Escolha uma disciplina.');
-        return this.quizItems(subjectId, TRILHA_SIZE, TRILHA_SIZE);
+        if (!source.subjectId && !source.questionSetId) {
+          throw new AppError(400, 'SUBJECT_REQUIRED', 'Escolha uma disciplina ou um simulado.');
+        }
+        return this.quizItems(userId, source, TRILHA_SIZE, TRILHA_SIZE);
       case 'MEMORIA':
-        return this.pairItems(await this.cards(userId, subjectId));
+        return this.pairItems(await this.cards(userId, source));
       case 'PONTA':
-        return this.cueItems(await this.cards(userId, subjectId));
+        return this.cueItems(await this.cards(userId, source));
       default:
-        return this.rescueItems(await this.cards(userId, subjectId, true));
+        return this.rescueItems(await this.cards(userId, source, true));
     }
   }
 
-  private async cards(userId: string, subjectId?: string, all = false): Promise<CardRow[]> {
+  private async cards(userId: string, source: GameSource, all = false): Promise<CardRow[]> {
     const rows = await prisma.flashcard.findMany({
-      where: { userId, ...(subjectId ? { subjectId } : {}) },
+      where: {
+        userId,
+        ...(source.deckId ? { deckId: source.deckId } : {}),
+        ...(source.subjectId ? { subjectId: source.subjectId } : {}),
+      },
       select: {
         id: true, front: true, back: true, interval: true, easeFactor: true, nextReview: true,
         subject: { select: { name: true } },
@@ -73,8 +98,12 @@ export class GameContentService {
     return rows;
   }
 
-  private async quizItems(subjectId: string | undefined, size: number, min: number): Promise<RoundItem[]> {
-    const where = subjectId ? { subjectId } : {};
+  private async quizItems(userId: string, source: GameSource, size: number, min: number): Promise<RoundItem[]> {
+    const where = source.questionSetId
+      ? { setItems: { some: { set: { id: source.questionSetId, userId } } } }
+      : source.subjectId
+        ? { subjectId: source.subjectId }
+        : {};
     const ids = await prisma.question.findMany({ where, select: { id: true }, take: 300 });
     if (ids.length < min) throw notEnough('questões', min);
 

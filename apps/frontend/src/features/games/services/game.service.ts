@@ -3,6 +3,12 @@ import type { ApiResponse } from '@concurso-ai/types';
 
 export type GameType = 'DUELO' | 'MEMORIA' | 'TRILHA' | 'PONTA' | 'RESGATE';
 
+export interface GameSource {
+  subjectId?: string;
+  deckId?: string;
+  questionSetId?: string;
+}
+
 export interface RoundItem {
   id: string;
   prompt: string;
@@ -69,8 +75,8 @@ export const gameService = {
     return unwrapData(await api.get<ApiResponse<TrilhaMap>>('/games/trilha'));
   },
 
-  async start(game: GameType, subjectId?: string): Promise<Round> {
-    return unwrapData(await api.post<ApiResponse<Round>>('/games/rounds', { game, subjectId }));
+  async start(game: GameType, source: GameSource = {}): Promise<Round> {
+    return unwrapData(await api.post<ApiResponse<Round>>('/games/rounds', { game, ...source }));
   },
 
   async check(roundId: string, itemId: string, choice: string): Promise<{ correct: boolean; answer: string }> {

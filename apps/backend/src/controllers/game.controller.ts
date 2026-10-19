@@ -30,8 +30,8 @@ export class GameController {
 
   start = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { game, subjectId } = req.body;
-      this.respond(res, await this.service.start(getUserId(req), game, subjectId), 201);
+      const { game, ...source } = req.body;
+      this.respond(res, await this.service.start(getUserId(req), game, source), 201);
     } catch (error) {
       next(error);
     }

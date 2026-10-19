@@ -8,6 +8,8 @@ export const startGameSchema = z.object({
   body: z.object({
     game: gameEnum,
     subjectId: z.string().min(1).optional(),
+    deckId: z.string().min(1).optional(),
+    questionSetId: z.string().min(1).optional(),
   }),
 });
 

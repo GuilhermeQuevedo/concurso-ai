@@ -13,7 +13,7 @@ import {
 } from '../utils/game-scoring.js';
 import { FlashcardService } from './flashcard.service.js';
 import { GamificationService } from './gamification.service.js';
-import { GameContentService } from './game-content.service.js';
+import { GameContentService, type GameSource } from './game-content.service.js';
 import { GroupService } from './group.service.js';
 
 const ROUND_TTL_MS = 30 * 60 * 1000;
@@ -51,9 +51,22 @@ export class GameService {
     this.flashcards = new FlashcardService(aiProvider);
   }
 
-  async start(userId: string, game: GameType, subjectId?: string) {
-    const items = await this.content.build(userId, game, subjectId);
-    const payload: RoundPayload = { items, subjectId: subjectId ?? null };
+  private async sourceSubjectId(userId: string, source: GameSource): Promise<string | null> {
+    if (source.subjectId) return source.subjectId;
+    if (source.deckId) {
+      const deck = await prisma.flashcardDeck.findFirst({ where: { id: source.deckId, userId }, select: { subjectId: true } });
+      return deck?.subjectId ?? null;
+    }
+    if (source.questionSetId) {
+      const set = await prisma.questionSet.findFirst({ where: { id: source.questionSetId, userId }, select: { subjectId: true } });
+      return set?.subjectId ?? null;
+    }
+    return null;
+  }
+
+  async start(userId: string, game: GameType, source: GameSource = {}) {
+    const items = await this.content.build(userId, game, source);
+    const payload: RoundPayload = { items, subjectId: await this.sourceSubjectId(userId, source) };
     const round = await prisma.gameRound.create({
       data: { userId, game, payload: JSON.parse(JSON.stringify(payload)) },
       select: { id: true },

@@ -5,9 +5,12 @@ import { contentService, type SubjectDTO } from '@/features/content/services/con
 import {
   gameService,
   apiMessage,
+  type GameSource,
   type GameType,
   type Round,
 } from '@/features/games/services/game.service';
+import { deckService } from '@/features/flashcards/services/flashcard.service';
+import { questionSetService } from '@/features/questions/services/question-set.service';
 import { ChoiceGame } from '@/features/games/components/ChoiceGame';
 import { MemoriaGame } from '@/features/games/components/MemoriaGame';
 import { ResgateGame } from '@/features/games/components/ResgateGame';
@@ -52,6 +55,23 @@ const GAME_INFO: Record<GameType, GameInfo> = {
   },
 };
 
+const QUESTION_GAMES: GameType[] = ['DUELO', 'TRILHA'];
+
+function parseSource(value: string): GameSource {
+  const [kind, id] = value.split(':');
+  if (kind === 'deck') return { deckId: id };
+  if (kind === 'set') return { questionSetId: id };
+  if (kind === 'subject') return { subjectId: id };
+  return {};
+}
+
+function mismatchReason(game: GameType, source: GameSource): string | null {
+  const isQuiz = QUESTION_GAMES.includes(game);
+  if (isQuiz && source.deckId) return 'Usa questões: escolha um simulado';
+  if (!isQuiz && source.questionSetId) return 'Usa flashcards: escolha um deck';
+  return null;
+}
+
 const ORDER: GameType[] = ['DUELO', 'MEMORIA', 'TRILHA', 'PONTA', 'RESGATE'];
 
 function flatten(subjects: SubjectDTO[], prefix = ''): Array<SubjectDTO & { prefix: string }> {
@@ -65,12 +85,15 @@ function flatten(subjects: SubjectDTO[], prefix = ''): Array<SubjectDTO & { pref
 
 export function GamesPage() {
   const queryClient = useQueryClient();
-  const [subjectId, setSubjectId] = useState('');
+  const [sourceValue, setSourceValue] = useState('');
   const [showTrilha, setShowTrilha] = useState(false);
-  const [active, setActive] = useState<{ round: Round; subjectId?: string } | null>(null);
+  const [active, setActive] = useState<{ round: Round; source: GameSource } | null>(null);
+  const source = parseSource(sourceValue);
 
   const { data: overview } = useQuery({ queryKey: ['games', 'overview'], queryFn: gameService.overview });
   const { data: subjects = [] } = useQuery({ queryKey: ['subjects'], queryFn: contentService.getSubjects });
+  const { data: decks = [] } = useQuery({ queryKey: ['flashcard-decks'], queryFn: deckService.list });
+  const { data: sets = [] } = useQuery({ queryKey: ['question-sets'], queryFn: questionSetService.list });
   const { data: trilha, isLoading: trilhaLoading } = useQuery({
     queryKey: ['games', 'trilha'],
     queryFn: gameService.trilha,
@@ -78,8 +101,8 @@ export function GamesPage() {
   });
 
   const start = useMutation({
-    mutationFn: (v: { game: GameType; subjectId?: string }) => gameService.start(v.game, v.subjectId),
-    onSuccess: (round, v) => setActive({ round, subjectId: v.subjectId }),
+    mutationFn: (v: { game: GameType; source: GameSource }) => gameService.start(v.game, v.source),
+    onSuccess: (round, v) => setActive({ round, source: v.source }),
   });
 
   const exit = () => {
@@ -87,7 +110,7 @@ export function GamesPage() {
     queryClient.invalidateQueries({ queryKey: ['games'] });
   };
   const playAgain = () => {
-    if (active) start.mutate({ game: active.round.game, subjectId: active.subjectId });
+    if (active) start.mutate({ game: active.round.game, source: active.source });
   };
 
   if (active) {
@@ -139,26 +162,46 @@ export function GamesPage() {
           loading={trilhaLoading}
           starting={start.isPending}
           onBack={() => setShowTrilha(false)}
-          onPick={(id) => start.mutate({ game: 'TRILHA', subjectId: id })}
+          onPick={(id) => start.mutate({ game: 'TRILHA', source: { subjectId: id } })}
         />
       ) : (
         <>
-          <div className="mb-4 max-w-sm">
+          <div className="mb-4 max-w-md">
             <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-              Disciplina (opcional)
+              Conteúdo do jogo
             </label>
             <select
-              value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
+              value={sourceValue}
+              onChange={(e) => setSourceValue(e.target.value)}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             >
               <option value="">Todo o meu conteúdo</option>
-              {flatten(subjects).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.prefix}
-                  {s.name}
-                </option>
-              ))}
+              {decks.length > 0 && (
+                <optgroup label="Decks de flashcards">
+                  {decks.map((d) => (
+                    <option key={d.id} value={`deck:${d.id}`}>
+                      {d.name} ({d.total} cards)
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {sets.length > 0 && (
+                <optgroup label="Simulados de questões">
+                  {sets.map((q) => (
+                    <option key={q.id} value={`set:${q.id}`}>
+                      {q.name} ({q.total} questões)
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              <optgroup label="Disciplinas">
+                {flatten(subjects).map((s) => (
+                  <option key={s.id} value={`subject:${s.id}`}>
+                    {s.prefix}
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
 
@@ -166,6 +209,7 @@ export function GamesPage() {
             {ORDER.map((game) => {
               const info = GAME_INFO[game];
               const stat = overview?.games.find((g) => g.game === game);
+              const mismatch = mismatchReason(game, source);
               return (
                 <div
                   key={game}
@@ -178,9 +222,12 @@ export function GamesPage() {
                   <p className="mt-auto mb-3 text-xs text-gray-500 dark:text-gray-400">
                     {stat?.plays ? `Melhor: ${stat.best} pts · ${stat.plays} partidas` : 'Ainda não jogado'}
                   </p>
+                  {mismatch && <p className="mb-2 text-xs text-amber-600 dark:text-amber-400">{mismatch}</p>}
                   <button
-                    onClick={() => (game === 'TRILHA' ? setShowTrilha(true) : start.mutate({ game, subjectId: subjectId || undefined }))}
-                    disabled={start.isPending}
+                    onClick={() =>
+                      game === 'TRILHA' && !source.questionSetId ? setShowTrilha(true) : start.mutate({ game, source })
+                    }
+                    disabled={start.isPending || !!mismatch}
                     className="flex items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
                   >
                     {start.isPending && start.variables?.game === game && <Loader2 className="h-4 w-4 animate-spin" />}
