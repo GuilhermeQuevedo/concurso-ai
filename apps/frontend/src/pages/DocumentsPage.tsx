@@ -114,7 +114,7 @@ export function DocumentsPage() {
       <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Enviar documento</h2>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
               O que é este arquivo?
             </label>
@@ -131,7 +131,7 @@ export function DocumentsPage() {
               ))}
             </select>
           </div>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
               Disciplina (opcional)
             </label>
@@ -240,14 +240,14 @@ export function DocumentsPage() {
         </div>
       )}
 
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           Seus documentos ({documents.length})
         </h2>
         <select
           value={subjectFilter}
           onChange={(e) => setSubjectFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          className="max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         >
           <option value="">Todas disciplinas</option>
           {flatSubjects.map((s) => (
@@ -274,10 +274,10 @@ export function DocumentsPage() {
           {documents.map((doc: DocumentDTO) => (
             <div
               key={doc.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
             >
-              <div className="flex items-center gap-3">
-                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${typeIcons[doc.type] ?? typeIcons.TXT}`}>
+              <div className="flex min-w-0 items-center gap-3">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${typeIcons[doc.type] ?? typeIcons.TXT}`}>
                   <FileText className="h-4 w-4" />
                 </div>
                 <div>
@@ -287,7 +287,7 @@ export function DocumentsPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => processMutation.mutate(doc)}
                   disabled={processingId !== null}
