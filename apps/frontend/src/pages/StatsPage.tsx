@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import {
-  BarChart3,
-  BookOpen,
-  Clock,
-  Target,
-  TrendingUp,
-  Award,
-  Loader2,
-} from 'lucide-react';
+  BarChartIcon,
+  BookOpenIcon,
+  ClockIcon,
+  TargetIcon,
+  TrendingUpIcon,
+  AwardIcon,
+} from '@/components/icons/EngramaIcons';
 import { studyService } from '@/features/study/services/study.service';
 import { gamificationService } from '@/features/gamification/services/gamification.service';
 import { flashcardService } from '@/features/flashcards/services/flashcard.service';
@@ -73,39 +73,39 @@ export function StatsPage() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          icon={BookOpen}
+          icon={BookOpenIcon}
           label="Questões resolvidas"
           value={String(stats?.questionsAnswered ?? 0)}
-          color="text-blue-600"
-          bg="bg-blue-50 dark:bg-blue-950"
+          color="text-teal-600 dark:text-teal-400"
+          bg="bg-teal-500/10 dark:bg-teal-500/15"
         />
         <StatCard
-          icon={Target}
+          icon={TargetIcon}
           label="Taxa de acerto"
           value={`${avgAccuracy}%`}
-          color="text-green-600"
-          bg="bg-green-50 dark:bg-green-950"
+          color="text-emerald-600 dark:text-emerald-400"
+          bg="bg-emerald-500/10 dark:bg-emerald-500/15"
         />
         <StatCard
-          icon={Clock}
+          icon={ClockIcon}
           label="Tempo total"
           value={formatTime(stats?.totalTimeSeconds ?? 0)}
-          color="text-amber-600"
-          bg="bg-amber-50 dark:bg-amber-950"
+          color="text-amber-500 dark:text-amber-400"
+          bg="bg-amber-500/10 dark:bg-amber-500/15"
         />
         <StatCard
-          icon={TrendingUp}
+          icon={TrendingUpIcon}
           label="Sessões completadas"
           value={String(stats?.totalSessions ?? 0)}
-          color="text-purple-600"
-          bg="bg-purple-50 dark:bg-purple-950"
+          color="text-purple-600 dark:text-purple-400"
+          bg="bg-purple-500/10 dark:bg-purple-500/15"
         />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 dark:border-white/8 dark:bg-[#121A33]">
           <h3 className="mb-4 flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-            <BarChart3 className="h-4 w-4 text-primary-600" />
+            <BarChartIcon size={18} className="text-teal-600 dark:text-teal-400" />
             Detalhamento
           </h3>
           <div className="space-y-3">
@@ -117,9 +117,9 @@ export function StatsPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 dark:border-white/8 dark:bg-[#121A33]">
           <h3 className="mb-4 flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-            <Award className="h-4 w-4 text-primary-600" />
+            <AwardIcon size={18} className="text-amber-500 dark:text-amber-400" />
             Gamificação & Flashcards
           </h3>
           <div className="space-y-3">
@@ -198,19 +198,19 @@ function StatCard({
   color,
   bg,
 }: {
-  icon: typeof BookOpen;
+  icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
   label: string;
   value: string;
   color: string;
   bg: string;
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <div className={`mb-2 inline-flex rounded-lg p-2 ${bg}`}>
-        <Icon className={`h-5 w-5 ${color}`} />
+    <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs transition-shadow hover:shadow-sm dark:border-white/8 dark:bg-[#121A33]">
+      <div className={`mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl ${bg} ${color}`}>
+        <Icon size={22} strokeWidth={1.75} />
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-      <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+      <p className="font-display text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{value}</p>
+      <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
     </div>
   );
 }

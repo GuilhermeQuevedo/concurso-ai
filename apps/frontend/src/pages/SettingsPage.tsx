@@ -103,7 +103,7 @@ export function SettingsPage() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600 dark:text-gray-400">IA</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Google Gemini</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">OpenAI (ChatGPT)</span>
             </div>
           </div>
         </div>
