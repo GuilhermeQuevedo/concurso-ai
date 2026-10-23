@@ -2,6 +2,32 @@ import { api, unwrapData } from '@/services/api';
 import type { ApiResponse, AuthTokens, RegisterRequest, LoginRequest } from '@concurso-ai/types';
 import type { User } from '@concurso-ai/types';
 
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+  devResetUrl?: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface GoogleAuthUrlResponse {
+  url: string;
+}
+
+export interface GoogleLoginResponse {
+  tokens: AuthTokens;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    avatar?: string | null;
+    role: string;
+  };
+}
+
 export const authService = {
   async register(data: RegisterRequest): Promise<AuthTokens> {
     const response = await api.post<ApiResponse<AuthTokens>>('/auth/register', data);
@@ -10,6 +36,31 @@ export const authService = {
 
   async login(data: LoginRequest): Promise<AuthTokens> {
     const response = await api.post<ApiResponse<AuthTokens>>('/auth/login', data);
+    return unwrapData(response);
+  },
+
+  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+    const response = await api.post<ApiResponse<ForgotPasswordResponse>>('/auth/forgot-password', { email });
+    return unwrapData(response);
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<ResetPasswordResponse> {
+    const response = await api.post<ApiResponse<ResetPasswordResponse>>('/auth/reset-password', {
+      token,
+      newPassword,
+    });
+    return unwrapData(response);
+  },
+
+  async getGoogleAuthUrl(state = 'login'): Promise<GoogleAuthUrlResponse> {
+    const response = await api.get<ApiResponse<GoogleAuthUrlResponse>>(`/auth/google/url?state=${encodeURIComponent(state)}`);
+    return unwrapData(response);
+  },
+
+  async loginWithGoogleCredential(credential: string): Promise<GoogleLoginResponse> {
+    const response = await api.post<ApiResponse<GoogleLoginResponse>>('/auth/google/credential', {
+      credential,
+    });
     return unwrapData(response);
   },
 
