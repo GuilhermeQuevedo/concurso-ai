@@ -17,10 +17,80 @@ export interface FlashcardDTO {
   subject?: { id: string; name: string };
 }
 
+export interface DeckDTO {
+  id: string;
+  name: string;
+  topic: string | null;
+  color: string;
+  subject: { id: string; name: string } | null;
+  total: number;
+  due: number;
+  confidence: number;
+  nextReview: string | null;
+  createdAt: string;
+}
+
+export interface DeckInput {
+  name: string;
+  subjectName?: string;
+  topic?: string;
+  color?: string;
+}
+
+export interface GenerateDeckInput extends DeckInput {
+  text?: string;
+  documentId?: string;
+  count?: number;
+}
+
+export const DECK_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+
 export interface FlashcardStatsDTO {
   total: number;
   due: number;
 }
+
+export const deckService = {
+  async list(): Promise<DeckDTO[]> {
+    return unwrapData(await api.get<ApiResponse<DeckDTO[]>>('/flashcards/decks'));
+  },
+
+  async create(data: DeckInput & { cards: { front: string; back: string }[] }): Promise<{ id: string; name: string }> {
+    return unwrapData(await api.post<ApiResponse<{ id: string; name: string }>>('/flashcards/decks', data));
+  },
+
+  async generate(data: GenerateDeckInput): Promise<{ id: string; name: string }> {
+    return unwrapData(await api.post<ApiResponse<{ id: string; name: string }>>('/flashcards/decks/generate', data));
+  },
+
+  async update(id: string, data: DeckInput): Promise<void> {
+    await api.patch(`/flashcards/decks/${id}`, data);
+  },
+
+  async remove(id: string): Promise<void> {
+    await api.delete(`/flashcards/decks/${id}`);
+  },
+
+  async cards(id: string): Promise<FlashcardDTO[]> {
+    return unwrapData(await api.get<ApiResponse<FlashcardDTO[]>>(`/flashcards/decks/${id}/cards`));
+  },
+
+  async addCard(id: string, card: { front: string; back: string }): Promise<FlashcardDTO> {
+    return unwrapData(await api.post<ApiResponse<FlashcardDTO>>(`/flashcards/decks/${id}/cards`, card));
+  },
+
+  async updateCard(cardId: string, card: { front: string; back: string }): Promise<FlashcardDTO> {
+    return unwrapData(await api.patch<ApiResponse<FlashcardDTO>>(`/flashcards/cards/${cardId}`, card));
+  },
+
+  async importCards(id: string, text: string): Promise<{ imported: number; skipped: number }> {
+    return unwrapData(await api.post<ApiResponse<{ imported: number; skipped: number }>>(`/flashcards/decks/${id}/import`, { text }));
+  },
+
+  async study(id: string, all = false): Promise<FlashcardDTO[]> {
+    return unwrapData(await api.get<ApiResponse<FlashcardDTO[]>>(`/flashcards/decks/${id}/study`, { params: all ? { all: 1 } : {} }));
+  },
+};
 
 export const flashcardService = {
   async create(data: { subjectId: string; front: string; back: string }): Promise<FlashcardDTO> {

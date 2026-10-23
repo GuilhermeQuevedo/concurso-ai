@@ -42,6 +42,9 @@ model User {
   rankingParticipations RankingParticipant[]
   createdRankings       RankingBoard[]       @relation("RankingCreator")
   questionSets          QuestionSet[]
+  gameRounds            GameRound[]
+  gameSessions          GameSession[]
+  flashcardDecks        FlashcardDeck[]
 }
 
 model Session {
@@ -71,6 +74,7 @@ model Subject {
   flashcards     Flashcard[]
   rankings       RankingBoard[]
   questionSets   QuestionSet[]
+  flashcardDecks FlashcardDeck[]
 
   @@index([parentId])
 }
@@ -246,6 +250,7 @@ model Flashcard {
   back        String   @db.Text
   source      String?
   elaboration String?  @db.Text
+  deckId      String?
   interval    Int      @default(1)
   easeFactor  Float    @default(2.5)
   repetition  Int      @default(0)
@@ -253,11 +258,13 @@ model Flashcard {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subject Subject @relation(fields: [subjectId], references: [id])
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject        @relation(fields: [subjectId], references: [id])
+  deck    FlashcardDeck? @relation(fields: [deckId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([userId, nextReview])
+  @@index([deckId])
 }
 
 model Achievement {
@@ -573,6 +580,7 @@ model QuestionSet {
   name          String
   subjectId     String?
   mode          String    @default("STUDY")
+  questionType  String    @default("MULTIPLE_5")
   createdAt     DateTime  @default(now())
   lastAttemptAt DateTime?
 
@@ -594,4 +602,53 @@ model QuestionSetItem {
 
   @@unique([setId, questionId])
   @@index([questionId])
+}
+
+model GameRound {
+  id         String    @id @default(cuid())
+  userId     String
+  game       String
+  payload    Json
+  createdAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model GameSession {
+  id          String   @id @default(cuid())
+  userId      String
+  game        String
+  subjectId   String?
+  score       Int      @default(0)
+  points      Int      @default(0)
+  correct     Int      @default(0)
+  total       Int      @default(0)
+  passed      Boolean  @default(false)
+  durationSec Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, game, subjectId])
+}
+
+model FlashcardDeck {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  subjectId String?
+  topic     String?
+  color     String   @default("#3b82f6")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject?    @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  cards   Flashcard[]
+
+  @@index([userId])
 }

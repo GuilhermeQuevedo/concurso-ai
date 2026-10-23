@@ -6,6 +6,7 @@ import { validateRequest } from '../middlewares/validate.js';
 import {
   generateQuestionSetSchema,
   createManualSetSchema,
+  renameQuestionSetSchema,
 } from '../validators/question-set.validators.js';
 import { createAIProvider } from '../providers/ai.factory.js';
 
@@ -18,6 +19,7 @@ router.get('/', authMiddleware, controller.list);
 router.post('/generate', authMiddleware, validateRequest(generateQuestionSetSchema), controller.generate);
 router.post('/manual', authMiddleware, validateRequest(createManualSetSchema), controller.createManual);
 router.get('/:id', authMiddleware, controller.getById);
+router.patch('/:id', authMiddleware, validateRequest(renameQuestionSetSchema), controller.rename);
 router.delete('/:id', authMiddleware, controller.remove);
 
 export { router as questionSetRouter };

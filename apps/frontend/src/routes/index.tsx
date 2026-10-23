@@ -6,7 +6,6 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { SubjectsPage } from '@/pages/SubjectsPage';
 import { ExamBoardsPage } from '@/pages/ExamBoardsPage';
 import { GeneratePage } from '@/pages/GeneratePage';
-import { StudyKitPage } from '@/pages/StudyKitPage';
 import { BoardPage } from '@/pages/BoardPage';
 import StudyPage from '@/pages/StudyPage';
 import { DocumentsPage } from '@/pages/DocumentsPage';
@@ -22,6 +21,7 @@ import { ContestsPage } from '@/pages/ContestsPage';
 import { CalendarPage } from '@/pages/CalendarPage';
 import { MemorySimulatorPage } from '@/pages/MemorySimulatorPage';
 import { RankingsPage } from '@/pages/RankingsPage';
+import { GamesPage } from '@/pages/GamesPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { AdminContactsPage } from '@/pages/AdminContactsPage';
 import { HelpPage } from '@/pages/HelpPage';
@@ -52,7 +52,6 @@ export function AppRoutes() {
       <Route path="/subjects" element={<ProtectedLayout><SubjectsPage /></ProtectedLayout>} />
       <Route path="/exam-boards" element={<ProtectedLayout><ExamBoardsPage /></ProtectedLayout>} />
       <Route path="/generate" element={<ProtectedLayout><GeneratePage /></ProtectedLayout>} />
-      <Route path="/study-kit" element={<ProtectedLayout><StudyKitPage /></ProtectedLayout>} />
       <Route path="/study" element={<ProtectedLayout><StudyPage /></ProtectedLayout>} />
       <Route path="/documents" element={<ProtectedLayout><DocumentsPage /></ProtectedLayout>} />
       <Route path="/flashcards" element={<ProtectedLayout><FlashcardsPage /></ProtectedLayout>} />
@@ -65,6 +64,7 @@ export function AppRoutes() {
       <Route path="/groups" element={<ProtectedLayout><GroupsPage /></ProtectedLayout>} />
       <Route path="/stats" element={<ProtectedLayout><StatsPage /></ProtectedLayout>} />
       <Route path="/memory-simulator" element={<ProtectedLayout><MemorySimulatorPage /></ProtectedLayout>} />
+      <Route path="/games" element={<ProtectedLayout><GamesPage /></ProtectedLayout>} />
       <Route path="/rankings" element={<ProtectedLayout><RankingsPage /></ProtectedLayout>} />
       <Route path="/admin" element={<ProtectedLayout><AdminPage /></ProtectedLayout>} />
       <Route path="/admin/contatos" element={<ProtectedLayout><AdminContactsPage /></ProtectedLayout>} />

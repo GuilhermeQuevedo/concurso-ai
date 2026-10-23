@@ -2,6 +2,7 @@ import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { parseFlashcardText } from '../utils/flashcard-parser.js';
+import { shuffle } from '../utils/shuffle.js';
 
 interface CreateFlashcardDTO {
   subjectId: string;
@@ -26,15 +27,6 @@ interface ImportFlashcardsDTO {
 }
 
 const MAX_GENERATED_CARDS = 30;
-
-function shuffle<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
 
 export class FlashcardService {
   constructor(private readonly aiProvider: IAIProvider) {}

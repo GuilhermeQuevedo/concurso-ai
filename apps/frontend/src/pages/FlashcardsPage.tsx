@@ -1,222 +1,195 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Layers, Plus, Trash2, Loader2, RotateCcw, Sparkles, FileUp } from 'lucide-react';
-import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
-import { flashcardService, type FlashcardDTO } from '@/features/flashcards/services/flashcard.service';
-import { GenerateFlashcardsForm } from '@/features/flashcards/components/GenerateFlashcardsForm';
-import { ImportFlashcardsForm } from '@/features/flashcards/components/ImportFlashcardsForm';
-import { ReviewMode } from '@/features/flashcards/components/ReviewMode';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Sparkles, PencilLine, Loader2, Layers, LayoutGrid, Folder, ArrowLeft } from 'lucide-react';
+import { deckService, type DeckDTO, type FlashcardDTO } from '@/features/flashcards/services/flashcard.service';
+import { DeckCard } from '@/features/flashcards/components/DeckCard';
+import { GenerateDeckModal } from '@/features/flashcards/components/GenerateDeckModal';
+import { ManualDeckModal } from '@/features/flashcards/components/ManualDeckModal';
+import { EditDeckModal } from '@/features/flashcards/components/EditDeckModal';
+import { StudySession } from '@/features/flashcards/components/StudySession';
 
-type View = 'list' | 'review' | 'create' | 'generate' | 'import';
+type ViewMode = 'cards' | 'folders';
+
+const VIEW_KEY = 'flashcards-view';
+const NO_SUBJECT = 'none';
+
+function loadView(): ViewMode {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'folders' ? 'folders' : 'cards';
+  } catch {
+    return 'cards';
+  }
+}
 
 export function FlashcardsPage() {
   const queryClient = useQueryClient();
-  const [view, setView] = useState<View>('list');
-  const [subjectFilter, setSubjectFilter] = useState('');
-  const [front, setFront] = useState('');
-  const [back, setBack] = useState('');
-  const [createSubject, setCreateSubject] = useState('');
+  const [view, setView] = useState<ViewMode>(loadView);
+  const [folder, setFolder] = useState<string | null>(null);
+  const [showAI, setShowAI] = useState(false);
+  const [showManual, setShowManual] = useState(false);
+  const [editing, setEditing] = useState<DeckDTO | null>(null);
+  const [session, setSession] = useState<{ deck: DeckDTO; cards: FlashcardDTO[] } | null>(null);
+  const [notice, setNotice] = useState('');
 
-  const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: contentService.getSubjects,
-  });
+  const { data: decks = [], isLoading } = useQuery({ queryKey: ['flashcard-decks'], queryFn: deckService.list });
 
-  const { data: cards = [], isLoading } = useQuery({
-    queryKey: ['flashcards', subjectFilter],
-    queryFn: () => flashcardService.list(subjectFilter || undefined),
-    enabled: view === 'list',
-  });
+  const refresh = () => {
+    setShowAI(false);
+    setShowManual(false);
+    setEditing(null);
+    queryClient.invalidateQueries({ queryKey: ['flashcard-decks'] });
+    queryClient.invalidateQueries({ queryKey: ['flashcard-stats'] });
+  };
 
-  const { data: dueCards = [], refetch: refetchDue } = useQuery({
-    queryKey: ['flashcards-due'],
-    queryFn: () => flashcardService.getDue(),
-    enabled: view === 'review',
-  });
-
-  const { data: stats } = useQuery({
-    queryKey: ['flashcard-stats'],
-    queryFn: flashcardService.getStats,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: () => flashcardService.create({ subjectId: createSubject, front, back }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
-      queryClient.invalidateQueries({ queryKey: ['flashcard-stats'] });
-      setFront('');
-      setBack('');
+  const study = useMutation({
+    mutationFn: async (deck: DeckDTO) => {
+      let cards = await deckService.study(deck.id);
+      if (cards.length === 0 && window.confirm('Nenhum card vencido neste deck. Estudar todos mesmo assim?')) {
+        cards = await deckService.study(deck.id, true);
+      }
+      return { deck, cards };
+    },
+    onSuccess: ({ deck, cards }) => {
+      if (cards.length > 0) setSession({ deck, cards });
+      else setNotice(`Nada para revisar em "${deck.name}" agora. Volte quando houver cards vencidos.`);
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: flashcardService.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
-      queryClient.invalidateQueries({ queryKey: ['flashcard-stats'] });
-    },
-  });
+  const folders = useMemo(() => {
+    const map = new Map<string, { key: string; name: string; color: string; decks: number; cards: number }>();
+    for (const d of decks) {
+      const key = d.subject?.id ?? NO_SUBJECT;
+      const entry = map.get(key) ?? { key, name: d.subject?.name ?? 'Sem matéria', color: d.color, decks: 0, cards: 0 };
+      entry.decks += 1;
+      entry.cards += d.total;
+      map.set(key, entry);
+    }
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [decks]);
 
-  const flatSubjects = flattenSubjects(subjects);
+  const changeView = (next: ViewMode) => {
+    setView(next);
+    setFolder(null);
+    try {
+      localStorage.setItem(VIEW_KEY, next);
+    } catch {
+      /* sem armazenamento: segue só em memória */
+    }
+  };
 
-  if (view === 'review') {
-    return <ReviewMode cards={dueCards} onBack={() => { setView('list'); refetchDue(); }} />;
-  }
-
-  if (view === 'generate') {
+  if (session) {
     return (
-      <GenerateFlashcardsForm
-        onBack={() => setView('list')}
-        onDone={() => {
-          queryClient.invalidateQueries({ queryKey: ['flashcards'] });
-          setView('list');
+      <StudySession
+        deck={session.deck}
+        cards={session.cards}
+        onExit={() => {
+          setSession(null);
+          refresh();
         }}
       />
     );
   }
 
-  if (view === 'import') {
-    return (
-      <ImportFlashcardsForm
-        onBack={() => setView('list')}
-        onDone={() => {
-          queryClient.invalidateQueries({ queryKey: ['flashcards'] });
-          setView('list');
-        }}
-      />
-    );
-  }
-
-  if (view === 'create') {
-    return (
-      <div className="mx-auto max-w-xl">
-        <button onClick={() => setView('list')} className="mb-4 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400">
-          ← Voltar
-        </button>
-        <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">Novo Flashcard</h2>
-        <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Disciplina *</label>
-            <select value={createSubject} onChange={(e) => setCreateSubject(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option value="">Selecione...</option>
-              {flatSubjects.map((s) => <option key={s.id} value={s.id}>{s.prefix}{s.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Frente (pergunta)</label>
-            <textarea value={front} onChange={(e) => setFront(e.target.value)} rows={3} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Verso (resposta)</label>
-            <textarea value={back} onChange={(e) => setBack(e.target.value)} rows={3} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
-          </div>
-          <button
-            onClick={() => createMutation.mutate()}
-            disabled={!createSubject || !front.trim() || !back.trim() || createMutation.isPending}
-            className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-          >
-            {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Criar Flashcard
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const visible = folder ? decks.filter((d) => (d.subject?.id ?? NO_SUBJECT) === folder) : decks;
+  const showFolders = view === 'folders' && !folder;
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Flashcards</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            O app repete mais o que você erra e menos o que já sabe
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Revisão ativa com repetição espaçada</p>
         </div>
-        <div className="flex gap-2">
-          {(stats?.due ?? 0) > 0 && (
-            <button onClick={() => setView('review')} className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
-              <RotateCcw className="h-4 w-4" />
-              Revisar ({stats?.due})
-            </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {decks.length > 0 && (
+            <div className="flex overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+              {(['cards', 'folders'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => changeView(mode)}
+                  title={mode === 'cards' ? 'Ver em cards' : 'Ver em pastas'}
+                  className={`px-2.5 py-2 ${view === mode ? 'bg-primary-600/10 text-primary-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                >
+                  {mode === 'cards' ? <LayoutGrid className="h-4 w-4" /> : <Folder className="h-4 w-4" />}
+                </button>
+              ))}
+            </div>
           )}
-          <button onClick={() => setView('generate')} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">
-            <Sparkles className="h-4 w-4" />
-            Gerar com IA
+          <button
+            onClick={() => setShowManual(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+          >
+            <PencilLine className="h-4 w-4" /> Criar manual
           </button>
-          <button onClick={() => setView('import')} className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-            <FileUp className="h-4 w-4" />
-            Importar
-          </button>
-          <button onClick={() => setView('create')} className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-            <Plus className="h-4 w-4" />
-            Manual
+          <button
+            onClick={() => setShowAI(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+          >
+            <Sparkles className="h-4 w-4" /> Gerar com IA
           </button>
         </div>
       </div>
 
-      <div className="mb-4 flex items-center gap-4">
-        <div className="flex gap-4 text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Total: <strong className="text-gray-900 dark:text-white">{stats?.total ?? 0}</strong></span>
-          <span className="text-gray-500 dark:text-gray-400">Para revisar: <strong className="text-orange-600">{stats?.due ?? 0}</strong></span>
-        </div>
-        <select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)} className="ml-auto rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-          <option value="">Todas</option>
-          {flatSubjects.map((s) => <option key={s.id} value={s.id}>{s.prefix}{s.name}</option>)}
-        </select>
-      </div>
+      {notice && (
+        <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">{notice}</p>
+      )}
 
       {isLoading ? (
-        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-400" /></div>
-      ) : cards.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
-          <Layers className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-          <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Nenhum flashcard ainda</p>
-          <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
-            Cole o que estudou e deixe a IA criar seus cartões de revisão automaticamente
-          </p>
-          <button
-            onClick={() => setView('generate')}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-          >
-            <Sparkles className="h-4 w-4" />
-            Gerar com IA
-          </button>
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((card: FlashcardDTO) => (
-            <div key={card.id} className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="rounded bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300">
-                  {card.subject?.name}
-                </span>
-                <button onClick={() => deleteMutation.mutate(card.id)} className="text-gray-400 hover:text-red-500">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <p className="mb-1 text-sm font-medium text-gray-900 dark:text-white line-clamp-2">{card.front}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{card.back}</p>
-              {card.source && (
-                <p className="mt-2 truncate text-[11px] text-gray-400">Fonte: {card.source}</p>
-              )}
-              <p className="mt-1 text-xs text-gray-400">
-                Próxima revisão: {new Date(card.nextReview).toLocaleDateString('pt-BR')}
-              </p>
-            </div>
+      ) : decks.length === 0 ? (
+        <div className="py-16 text-center">
+          <div className="mx-auto mb-5 flex h-20 w-24 items-center justify-center rounded-xl border border-primary-500/40 bg-primary-600/5">
+            <Layers className="h-9 w-9 text-primary-500" />
+          </div>
+          <p className="mb-1 font-semibold text-gray-900 dark:text-white">Nenhum deck criado ainda</p>
+          <p className="mx-auto mb-5 max-w-xs text-sm text-gray-500 dark:text-gray-400">
+            Crie seu primeiro deck de flashcards e comece a revisar com repetição espaçada inteligente.
+          </p>
+          <div className="flex justify-center gap-2">
+            <button onClick={() => setShowAI(true)} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">
+              <Sparkles className="h-4 w-4" /> Gerar com IA
+            </button>
+            <button onClick={() => setShowManual(true)} className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+              <PencilLine className="h-4 w-4" /> Criar manual
+            </button>
+          </div>
+        </div>
+      ) : showFolders ? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+          {folders.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFolder(f.key)}
+              className="flex flex-col items-center rounded-xl p-3 text-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60"
+            >
+              <Folder className="mb-1 h-14 w-14" style={{ color: f.color }} fill="currentColor" fillOpacity={0.25} />
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">{f.name}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {f.decks} {f.decks === 1 ? 'deck' : 'decks'} · {f.cards} cards
+              </span>
+            </button>
           ))}
         </div>
+      ) : (
+        <>
+          {folder && (
+            <button onClick={() => setFolder(null)} className="mb-3 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400">
+              <ArrowLeft className="h-4 w-4" /> Todas as pastas
+            </button>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((deck) => (
+              <DeckCard key={deck.id} deck={deck} onStudy={(d) => { setNotice(''); study.mutate(d); }} onEdit={setEditing} />
+            ))}
+          </div>
+        </>
       )}
+
+      {showAI && <GenerateDeckModal onClose={() => setShowAI(false)} onCreated={refresh} />}
+      {showManual && <ManualDeckModal onClose={() => setShowManual(false)} onCreated={refresh} />}
+      {editing && <EditDeckModal deck={editing} onClose={() => setEditing(null)} onChanged={refresh} />}
     </div>
   );
-}
-
-function flattenSubjects(subjects: SubjectDTO[], prefix = ''): Array<SubjectDTO & { prefix: string }> {
-  const result: Array<SubjectDTO & { prefix: string }> = [];
-  for (const s of subjects) {
-    result.push({ ...s, prefix });
-    if (s.children && s.children.length > 0) {
-      result.push(...flattenSubjects(s.children, prefix + '— '));
-    }
-  }
-  return result;
 }

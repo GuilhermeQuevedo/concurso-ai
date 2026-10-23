@@ -6,6 +6,8 @@ export interface GeneratedQuestion {
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
 }
 
+export type QuestionType = 'MULTIPLE_4' | 'MULTIPLE_5' | 'TRUE_FALSE' | 'ESSAY' | 'MIXED';
+
 export interface GenerateQuestionsParams {
   subject: string;
   topic?: string;
@@ -13,6 +15,8 @@ export interface GenerateQuestionsParams {
   difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
   quantity: number;
   context?: string;
+  questionType?: QuestionType;
+  cloneStyle?: boolean;
 }
 
 export interface EssayCriterion {

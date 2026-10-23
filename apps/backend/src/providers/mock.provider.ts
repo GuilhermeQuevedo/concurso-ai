@@ -14,30 +14,49 @@ import type {
   GenerateSummaryParams,
   AnswerQuestionsParams,
   ExtractQuestionsParams,
+  QuestionType,
 } from '../interfaces/ai.interfaces.js';
+
+function mockQuestion(
+  i: number,
+  type: QuestionType,
+  params: GenerateQuestionsParams,
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD',
+): GeneratedQuestion {
+  const base = `[MOCK] Questão ${i + 1} sobre ${params.subject}${params.topic ? ` — ${params.topic}` : ''}.`;
+  const explanation = `Explicação detalhada da questão ${i + 1} sobre ${params.subject}.`;
+  if (type === 'ESSAY') {
+    return { statement: `${base} Explique o conceito principal.`, alternatives: [], correctAnswer: 'S', explanation, difficulty };
+  }
+  if (type === 'TRUE_FALSE') {
+    return {
+      statement: `${base} A afirmação a seguir está correta?`,
+      alternatives: [{ letter: 'C', text: 'Certo' }, { letter: 'E', text: 'Errado' }],
+      correctAnswer: i % 2 === 0 ? 'C' : 'E',
+      explanation,
+      difficulty,
+    };
+  }
+  const letters = type === 'MULTIPLE_4' ? ['A', 'B', 'C', 'D'] : ['A', 'B', 'C', 'D', 'E'];
+  return {
+    statement: `${base} Qual alternativa está correta?`,
+    alternatives: letters.map((letter) => ({ letter, text: `Alternativa ${letter} da questão ${i + 1}${letter === 'C' ? ' (correta)' : ''}` })),
+    correctAnswer: 'C',
+    explanation,
+    difficulty,
+  };
+}
 
 export class MockProvider implements IAIProvider {
   async generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]> {
     const difficulties: Array<'EASY' | 'MEDIUM' | 'HARD'> = ['EASY', 'MEDIUM', 'HARD'];
+    const mixed: QuestionType[] = ['MULTIPLE_5', 'MULTIPLE_4', 'TRUE_FALSE', 'ESSAY'];
     const questions: GeneratedQuestion[] = [];
 
     for (let i = 0; i < params.quantity; i++) {
-      const diff = params.difficulty ?? difficulties[i % 3];
-      questions.push({
-        statement: `[MOCK] Questão ${i + 1} sobre ${params.subject}${params.topic ? ` — ${params.topic}` : ''}. ${params.examBoard ? `Estilo ${params.examBoard}.` : ''} Qual alternativa está correta?`,
-        alternatives: [
-          { letter: 'A', text: `Alternativa A da questão ${i + 1}` },
-          { letter: 'B', text: `Alternativa B da questão ${i + 1}` },
-          { letter: 'C', text: `Alternativa C da questão ${i + 1} (correta)` },
-          { letter: 'D', text: `Alternativa D da questão ${i + 1}` },
-          { letter: 'E', text: `Alternativa E da questão ${i + 1}` },
-        ],
-        correctAnswer: 'C',
-        explanation: `Explicação detalhada da questão ${i + 1}. A alternativa C está correta porque aborda corretamente o conceito de ${params.subject}.`,
-        difficulty: diff,
-      });
+      const type = params.questionType === 'MIXED' ? mixed[i % mixed.length] : (params.questionType ?? 'MULTIPLE_5');
+      questions.push(mockQuestion(i, type, params, params.difficulty ?? difficulties[i % 3]));
     }
-
     return questions;
   }
 

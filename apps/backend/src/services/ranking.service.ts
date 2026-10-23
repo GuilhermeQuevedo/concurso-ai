@@ -3,6 +3,8 @@ import { AppError } from '../middlewares/error-handler.js';
 
 const CORRECT_WEIGHT = 10;
 const STREAK_WEIGHT = 5;
+const GAME_WEIGHT = 0.25;
+const GAME_WINDOW_MS = 30 * 86400000;
 
 interface SuggestRankingInput {
   title: string;
@@ -130,7 +132,7 @@ export class RankingService {
       ? { userId: { in: userIds }, question: { subjectId: board.subjectId } }
       : { userId: { in: userIds } };
 
-    const [totals, corrects, streaks, users] = await Promise.all([
+    const [totals, corrects, streaks, users, gamePoints] = await Promise.all([
       prisma.questionAttempt.groupBy({
         by: ['userId'],
         where: attemptWhere,
@@ -149,18 +151,25 @@ export class RankingService {
         where: { id: { in: userIds } },
         select: { id: true, name: true, avatar: true },
       }),
+      prisma.gameSession.groupBy({
+        by: ['userId'],
+        where: { userId: { in: userIds }, createdAt: { gte: new Date(Date.now() - GAME_WINDOW_MS) } },
+        _sum: { points: true },
+      }),
     ]);
 
     const totalMap = new Map(totals.map((t) => [t.userId, t._count._all]));
     const correctMap = new Map(corrects.map((c) => [c.userId, c._count._all]));
     const streakMap = new Map(streaks.map((s) => [s.userId, s.current]));
     const userMap = new Map(users.map((u) => [u.id, u]));
+    const gameMap = new Map(gamePoints.map((g) => [g.userId, g._sum.points ?? 0]));
 
     const entries = userIds
       .map((uid) => {
         const correct = correctMap.get(uid) ?? 0;
         const total = totalMap.get(uid) ?? 0;
         const streak = streakMap.get(uid) ?? 0;
+        const games = gameMap.get(uid) ?? 0;
         const user = userMap.get(uid);
         return {
           userId: uid,
@@ -169,7 +178,8 @@ export class RankingService {
           correct,
           total,
           streak,
-          score: correct * CORRECT_WEIGHT + streak * STREAK_WEIGHT,
+          games,
+          score: correct * CORRECT_WEIGHT + streak * STREAK_WEIGHT + Math.round(games * GAME_WEIGHT),
           isCurrentUser: uid === currentUserId,
         };
       })

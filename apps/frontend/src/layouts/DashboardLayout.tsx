@@ -17,6 +17,7 @@ import {
   CalendarDays,
   Users,
   Medal,
+  Gamepad2,
   User,
   HelpCircle,
   PenLine,
@@ -71,10 +72,10 @@ const navGroups: NavGroup[] = [
     label: 'Estudos',
     icon: GraduationCap,
     items: [
-      { path: '/study-kit', label: 'Gerar com IA (PDF)', icon: Sparkles },
       { path: '/generate', label: 'Questões', icon: Sparkles },
       { path: '/essays', label: 'Redações', icon: PenLine },
       { path: '/flashcards', label: 'Flashcards', icon: Layers },
+      { path: '/games', label: 'Jogos', icon: Gamepad2 },
       { path: '/documents', label: 'Documentos', icon: FileText },
     ],
   },
@@ -251,7 +252,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-6 dark:border-gray-800 dark:bg-gray-900 lg:hidden">
           <button onClick={() => setSidebarOpen(true)} className="text-gray-600 dark:text-gray-400">
             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -261,7 +262,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         <main className="flex-1 p-6">{children}</main>
 
-        {location.pathname !== '/help' && (
+        {location.pathname !== '/help' && location.pathname !== '/study' && (
           <Link
             to="/help"
             data-tour="help"
