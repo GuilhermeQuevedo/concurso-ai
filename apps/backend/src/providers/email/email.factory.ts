@@ -3,8 +3,8 @@ import { SmtpEmailProvider } from './smtp-email.provider.js';
 import { ConsoleEmailProvider } from './console-email.provider.js';
 import type { IEmailProvider } from './email.interfaces.js';
 
-export class EmailFactory {
-  static createProvider(): IEmailProvider {
+export const EmailFactory = {
+  createProvider(): IEmailProvider {
     const resend = new ResendEmailProvider();
     if (resend.isConfigured()) {
       return resend;
@@ -16,5 +16,5 @@ export class EmailFactory {
     }
 
     return new ConsoleEmailProvider();
-  }
-}
+  },
+};

@@ -14,25 +14,25 @@ const MAX_FAILED_ATTEMPTS = 5;
 const ATTEMPT_WINDOW_MS = 15 * 60 * 1000; // 15 minutos de janela
 const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutos de bloqueio temporário
 
-export class BruteForceGuard {
-  private static readonly attempts = new Map<string, AttemptRecord>();
+const attempts = new Map<string, AttemptRecord>();
 
-  private static cleanupOldRecords(): void {
-    const now = Date.now();
-    for (const [key, record] of this.attempts.entries()) {
-      if (
-        (!record.blockedUntil || record.blockedUntil < now) &&
-        now - record.firstAttemptAt > ATTEMPT_WINDOW_MS
-      ) {
-        this.attempts.delete(key);
-      }
+function cleanupOldRecords(): void {
+  const now = Date.now();
+  for (const [key, record] of attempts.entries()) {
+    if (
+      (!record.blockedUntil || record.blockedUntil < now) &&
+      now - record.firstAttemptAt > ATTEMPT_WINDOW_MS
+    ) {
+      attempts.delete(key);
     }
   }
+}
 
-  static checkBlocked(identifier: string): { isBlocked: boolean; retryAfterSeconds: number } {
-    this.cleanupOldRecords();
+export const BruteForceGuard = {
+  checkBlocked(identifier: string): { isBlocked: boolean; retryAfterSeconds: number } {
+    cleanupOldRecords();
     const key = identifier.toLowerCase().trim();
-    const record = this.attempts.get(key);
+    const record = attempts.get(key);
 
     if (!record || !record.blockedUntil) {
       return { isBlocked: false, retryAfterSeconds: 0 };
@@ -45,14 +45,14 @@ export class BruteForceGuard {
     }
 
     // Período de bloqueio expirou: remove registro
-    this.attempts.delete(key);
+    attempts.delete(key);
     return { isBlocked: false, retryAfterSeconds: 0 };
-  }
+  },
 
-  static recordFailedAttempt(identifier: string): { isNowBlocked: boolean; remainingAttempts: number; retryAfterSeconds: number } {
+  recordFailedAttempt(identifier: string): { isNowBlocked: boolean; remainingAttempts: number; retryAfterSeconds: number } {
     const key = identifier.toLowerCase().trim();
     const now = Date.now();
-    const record = this.attempts.get(key) ?? {
+    const record = attempts.get(key) ?? {
       count: 0,
       firstAttemptAt: now,
       blockedUntil: null,
@@ -68,7 +68,7 @@ export class BruteForceGuard {
 
     if (record.count >= MAX_FAILED_ATTEMPTS) {
       record.blockedUntil = now + BLOCK_DURATION_MS;
-      this.attempts.set(key, record);
+      attempts.set(key, record);
       return {
         isNowBlocked: true,
         remainingAttempts: 0,
@@ -76,19 +76,19 @@ export class BruteForceGuard {
       };
     }
 
-    this.attempts.set(key, record);
+    attempts.set(key, record);
     return {
       isNowBlocked: false,
       remainingAttempts: MAX_FAILED_ATTEMPTS - record.count,
       retryAfterSeconds: 0,
     };
-  }
+  },
 
-  static recordSuccess(identifier: string): void {
+  recordSuccess(identifier: string): void {
     const key = identifier.toLowerCase().trim();
-    this.attempts.delete(key);
-  }
-}
+    attempts.delete(key);
+  },
+};
 
 /**
  * Whitelist restrita e explícita dos 3 administradores mestres autorizados

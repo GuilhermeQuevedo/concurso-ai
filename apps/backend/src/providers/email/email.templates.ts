@@ -1,5 +1,5 @@
-export class EmailTemplates {
-  static passwordReset(name: string, resetUrl: string): { html: string; text: string } {
+export const EmailTemplates = {
+  passwordReset(name: string, resetUrl: string): { html: string; text: string } {
     const firstName = name.trim().split(' ')[0] ?? 'Estudante';
 
     const text = `Olá, ${firstName}!\n\nRecebemos uma solicitação para redefinir a sua senha no Engrama.\n\nPara cadastrar uma nova senha, acesse o link abaixo (válido por 30 minutos):\n${resetUrl}\n\nSe você não solicitou a redefinição de senha, desconsidere esta mensagem. Sua conta permanece segura.\n\nEquipe Engrama`;
@@ -85,9 +85,9 @@ export class EmailTemplates {
     `.trim();
 
     return { html, text };
-  }
+  },
 
-  static welcome(name: string, loginUrl: string): { html: string; text: string } {
+  welcome(name: string, loginUrl: string): { html: string; text: string } {
     const firstName = name.trim().split(' ')[0] ?? 'Estudante';
 
     const text = `Olá, ${firstName}!\n\nSeja muito bem-vindo ao Engrama!\n\nSua conta foi criada com sucesso. Acesse a plataforma e comece a estudar:\n${loginUrl}\n\nBons estudos!\nEquipe Engrama`;
@@ -147,5 +147,5 @@ export class EmailTemplates {
     `.trim();
 
     return { html, text };
-  }
-}
+  },
+};
