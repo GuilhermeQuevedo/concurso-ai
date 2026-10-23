@@ -72,6 +72,15 @@ export function HomePage() {
           </button>
         </div>
 
+        <div className="mt-6 flex items-center justify-center gap-4 text-xs">
+          <button
+            onClick={() => navigate('/landing')}
+            className="font-medium text-primary-600 hover:text-primary-700 hover:underline dark:text-primary-400"
+          >
+            Conhecer Planos & Assinatura →
+          </button>
+        </div>
+
         <p className="mt-6 text-xs text-gray-400 dark:text-gray-600">
           Feito com <BookOpen className="inline h-3 w-3" /> para quem estuda.
         </p>

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { AuthService } from '../services/auth.service.js';
+import { env } from '../config/env.js';
 import type {
   RegisterDTO,
   LoginDTO,
@@ -9,6 +10,9 @@ import type {
   ChangeEmailDTO,
   ResetAccountDTO,
   PauseDTO,
+  ForgotPasswordDTO,
+  ResetPasswordDTO,
+  GoogleCredentialDTO,
 } from '../validators/auth.validators.js';
 import type { ApiResponse, AuthTokens } from '@concurso-ai/types';
 import { getUserId } from '../utils/request.js';
@@ -31,6 +35,69 @@ export class AuthController {
       const dto = req.body as LoginDTO;
       const tokens = await this.authService.login(dto);
       res.json({ success: true, data: tokens });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const dto = req.body as ForgotPasswordDTO;
+      const result = await this.authService.forgotPassword(dto);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const dto = req.body as ResetPasswordDTO;
+      const result = await this.authService.resetPassword(dto);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  googleAuthUrl = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const state = (req.query.state as string) || 'login';
+      const redirectUri = req.query.redirectUri as string | undefined;
+      const url = this.authService.getGoogleAuthUrl(state, redirectUri);
+      res.json({ success: true, data: { url } });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  googleCallback = async (req: Request, res: Response) => {
+    try {
+      const code = req.query.code as string | undefined;
+      if (!code) {
+        return res.redirect(`${env.APP_URL}/login?error=google_missing_code`);
+      }
+
+      const { tokens } = await this.authService.handleGoogleCallback(code);
+      const params = new URLSearchParams({
+        google_auth: 'success',
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+      });
+
+      return res.redirect(`${env.APP_URL}/login?${params.toString()}`);
+    } catch (error) {
+      console.error('❌ [Google Callback Error]:', error);
+      const message = error instanceof Error ? error.message : 'Falha ao autenticar com Google';
+      return res.redirect(`${env.APP_URL}/login?error=${encodeURIComponent(message)}`);
+    }
+  };
+
+  googleCredential = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { credential } = req.body as GoogleCredentialDTO;
+      const result = await this.authService.loginWithGoogleCredential(credential);
+      res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }

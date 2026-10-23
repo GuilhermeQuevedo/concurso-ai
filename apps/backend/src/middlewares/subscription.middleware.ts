@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../database/prisma.js';
 import { env } from '../config/env.js';
 import { getUserId } from '../utils/request.js';
+import { isVipEmail } from '../utils/security.js';
 
 export async function requireSubscription(req: Request, res: Response, next: NextFunction) {
   if (!env.REQUIRE_SUBSCRIPTION) {
@@ -9,18 +10,27 @@ export async function requireSubscription(req: Request, res: Response, next: Nex
   }
 
   try {
+    const userId = getUserId(req);
     const user = await prisma.user.findUnique({
-      where: { id: getUserId(req) },
+      where: { id: userId },
       select: { email: true, role: true },
     });
 
-    if (user?.role === 'ADMIN') {
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Usuário não autenticado.', code: 'UNAUTHORIZED' },
+      });
+    }
+
+    // Administradores e contas VIP têm bypass incondicional
+    if (user.role === 'ADMIN' || isVipEmail(user.email)) {
       return next();
     }
 
-    const entitlement = user
-      ? await prisma.entitlement.findUnique({ where: { email: user.email.toLowerCase() } })
-      : null;
+    const entitlement = await prisma.entitlement.findUnique({
+      where: { email: user.email.toLowerCase() },
+    });
 
     const active =
       !!entitlement &&

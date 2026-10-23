@@ -1,0 +1,173 @@
+:root {
+  /* ═══════════════════════════════════════
+     ENGRAMA PRIMITIVES — Paleta Original
+  ═══════════════════════════════════════ */
+
+  /* Teal / Verde-Revisão (Cor Primária Engrama) */
+  --teal-50:  #ECF6F4;
+  --teal-100: #CFEAE6;
+  --teal-200: #A4D8D0;
+  --teal-300: #70BFB5;
+  --teal-400: #46A79B;
+  --teal-500: #35978B;
+  --teal-600: #2E8C82; /* Principal */
+  --teal-700: #256F67;
+  --teal-800: #1E5853;
+  --teal-900: #194944;
+  --teal-950: #0F2A27;
+
+  /* Âmbar Engrama (Destaque — Nó da Memória) */
+  --amber-50:  #FEF6E8;
+  --amber-100: #FCEAC6;
+  --amber-200: #F9D78C;
+  --amber-300: #F5C263;
+  --amber-400: #F4B85A;
+  --amber-500: #F2A93B; /* Principal */
+  --amber-600: #D98F22;
+  --amber-700: #B4711A;
+
+  /* Tinta & Superfícies Profundas */
+  --ink-950: #0A0E1A;
+  --ink-900: #0F172A;
+  --ink-800: #121A33; /* Fundo Sidebar Escuro */
+  --ink-700: #1A2444;
+  --ink-600: #24325C;
+
+  /* Neutros e Papel */
+  --paper-base: #F8FAFC;
+  --paper-surface: #FFFFFF;
+  --neutral-900: #0F172A;
+  --neutral-800: #1E293B;
+  --neutral-700: #334155;
+  --neutral-600: #475569;
+  --neutral-500: #64748B;
+  --neutral-400: #94A3B8;
+  --neutral-300: #CBD5E1;
+  --neutral-200: #E2E8F0;
+  --neutral-100: #F1F5F9;
+  --neutral-50:  #F8FAFC;
+
+  /* Feedback */
+  --error-600: #DC2626;
+  --error-500: #EF4444;
+  --error-100: #FEE2E2;
+  --error-50:  #FEF2F2;
+
+  --success-600: #16A34A;
+  --success-500: #2E8C82;
+  --success-100: #DCFCE7;
+  --success-50:  #F0FDF4;
+
+  /* ═══════════════════════════════════════
+     SEMÂNTICOS — MODO CLARO
+  ═══════════════════════════════════════ */
+  --color-bg-base:        var(--paper-base);
+  --color-bg-surface:     #FFFFFF;
+  --color-bg-elevated:    #FFFFFF;
+  --color-bg-sunken:      var(--neutral-100);
+  --color-bg-sidebar:     var(--ink-800);
+
+  --color-text-primary:   var(--ink-800);
+  --color-text-secondary: var(--neutral-600);
+  --color-text-tertiary:  var(--neutral-400);
+  --color-text-inverse:   #FFFFFF;
+  --color-text-on-sidebar: rgba(255, 255, 255, 0.88);
+
+  --color-border-subtle:  rgba(18, 26, 51, 0.07);
+  --color-border-default: rgba(18, 26, 51, 0.12);
+  --color-border-strong:  rgba(18, 26, 51, 0.22);
+  --color-border-sidebar: rgba(255, 255, 255, 0.08);
+
+  /* Ação Primária (Verde Engrama) */
+  --color-action-primary:       var(--teal-600);
+  --color-action-primary-hover: var(--teal-700);
+  --color-action-primary-text:  #FFFFFF;
+
+  /* Acento (Âmbar Engrama) */
+  --color-accent:         var(--amber-500);
+  --color-accent-hover:   var(--amber-600);
+  --color-accent-subtle:  var(--amber-50);
+  --color-accent-text:    var(--amber-700);
+
+  /* Feedback */
+  --color-error:          var(--error-500);
+  --color-error-subtle:   var(--error-100);
+  --color-success:        var(--teal-600);
+  --color-success-subtle: var(--teal-50);
+
+  /* Sombras refinadas */
+  --shadow-xs: 0 1px 2px rgba(18, 26, 51, 0.04);
+  --shadow-sm: 0 1px 3px rgba(18, 26, 51, 0.06), 0 1px 2px rgba(18, 26, 51, 0.04);
+  --shadow-md: 0 4px 14px rgba(18, 26, 51, 0.08), 0 2px 4px rgba(18, 26, 51, 0.04);
+  --shadow-lg: 0 10px 28px rgba(18, 26, 51, 0.10), 0 4px 10px rgba(18, 26, 51, 0.05);
+  --shadow-focus: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--teal-600);
+
+  /* Sistema de Raios (Border Radius) */
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+
+  /* Espaçamentos */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Tipografia */
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-body:    "Plus Jakarta Sans", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 14px;
+  --text-md:   15px;
+  --text-lg:   18px;
+  --text-xl:   22px;
+  --text-2xl:  28px;
+  --text-3xl:  36px;
+  --text-4xl:  48px;
+}
+
+/* ═══════════════════════════════════════
+   SEMÂNTICOS — MODO ESCURO
+═══════════════════════════════════════ */
+[data-theme="dark"],
+.dark {
+  --color-bg-base:        var(--ink-950);
+  --color-bg-surface:     var(--ink-900);
+  --color-bg-elevated:    var(--ink-800);
+  --color-bg-sunken:      #080B14;
+  --color-bg-sidebar:     #080B14;
+
+  --color-text-primary:   rgba(255, 255, 255, 0.95);
+  --color-text-secondary: rgba(255, 255, 255, 0.65);
+  --color-text-tertiary:  rgba(255, 255, 255, 0.40);
+  --color-text-on-sidebar: rgba(255, 255, 255, 0.88);
+
+  --color-border-subtle:  rgba(255, 255, 255, 0.08);
+  --color-border-default: rgba(255, 255, 255, 0.12);
+  --color-border-strong:  rgba(255, 255, 255, 0.22);
+  --color-border-sidebar: rgba(255, 255, 255, 0.08);
+
+  --color-action-primary:       var(--teal-500);
+  --color-action-primary-hover: var(--teal-400);
+  --color-action-primary-text:  #FFFFFF;
+
+  --color-accent-subtle:  rgba(242, 169, 59, 0.15);
+  --color-accent-text:    var(--amber-400);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.65);
+  --shadow-focus: 0 0 0 2px var(--ink-900), 0 0 0 4px var(--teal-500);
+}
