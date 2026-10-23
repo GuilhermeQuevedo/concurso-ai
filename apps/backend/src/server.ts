@@ -7,34 +7,64 @@ import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
-import bcrypt from 'bcrypt';
 import { env } from './config/env.js';
 import { prisma } from './database/prisma.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler } from './middlewares/error-handler.js';
 import { RATE_LIMIT } from '@concurso-ai/shared';
+import { MASTER_ADMIN_EMAILS } from './utils/security.js';
 
 async function bootstrapAdmin(): Promise<void> {
-  const email = env.ADMIN_EMAIL?.toLowerCase().trim();
-  if (!email) return;
-  try {
-    const passwordHash = env.ADMIN_PASSWORD ? await bcrypt.hash(env.ADMIN_PASSWORD, 12) : null;
-    const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  const adminEmails = [
+    ...MASTER_ADMIN_EMAILS,
+    env.ADMIN_EMAIL,
+    ...(env.ADMIN_EMAILS ?? '').split(','),
+  ]
+    .map((e) => e?.toLowerCase().trim())
+    .filter((e): e is string => Boolean(e));
 
-    if (existing) {
-      await prisma.user.update({
+  const uniqueAdminEmails = Array.from(new Set(adminEmails));
+
+  for (const email of uniqueAdminEmails) {
+    try {
+      const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, role: true } });
+
+      if (existing) {
+        if (existing.role !== 'ADMIN') {
+          await prisma.user.update({
+            where: { email },
+            data: { role: 'ADMIN' },
+          });
+          console.log(`[Admin Bootstrap] Usuário ${email} promovido para ADMIN.`);
+        }
+      } else {
+        await prisma.user.create({
+          data: {
+            email,
+            name: email.split('@')[0],
+            role: 'ADMIN',
+          },
+        });
+        console.log(`[Admin Bootstrap] Nova conta ADMIN criada: ${email}.`);
+      }
+
+      // Garante Entitlement vitalício ativo para administradores autorizados
+      await prisma.entitlement.upsert({
         where: { email },
-        data: passwordHash ? { role: 'ADMIN', password: passwordHash } : { role: 'ADMIN' },
+        create: {
+          email,
+          status: 'ACTIVE',
+          provider: 'admin',
+          expiresAt: new Date('2099-12-31T23:59:59.999Z'),
+        },
+        update: {
+          status: 'ACTIVE',
+          expiresAt: new Date('2099-12-31T23:59:59.999Z'),
+        },
       });
-      console.log('Admin bootstrap: usuário existente promovido para ADMIN.');
-    } else if (passwordHash) {
-      await prisma.user.create({
-        data: { email, name: 'Administrador', role: 'ADMIN', password: passwordHash },
-      });
-      console.log('Admin bootstrap: conta ADMIN criada.');
+    } catch (error) {
+      console.error(`[Admin Bootstrap] Falha ao sincronizar admin ${email}:`, error);
     }
-  } catch (error) {
-    console.error('Falha no bootstrap do admin:', error);
   }
 }
 
@@ -76,6 +106,7 @@ function inlineScriptCspHashes(): string[] {
 
 const app: ReturnType<typeof express> = express();
 
+app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(
   helmet({
@@ -84,6 +115,9 @@ app.use(
         'script-src': ["'self'", ...inlineScriptCspHashes()],
       },
     },
+    crossOriginEmbedderPolicy: false,
+    frameguard: { action: 'deny' },
+    hidePoweredBy: true,
   }),
 );
 app.use(
@@ -95,12 +129,19 @@ app.use(
 app.use(
   rateLimit({
     windowMs: RATE_LIMIT.GENERAL_WINDOW_MS,
-    max: RATE_LIMIT.GENERAL_MAX,
+    max: env.NODE_ENV === 'development' ? 2000 : RATE_LIMIT.GENERAL_MAX,
     standardHeaders: true,
     legacyHeaders: false,
   }),
 );
-app.use(express.json({ limit: '10mb' }));
+app.use(
+  express.json({
+    limit: '10mb',
+    verify: (req, _res, buf) => {
+      (req as unknown as { rawBody?: Buffer }).rawBody = buf;
+    },
+  }),
+);
 
 const uploadsDir = path.resolve('uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
