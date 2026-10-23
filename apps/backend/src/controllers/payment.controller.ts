@@ -5,6 +5,7 @@ import { prisma } from '../database/prisma.js';
 import { env } from '../config/env.js';
 import { getUserId } from '../utils/request.js';
 import { verifyKiwifySignature } from '../utils/kiwify-signature.js';
+import { isVipEmail } from '../utils/security.js';
 
 export class PaymentController {
   constructor(private readonly service: PaymentService) {}
@@ -38,8 +39,14 @@ export class PaymentController {
         select: { email: true, role: true },
       });
 
-      if (user?.role === 'ADMIN') {
-        const data = { active: true, enforced: env.REQUIRE_SUBSCRIPTION, status: 'ADMIN', expiresAt: null, checkoutUrl: env.KIWIFY_CHECKOUT_URL };
+      if (user?.role === 'ADMIN' || (user?.email && isVipEmail(user.email))) {
+        const data = {
+          active: true,
+          enforced: env.REQUIRE_SUBSCRIPTION,
+          status: 'ADMIN',
+          expiresAt: null,
+          checkoutUrl: env.KIWIFY_CHECKOUT_URL,
+        };
         const response: ApiResponse<typeof data> = { success: true, data };
         return res.json(response);
       }

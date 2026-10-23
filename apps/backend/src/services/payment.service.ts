@@ -1,5 +1,6 @@
 import { prisma } from '../database/prisma.js';
 import { env } from '../config/env.js';
+import { isVipEmail } from '../utils/security.js';
 
 type EntitlementStatus = 'ACTIVE' | 'CANCELED' | 'EXPIRED' | 'REFUNDED';
 
@@ -93,6 +94,18 @@ export class PaymentService {
 
   async getAccess(email: string) {
     const normalized = email.toLowerCase().trim();
+
+    // Contas VIP e administradores têm acesso vitalício ativo garantido
+    if (isVipEmail(normalized)) {
+      return {
+        active: true,
+        enforced: env.REQUIRE_SUBSCRIPTION,
+        status: 'ACTIVE',
+        expiresAt: new Date('2099-12-31T23:59:59.999Z'),
+        checkoutUrl: env.KIWIFY_CHECKOUT_URL,
+      };
+    }
+
     const entitlement = await prisma.entitlement.findUnique({ where: { email: normalized } });
     const now = new Date();
     const active =

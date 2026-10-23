@@ -1,11 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Lock, Sparkles, RefreshCw, LogOut } from 'lucide-react';
+import { Lock, Sparkles, RefreshCw, LogOut, CreditCard, Loader2 } from 'lucide-react';
 import { subscriptionService } from '../services/subscription.service';
+import { useStripeBilling } from '../hooks/useStripeBilling';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export function SubscriptionGate({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const { user, logout } = useAuth();
+  const { config, startCheckout, isStartingCheckout } = useStripeBilling();
 
   const { data, isLoading } = useQuery({
     queryKey: ['subscription-access'],
@@ -29,21 +31,43 @@ export function SubscriptionGate({ children }: { children: React.ReactNode }) {
           Assine o Engrama para liberar questões com IA, flashcards, redações e seu plano de estudos completo.
         </p>
 
-        {data.checkoutUrl ? (
-          <a
-            href={data.checkoutUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
-          >
-            <Sparkles className="h-4 w-4" />
-            Assinar agora
-          </a>
-        ) : (
-          <p className="rounded-lg border border-dashed border-gray-300 p-3 text-xs text-gray-500 dark:border-gray-700">
-            O link de assinatura ainda não foi configurado.
-          </p>
-        )}
+        <div className="space-y-2.5">
+          {config?.isConfigured && (
+            <button
+              onClick={() => startCheckout()}
+              disabled={isStartingCheckout}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {isStartingCheckout ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Abrindo Stripe Checkout...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  Assinar com Stripe (Cartão)
+                </>
+              )}
+            </button>
+          )}
+
+          {data.checkoutUrl ? (
+            <a
+              href={data.checkoutUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
+            >
+              <Sparkles className="h-4 w-4" />
+              Assinar via Kiwify
+            </a>
+          ) : !config?.isConfigured ? (
+            <p className="rounded-lg border border-dashed border-gray-300 p-3 text-xs text-gray-500 dark:border-gray-700">
+              O link de assinatura ainda não foi configurado.
+            </p>
+          ) : null}
+        </div>
 
         <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
           Já assinou? Use o <span className="font-medium">mesmo e-mail</span> da compra
