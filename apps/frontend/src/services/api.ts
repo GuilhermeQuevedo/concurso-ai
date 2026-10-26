@@ -24,6 +24,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const PUBLIC_ROUTES = [
+  '/',
+  '/landing',
+  '/planos',
+  '/login',
+  '/register',
+  '/help',
+  '/metodologia',
+  '/forgot-password',
+  '/reset-password',
+];
+
+function isPublicRoute(pathname: string): boolean {
+  if (pathname === '/') return true;
+  return PUBLIC_ROUTES.some((route) => route !== '/' && pathname.startsWith(route));
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -50,7 +67,10 @@ api.interceptors.response.use(
       } catch {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+
+        if (!isPublicRoute(window.location.pathname)) {
+          window.location.href = '/login';
+        }
       }
     }
 

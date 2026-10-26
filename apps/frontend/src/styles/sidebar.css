@@ -1,0 +1,239 @@
+/* ═══════════════════════════════════════
+   ENGRAMA REFINED SIDEBAR SYSTEM
+═══════════════════════════════════════ */
+
+.sidebar {
+  width: 256px;
+  background: var(--color-bg-sidebar);
+  border-right: 1px solid var(--color-border-sidebar);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 50;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  transition: width 220ms cubic-bezier(0.4, 0, 0.2, 1), transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+@media (max-width: 1023px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+}
+
+.sidebar.collapsed {
+  width: 72px;
+}
+
+/* Logo no topo */
+.sidebar-logo {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--color-border-sidebar);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 64px;
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+  opacity: 1;
+  transition: opacity 150ms ease;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .sidebar-logo-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Botão Flutuante de Recolhimento */
+.sidebar-collapse-btn {
+  position: absolute;
+  top: 72px;
+  right: -13px;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--teal-600);
+  border: 2px solid var(--ink-800);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 60;
+  transition: background 150ms ease, transform 150ms ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.sidebar-collapse-btn:hover {
+  background: var(--teal-500);
+  transform: scale(1.08);
+}
+
+/* Área de Navegação com Scroll Vertical Limpo (Sem Scroll Lateral) */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 10px;
+  box-sizing: border-box;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE e Edge */
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Grupos de navegação */
+.nav-group {
+  padding: 4px 0;
+  box-sizing: border-box;
+}
+
+.nav-group + .nav-group {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.nav-group-title {
+  padding: 4px 10px 4px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  transition: opacity 150ms ease;
+}
+
+.sidebar.collapsed .nav-group-title {
+  opacity: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* Itens de navegação */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 1px 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  position: relative;
+  border: none;
+  background: transparent;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  overflow: hidden;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.nav-item.active {
+  background: rgba(46, 140, 130, 0.16);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+/* Barra Verde Engrama — Indicador de Item Ativo sem transbordar */
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3.5px;
+  background: var(--teal-400);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 8px rgba(46, 140, 130, 0.7);
+}
+
+.nav-item-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 120ms ease;
+}
+
+.nav-item:hover .nav-item-icon {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-item.active .nav-item-icon {
+  color: var(--teal-400);
+}
+
+.nav-item-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 1;
+  transition: opacity 150ms ease;
+}
+
+.sidebar.collapsed .nav-item-label {
+  opacity: 0;
+  width: 0;
+}
+
+/* Sub-Abas Indentadas */
+.sub-nav-item {
+  padding-left: 32px;
+}
+
+/* Footer / Perfil */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px 14px;
+  border-top: 1px solid var(--color-border-sidebar);
+  background: rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  justify-content: center;
+  padding: 12px 8px;
+}

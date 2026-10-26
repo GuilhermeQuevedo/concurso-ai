@@ -21,6 +21,7 @@ import { subscriptionService } from '@/features/subscription/services/subscripti
 import { NotificationsCard } from '@/features/notifications/NotificationsCard';
 import { AccountSecurity } from '@/features/profile/components/AccountSecurity';
 import { DangerZone } from '@/features/profile/components/DangerZone';
+import { StripeBillingModal } from '@/features/subscription/components/StripeBillingModal';
 
 const PLAN_LABEL: Record<string, string> = {
   NONE: 'Sem assinatura',
@@ -40,6 +41,7 @@ export function ProfilePage() {
   const [goalValue, setGoalValue] = useState(user?.dailyGoal ?? 30);
   const [goalSaved, setGoalSaved] = useState(false);
   const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+  const [billingModalOpen, setBillingModalOpen] = useState(false);
 
   const { data: access } = useQuery({ queryKey: ['access'], queryFn: subscriptionService.getAccess });
 
@@ -125,9 +127,18 @@ export function ProfilePage() {
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-            <div className="mb-3 flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-primary-600" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">Meu plano</h3>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-primary-600" />
+                <h3 className="font-semibold text-gray-900 dark:text-white">Meu plano</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBillingModalOpen(true)}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
+              >
+                Stripe Billing <ChevronRight className="h-3 w-3" />
+              </button>
             </div>
             <div className="flex items-center justify-between">
               <div>
@@ -136,11 +147,21 @@ export function ProfilePage() {
                   <p className="text-xs text-gray-500 dark:text-gray-400">Válido até {new Date(access.expiresAt).toLocaleDateString('pt-BR')}</p>
                 )}
               </div>
-              {access?.checkoutUrl && access.status !== 'ADMIN' && (
-                <a href={access.checkoutUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">
-                  {access.active ? 'Gerenciar' : 'Assinar'} <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              )}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBillingModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-indigo-700"
+                >
+                  <CreditCard className="h-3.5 w-3.5" />
+                  Faturas & Cartão
+                </button>
+                {access?.checkoutUrl && access.status !== 'ADMIN' && (
+                  <a href={access.checkoutUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    {access.active ? 'Kiwify' : 'Assinar Kiwify'} <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -185,6 +206,10 @@ export function ProfilePage() {
         <LogOut className="h-4 w-4" />
         Sair da conta
       </button>
+
+      {billingModalOpen && (
+        <StripeBillingModal onClose={() => setBillingModalOpen(false)} />
+      )}
     </div>
   );
 }

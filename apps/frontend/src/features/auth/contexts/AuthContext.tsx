@@ -8,6 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, phone: string, password: string) => Promise<void>;
+  loginWithTokens: (accessToken: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -63,6 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
   };
 
+  const loginWithTokens = async (accessToken: string, refreshToken: string) => {
+    saveTokens(accessToken, refreshToken);
+    const profile = await authService.getProfile();
+    setUser(profile);
+  };
+
   const refreshProfile = useCallback(async () => {
     const profile = await authService.getProfile();
     setUser(profile);
@@ -88,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         register,
+        loginWithTokens,
         logout,
         refreshProfile,
       }}

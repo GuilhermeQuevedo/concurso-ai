@@ -10,6 +10,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    sourcemap: false, // Impede a emissão de mapas de código-fonte no DevTools de produção
+    minify: 'esbuild',
+  },
+  esbuild: {
+    // Em produção, remove qualquer console.log e debugger do bundle
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+  },
   server: {
     port: 5173,
     proxy: {

@@ -4,6 +4,7 @@ import { CalendarClock, Clock, Loader2, Sparkles } from 'lucide-react';
 import { studyTaskService, type StudyTask } from '@/features/calendar/services/study-task.service';
 import { contestService } from '@/features/contests/services/contest.service';
 import { GeneratePlanForm } from '@/features/calendar/components/GeneratePlanForm';
+import { GoogleCalendarPluginModal } from '@/features/calendar/components/GoogleCalendarPluginModal';
 import { MonthGrid, dayKey } from '@/features/calendar/components/MonthGrid';
 import { TaskList } from '@/features/calendar/components/TaskList';
 import { daysUntil } from '@/features/contests/components/ContestCard';
@@ -15,6 +16,7 @@ export function CalendarPage() {
   const [month, setMonth] = useState(now.getMonth());
   const [selectedDay, setSelectedDay] = useState(dayKey(now));
   const [showGenerate, setShowGenerate] = useState(false);
+  const [showPlugin, setShowPlugin] = useState(false);
 
   const from = `${year}-${String(month + 1).padStart(2, '0')}-01`;
   const lastDay = new Date(year, month + 1, 0).getDate();
@@ -83,13 +85,28 @@ export function CalendarPage() {
             Seu plano diário até o dia da prova
           </p>
         </div>
-        <button
-          onClick={() => setShowGenerate(!showGenerate)}
-          className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-        >
-          <Sparkles className="h-4 w-4" />
-          Gerar Plano
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowPlugin(true)}
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 shadow-2xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-850 dark:text-gray-200 dark:hover:bg-gray-800"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="4" width="18" height="18" rx="3" fill="#4285F4" />
+              <path d="M3 9H21" stroke="white" strokeWidth="2" />
+              <rect x="7" y="2" width="2" height="4" rx="1" fill="#EA4335" />
+              <rect x="15" y="2" width="2" height="4" rx="1" fill="#EA4335" />
+              <text x="12" y="17" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">31</text>
+            </svg>
+            <span>Google Calendar</span>
+          </button>
+          <button
+            onClick={() => setShowGenerate(!showGenerate)}
+            className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+          >
+            <Sparkles className="h-4 w-4" />
+            Gerar Plano
+          </button>
+        </div>
       </div>
 
       {upcomingExams.length > 0 && (
@@ -108,6 +125,7 @@ export function CalendarPage() {
         </div>
       )}
 
+      {showPlugin && <GoogleCalendarPluginModal onClose={() => setShowPlugin(false)} />}
       {showGenerate && <GeneratePlanForm onClose={() => setShowGenerate(false)} />}
 
       {isLoading ? (

@@ -16,7 +16,7 @@ export const RATE_LIMIT = {
   GENERAL_WINDOW_MS: 60 * 1000,
   GENERAL_MAX: 100,
   AUTH_WINDOW_MS: 60 * 1000,
-  AUTH_MAX: 10,
+  AUTH_MAX: 30,
 } as const;
 
 export const QUESTION_GENERATION = {

@@ -1,7 +1,16 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Sparkles, BarChart3, Clock, Play, History, Rocket, ArrowRight } from 'lucide-react';
+import {
+  BookOpenIcon,
+  BarChartIcon,
+  ClockIcon,
+  SparklesIcon,
+  ZapIcon,
+  ArrowRightIcon,
+  RotateCcwIcon,
+  PlayIcon,
+} from '@/components/icons/EngramaIcons';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { studyService, type StudySessionDTO } from '@/features/study/services/study.service';
 import { contentService } from '@/features/content/services/content.service';
@@ -60,10 +69,34 @@ export function DashboardPage() {
   };
 
   const statCards = [
-    { label: 'Questões resolvidas', value: String(stats?.questionsAnswered ?? 0), icon: BookOpen, color: 'text-blue-600' },
-    { label: 'Taxa de acerto', value: `${stats?.accuracy ?? 0}%`, icon: BarChart3, color: 'text-green-600' },
-    { label: 'Tempo estudado', value: formatTime(stats?.totalTimeSeconds ?? 0), icon: Clock, color: 'text-amber-600' },
-    { label: 'Sessões completadas', value: String(stats?.totalSessions ?? 0), icon: Sparkles, color: 'text-purple-600' },
+    {
+      label: 'Questões resolvidas',
+      value: String(stats?.questionsAnswered ?? 0),
+      icon: BookOpenIcon,
+      color: 'text-teal-600 dark:text-teal-400',
+      bg: 'bg-teal-500/10 dark:bg-teal-500/15',
+    },
+    {
+      label: 'Taxa de acerto',
+      value: `${stats?.accuracy ?? 0}%`,
+      icon: BarChartIcon,
+      color: 'text-emerald-600 dark:text-emerald-400',
+      bg: 'bg-emerald-500/10 dark:bg-emerald-500/15',
+    },
+    {
+      label: 'Tempo estudado',
+      value: formatTime(stats?.totalTimeSeconds ?? 0),
+      icon: ClockIcon,
+      color: 'text-amber-500 dark:text-amber-400',
+      bg: 'bg-amber-500/10 dark:bg-amber-500/15',
+    },
+    {
+      label: 'Sessões completadas',
+      value: String(stats?.totalSessions ?? 0),
+      icon: SparklesIcon,
+      color: 'text-purple-600 dark:text-purple-400',
+      bg: 'bg-purple-500/10 dark:bg-purple-500/15',
+    },
   ];
 
   return (
@@ -81,15 +114,19 @@ export function DashboardPage() {
         {statCards.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"
+            className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs transition-shadow hover:shadow-sm dark:border-white/8 dark:bg-[#121A33]"
           >
-            <div className="flex items-center gap-3">
-              <div className={`rounded-lg bg-gray-50 p-2 dark:bg-gray-800 ${stat.color}`}>
-                <stat.icon className="h-5 w-5" />
+            <div className="flex items-center gap-3.5">
+              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${stat.bg} ${stat.color}`}>
+                <stat.icon size={22} strokeWidth={1.75} />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  {stat.value}
+                </p>
+                <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {stat.label}
+                </p>
               </div>
             </div>
           </div>
@@ -130,7 +167,7 @@ export function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary-100 p-2 dark:bg-primary-900">
-                <Rocket className="h-5 w-5 text-primary-600" />
+                <ZapIcon size={20} className="text-primary-600" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -146,7 +183,7 @@ export function DashboardPage() {
               className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
             >
               Ver tutorial
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRightIcon size={16} />
             </button>
           </div>
         </div>
@@ -155,7 +192,7 @@ export function DashboardPage() {
       {history.length > 0 ? (
         <div className="mt-8">
           <div className="mb-4 flex items-center gap-2">
-            <History className="h-5 w-5 text-gray-500" />
+            <RotateCcwIcon size={18} className="text-gray-500" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sessões Recentes</h2>
           </div>
           <div className="space-y-2">
@@ -186,7 +223,7 @@ export function DashboardPage() {
         </div>
       ) : (
         <div className="mt-8 rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900">
-          <Play className="mx-auto mb-3 h-10 w-10 text-primary-400" />
+          <PlayIcon size={36} className="mx-auto mb-3 text-primary-400" />
           <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">
             Comece gerando questões
           </h3>
@@ -197,7 +234,7 @@ export function DashboardPage() {
             onClick={() => navigate('/generate')}
             className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
           >
-            <Sparkles className="h-4 w-4" />
+            <SparklesIcon size={16} />
             Gerar Questões
           </button>
         </div>

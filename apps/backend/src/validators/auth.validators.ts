@@ -39,6 +39,19 @@ export const pauseSchema = z.object({
   days: z.coerce.number().int().min(0).max(365),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(10, 'Token inválido'),
+  newPassword: z.string().min(8, 'Nova senha deve ter pelo menos 8 caracteres').max(100),
+});
+
+export const googleCredentialSchema = z.object({
+  credential: z.string().min(10, 'Credencial Google inválida'),
+});
+
 export type RegisterDTO = z.infer<typeof registerSchema>;
 export type LoginDTO = z.infer<typeof loginSchema>;
 export type RefreshDTO = z.infer<typeof refreshSchema>;
@@ -47,3 +60,6 @@ export type ChangePasswordDTO = z.infer<typeof changePasswordSchema>;
 export type ChangeEmailDTO = z.infer<typeof changeEmailSchema>;
 export type ResetAccountDTO = z.infer<typeof resetAccountSchema>;
 export type PauseDTO = z.infer<typeof pauseSchema>;
+export type ForgotPasswordDTO = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordDTO = z.infer<typeof resetPasswordSchema>;
+export type GoogleCredentialDTO = z.infer<typeof googleCredentialSchema>;

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -48,20 +49,31 @@ async function main() {
   ];
 
   for (const subject of subjects) {
-    const parent = await prisma.subject.upsert({
-      where: { id: subject.name },
-      update: {},
-      create: { name: subject.name },
+    let parent = await prisma.subject.findFirst({
+      where: { name: subject.name, parentId: null },
     });
 
-    for (let i = 0; i < subject.children.length; i++) {
-      await prisma.subject.create({
-        data: {
-          name: subject.children[i],
-          parentId: parent.id,
-          order: i,
-        },
+    if (!parent) {
+      parent = await prisma.subject.create({
+        data: { name: subject.name },
       });
+    }
+
+    for (let i = 0; i < subject.children.length; i++) {
+      const childName = subject.children[i];
+      const existingChild = await prisma.subject.findFirst({
+        where: { name: childName, parentId: parent.id },
+      });
+
+      if (!existingChild) {
+        await prisma.subject.create({
+          data: {
+            name: childName,
+            parentId: parent.id,
+            order: i,
+          },
+        });
+      }
     }
   }
 
