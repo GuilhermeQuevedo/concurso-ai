@@ -44,10 +44,14 @@ export function ErrorNotebookPage() {
   });
 
   const handleUseError = (err: PendingErrorDTO) => {
-    setErrorQuestion(err.statement);
-    const explanationText = err.explanation && err.explanation !== err.correctAnswer
-      ? `${err.correctAnswer ? `Gabarito: ${err.correctAnswer}. ` : ''}${err.explanation}`
-      : err.correctAnswer || err.explanation;
+    const cleanStmt = err.statement.replace(/\[MOCK\]\s*/gi, '');
+    const cleanAns = err.correctAnswer.replace(/\[MOCK\]\s*/gi, '');
+    const cleanExp = (err.explanation || '').replace(/\[MOCK\]\s*/gi, '');
+
+    setErrorQuestion(cleanStmt);
+    const explanationText = cleanExp && cleanExp !== cleanAns
+      ? `${cleanAns ? `Gabarito: ${cleanAns}. ` : ''}${cleanExp}`
+      : cleanAns || cleanExp;
     setErrorExplanation(explanationText);
     const el = document.getElementById('form-remediation');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -183,10 +187,10 @@ export function ErrorNotebookPage() {
                     </div>
 
                     <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
-                      {err.statement}
+                      {err.statement.replace(/\[MOCK\]\s*/gi, '')}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
-                      Resposta / Gabarito: <span className="font-medium text-emerald-600 dark:text-emerald-400">{err.correctAnswer}</span>
+                      Resposta / Gabarito: <span className="font-medium text-emerald-600 dark:text-emerald-400">{err.correctAnswer.replace(/\[MOCK\]\s*/gi, '')}</span>
                     </p>
                   </div>
 
