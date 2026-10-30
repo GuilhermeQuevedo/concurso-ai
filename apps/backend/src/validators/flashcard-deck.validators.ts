@@ -16,9 +16,12 @@ export const createDeckSchema = z.object({
 export const generateDeckSchema = z.object({
   body: z.object({
     ...deck,
-    text: z.string().max(80000).optional(),
+    text: z.string().max(150000).optional(),
     documentId: z.string().min(1).optional(),
-    count: z.number().int().min(1).max(30).optional(),
+    count: z.number().int().min(1).max(50).optional(),
+    mode: z.enum(['standard', 'cloze']).optional(),
+    difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).optional(),
+    customFocus: z.string().max(2000).optional(),
   }),
 });
 

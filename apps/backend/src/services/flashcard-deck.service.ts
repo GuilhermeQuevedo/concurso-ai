@@ -1,4 +1,4 @@
-import type { IAIProvider } from '../interfaces/ai.interfaces.js';
+import type { IAIProvider, GeneratedFlashcard } from '../interfaces/ai.interfaces.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { parseFlashcardText } from '../utils/flashcard-parser.js';
@@ -6,14 +6,14 @@ import { estimateRetention } from '../utils/retention.js';
 import { shuffle } from '../utils/shuffle.js';
 
 const FALLBACK_SUBJECT = 'Geral';
-const DEFAULT_COLOR = '#3b82f6';
+const DEFAULT_COLOR = '#2E8C82';
 const MIN_CONTENT_CHARS = 50;
 const MIN_AUTO_CARDS = 6;
 const MAX_AUTO_CARDS = 20;
 const MAX_GENERATED_CARDS = 30;
 const CHARS_PER_CARD = 600;
 const STUDY_BATCH = 50;
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+const COLORS = ['#2E8C82', '#F2A93B', '#121A33', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
 
 interface CardInput {
   front: string;
@@ -31,6 +31,9 @@ interface GenerateDeckInput extends DeckInput {
   text?: string;
   documentId?: string;
   count?: number;
+  mode?: 'standard' | 'cloze';
+  difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
+  customFocus?: string;
 }
 
 export class FlashcardDeckService {
@@ -97,7 +100,20 @@ export class FlashcardDeckService {
       MAX_GENERATED_CARDS,
       dto.count ?? Math.min(MAX_AUTO_CARDS, Math.max(MIN_AUTO_CARDS, Math.round(content.length / CHARS_PER_CARD))),
     );
-    const generated = await this.aiProvider.generateFlashcards({ content, subject: subject.name, count });
+
+    let generated: GeneratedFlashcard[];
+    if (this.aiProvider.generateAdvancedFlashcards) {
+      generated = await this.aiProvider.generateAdvancedFlashcards({
+        content,
+        subject: subject.name,
+        count,
+        mode: dto.mode ?? 'standard',
+        difficulty: dto.difficulty ?? 'MEDIUM',
+        customFocus: dto.customFocus,
+      });
+    } else {
+      generated = await this.aiProvider.generateFlashcards({ content, subject: subject.name, count });
+    }
 
     return prisma.flashcardDeck.create({
       data: {
@@ -133,37 +149,45 @@ export class FlashcardDeckService {
   async addCard(userId: string, deckId: string, card: CardInput) {
     const deck = await this.ownedDeck(userId, deckId);
     const subject = await this.resolveSubject(undefined, deck.subjectId);
-    return prisma.flashcard.create({ data: { userId, deckId, subjectId: subject.id, front: card.front, back: card.back } });
+    return prisma.flashcard.create({
+      data: { userId, subjectId: subject.id, deckId, front: card.front, back: card.back },
+    });
   }
 
   async updateCard(userId: string, cardId: string, card: CardInput) {
-    const existing = await prisma.flashcard.findUnique({ where: { id: cardId }, select: { userId: true } });
-    if (!existing || existing.userId !== userId) throw new AppError(404, 'CARD_NOT_FOUND', 'Flashcard não encontrado');
+    const existing = await prisma.flashcard.findUnique({ where: { id: cardId } });
+    if (!existing || existing.userId !== userId) throw new AppError(404, 'CARD_NOT_FOUND', 'Card não encontrado');
     return prisma.flashcard.update({ where: { id: cardId }, data: { front: card.front, back: card.back } });
   }
 
   async importCards(userId: string, deckId: string, text: string) {
     const deck = await this.ownedDeck(userId, deckId);
-    const { cards, skipped } = parseFlashcardText(text);
-    if (cards.length === 0) {
-      throw new AppError(400, 'NO_CARDS_FOUND', 'Nenhum flashcard reconhecido. Use "frente" e "verso" separados por tab, ponto e vírgula ou vírgula.');
-    }
     const subject = await this.resolveSubject(undefined, deck.subjectId);
+    const { cards, skipped } = parseFlashcardText(text);
+    if (!cards.length) throw new AppError(400, 'NO_CARDS_FOUND', 'Nenhum flashcard reconhecido no texto.');
+
     await prisma.flashcard.createMany({
-      data: cards.map((c) => ({ userId, deckId, subjectId: subject.id, front: c.front, back: c.back })),
+      data: cards.map((c) => ({ userId, subjectId: subject.id, deckId, front: c.front, back: c.back })),
     });
     return { imported: cards.length, skipped };
   }
 
-  async study(userId: string, deckId: string, all: boolean) {
+  async study(userId: string, deckId: string, all = false) {
     await this.ownedDeck(userId, deckId);
-    const cards = await prisma.flashcard.findMany({
+    let cards = await prisma.flashcard.findMany({
       where: { deckId, ...(all ? {} : { nextReview: { lte: new Date() } }) },
       orderBy: { nextReview: 'asc' },
       take: STUDY_BATCH,
       include: { subject: true },
     });
-    // Embaralha para evitar o efeito de posição serial (primazia/recência)
+    if (cards.length === 0 && all) {
+      cards = await prisma.flashcard.findMany({
+        where: { deckId },
+        orderBy: { nextReview: 'asc' },
+        take: STUDY_BATCH,
+        include: { subject: true },
+      });
+    }
     return shuffle(cards);
   }
 
@@ -192,7 +216,6 @@ export class FlashcardDeckService {
     return deck;
   }
 
-  // Matéria digitada ou escolhida; sem ela, usa (ou cria) "Geral"
   private async resolveSubject(name?: string, fallbackId?: string | null) {
     const trimmed = name?.trim();
     if (!trimmed && fallbackId) {
@@ -204,7 +227,6 @@ export class FlashcardDeckService {
     return existing ?? prisma.subject.create({ data: { name: wanted } });
   }
 
-  // Cartões antigos (sem deck) viram um deck por matéria, uma única vez
   private async adoptOrphanCards(userId: string) {
     const groups = await prisma.flashcard.groupBy({ by: ['subjectId'], where: { userId, deckId: null } });
     for (const group of groups) {

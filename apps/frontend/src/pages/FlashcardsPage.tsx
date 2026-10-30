@@ -44,14 +44,14 @@ export function FlashcardsPage() {
   const study = useMutation({
     mutationFn: async (deck: DeckDTO) => {
       let cards = await deckService.study(deck.id);
-      if (cards.length === 0 && window.confirm('Nenhum card vencido neste deck. Estudar todos mesmo assim?')) {
+      if (cards.length === 0) {
         cards = await deckService.study(deck.id, true);
       }
       return { deck, cards };
     },
     onSuccess: ({ deck, cards }) => {
       if (cards.length > 0) setSession({ deck, cards });
-      else setNotice(`Nada para revisar em "${deck.name}" agora. Volte quando houver cards vencidos.`);
+      else setNotice(`O deck "${deck.name}" ainda não possui flashcards cadastrados.`);
     },
   });
 

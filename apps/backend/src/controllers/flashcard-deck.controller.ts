@@ -32,5 +32,5 @@ export class FlashcardDeckController {
   addCard = this.handle((req) => this.service.addCard(getUserId(req), this.id(req), req.body), 201);
   updateCard = this.handle((req) => this.service.updateCard(getUserId(req), this.id(req), req.body));
   importCards = this.handle((req) => this.service.importCards(getUserId(req), this.id(req), req.body.text), 201);
-  study = this.handle((req) => this.service.study(getUserId(req), this.id(req), req.query.all === '1'));
+  study = this.handle((req) => this.service.study(getUserId(req), this.id(req), req.query.all === '1' || req.query.all === 'true'));
 }

@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { X, Lightbulb, BookMarked, Check, Loader2 } from 'lucide-react';
+import { X, Lightbulb, BookMarked, Check } from 'lucide-react';
 import { flashcardService, type DeckDTO, type FlashcardDTO } from '../services/flashcard.service';
 
 const RATINGS = [
-  { quality: 0, key: '1', label: 'Errei completamente', color: '#ef4444' },
-  { quality: 2, key: '2', label: 'Quase não sabia', color: '#f97316' },
-  { quality: 3, key: '3', label: 'Fiquei em dúvida', color: '#eab308' },
-  { quality: 4, key: '4', label: 'Sabia bem', color: '#22c55e' },
-  { quality: 5, key: '5', label: 'Sabia perfeitamente', color: '#10b981' },
+  { quality: 0, key: '1', label: 'Errei', color: '#ef4444' },
+  { quality: 3, key: '2', label: 'Em dúvida', color: '#eab308' },
+  { quality: 5, key: '3', label: 'Acertei', color: '#10b981' },
 ];
 
 const MAX_HINT_LEVEL = 3;
@@ -26,6 +24,31 @@ function isTyping(target: EventTarget | null): boolean {
   return target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement;
 }
 
+function renderCloze(text: string, back: string) {
+  const parts = text.split(/((?:_{2,}\s*)+_{2,}|_{2,})/g);
+  const words = back ? back.replace(/\*\*/g, '').trim().split(/\s+/) : ['___'];
+
+  return parts.map((part, pIdx) => {
+    if (/_{2,}/.test(part)) {
+      return (
+        <span key={pIdx} className="inline-flex gap-1.5 mx-1.5 align-middle">
+          {words.map((word, wIdx) => {
+            const width = Math.max(word.length * 13, 34);
+            return (
+              <span
+                key={wIdx}
+                style={{ width: `${width}px` }}
+                className="inline-block h-6 border-b-2 border-dashed border-primary-500 bg-primary-500/10 rounded-t-sm"
+              />
+            );
+          })}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
 export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: FlashcardDTO[]; onExit: () => void }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -37,6 +60,7 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
 
   const card = cards[index];
   const done = index >= cards.length;
+  const isCloze = Boolean(card?.front?.match(/_{2,}/));
 
   useEffect(() => {
     setFlipped(false);
@@ -94,7 +118,7 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
     return (
       <Shell onClose={onExit}>
         <div className="mx-auto mt-24 max-w-xs text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-500/15 text-green-500">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
             <Check className="h-7 w-7" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Sessão concluída!</h2>
@@ -103,14 +127,14 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
           </p>
           <p className="text-xs text-gray-400">Tempo de estudo: {clock(elapsed)}</p>
           <ul className="my-5 space-y-1.5 text-left text-sm text-gray-700 dark:text-gray-300">
-            <Row color="#22c55e" label="Sabia bem/perfeitamente" value={tally.good} />
+            <Row color="#10b981" label="Acertei" value={tally.good} />
             <Row color="#eab308" label="Em dúvida" value={tally.doubt} />
-            <Row color="#ef4444" label="Errou/quase não sabia" value={tally.bad} />
+            <Row color="#ef4444" label="Errei" value={tally.bad} />
           </ul>
           <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
             Taxa de acerto: <strong className="text-gray-900 dark:text-white">{total ? Math.round((tally.good / total) * 100) : 0}%</strong>
           </p>
-          <button onClick={onExit} className="rounded-lg bg-primary-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-700">
+          <button onClick={onExit} className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 shadow-sm transition-all">
             Voltar aos decks
           </button>
         </div>
@@ -133,13 +157,15 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
         <p className="mb-2 text-center text-xs text-gray-500 dark:text-gray-400">{deck.name}</p>
         <div
           onClick={() => !flipped && setFlipped(true)}
-          className={`flex min-h-[210px] flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900 ${flipped ? '' : 'cursor-pointer'}`}
-          style={{ borderTop: `3px solid ${flipped ? '#22c55e' : '#3b82f6'}` }}
+          className={`flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900 shadow-sm ${flipped ? '' : 'cursor-pointer hover:border-primary-500/60'}`}
+          style={{ borderTop: `3px solid ${flipped ? '#2E8C82' : '#F2A93B'}` }}
         >
-          <p className={`mb-3 text-[10px] font-semibold uppercase tracking-widest ${flipped ? 'text-green-500' : 'text-blue-500'}`}>
-            {flipped ? 'Resposta' : 'Pergunta'}
+          <p className={`mb-3 text-[10px] font-semibold uppercase tracking-widest ${flipped ? 'text-emerald-500' : 'text-amber-500'}`}>
+            {flipped ? (isCloze ? 'Preenchimento Correto' : 'Resposta') : (isCloze ? 'Complete a Lacuna' : 'Pergunta')}
           </p>
-          <p className="whitespace-pre-line text-lg font-medium text-gray-900 dark:text-white">{flipped ? card.back : card.front}</p>
+          <div className="whitespace-pre-line text-lg font-medium text-gray-900 dark:text-white">
+            {flipped ? card.back : isCloze ? renderCloze(card.front, card.back) : card.front}
+          </div>
           {!flipped && hintLevel > 0 && (
             <p className="mt-4 rounded-lg bg-amber-50 px-3 py-1.5 text-sm text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">{hintText(card.back, hintLevel)}</p>
           )}
@@ -148,7 +174,7 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
               <BookMarked className="h-3 w-3" /> Fonte: {card.source}
             </p>
           )}
-          {!flipped && <p className="mt-5 text-xs text-gray-400">Toque para ver a resposta</p>}
+          {!flipped && <p className="mt-5 text-xs text-gray-400">Toque no card ou aperte Espaço para ver a resposta</p>}
         </div>
 
         {!flipped ? (
@@ -173,22 +199,21 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
                 value={elab}
                 onChange={(e) => setElab(e.target.value)}
                 rows={2}
-                placeholder="Explique com suas palavras ou dê um exemplo da sua vida…"
+                placeholder="Explique com suas palavras ou dê um exemplo prático…"
                 className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </details>
-            <p className="mb-2 mt-4 text-center text-xs text-gray-500 dark:text-gray-400">Como foi sua resposta?</p>
-            <div className="grid grid-cols-5 gap-2">
+            <p className="mb-2 mt-4 text-center text-xs text-gray-500 dark:text-gray-400">Como foi seu domínio?</p>
+            <div className="grid grid-cols-3 gap-3">
               {RATINGS.map((r) => (
                 <button
-                  key={r.quality}
+                  key={r.key}
                   onClick={() => rate(r.quality)}
                   disabled={review.isPending}
-                  className="flex flex-col items-center gap-1.5 rounded-lg border px-1 py-2.5 text-center text-[11px] font-medium leading-tight transition-opacity hover:opacity-80 disabled:opacity-40"
-                  style={{ color: r.color, borderColor: `${r.color}55`, backgroundColor: `${r.color}14` }}
+                  className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-3 text-xs transition-colors hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800 shadow-2xs"
                 >
-                  {review.isPending ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <span className="h-2 w-2 rounded-full" style={{ backgroundColor: r.color }} />}
-                  {r.label}
+                  <span className="mb-1 text-sm font-bold" style={{ color: r.color }}>{r.key}</span>
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 text-center px-1">{r.label}</span>
                 </button>
               ))}
             </div>
@@ -199,42 +224,34 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
   );
 }
 
-function Row({ color, label, value }: { color: string; label: string; value: number }) {
+function Shell({ children, onClose, center, progress }: { children: React.ReactNode; onClose: () => void; center?: React.ReactNode; progress?: number }) {
   return (
-    <li className="flex items-center gap-2">
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-      <span className="flex-1">{label}</span>
-      <strong>{value}</strong>
-    </li>
-  );
-}
-
-function Shell({
-  onClose,
-  center,
-  progress,
-  children,
-}: {
-  onClose: () => void;
-  center?: React.ReactNode;
-  progress?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-50 dark:bg-gray-950">
-      <header className="relative flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-900">
-        <button onClick={onClose} title="Sair" className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+    <div className="fixed inset-0 z-50 flex flex-col bg-gray-50 dark:bg-gray-950 overflow-auto">
+      <div className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-900">
+        <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
           <X className="h-5 w-5" />
         </button>
         {center}
-        <span className="w-8" />
-        {progress !== undefined && (
-          <div className="absolute inset-x-0 -bottom-px h-0.5 bg-gray-200 dark:bg-gray-800">
-            <div className="h-full bg-primary-600 transition-all" style={{ width: `${progress}%` }} />
-          </div>
-        )}
-      </header>
-      {children}
+        <div className="w-8" />
+      </div>
+      {typeof progress === 'number' && (
+        <div className="h-1 bg-gray-200 dark:bg-gray-800">
+          <div className="h-full bg-primary-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+        </div>
+      )}
+      <div className="flex-1 pb-12">{children}</div>
     </div>
+  );
+}
+
+function Row({ color, label, value }: { color: string; label: string; value: number }) {
+  return (
+    <li className="flex items-center justify-between">
+      <span className="inline-flex items-center gap-2">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+        {label}
+      </span>
+      <strong className="text-gray-900 dark:text-white">{value}</strong>
+    </li>
   );
 }
