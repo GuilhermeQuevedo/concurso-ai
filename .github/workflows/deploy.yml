@@ -41,18 +41,17 @@ jobs:
         run: pnpm build:deploy
 
       - name: Configurar chave SSH para deploy
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
-
-      - name: Adicionar Host ao known_hosts
         run: |
           mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_ed25519
+          echo "" >> ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Sincronizar pacote deploy com o VPS
         run: |
           rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_ed25519" \
             --exclude '.env' \
             --exclude 'node_modules' \
             --exclude 'uploads' \
@@ -60,7 +59,7 @@ jobs:
 
       - name: Atualizar dependências e reiniciar PM2 no VPS
         run: |
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
             cd /opt/engrama/deploy
             npm install --omit=dev
             pm2 restart engrama --update-env || pm2 start server.mjs --name engrama
