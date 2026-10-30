@@ -75,6 +75,8 @@ const navGroups: NavGroup[] = [
     icon: ProvasComentadasIcon,
     items: [
       { path: '/generate', label: 'Questões', icon: SimuladosIcon },
+      { path: '/exam-slicer', label: 'Provas Comentadas', icon: ProvasComentadasIcon },
+      { path: '/error-notebook', label: 'Caderno de Erros', icon: BookOpenIcon },
       { path: '/essays', label: 'Redações', icon: CheckCircleIcon },
       { path: '/flashcards', label: 'Flashcards', icon: FlashcardsIcon },
       { path: '/games', label: 'Jogos', icon: GamepadIcon },

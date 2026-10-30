@@ -29,6 +29,8 @@ import { AdminContactsPage } from '@/pages/AdminContactsPage';
 import { HelpPage } from '@/pages/HelpPage';
 import { MethodologyPage } from '@/pages/MethodologyPage';
 import { GettingStartedPage } from '@/pages/GettingStartedPage';
+import { ErrorNotebookPage } from '@/pages/ErrorNotebookPage';
+import { ExamSlicerPage } from '@/pages/ExamSlicerPage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { SubscriptionGate } from '@/features/subscription/components/SubscriptionGate';
@@ -58,6 +60,8 @@ export function AppRoutes() {
       <Route path="/subjects" element={<ProtectedLayout><SubjectsPage /></ProtectedLayout>} />
       <Route path="/exam-boards" element={<ProtectedLayout><ExamBoardsPage /></ProtectedLayout>} />
       <Route path="/generate" element={<ProtectedLayout><GeneratePage /></ProtectedLayout>} />
+      <Route path="/exam-slicer" element={<ProtectedLayout><ExamSlicerPage /></ProtectedLayout>} />
+      <Route path="/error-notebook" element={<ProtectedLayout><ErrorNotebookPage /></ProtectedLayout>} />
       <Route path="/study" element={<ProtectedLayout><StudyPage /></ProtectedLayout>} />
       <Route path="/documents" element={<ProtectedLayout><DocumentsPage /></ProtectedLayout>} />
       <Route path="/flashcards" element={<ProtectedLayout><FlashcardsPage /></ProtectedLayout>} />
