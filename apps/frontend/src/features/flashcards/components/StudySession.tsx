@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
-import { X, Lightbulb, BookMarked, Check } from 'lucide-react';
+import { X, Lightbulb, BookMarked, Check, AlertTriangle, BookOpen } from 'lucide-react';
 import { flashcardService, type DeckDTO, type FlashcardDTO } from '../services/flashcard.service';
 
 const RATINGS = [
@@ -115,9 +116,11 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
 
   if (done) {
     const total = tally.good + tally.doubt + tally.bad;
+    const hasErrorsOrDoubts = tally.bad > 0 || tally.doubt > 0;
+
     return (
       <Shell onClose={onExit}>
-        <div className="mx-auto mt-24 max-w-xs text-center">
+        <div className="mx-auto mt-20 max-w-sm text-center animate-in fade-in zoom-in-95 duration-300">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
             <Check className="h-7 w-7" />
           </div>
@@ -134,9 +137,34 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
           <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
             Taxa de acerto: <strong className="text-gray-900 dark:text-white">{total ? Math.round((tally.good / total) * 100) : 0}%</strong>
           </p>
-          <button onClick={onExit} className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 shadow-sm transition-all">
-            Voltar aos decks
-          </button>
+
+          {/* Ação direta: Ir para o Caderno de Erros (Zion-style) */}
+          {hasErrorsOrDoubts && (
+            <div className="mb-5 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-left space-y-2">
+              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold text-xs uppercase tracking-wider">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                {tally.bad + tally.doubt} cards registrados no Caderno de Erros
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Seus cards errados e em dúvida foram salvos automaticamente para você gerar a revisão de fixação.
+              </p>
+              <Link
+                to="/error-notebook"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-xs shadow-sm transition-all"
+              >
+                <BookOpen className="w-4 h-4" /> Ir para o Caderno de Erros e Gerar Revisão
+              </Link>
+            </div>
+          )}
+
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={onExit}
+              className="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+            >
+              Voltar aos decks
+            </button>
+          </div>
         </div>
       </Shell>
     );

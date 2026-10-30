@@ -10,6 +10,8 @@ export interface PendingErrorDTO {
   explanation: string;
   subjectName: string;
   subjectId: string;
+  originTitle?: string;
+  originType?: 'SIMULADO' | 'FLASHCARD';
   createdAt: string;
 }
 

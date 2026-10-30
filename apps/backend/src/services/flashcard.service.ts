@@ -112,8 +112,6 @@ export class FlashcardService {
       take: 20,
       include: { subject: true },
     });
-    // Embaralha para evitar o efeito de posição serial (primazia/recência):
-    // nenhum card fica sempre no começo, meio ou fim das revisões.
     return shuffle(cards);
   }
 
@@ -129,7 +127,10 @@ export class FlashcardService {
   }
 
   async review(userId: string, cardId: string, dto: ReviewDTO) {
-    const card = await prisma.flashcard.findUnique({ where: { id: cardId } });
+    const card = await prisma.flashcard.findUnique({
+      where: { id: cardId },
+      include: { deck: true },
+    });
     if (!card || card.userId !== userId) {
       throw new AppError(404, 'CARD_NOT_FOUND', 'Flashcard não encontrado');
     }
@@ -144,10 +145,96 @@ export class FlashcardService {
     const nextReview = new Date();
     nextReview.setDate(nextReview.getDate() + interval);
 
-    return prisma.flashcard.update({
+    const updatedCard = await prisma.flashcard.update({
       where: { id: cardId },
       data: { interval, easeFactor, repetition, nextReview },
     });
+
+    if (dto.quality < 4) {
+      await this.recordFlashcardError(userId, card, dto.quality);
+    } else {
+      await this.resolveFlashcardErrorIfAny(userId, card);
+    }
+
+    return updatedCard;
+  }
+
+  private async recordFlashcardError(
+    userId: string,
+    card: {
+      id: string;
+      front: string;
+      back: string;
+      elaboration: string | null;
+      subjectId: string;
+      deck?: { name: string } | null;
+    },
+    quality: number,
+  ): Promise<void> {
+    const deckName = card.deck?.name ?? 'Flashcards';
+    const qualityLabel = quality === 0 ? 'Errei no Flashcard' : 'Em dúvida no Flashcard';
+
+    let question = await prisma.question.findFirst({
+      where: {
+        statement: card.front,
+        subjectId: card.subjectId,
+      },
+    });
+
+    if (!question) {
+      question = await prisma.question.create({
+        data: {
+          statement: card.front,
+          alternatives: [],
+          correctAnswer: card.back,
+          difficulty: 'MEDIUM',
+          explanation: card.elaboration || card.back,
+          comments: [
+            {
+              originType: 'FLASHCARD',
+              originTitle: `Deck: ${deckName}`,
+              flashcardId: card.id,
+            },
+          ],
+          subjectId: card.subjectId,
+          source: 'MANUAL',
+        },
+      });
+    }
+
+    await prisma.questionAttempt.create({
+      data: {
+        userId,
+        questionId: question.id,
+        answer: qualityLabel,
+        isCorrect: false,
+        timeSpent: 0,
+      },
+    });
+  }
+
+  private async resolveFlashcardErrorIfAny(
+    userId: string,
+    card: { front: string; subjectId: string },
+  ): Promise<void> {
+    const question = await prisma.question.findFirst({
+      where: {
+        statement: card.front,
+        subjectId: card.subjectId,
+      },
+    });
+
+    if (question) {
+      await prisma.questionAttempt.create({
+        data: {
+          userId,
+          questionId: question.id,
+          answer: 'Acertei no Flashcard',
+          isCorrect: true,
+          timeSpent: 0,
+        },
+      });
+    }
   }
 
   async list(userId: string, subjectId?: string) {

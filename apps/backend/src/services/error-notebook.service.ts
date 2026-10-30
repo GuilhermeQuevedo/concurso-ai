@@ -11,6 +11,8 @@ export interface PendingErrorDTO {
   explanation: string;
   subjectName: string;
   subjectId: string;
+  originTitle: string;
+  originType: 'SIMULADO' | 'FLASHCARD';
   createdAt: Date;
 }
 
@@ -43,13 +45,10 @@ export class ErrorNotebookService {
   constructor(private readonly aiProvider: IAIProvider) {}
 
   async listPendingErrors(userId: string): Promise<PendingErrorDTO[]> {
-    const wrongAttempts = await prisma.questionAttempt.findMany({
-      where: {
-        userId,
-        isCorrect: false,
-      },
+    const attempts = await prisma.questionAttempt.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 150,
       include: {
         question: {
           include: { subject: true },
@@ -60,21 +59,50 @@ export class ErrorNotebookService {
     const seenQuestions = new Set<string>();
     const pendingErrors: PendingErrorDTO[] = [];
 
-    for (const attempt of wrongAttempts) {
+    for (const attempt of attempts) {
       if (seenQuestions.has(attempt.questionId)) continue;
       seenQuestions.add(attempt.questionId);
 
-      pendingErrors.push({
-        id: attempt.id,
-        questionId: attempt.questionId,
-        statement: attempt.question.statement,
-        userAnswer: attempt.answer,
-        correctAnswer: attempt.question.correctAnswer,
-        explanation: attempt.question.explanation,
-        subjectName: attempt.question.subject?.name ?? 'Geral',
-        subjectId: attempt.question.subjectId,
-        createdAt: attempt.createdAt,
-      });
+      // Se a última tentativa foi incorreta, a questão segue pendente no caderno de erros
+      if (!attempt.isCorrect) {
+        let originTitle = 'Simulado';
+        let originType: 'SIMULADO' | 'FLASHCARD' = 'SIMULADO';
+
+        if (attempt.answer.includes('Flashcard')) {
+          originType = 'FLASHCARD';
+          originTitle = 'Flashcard';
+        }
+
+        if (attempt.question.comments && Array.isArray(attempt.question.comments)) {
+          const commentsList = attempt.question.comments as Array<{
+            originType?: string;
+            originTitle?: string;
+          }>;
+          const meta = commentsList.find(
+            (c) => c && typeof c === 'object' && c.originType,
+          );
+          if (meta) {
+            if (meta.originTitle) originTitle = meta.originTitle;
+            if (meta.originType === 'FLASHCARD' || meta.originType === 'SIMULADO') {
+              originType = meta.originType;
+            }
+          }
+        }
+
+        pendingErrors.push({
+          id: attempt.id,
+          questionId: attempt.questionId,
+          statement: attempt.question.statement,
+          userAnswer: attempt.answer,
+          correctAnswer: attempt.question.correctAnswer,
+          explanation: attempt.question.explanation,
+          subjectName: attempt.question.subject?.name ?? 'Geral',
+          subjectId: attempt.question.subjectId,
+          originTitle,
+          originType,
+          createdAt: attempt.createdAt,
+        });
+      }
     }
 
     return pendingErrors;
@@ -144,7 +172,12 @@ export class ErrorNotebookService {
             correctAnswer: err.correctAnswer,
             difficulty: 'MEDIUM',
             explanation: err.explanation,
-            comments: [],
+            comments: [
+              {
+                originType: 'SIMULADO',
+                originTitle: deckTitle,
+              },
+            ],
             subjectId: subject.id,
             source: 'AI_GENERATED',
           },

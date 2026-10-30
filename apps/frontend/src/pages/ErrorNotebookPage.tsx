@@ -43,7 +43,10 @@ export function ErrorNotebookPage() {
 
   const handleUseError = (err: PendingErrorDTO) => {
     setErrorQuestion(err.statement);
-    setErrorExplanation(`Gabarito: ${err.correctAnswer}. ${err.explanation}`);
+    const explanationText = err.explanation && err.explanation !== err.correctAnswer
+      ? `${err.correctAnswer ? `Gabarito: ${err.correctAnswer}. ` : ''}${err.explanation}`
+      : err.correctAnswer || err.explanation;
+    setErrorExplanation(explanationText);
     const el = document.getElementById('form-remediation');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -100,7 +103,7 @@ export function ErrorNotebookPage() {
             <BookOpen className="w-6 h-6 text-amber-500" /> Caderno de Erros Ativo
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Seus erros em Simulados e Provas são importados automaticamente aqui e em Decks de Flashcards.
+            Erros e dúvidas dos seus Flashcards e Simulados chegam automaticamente aqui para você gerar revisões de fixação com IA.
           </p>
         </div>
 
@@ -108,7 +111,7 @@ export function ErrorNotebookPage() {
           to="/flashcards"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-xs font-semibold transition-colors self-start sm:self-auto"
         >
-          <Layers className="w-4 h-4 text-amber-600" /> Ver Decks de Erros em Flashcards
+          <Layers className="w-4 h-4 text-amber-600" /> Ver Decks em Flashcards
         </Link>
       </div>
 
@@ -124,48 +127,79 @@ export function ErrorNotebookPage() {
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
               <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
-                Erros Pendentes nos seus Simulados ({pendingErrors.length})
+                Erros e Dúvidas Pendentes ({pendingErrors.length})
               </h3>
             </div>
             <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-              Clique em &quot;Usar no Caderno&quot; para criar tríade com IA
+              Clique em &quot;Usar no Caderno&quot; para gerar a revisão com IA
             </span>
           </div>
 
-          <div className="grid gap-3 max-h-[320px] overflow-y-auto pr-1">
-            {pendingErrors.map((err) => (
-              <div
-                key={err.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-amber-200/60 dark:border-amber-900/40 bg-white dark:bg-gray-900 hover:border-amber-400 transition-all gap-4 shadow-xs"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
-                    {err.statement}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Disciplina: <span className="font-medium text-gray-700 dark:text-gray-300">{err.subjectName}</span> • Sua resposta: <span className="text-red-500 font-semibold">{err.userAnswer}</span>
-                  </p>
-                </div>
+          <div className="grid gap-3 max-h-[380px] overflow-y-auto pr-1">
+            {pendingErrors.map((err) => {
+              const isDoubt = err.userAnswer?.toLowerCase().includes('dúvida');
+              const isFlashcard = err.originType === 'FLASHCARD';
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => markLearned.mutate(err.questionId)}
-                    title="Marcar como aprendido"
-                    className="p-2 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 transition-colors"
-                  >
-                    <Check className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleUseError(err)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs font-semibold transition-colors"
-                  >
-                    <ArrowDown className="w-3.5 h-3.5" /> Usar no Caderno
-                  </button>
+              return (
+                <div
+                  key={err.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-amber-200/60 dark:border-amber-900/40 bg-white dark:bg-gray-900 hover:border-amber-400 transition-all gap-4 shadow-xs"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          isFlashcard
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                        }`}
+                      >
+                        {isFlashcard ? '🗂️ Flashcard' : '📝 Simulado'}
+                      </span>
+
+                      <span
+                        className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                          isDoubt
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'
+                            : 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300'
+                        }`}
+                      >
+                        {isDoubt ? 'Em dúvida' : 'Errei'}
+                      </span>
+
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Origem: <strong className="text-gray-700 dark:text-gray-300">{err.originTitle || err.subjectName}</strong>
+                      </span>
+                    </div>
+
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
+                      {err.statement}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+                      Resposta / Gabarito: <span className="font-medium text-emerald-600 dark:text-emerald-400">{err.correctAnswer}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => markLearned.mutate(err.questionId)}
+                      title="Marcar como aprendido (remover da lista)"
+                      className="p-2 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 transition-colors"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUseError(err)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs font-semibold transition-colors"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" /> Usar no Caderno
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ) : (
@@ -173,7 +207,7 @@ export function ErrorNotebookPage() {
           <BookOpen className="w-8 h-8 text-amber-500/70 mx-auto mb-2" />
           <p className="font-medium text-gray-800 dark:text-gray-200">Nenhum erro pendente no momento.</p>
           <p className="text-xs text-gray-500 mt-1">
-            Quando você responder questões em um Simulado ou Prova Fatiada e errar, as falhas serão exportadas automaticamente para cá!
+            Quando você marcar &quot;Errei&quot; ou &quot;Em dúvida&quot; nos Flashcards, ou errar questões em Simulados, elas aparecem automaticamente aqui!
           </p>
         </div>
       )}
@@ -186,13 +220,13 @@ export function ErrorNotebookPage() {
         <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
           <Zap className="w-4 h-4 text-amber-500" />
           <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
-            Criar Tríade de Remediação com IA
+            Gerar Revisão Ativa com IA (Tríade de Fixação)
           </h3>
         </div>
 
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 block">
-            1. Qual questão ou afirmação você errou?
+            1. Qual questão ou afirmação você errou / ficou em dúvida?
           </label>
           <textarea
             value={errorQuestion}
@@ -211,7 +245,7 @@ export function ErrorNotebookPage() {
             value={errorExplanation}
             onChange={(e) => setErrorExplanation(e.target.value)}
             rows={3}
-            placeholder="Cole o artigo de lei, súmula ou justificativa oficial..."
+            placeholder="Cole a resposta oficial, artigo de lei, súmula ou justificativa..."
             className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
           />
         </div>
@@ -228,7 +262,7 @@ export function ErrorNotebookPage() {
             </>
           ) : (
             <>
-              <Zap className="w-4 h-4" /> Gerar 3 Flashcards de Fixação
+              <Zap className="w-4 h-4" /> Gerar Revisão (3 Flashcards de Fixação)
             </>
           )}
         </button>

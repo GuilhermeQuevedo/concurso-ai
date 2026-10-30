@@ -202,7 +202,7 @@ export function SimuladoViewer({
                 to="/error-notebook"
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors shrink-0"
               >
-                <BookOpen className="w-3.5 h-3.5" /> Ver Caderno de Erros
+                <BookOpen className="w-3.5 h-3.5" /> Ir para o Caderno de Erros e Gerar Revisão
               </Link>
             </div>
           )}
@@ -222,6 +222,15 @@ export function SimuladoViewer({
             >
               <RotateCcw className="w-4 h-4" /> Repetir Simulado
             </button>
+
+            {wrongIndices.length > 0 && (
+              <Link
+                to="/error-notebook"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-sm transition-all"
+              >
+                <BookOpen className="w-4 h-4" /> Ir para o Caderno de Erros ({wrongIndices.length})
+              </Link>
+            )}
 
             {wrongIndices.length > 0 && !autoExportSuccess && !isAutoExporting && (
               <button
