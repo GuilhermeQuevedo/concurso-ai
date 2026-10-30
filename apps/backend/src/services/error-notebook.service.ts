@@ -45,10 +45,43 @@ export class ErrorNotebookService {
   constructor(private readonly aiProvider: IAIProvider) {}
 
   async listPendingErrors(userId: string): Promise<PendingErrorDTO[]> {
+    const pendingErrors: PendingErrorDTO[] = [];
+
+    // 1. Busca todos os Flashcards marcados com status 'incorrect', 'doubt' ou 'Caderno de Erros' (Mecanismo Zion)
+    const flashcardErrors = await prisma.flashcard.findMany({
+      where: {
+        userId,
+        source: { in: ['incorrect', 'doubt', 'Caderno de Erros'] },
+      },
+      include: {
+        deck: true,
+        subject: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 100,
+    });
+
+    for (const card of flashcardErrors) {
+      pendingErrors.push({
+        id: card.id,
+        questionId: card.id,
+        statement: card.front,
+        userAnswer: card.source === 'doubt' ? 'Em dúvida' : 'Errei',
+        correctAnswer: card.back,
+        explanation: card.elaboration || card.back,
+        subjectName: card.subject?.name ?? 'Flashcards',
+        subjectId: card.subjectId,
+        originTitle: card.deck?.name ?? 'Flashcard',
+        originType: 'FLASHCARD',
+        createdAt: card.updatedAt,
+      });
+    }
+
+    // 2. Busca erros de Simulados registrados em QuestionAttempt
     const attempts = await prisma.questionAttempt.findMany({
-      where: { userId },
+      where: { userId, isCorrect: false },
       orderBy: { createdAt: 'desc' },
-      take: 150,
+      take: 100,
       include: {
         question: {
           include: { subject: true },
@@ -57,38 +90,29 @@ export class ErrorNotebookService {
     });
 
     const seenQuestions = new Set<string>();
-    const pendingErrors: PendingErrorDTO[] = [];
-
     for (const attempt of attempts) {
       if (seenQuestions.has(attempt.questionId)) continue;
       seenQuestions.add(attempt.questionId);
 
-      // Se a última tentativa foi incorreta, a questão segue pendente no caderno de erros
-      if (!attempt.isCorrect) {
-        let originTitle = 'Simulado';
-        let originType: 'SIMULADO' | 'FLASHCARD' = 'SIMULADO';
+      let originTitle = 'Simulado';
+      let originType: 'SIMULADO' | 'FLASHCARD' = 'SIMULADO';
 
-        if (attempt.answer.includes('Flashcard')) {
-          originType = 'FLASHCARD';
-          originTitle = 'Flashcard';
-        }
-
-        if (attempt.question.comments && Array.isArray(attempt.question.comments)) {
-          const commentsList = attempt.question.comments as Array<{
-            originType?: string;
-            originTitle?: string;
-          }>;
-          const meta = commentsList.find(
-            (c) => c && typeof c === 'object' && c.originType,
-          );
-          if (meta) {
-            if (meta.originTitle) originTitle = meta.originTitle;
-            if (meta.originType === 'FLASHCARD' || meta.originType === 'SIMULADO') {
-              originType = meta.originType;
-            }
+      if (attempt.question.comments && Array.isArray(attempt.question.comments)) {
+        const commentsList = attempt.question.comments as Array<{
+          originType?: string;
+          originTitle?: string;
+        }>;
+        const meta = commentsList.find((c) => c && typeof c === 'object' && c.originType);
+        if (meta) {
+          if (meta.originTitle) originTitle = meta.originTitle;
+          if (meta.originType === 'FLASHCARD' || meta.originType === 'SIMULADO') {
+            originType = meta.originType;
           }
         }
+      }
 
+      // Evita duplicar se já foi trazido como flashcard
+      if (!pendingErrors.some((e) => e.statement === attempt.question.statement)) {
         pendingErrors.push({
           id: attempt.id,
           questionId: attempt.questionId,
@@ -105,14 +129,28 @@ export class ErrorNotebookService {
       }
     }
 
-    return pendingErrors;
+    // Ordenação decrescente: erros mais recentes primeiro (igual à Zion)
+    return pendingErrors.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
   }
 
-  async markAsLearned(userId: string, questionId: string): Promise<{ success: boolean }> {
+  async markAsLearned(userId: string, id: string): Promise<{ success: boolean }> {
+    // 1. Se for um Flashcard, marca source como 'correct' para remoção imediata
+    const card = await prisma.flashcard.findUnique({ where: { id } });
+    if (card && card.userId === userId) {
+      await prisma.flashcard.update({
+        where: { id },
+        data: { source: 'correct' },
+      });
+      return { success: true };
+    }
+
+    // 2. Se for uma Question de Simulado, cria QuestionAttempt com isCorrect: true
     await prisma.questionAttempt.create({
       data: {
         userId,
-        questionId,
+        questionId: id,
         answer: 'LEARNED',
         isCorrect: true,
         timeSpent: 0,
@@ -195,6 +233,7 @@ export class ErrorNotebookService {
         },
       });
 
+      // Cria flashcard com source: 'incorrect' (Mecanismo Zion)
       await prisma.flashcard.create({
         data: {
           userId,
@@ -202,7 +241,7 @@ export class ErrorNotebookService {
           deckId: deck.id,
           front: `[Erro em Simulado] ${err.statement}`,
           back: `**Alternativa Correta:** ${err.correctAnswer}\n\n**Comentário do Professor:**\n${err.explanation}`,
-          source: 'Caderno de Erros',
+          source: 'incorrect',
         },
       });
     }
@@ -233,6 +272,18 @@ export class ErrorNotebookService {
         explanation = q.explanation;
         correctAnswer = q.correctAnswer;
         targetSubjectId = targetSubjectId ?? q.subjectId;
+      } else {
+        // Pode ser id de um Flashcard
+        const card = await prisma.flashcard.findUnique({
+          where: { id: dto.questionId },
+          include: { subject: true },
+        });
+        if (card) {
+          question = card.front;
+          correctAnswer = card.back;
+          explanation = card.elaboration || card.back;
+          targetSubjectId = targetSubjectId ?? card.subjectId;
+        }
       }
     }
 

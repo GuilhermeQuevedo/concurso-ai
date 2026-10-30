@@ -145,96 +145,26 @@ export class FlashcardService {
     const nextReview = new Date();
     nextReview.setDate(nextReview.getDate() + interval);
 
+    // Mecanismo Zion: salva automaticamente o status de erro ou dúvida no card
+    let status = 'correct';
+    if (dto.quality === 0) {
+      status = 'incorrect';
+    } else if (dto.quality < 4) {
+      status = 'doubt';
+    }
+
     const updatedCard = await prisma.flashcard.update({
       where: { id: cardId },
-      data: { interval, easeFactor, repetition, nextReview },
+      data: {
+        interval,
+        easeFactor,
+        repetition,
+        nextReview,
+        source: status,
+      },
     });
-
-    if (dto.quality < 4) {
-      await this.recordFlashcardError(userId, card, dto.quality);
-    } else {
-      await this.resolveFlashcardErrorIfAny(userId, card);
-    }
 
     return updatedCard;
-  }
-
-  private async recordFlashcardError(
-    userId: string,
-    card: {
-      id: string;
-      front: string;
-      back: string;
-      elaboration: string | null;
-      subjectId: string;
-      deck?: { name: string } | null;
-    },
-    quality: number,
-  ): Promise<void> {
-    const deckName = card.deck?.name ?? 'Flashcards';
-    const qualityLabel = quality === 0 ? 'Errei no Flashcard' : 'Em dúvida no Flashcard';
-
-    let question = await prisma.question.findFirst({
-      where: {
-        statement: card.front,
-        subjectId: card.subjectId,
-      },
-    });
-
-    if (!question) {
-      question = await prisma.question.create({
-        data: {
-          statement: card.front,
-          alternatives: [],
-          correctAnswer: card.back,
-          difficulty: 'MEDIUM',
-          explanation: card.elaboration || card.back,
-          comments: [
-            {
-              originType: 'FLASHCARD',
-              originTitle: `Deck: ${deckName}`,
-              flashcardId: card.id,
-            },
-          ],
-          subjectId: card.subjectId,
-          source: 'MANUAL',
-        },
-      });
-    }
-
-    await prisma.questionAttempt.create({
-      data: {
-        userId,
-        questionId: question.id,
-        answer: qualityLabel,
-        isCorrect: false,
-        timeSpent: 0,
-      },
-    });
-  }
-
-  private async resolveFlashcardErrorIfAny(
-    userId: string,
-    card: { front: string; subjectId: string },
-  ): Promise<void> {
-    const question = await prisma.question.findFirst({
-      where: {
-        statement: card.front,
-        subjectId: card.subjectId,
-      },
-    });
-
-    if (question) {
-      await prisma.questionAttempt.create({
-        data: {
-          userId,
-          questionId: question.id,
-          answer: 'Acertei no Flashcard',
-          isCorrect: true,
-          timeSpent: 0,
-        },
-      });
-    }
   }
 
   async list(userId: string, subjectId?: string) {

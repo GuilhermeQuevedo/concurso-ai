@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Check, ArrowDown, Zap, Loader2, BookOpen, Sparkles, Layers } from 'lucide-react';
+import { AlertTriangle, Check, ArrowDown, Zap, Loader2, BookOpen, Sparkles, Layers, RotateCcw } from 'lucide-react';
 import {
   errorNotebookService,
   type PendingErrorDTO,
@@ -15,9 +15,11 @@ export function ErrorNotebookPage() {
   const [errorExplanation, setErrorExplanation] = useState('');
   const [generatedCards, setGeneratedCards] = useState<RemediationCardDTO[] | null>(null);
 
-  const { data: pendingErrors = [], isLoading } = useQuery({
+  const { data: pendingErrors = [], isLoading, refetch } = useQuery({
     queryKey: ['pending-errors'],
     queryFn: errorNotebookService.listPending,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const markLearned = useMutation({
@@ -129,6 +131,14 @@ export function ErrorNotebookPage() {
               <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
                 Erros e Dúvidas Pendentes ({pendingErrors.length})
               </h3>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                title="Recarregar erros pendentes"
+                className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
             </div>
             <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
               Clique em &quot;Usar no Caderno&quot; para gerar a revisão com IA
