@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { Eye, EyeOff, LogIn, Sparkles } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { GoogleAuthButton } from './GoogleAuthButton';
 
@@ -48,7 +48,8 @@ export function LoginForm() {
       searchParams.delete('refresh_token');
       setSearchParams(searchParams, { replace: true });
 
-      const targetDestination = from === '/login' ? '/dashboard' : from;
+      const planParam = searchParams.get('plan');
+      const targetDestination = planParam ? `/dashboard?subscribe=${planParam}` : (from === '/login' ? '/dashboard' : from);
 
       loginWithTokens(accessToken, refreshToken)
         .then(() => {
@@ -76,7 +77,12 @@ export function LoginForm() {
     try {
       setError('');
       await login(data.email, data.password);
-      navigate(from, { replace: true });
+      const planParam = searchParams.get('plan');
+      if (planParam) {
+        navigate(`/dashboard?subscribe=${planParam}`, { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (err: unknown) {
       const apiMessage =
         (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ??
@@ -85,8 +91,21 @@ export function LoginForm() {
     }
   };
 
+  const planParam = searchParams.get('plan');
+  const planLabel = planParam === 'yearly' ? 'Plano Anual' : planParam === 'semestral' ? 'Plano Semestral' : planParam === 'monthly' ? 'Plano Mensal' : null;
+
   return (
     <div className="space-y-5">
+      {planLabel && (
+        <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-3.5 text-xs text-teal-800 dark:border-teal-900/50 dark:bg-teal-950/30 dark:text-teal-300">
+          <div className="flex items-center gap-2 font-bold mb-1">
+            <Sparkles className="h-4 w-4 text-teal-600" />
+            <span>Assinatura Engrama Pro ({planLabel})</span>
+          </div>
+          <p>Faça login para prosseguir diretamente ao checkout seguro da Stripe com ativação imediata.</p>
+        </div>
+      )}
+
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
           {error}
@@ -171,7 +190,7 @@ export function LoginForm() {
 
         <p className="text-center text-sm text-gray-600 dark:text-gray-400">
           Não tem conta?{' '}
-          <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
+          <Link to={planParam ? `/register?plan=${planParam}` : '/register'} className="font-medium text-primary-600 hover:text-primary-500">
             Cadastre-se
           </Link>
         </p>

@@ -49,6 +49,7 @@ export class StripeService {
       customerId,
       customerEmail: user.email,
       priceId,
+      planType: dto.planType,
       mode: 'subscription',
       successUrl,
       cancelUrl,

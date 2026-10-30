@@ -9,6 +9,8 @@ import {
   Sparkles,
   ChevronDown,
   BookOpen,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import {
   FlashcardsIcon,
@@ -139,18 +141,14 @@ const FAQS = [
 export function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { startCheckout, isStartingCheckout } = useStripeBilling();
+  const { startCheckout, isStartingCheckout, errorMessage, clearError } = useStripeBilling();
   const [selectedPlanLoading, setSelectedPlanLoading] = useState<StripePlanType | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const handleSelectPlan = async (planType: StripePlanType) => {
+  const handleSelectPlan = (planType: StripePlanType) => {
+    setSelectedPlanLoading(planType);
     if (user) {
-      setSelectedPlanLoading(planType);
-      try {
-        startCheckout({ planType });
-      } finally {
-        setSelectedPlanLoading(null);
-      }
+      startCheckout({ planType });
     } else {
       navigate(`/register?plan=${planType}`);
     }
@@ -342,6 +340,18 @@ export function LandingPage() {
             </p>
           </div>
 
+          {errorMessage && (
+            <div className="mx-auto mt-8 flex max-w-xl items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-700 shadow-xs dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+                <span>{errorMessage}</span>
+              </div>
+              <button type="button" onClick={clearError} className="text-red-600 hover:underline dark:text-red-400">
+                Fechar
+              </button>
+            </div>
+          )}
+
           <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-3">
             {PRICING_PLANS.map((plan) => (
               <div
@@ -381,15 +391,18 @@ export function LandingPage() {
                 <button
                   type="button"
                   onClick={() => handleSelectPlan(plan.type)}
-                  disabled={isStartingCheckout && selectedPlanLoading === plan.type}
+                  disabled={isStartingCheckout}
                   className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
                     plan.isPopular
-                      ? 'bg-teal-600 text-white shadow-md shadow-teal-600/30 hover:bg-teal-700 hover:shadow-lg'
-                      : 'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-750'
+                      ? 'bg-teal-600 text-white shadow-md shadow-teal-600/30 hover:bg-teal-700 hover:shadow-lg disabled:opacity-60'
+                      : 'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-750 disabled:opacity-60'
                   }`}
                 >
                   {isStartingCheckout && selectedPlanLoading === plan.type ? (
-                    'Abrindo Checkout Stripe...'
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-current" />
+                      Abrindo Checkout Stripe...
+                    </>
                   ) : (
                     <>
                       Assinar {plan.name}

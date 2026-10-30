@@ -51,7 +51,10 @@ const PLAN_OPTIONS: PlanOption[] = [
 ];
 
 export function StripeBillingModal({ onClose }: StripeBillingModalProps) {
-  const [selectedPlan, setSelectedPlan] = useState<StripePlanType>('yearly');
+  const queryParamPlan = (new URLSearchParams(window.location.search).get('subscribe') as StripePlanType) || 'yearly';
+  const [selectedPlan, setSelectedPlan] = useState<StripePlanType>(
+    ['monthly', 'semestral', 'yearly'].includes(queryParamPlan) ? queryParamPlan : 'yearly',
+  );
 
   const {
     config,
@@ -106,6 +109,16 @@ export function StripeBillingModal({ onClose }: StripeBillingModalProps) {
             <button onClick={clearError} className="text-red-600 hover:underline">
               Fechar
             </button>
+          </div>
+        )}
+
+        {!config?.isConfigured && !isLoadingConfig && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs font-medium text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
+            <div className="flex items-center gap-2 font-bold mb-1">
+              <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+              <span>Stripe em Configuração no Servidor</span>
+            </div>
+            <p>A chave <strong>STRIPE_SECRET_KEY</strong> ainda não foi configurada no arquivo <code>/opt/engrama/deploy/.env</code>.</p>
           </div>
         )}
 

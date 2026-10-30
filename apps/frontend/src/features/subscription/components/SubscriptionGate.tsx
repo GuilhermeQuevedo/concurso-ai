@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Lock, Sparkles, RefreshCw, LogOut, CreditCard, Loader2 } from 'lucide-react';
+import { Lock, Sparkles, RefreshCw, LogOut, CreditCard, Loader2, AlertCircle } from 'lucide-react';
 import { subscriptionService } from '../services/subscription.service';
 import { useStripeBilling } from '../hooks/useStripeBilling';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -7,7 +7,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 export function SubscriptionGate({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const { user, logout } = useAuth();
-  const { config, startCheckout, isStartingCheckout } = useStripeBilling();
+  const { config, startCheckout, isStartingCheckout, errorMessage, clearError } = useStripeBilling();
 
   const { data, isLoading } = useQuery({
     queryKey: ['subscription-access'],
@@ -31,10 +31,20 @@ export function SubscriptionGate({ children }: { children: React.ReactNode }) {
           Assine o Engrama para liberar questões com IA, flashcards, redações e seu plano de estudos completo.
         </p>
 
+        {errorMessage && (
+          <div className="mb-4 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+            <div className="flex items-center gap-1.5">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+              <span>{errorMessage}</span>
+            </div>
+            <button type="button" onClick={clearError} className="text-red-600 hover:underline dark:text-red-400">Fechar</button>
+          </div>
+        )}
+
         <div className="space-y-2.5">
           {config?.isConfigured && (
             <button
-              onClick={() => startCheckout()}
+              onClick={() => startCheckout({ planType: 'yearly' })}
               disabled={isStartingCheckout}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-700 disabled:opacity-50"
             >

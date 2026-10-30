@@ -41,8 +41,12 @@ export function useStripeBilling() {
         setErrorMessage('Sessão de checkout criada sem URL de redirecionamento.');
       }
     },
-    onError: () => {
-      setErrorMessage('Erro ao iniciar o checkout seguro da Stripe.');
+    onError: (err: unknown) => {
+      const apiMessage =
+        (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ??
+        (err as Error)?.message ??
+        'Erro ao iniciar o checkout seguro da Stripe. Verifique as configurações.';
+      setErrorMessage(apiMessage);
     },
   });
 
@@ -55,18 +59,24 @@ export function useStripeBilling() {
         setErrorMessage('Portal do cliente indisponível no momento.');
       }
     },
-    onError: () => {
-      setErrorMessage('Erro ao abrir portal de faturamento da Stripe.');
+    onError: (err: unknown) => {
+      const apiMessage =
+        (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ??
+        (err as Error)?.message ??
+        'Erro ao abrir portal de faturamento da Stripe.';
+      setErrorMessage(apiMessage);
     },
   });
 
   const clearError = () => setErrorMessage(null);
 
   const startCheckout = (params?: StartCheckoutParams) => {
+    setErrorMessage(null);
     checkoutMutation.mutate(params);
   };
 
   const openCustomerPortal = () => {
+    setErrorMessage(null);
     portalMutation.mutate();
   };
 
