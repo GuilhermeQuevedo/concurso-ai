@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Check, ArrowDown, Zap, Loader2, BookOpen, Sparkles } from 'lucide-react';
+import { AlertTriangle, Check, ArrowDown, Zap, Loader2, BookOpen, Sparkles, Layers } from 'lucide-react';
 import {
   errorNotebookService,
   type PendingErrorDTO,
@@ -93,13 +94,22 @@ export function ErrorNotebookPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* Page Title */}
-      <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
-          <BookOpen className="w-6 h-6 text-amber-500" /> Caderno de Erros Ativo
-        </h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Transforme cada questão errada em uma tríade de memorização rápida (Direta, Lacuna Cloze e Certo/Errado com fundamentação).
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+            <BookOpen className="w-6 h-6 text-amber-500" /> Caderno de Erros Ativo
+          </h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Seus erros em Simulados e Provas são importados automaticamente aqui e em Decks de Flashcards.
+          </p>
+        </div>
+
+        <Link
+          to="/flashcards"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-xs font-semibold transition-colors self-start sm:self-auto"
+        >
+          <Layers className="w-4 h-4 text-amber-600" /> Ver Decks de Erros em Flashcards
+        </Link>
       </div>
 
       {/* Pending Errors List */}
@@ -118,7 +128,7 @@ export function ErrorNotebookPage() {
               </h3>
             </div>
             <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-              Clique em &quot;Usar no Caderno&quot; para sanar a falha
+              Clique em &quot;Usar no Caderno&quot; para criar tríade com IA
             </span>
           </div>
 
@@ -158,7 +168,15 @@ export function ErrorNotebookPage() {
             ))}
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+          <BookOpen className="w-8 h-8 text-amber-500/70 mx-auto mb-2" />
+          <p className="font-medium text-gray-800 dark:text-gray-200">Nenhum erro pendente no momento.</p>
+          <p className="text-xs text-gray-500 mt-1">
+            Quando você responder questões em um Simulado ou Prova Fatiada e errar, as falhas serão exportadas automaticamente para cá!
+          </p>
+        </div>
+      )}
 
       {/* Manual / Remediation Form */}
       <div

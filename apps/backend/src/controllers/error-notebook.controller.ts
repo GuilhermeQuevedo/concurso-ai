@@ -26,6 +26,16 @@ export class ErrorNotebookController {
     }
   };
 
+  recordSimuladoErrors = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getUserId(req);
+      const result = await this.service.recordSimuladoErrors(userId, req.body);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   generateRemediation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getUserId(req);

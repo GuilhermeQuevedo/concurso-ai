@@ -14,6 +14,21 @@ export interface PendingErrorDTO {
   createdAt: Date;
 }
 
+export interface SimuladoErrorItemDTO {
+  questionId?: string;
+  statement: string;
+  alternatives?: Array<{ letter: string; text: string }>;
+  userAnswer: string;
+  correctAnswer: string;
+  explanation: string;
+  subjectName?: string;
+}
+
+export interface RecordSimuladoErrorsDTO {
+  simuladoTitle?: string;
+  errors: SimuladoErrorItemDTO[];
+}
+
 export interface GenerateRemediationDTO {
   questionId?: string;
   questionText?: string;
@@ -77,6 +92,93 @@ export class ErrorNotebookService {
     });
 
     return { success: true };
+  }
+
+  async recordSimuladoErrors(
+    userId: string,
+    dto: RecordSimuladoErrorsDTO,
+  ): Promise<{ recorded: number; deckId: string | null; deckTitle: string }> {
+    if (!dto.errors || dto.errors.length === 0) {
+      return { recorded: 0, deckId: null, deckTitle: '' };
+    }
+
+    const subject = await this.ensureSubject();
+    const todayStr = new Date().toLocaleDateString('pt-BR');
+    const deckTitle = dto.simuladoTitle?.trim()
+      ? `Erros: ${dto.simuladoTitle.trim()}`
+      : `Erros do Simulado - ${todayStr}`;
+
+    let deck = await prisma.flashcardDeck.findFirst({
+      where: {
+        userId,
+        name: deckTitle,
+      },
+    });
+
+    if (!deck) {
+      deck = await prisma.flashcardDeck.create({
+        data: {
+          userId,
+          name: deckTitle,
+          subjectId: subject.id,
+          color: '#f59e0b',
+          topic: 'Caderno de Erros',
+        },
+      });
+    }
+
+    for (const err of dto.errors) {
+      let qId = err.questionId;
+      if (qId) {
+        const exists = await prisma.question.findUnique({ where: { id: qId } });
+        if (!exists) {
+          qId = undefined;
+        }
+      }
+
+      if (!qId) {
+        const newQuestion = await prisma.question.create({
+          data: {
+            statement: err.statement,
+            alternatives: err.alternatives ?? [],
+            correctAnswer: err.correctAnswer,
+            difficulty: 'MEDIUM',
+            explanation: err.explanation,
+            comments: [],
+            subjectId: subject.id,
+            source: 'AI_GENERATED',
+          },
+        });
+        qId = newQuestion.id;
+      }
+
+      await prisma.questionAttempt.create({
+        data: {
+          userId,
+          questionId: qId,
+          answer: err.userAnswer || 'N/A',
+          isCorrect: false,
+          timeSpent: 0,
+        },
+      });
+
+      await prisma.flashcard.create({
+        data: {
+          userId,
+          subjectId: subject.id,
+          deckId: deck.id,
+          front: `[Erro em Simulado] ${err.statement}`,
+          back: `**Alternativa Correta:** ${err.correctAnswer}\n\n**Comentário do Professor:**\n${err.explanation}`,
+          source: 'Caderno de Erros',
+        },
+      });
+    }
+
+    return {
+      recorded: dto.errors.length,
+      deckId: deck.id,
+      deckTitle,
+    };
   }
 
   async generateRemediationCards(

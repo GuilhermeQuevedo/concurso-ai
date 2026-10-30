@@ -10,6 +10,7 @@ const controller = new ErrorNotebookController(service);
 
 router.get('/pending', authMiddleware, controller.listPending);
 router.post('/learned/:questionId', authMiddleware, controller.markLearned);
+router.post('/record-simulado-errors', authMiddleware, controller.recordSimuladoErrors);
 router.post('/remediate', authMiddleware, controller.generateRemediation);
 
 export { router as errorNotebookRouter };
