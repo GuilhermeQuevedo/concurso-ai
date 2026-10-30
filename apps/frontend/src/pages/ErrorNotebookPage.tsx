@@ -23,8 +23,21 @@ export function ErrorNotebookPage() {
   });
 
   const markLearned = useMutation({
-    mutationFn: (questionId: string) => errorNotebookService.markAsLearned(questionId),
-    onSuccess: () => {
+    mutationFn: (targetId: string) => errorNotebookService.markAsLearned(targetId),
+    onMutate: async (targetId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['pending-errors'] });
+      const previousErrors = queryClient.getQueryData<PendingErrorDTO[]>(['pending-errors']);
+      queryClient.setQueryData<PendingErrorDTO[]>(['pending-errors'], (old = []) =>
+        old.filter((item) => item.questionId !== targetId && item.id !== targetId),
+      );
+      return { previousErrors };
+    },
+    onError: (_err, _targetId, context) => {
+      if (context?.previousErrors) {
+        queryClient.setQueryData(['pending-errors'], context.previousErrors);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-errors'] });
     },
   });
@@ -197,11 +210,20 @@ export function ErrorNotebookPage() {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      onClick={() => markLearned.mutate(err.questionId)}
+                      disabled={
+                        markLearned.isPending &&
+                        (markLearned.variables === err.questionId || markLearned.variables === err.id)
+                      }
+                      onClick={() => markLearned.mutate(err.questionId || err.id)}
                       title="Marcar como aprendido (remover da lista)"
-                      className="p-2 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 transition-colors"
+                      className="p-2 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 transition-colors disabled:opacity-50"
                     >
-                      <Check className="w-4 h-4" />
+                      {markLearned.isPending &&
+                      (markLearned.variables === err.questionId || markLearned.variables === err.id) ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                      ) : (
+                        <Check className="w-4 h-4" />
+                      )}
                     </button>
                     <button
                       type="button"

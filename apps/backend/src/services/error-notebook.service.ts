@@ -77,11 +77,11 @@ export class ErrorNotebookService {
       });
     }
 
-    // 2. Busca erros de Simulados registrados em QuestionAttempt
+    // 2. Busca tentativas de Simulados registradas em QuestionAttempt (ordenadas da mais recente para a mais antiga)
     const attempts = await prisma.questionAttempt.findMany({
-      where: { userId, isCorrect: false },
+      where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take: 200,
       include: {
         question: {
           include: { subject: true },
@@ -91,8 +91,11 @@ export class ErrorNotebookService {
 
     const seenQuestions = new Set<string>();
     for (const attempt of attempts) {
-      if (seenQuestions.has(attempt.questionId)) continue;
+      if (!attempt.question || seenQuestions.has(attempt.questionId)) continue;
       seenQuestions.add(attempt.questionId);
+
+      // Se a tentativa mais recente da questão foi correta (ou marcada como aprendida), não exibe no caderno de erros
+      if (attempt.isCorrect) continue;
 
       let originTitle = 'Simulado';
       let originType: 'SIMULADO' | 'FLASHCARD' = 'SIMULADO';
@@ -136,7 +139,7 @@ export class ErrorNotebookService {
   }
 
   async markAsLearned(userId: string, id: string): Promise<{ success: boolean }> {
-    // 1. Se for um Flashcard, marca source como 'correct' para remoção imediata
+    // 1. Se for um Flashcard (por id), atualiza status para 'correct' para remoção imediata
     const card = await prisma.flashcard.findUnique({ where: { id } });
     if (card && card.userId === userId) {
       await prisma.flashcard.update({
@@ -146,16 +149,29 @@ export class ErrorNotebookService {
       return { success: true };
     }
 
-    // 2. Se for uma Question de Simulado, cria QuestionAttempt com isCorrect: true
-    await prisma.questionAttempt.create({
-      data: {
-        userId,
-        questionId: id,
-        answer: 'LEARNED',
-        isCorrect: true,
-        timeSpent: 0,
-      },
+    // 2. Se for um QuestionAttempt existente (se o id passado for do QuestionAttempt)
+    const existingAttempt = await prisma.questionAttempt.findUnique({ where: { id } });
+    const targetQuestionId = existingAttempt ? existingAttempt.questionId : id;
+
+    // 3. Atualiza todas as tentativas dessa questão para o usuário como corretas
+    await prisma.questionAttempt.updateMany({
+      where: { userId, questionId: targetQuestionId },
+      data: { isCorrect: true },
     });
+
+    // 4. Garante registro de acerto/revisão concluída caso a questão exista
+    const question = await prisma.question.findUnique({ where: { id: targetQuestionId } });
+    if (question) {
+      await prisma.questionAttempt.create({
+        data: {
+          userId,
+          questionId: targetQuestionId,
+          answer: 'ACERTOU_REVISAO',
+          isCorrect: true,
+          timeSpent: 0,
+        },
+      });
+    }
 
     return { success: true };
   }

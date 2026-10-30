@@ -48,8 +48,39 @@ const envSchema = z.object({
   SMTP_SECURE: z.string().default('false').transform((v) => v === 'true'),
 });
 
+function normalizeTruncatedEnv(rawEnv: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const normalized = { ...rawEnv };
+  const aliases: Record<string, string> = {
+    ODE_ENV: 'NODE_ENV',
+    ORT: 'PORT',
+    ATABASE_URL: 'DATABASE_URL',
+    WT_SECRET: 'JWT_SECRET',
+    ORS_ORIGIN: 'CORS_ORIGIN',
+    I_PROVIDER: 'AI_PROVIDER',
+    DMIN_EMAIL: 'ADMIN_EMAIL',
+    DMIN_PASSWORD: 'ADMIN_PASSWORD',
+    PP_URL: 'APP_URL',
+    PI_URL: 'API_URL',
+    OOGLE_CLIENT_ID: 'GOOGLE_CLIENT_ID',
+    OOGLE_CLIENT_SECRET: 'GOOGLE_CLIENT_SECRET',
+    OOGLE_REDIRECT_URI: 'GOOGLE_REDIRECT_URI',
+    PENAI_API_KEY: 'OPENAI_API_KEY',
+    ESEND_API_KEY: 'RESEND_API_KEY',
+    MAIL_FROM: 'EMAIL_FROM',
+  };
+
+  for (const [truncated, proper] of Object.entries(aliases)) {
+    if (!normalized[proper] && normalized[truncated]) {
+      normalized[proper] = normalized[truncated];
+    }
+  }
+
+  return normalized;
+}
+
 function loadEnv() {
-  const parsed = envSchema.safeParse(process.env);
+  const normalizedEnv = normalizeTruncatedEnv(process.env);
+  const parsed = envSchema.safeParse(normalizedEnv);
 
   if (!parsed.success) {
     console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors);
