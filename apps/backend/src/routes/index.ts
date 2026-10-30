@@ -21,6 +21,7 @@ import { rankingRouter } from './ranking.routes.js';
 import { questionSetRouter } from './question-set.routes.js';
 import { gameRouter } from './game.routes.js';
 import { calendarIntegrationRouter } from './calendar-integration.routes.js';
+import { errorNotebookRouter } from './error-notebook.routes.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { requireSubscription } from '../middlewares/subscription.middleware.js';
 
@@ -49,6 +50,7 @@ router.use('/dashboard', gate, dashboardRouter);
 router.use('/rankings', gate, rankingRouter);
 router.use('/question-sets', gate, questionSetRouter);
 router.use('/games', gate, gameRouter);
+router.use('/error-notebook', gate, errorNotebookRouter);
 
 router.get('/health', (_req, res) => {
   const response: ApiResponse<{ status: string; timestamp: string }> = {
