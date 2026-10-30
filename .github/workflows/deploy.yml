@@ -1,0 +1,68 @@
+name: Deploy Automático (Hostinger VPS)
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & Deploy para Produção
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Gerar Prisma client
+        run: pnpm db:generate
+
+      - name: Validar integridade (Lint)
+        run: pnpm lint
+
+      - name: Compilar pacote de produção (Front + Back)
+        run: pnpm build:deploy
+
+      - name: Configurar chave SSH para deploy
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Adicionar Host ao known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sincronizar pacote deploy com o VPS
+        run: |
+          rsync -avz --delete \
+            --exclude '.env' \
+            --exclude 'node_modules' \
+            --exclude 'uploads' \
+            deploy/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/engrama/deploy/
+
+      - name: Atualizar dependências e reiniciar PM2 no VPS
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
+            cd /opt/engrama/deploy
+            npm install --omit=dev
+            pm2 restart engrama --update-env || pm2 start server.mjs --name engrama
+            pm2 save
+          "
