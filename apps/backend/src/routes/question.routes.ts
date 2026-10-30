@@ -13,6 +13,7 @@ const service = new QuestionService(aiProvider);
 const controller = new QuestionController(service);
 
 router.post('/generate', authMiddleware, validateRequest(generateQuestionsSchema), controller.generate);
+router.post('/slice-exam', authMiddleware, controller.sliceExam);
 router.get('/subject/:subjectId', authMiddleware, controller.getBySubject);
 router.get('/:id', authMiddleware, controller.getById);
 

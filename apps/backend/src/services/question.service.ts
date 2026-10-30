@@ -8,6 +8,15 @@ import { htmlToPlainText } from '../utils/html.js';
 export const ESSAY_ANSWER = 'S';
 const MIN_AUDIT_ALTERNATIVES = 2;
 
+export interface SliceExamDTO {
+  examContent: string;
+  answerKeyContent?: string;
+  quantity?: number;
+  subjectId?: string;
+  subjectName?: string;
+  examBoardId?: string;
+}
+
 export class QuestionService {
   private readonly documentService = new DocumentService();
 
@@ -99,69 +108,125 @@ export class QuestionService {
 
     const kept = await this.auditQuestions(generated, subjectName);
 
-    const saved = await prisma.$transaction(
+    return prisma.$transaction(
       kept.map((q) =>
         prisma.question.create({
           data: {
-            statement: htmlToPlainText(q.statement),
-            alternatives: q.alternatives.map((a) => ({ letter: a.letter, text: htmlToPlainText(a.text) })),
-            correctAnswer: q.alternatives.length === 0 ? ESSAY_ANSWER : q.correctAnswer,
-            explanation: htmlToPlainText(q.explanation),
+            statement: q.statement,
+            alternatives: q.alternatives,
+            correctAnswer: q.correctAnswer,
             difficulty: q.difficulty,
+            explanation: q.explanation,
             comments: [],
             subjectId: dto.subjectId,
-            examBoardId: dto.examBoardId ?? null,
+            examBoardId: dto.examBoardId,
             source: 'AI_GENERATED',
-            aiModel: 'gemini-2.0-flash',
           },
+          include: { subject: true, examBoard: true },
         }),
       ),
     );
-
-    return saved;
   }
 
-  // Auditoria: um segundo "resolvedor" responde cada questão às cegas e
-  // descartamos as que não batem com o gabarito. Se a auditoria falhar ou
-  // reprovar demais (possível modelo instável), mantém todas por segurança.
-  private async auditQuestions(generated: GeneratedQuestion[], subjectName: string): Promise<GeneratedQuestion[]> {
-    const objective = generated.filter((q) => q.alternatives.length >= MIN_AUDIT_ALTERNATIVES);
+  private async auditQuestions(
+    generated: GeneratedQuestion[],
+    subjectName: string,
+  ): Promise<GeneratedQuestion[]> {
+    const objective = generated
+      .map((q, idx) => ({ q, idx }))
+      .filter(({ q }) => q.alternatives.length >= MIN_AUDIT_ALTERNATIVES);
     if (objective.length === 0) return generated;
-    try {
-      const answers = await this.aiProvider.answerQuestions({
-        subject: subjectName,
-        questions: objective.map((q) => ({ statement: q.statement, alternatives: q.alternatives })),
-      });
-      if (answers.length !== objective.length) return generated;
 
-      const agreed = new Set(
-        objective.filter((q, i) => answers[i] && answers[i] === q.correctAnswer.trim().toUpperCase()),
-      );
-      if (agreed.size < Math.ceil(objective.length / 2)) return generated;
-      return generated.filter((q) => q.alternatives.length < MIN_AUDIT_ALTERNATIVES || agreed.has(q));
-    } catch {
-      return generated;
+    const answers = await this.aiProvider.answerQuestions({
+      questions: objective.map(({ q }) => ({ statement: q.statement, alternatives: q.alternatives })),
+      subject: subjectName,
+    });
+
+    const discardedIndexes = new Set<number>();
+    objective.forEach(({ q, idx }, i) => {
+      const solverAns = answers[i]?.trim().toUpperCase();
+      const expectedAns = q.correctAnswer.trim().toUpperCase();
+      if (solverAns && solverAns !== expectedAns) {
+        discardedIndexes.add(idx);
+      }
+    });
+
+    if (discardedIndexes.size > 0) {
+      console.warn(`Auditoria da IA descartou ${discardedIndexes.size} questão(ões) inconsistente(s).`);
     }
+
+    const kept = generated.filter((_, idx) => !discardedIndexes.has(idx));
+    return kept.length > 0 ? kept : generated;
   }
 
-  async importFromContent(subjectId: string, content: string, subjectName: string) {
-    const extracted = await this.aiProvider.extractQuestions({ content, subject: subjectName });
-    if (extracted.length === 0) return [];
+  async importFromContent(subjectId: string, content: string, subjectName?: string) {
+    const plain = htmlToPlainText(content).trim();
+    if (plain.length < 50) {
+      throw new AppError(400, 'CONTENT_TOO_SHORT', 'Conteúdo muito curto para extrair questões');
+    }
+
+    const extracted = await this.aiProvider.extractQuestions({
+      content: plain,
+      subject: subjectName,
+    });
+
+    if (extracted.length === 0) {
+      throw new AppError(422, 'NO_QUESTIONS_FOUND', 'Nenhuma questão identificada no conteúdo');
+    }
 
     return prisma.$transaction(
       extracted.map((q) =>
         prisma.question.create({
           data: {
-            statement: htmlToPlainText(q.statement),
-            alternatives: q.alternatives.map((a) => ({ letter: a.letter, text: htmlToPlainText(a.text) })),
+            statement: q.statement,
+            alternatives: q.alternatives,
             correctAnswer: q.correctAnswer,
-            explanation: htmlToPlainText(q.explanation),
             difficulty: q.difficulty,
+            explanation: q.explanation,
             comments: [],
             subjectId,
             source: 'IMPORTED',
             aiModel: null,
           },
+        }),
+      ),
+    );
+  }
+
+  async sliceExam(_userId: string, dto: SliceExamDTO) {
+    if (!this.aiProvider.sliceExam) {
+      throw new AppError(500, 'AI_PROVIDER_ERROR', 'Provedor de IA não suporta fatiamento de prova.');
+    }
+
+    const sliced = await this.aiProvider.sliceExam({
+      examContent: dto.examContent,
+      answerKeyContent: dto.answerKeyContent,
+      quantity: dto.quantity ?? 10,
+    });
+
+    let subjectId = dto.subjectId;
+    if (!subjectId) {
+      const subjectName = dto.subjectName?.trim() || 'Provas Comentadas';
+      const existing = await prisma.subject.findFirst({ where: { name: subjectName } });
+      const subject = existing ?? (await prisma.subject.create({ data: { name: subjectName } }));
+      subjectId = subject.id;
+    }
+
+    return prisma.$transaction(
+      sliced.map((q) =>
+        prisma.question.create({
+          data: {
+            statement: q.referenceText ? `${q.referenceText}\n\n${q.statement}` : q.statement,
+            alternatives: q.alternatives,
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation,
+            difficulty: 'MEDIUM',
+            comments: [],
+            subjectId,
+            examBoardId: dto.examBoardId,
+            source: 'IMPORTED',
+          },
+          include: { subject: true, examBoard: true },
         }),
       ),
     );

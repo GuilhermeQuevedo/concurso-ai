@@ -13,6 +13,13 @@ import type {
   TopicContentParams,
   GenerateFlashcardsParams,
   GeneratedFlashcard,
+  AdvancedGenerateFlashcardsParams,
+  GenerateErrorRemediationParams,
+  ErrorRemediationFlashcard,
+  ExamSlicerParams,
+  SlicedQuestion,
+  TopicProbabilityAnalysis,
+  EditalSyllabusEntry,
   GenerateSummaryParams,
   AnswerQuestionsParams,
   ExtractQuestionsParams,
@@ -26,11 +33,18 @@ import {
   buildEditalPrompt,
   buildTopicContentPrompt,
   buildFlashcardsPrompt,
+  buildAdvancedFlashcardsPrompt,
+  buildErrorRemediationPrompt,
+  buildExamSlicerPrompt,
+  buildTopicProbabilityPrompt,
   buildSummaryPrompt,
   buildAuditPrompt,
   auditResponseSchema,
   mapAuditAnswers,
   questionsResponseSchema,
+  examSlicerResponseSchema,
+  errorRemediationResponseSchema,
+  topicProbabilityResponseSchema,
   essayResponseSchema,
   caseStudyResponseSchema,
   editalResponseSchema,
@@ -38,19 +52,28 @@ import {
   truncateEdital,
   stripJsonMarkdown,
 } from './ai-prompts.js';
+import { CircuitBreaker } from './resilience/circuit-breaker.js';
+import { ConcurrencyQueue } from './resilience/concurrency-queue.js';
+import { RetryStrategy } from './resilience/retry-strategy.js';
 
 export class OpenAIProvider implements IAIProvider {
   private readonly client: OpenAI;
+  private readonly circuitBreaker: CircuitBreaker;
+  private readonly queue: ConcurrencyQueue;
+  private readonly retryStrategy: RetryStrategy;
 
   constructor(
     apiKey: string,
     private readonly model: string = 'gpt-4o-mini',
   ) {
     this.client = new OpenAI({ apiKey });
+    this.circuitBreaker = new CircuitBreaker('openai-provider', { failureThreshold: 3, timeoutMs: 30000 });
+    this.queue = new ConcurrencyQueue({ maxConcurrent: 4, timeoutMs: 60000 });
+    this.retryStrategy = new RetryStrategy({ maxAttempts: 3, initialDelayMs: 1500 });
   }
 
   async generateQuestions(params: GenerateQuestionsParams): Promise<GeneratedQuestion[]> {
-    const raw = await this.callChat(buildQuestionsPrompt(params), { json: true });
+    const raw = await this.executeResilient(() => this.callChat(buildQuestionsPrompt(params), { json: true }));
     const parsedJson = this.parseJson(raw, 'geração de questões');
     const normalized = this.normalizeQuestions(parsedJson, params.difficulty);
     const parsed = questionsResponseSchema.safeParse(normalized);
@@ -61,7 +84,9 @@ export class OpenAIProvider implements IAIProvider {
   }
 
   async extractQuestions(params: ExtractQuestionsParams): Promise<GeneratedQuestion[]> {
-    const raw = await this.callChat(buildExtractQuestionsPrompt(params.content, params.subject), { json: true });
+    const raw = await this.executeResilient(() =>
+      this.callChat(buildExtractQuestionsPrompt(params.content, params.subject), { json: true }),
+    );
     const parsedJson = this.parseJson(raw, 'extração de questões');
     const parsed = questionsResponseSchema.safeParse(parsedJson);
     if (!parsed.success) {
@@ -89,9 +114,12 @@ export class OpenAIProvider implements IAIProvider {
   }
 
   async gradeEssay(params: GradeEssayParams): Promise<EssayGradeResult> {
-    const raw = await this.callChat(
-      buildEssayPrompt(params),
-      { json: true, filePath: params.filePath, mimeType: params.fileMimeType },
+    const raw = await this.executeResilient(() =>
+      this.callChat(buildEssayPrompt(params), {
+        json: true,
+        filePath: params.filePath,
+        mimeType: params.fileMimeType,
+      }),
     );
     const parsed = essayResponseSchema.safeParse(this.parseJson(raw, 'correção de redação'));
     if (!parsed.success) {
@@ -101,38 +129,44 @@ export class OpenAIProvider implements IAIProvider {
   }
 
   async gradeCaseStudy(params: GradeCaseStudyParams): Promise<CaseStudyResult> {
-    const raw = await this.callChat(
-      buildCaseStudyPrompt(params),
-      { json: true, filePath: params.filePath, mimeType: params.fileMimeType },
+    const raw = await this.executeResilient(() =>
+      this.callChat(buildCaseStudyPrompt(params), {
+        json: true,
+        filePath: params.filePath,
+        mimeType: params.fileMimeType,
+      }),
     );
     const parsed = caseStudyResponseSchema.safeParse(this.parseJson(raw, 'correção de estudo de caso'));
     if (!parsed.success) {
-      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de correção inválido da OpenAI: ${parsed.error.message}`);
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de estudo de caso inválido da OpenAI: ${parsed.error.message}`);
     }
     return parsed.data;
   }
 
   async parseEdital(params: ParseEditalParams): Promise<EditalParseResult> {
-    const raw = await this.callChat(buildEditalPrompt(truncateEdital(params.content), params.focus), { json: true });
+    const truncated = truncateEdital(params.content);
+    const raw = await this.executeResilient(() =>
+      this.callChat(buildEditalPrompt(truncated, params.focus), { json: true }),
+    );
     const parsed = editalResponseSchema.safeParse(this.parseJson(raw, 'análise de edital'));
     if (!parsed.success) {
-      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de análise de edital inválido da OpenAI: ${parsed.error.message}`);
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de edital inválido da OpenAI: ${parsed.error.message}`);
     }
     return parsed.data;
   }
 
   async generateTopicContent(params: TopicContentParams): Promise<string> {
-    return this.callChat(buildTopicContentPrompt(params), { json: false });
+    return this.executeResilient(() => this.callChat(buildTopicContentPrompt(params), { json: false }));
   }
 
   async generateSummary(params: GenerateSummaryParams): Promise<string> {
-    return this.callChat(buildSummaryPrompt(params), { json: false });
+    return this.executeResilient(() => this.callChat(buildSummaryPrompt(params), { json: false }));
   }
 
   async answerQuestions(params: AnswerQuestionsParams): Promise<string[]> {
     if (params.questions.length === 0) return [];
     try {
-      const raw = await this.callChat(buildAuditPrompt(params), { json: true });
+      const raw = await this.executeResilient(() => this.callChat(buildAuditPrompt(params), { json: true }));
       const parsed = auditResponseSchema.safeParse(JSON.parse(stripJsonMarkdown(raw)));
       if (!parsed.success) return [];
       return mapAuditAnswers(parsed.data, params.questions.length);
@@ -142,12 +176,63 @@ export class OpenAIProvider implements IAIProvider {
   }
 
   async generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]> {
-    const raw = await this.callChat(buildFlashcardsPrompt(params), { json: true });
+    const raw = await this.executeResilient(() => this.callChat(buildFlashcardsPrompt(params), { json: true }));
     const parsed = flashcardsResponseSchema.safeParse(this.parseJson(raw, 'geração de flashcards'));
     if (!parsed.success) {
       throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de flashcards inválido da OpenAI: ${parsed.error.message}`);
     }
     return parsed.data.flashcards;
+  }
+
+  async generateAdvancedFlashcards(params: AdvancedGenerateFlashcardsParams): Promise<GeneratedFlashcard[]> {
+    const { prompt, temperature } = buildAdvancedFlashcardsPrompt(params);
+    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature }));
+    const parsed = flashcardsResponseSchema.safeParse(this.parseJson(raw, 'geração avançada de flashcards'));
+    if (!parsed.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de flashcards avançados inválido: ${parsed.error.message}`);
+    }
+    return parsed.data.flashcards;
+  }
+
+  async generateErrorRemediation(params: GenerateErrorRemediationParams): Promise<ErrorRemediationFlashcard[]> {
+    const prompt = buildErrorRemediationPrompt(params);
+    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.4 }));
+    const parsed = errorRemediationResponseSchema.safeParse(this.parseJson(raw, 'remediação de erro'));
+    if (!parsed.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de remediação de erro inválido: ${parsed.error.message}`);
+    }
+    return parsed.data.flashcards;
+  }
+
+  async sliceExam(params: ExamSlicerParams): Promise<SlicedQuestion[]> {
+    const prompt = buildExamSlicerPrompt(params);
+    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.3 }));
+    const parsed = examSlicerResponseSchema.safeParse(this.parseJson(raw, 'fatiamento de prova'));
+    if (!parsed.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de fatiamento de prova inválido: ${parsed.error.message}`);
+    }
+    return parsed.data.questions;
+  }
+
+  async analyzeTopicProbabilities(params: {
+    syllabus: EditalSyllabusEntry[];
+    examBoard: string;
+  }): Promise<TopicProbabilityAnalysis[]> {
+    const prompt = buildTopicProbabilityPrompt(params);
+    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.3 }));
+    const parsed = topicProbabilityResponseSchema.safeParse(this.parseJson(raw, 'análise de probabilidades'));
+    if (!parsed.success) {
+      throw new AppError(502, 'AI_INVALID_FORMAT', `Formato de probabilidade inválido: ${parsed.error.message}`);
+    }
+    return parsed.data.analysis;
+  }
+
+  private async executeResilient<T>(action: () => Promise<T>): Promise<T> {
+    return this.queue.enqueue(() =>
+      this.circuitBreaker.execute(() =>
+        this.retryStrategy.execute(action),
+      ),
+    );
   }
 
   private parseJson(raw: string, context: string): unknown {
@@ -181,7 +266,7 @@ export class OpenAIProvider implements IAIProvider {
 
   private async callChat(
     prompt: string,
-    options: { json?: boolean; filePath?: string; mimeType?: string } = {},
+    options: { json?: boolean; filePath?: string; mimeType?: string; temperature?: number } = {},
   ): Promise<string> {
     try {
       const content = this.buildUserMessageContent(prompt, options.filePath, options.mimeType);
@@ -195,7 +280,7 @@ export class OpenAIProvider implements IAIProvider {
           },
         ],
         response_format: options.json ? { type: 'json_object' } : undefined,
-        temperature: 0.7,
+        temperature: options.temperature ?? 0.7,
       });
 
       const text = response.choices[0]?.message?.content?.trim();

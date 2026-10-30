@@ -107,6 +107,53 @@ export interface GeneratedFlashcard {
   back: string;
 }
 
+export type FlashcardStudyMode = 'standard' | 'cloze';
+
+export interface AdvancedGenerateFlashcardsParams {
+  content: string;
+  subject?: string;
+  count: number;
+  mode?: FlashcardStudyMode;
+  difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
+  customFocus?: string;
+  previousQuestions?: string[];
+}
+
+export interface ErrorRemediationFlashcard {
+  front: string;
+  back: string;
+  type: 'direct' | 'cloze' | 'true_false';
+  explanation: string;
+}
+
+export interface GenerateErrorRemediationParams {
+  question: string;
+  userAnswer?: string;
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface ExamSlicerParams {
+  examContent: string;
+  answerKeyContent?: string;
+  quantity?: number;
+}
+
+export interface SlicedQuestion {
+  statement: string;
+  referenceText?: string | null;
+  alternatives: { letter: string; text: string }[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface TopicProbabilityAnalysis {
+  discipline: string;
+  topic: string;
+  probability: 'alta' | 'media' | 'baixa';
+  justification: string;
+}
+
 export interface GenerateFlashcardsParams {
   content: string;
   subject?: string;
@@ -141,6 +188,10 @@ export interface IAIProvider {
   parseEdital(params: ParseEditalParams): Promise<EditalParseResult>;
   generateTopicContent(params: TopicContentParams): Promise<string>;
   generateFlashcards(params: GenerateFlashcardsParams): Promise<GeneratedFlashcard[]>;
+  generateAdvancedFlashcards?(params: AdvancedGenerateFlashcardsParams): Promise<GeneratedFlashcard[]>;
+  generateErrorRemediation?(params: GenerateErrorRemediationParams): Promise<ErrorRemediationFlashcard[]>;
+  sliceExam?(params: ExamSlicerParams): Promise<SlicedQuestion[]>;
+  analyzeTopicProbabilities?(params: { syllabus: EditalSyllabusEntry[]; examBoard: string }): Promise<TopicProbabilityAnalysis[]>;
   generateSummary(params: GenerateSummaryParams): Promise<string>;
   answerQuestions(params: AnswerQuestionsParams): Promise<string[]>;
 }

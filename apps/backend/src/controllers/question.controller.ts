@@ -16,6 +16,16 @@ export class QuestionController {
     }
   };
 
+  sliceExam = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const questions = await this.service.sliceExam(getUserId(req), req.body);
+      const response: ApiResponse<typeof questions> = { success: true, data: questions };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getBySubject = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const questions = await this.service.getBySubject(req.params.subjectId as string);

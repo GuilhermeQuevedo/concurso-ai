@@ -6,9 +6,14 @@ import type {
   GradeCaseStudyParams,
   TopicContentParams,
   GenerateFlashcardsParams,
+  AdvancedGenerateFlashcardsParams,
+  GenerateErrorRemediationParams,
+  ExamSlicerParams,
+  EditalSyllabusEntry,
   GenerateSummaryParams,
   AnswerQuestionsParams,
 } from '../interfaces/ai.interfaces.js';
+import { BANCA_PROFILES } from './banca-profiles.js';
 
 export const questionsResponseSchema = z.object({
   questions: z.array(
@@ -18,6 +23,40 @@ export const questionsResponseSchema = z.object({
       correctAnswer: z.string(),
       explanation: z.string(),
       difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
+    }),
+  ),
+});
+
+export const examSlicerResponseSchema = z.object({
+  questions: z.array(
+    z.object({
+      statement: z.string().min(1),
+      referenceText: z.string().nullable().optional(),
+      alternatives: z.array(z.object({ letter: z.string(), text: z.string() })).min(2),
+      correctAnswer: z.string().min(1),
+      explanation: z.string().min(1),
+    }),
+  ),
+});
+
+export const errorRemediationResponseSchema = z.object({
+  flashcards: z.array(
+    z.object({
+      front: z.string().min(1),
+      back: z.string().min(1),
+      type: z.enum(['direct', 'cloze', 'true_false']),
+      explanation: z.string().min(1),
+    }),
+  ),
+});
+
+export const topicProbabilityResponseSchema = z.object({
+  analysis: z.array(
+    z.object({
+      discipline: z.string(),
+      topic: z.string(),
+      probability: z.enum(['alta', 'media', 'baixa']),
+      justification: z.string(),
     }),
   ),
 });
@@ -82,8 +121,6 @@ export const editalResponseSchema = z.object({
 const EDITAL_MAX_CHARS = 700000;
 const EDITAL_HEAD_CHARS = 150000;
 
-// Em editais longos o conteúdo programático fica nos anexos, no final —
-// ao truncar, preserva o início (dados do concurso) e o final (anexos)
 export function truncateEdital(content: string, maxChars = EDITAL_MAX_CHARS): string {
   if (content.length <= maxChars) return content;
   const headChars = Math.min(EDITAL_HEAD_CHARS, Math.floor(maxChars * 0.25));
@@ -92,9 +129,6 @@ export function truncateEdital(content: string, maxChars = EDITAL_MAX_CHARS): st
   return `${head}\n\n[... trecho intermediário do edital omitido ...]\n\n${tail}`;
 }
 
-// Amostra representativa do documento inteiro: em vez de pegar só o começo,
-// distribui "janelas" ao longo de todo o conteúdo. Mantém o custo limitado
-// (maxChars) e faz a IA enxergar o material todo, não apenas a primeira página.
 export function sampleContent(content: string, maxChars: number, windows = 5): string {
   const text = content.trim();
   if (text.length <= maxChars) return text;
@@ -110,8 +144,59 @@ export function sampleContent(content: string, maxChars: number, windows = 5): s
 }
 
 const QUESTIONS_MAX_CONTEXT = 14000;
-
 const ALT_LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
+
+function getBancaGuidance(examBoard?: string): string {
+  if (!examBoard) return '';
+  const board = examBoard.trim().toUpperCase();
+
+  if (board.includes('CESPE') || board.includes('CEBRASPE') || board.includes('QUADRIX')) {
+    return `
+ESTILO CESPE/CEBRASPE/QUADRIX:
+- Para questões de Certo ou Errado: formule afirmações declarativas longas e assertivas.
+- Utilize pegadinhas clássicas: palavras restritivas ("apenas", "somente", "sempre", "nunca", "exclusivamente").
+- Empregue inversão conceitual sutil: troque "prescindível" por "imprescindível", "pode" por "deve", "vedado" por "permitido".
+- O candidato deve ser desafiado a detectar detalhes de doutrina e jurisprudência pacificada.`;
+  }
+
+  if (board.includes('FGV')) {
+    return `
+ESTILO FGV (Fundação Getulio Vargas):
+- Crie enunciados no formato de "Casos Concretos" (situações hipotéticas ou historinhas com personagens fictícios aplicando a matéria).
+- Alternativas de A a E longas, muito plausíveis e gramaticalmente parecidas entre si.
+- Exija raciocínio jurídico/técnico aplicado e interpretação de texto, focando em EXCEÇÕES à regra geral.`;
+  }
+
+  if (board.includes('FCC')) {
+    return `
+ESTILO FCC (Fundação Carlos Chagas):
+- Foco cirúrgico na literalidade do texto legal ou técnico.
+- As alternativas incorretas devem conter alterações pontuais e sutis: troca de prazos (ex: 15 por 30 dias), conjunções ("e" por "ou", "salvo" por "inclusive") e conceitos procedimentais ("suspensão" por "interrupção").`;
+  }
+
+  if (board.includes('VUNESP')) {
+    return `
+ESTILO VUNESP:
+- Situações contextualizadas simples do dia a dia da administração pública.
+- Alternativas diretas e enxutas testando aplicação literal de deveres funcionais, proibições e prazos.`;
+  }
+
+  if (board.includes('CESGRANRIO')) {
+    return `
+ESTILO CESGRANRIO:
+- Questões fortemente contextualizadas simulando o mercado de trabalho (rotinas administrativas, bancárias ou de engenharia).
+- Distratores construídos em cima de equívocos clássicos de profissionais novatos ou desatentos.`;
+  }
+
+  if (board.includes('IBFC') || board.includes('AOCP') || board.includes('IDECAN')) {
+    return `
+ESTILO IBFC/AOCP/IDECAN:
+- Questões diretas, literais e secas ("Assinale a alternativa correta sobre...", "É INCORRETO afirmar que...").
+- Foco em listas, enumerações e decoreba de conceitos literais.`;
+  }
+
+  return `Banca Alvo: ${examBoard}. Adapte o vocabulário, estrutura e nível de cobrança ao perfil histórico desta banca.`;
+}
 
 function typeInstructions(type: QuestionType): string {
   switch (type) {
@@ -145,6 +230,7 @@ export function buildQuestionsPrompt(params: GenerateQuestionsParams): string {
   const difficultyMap = { EASY: 'fácil', MEDIUM: 'média', HARD: 'difícil' };
   const diffText = params.difficulty ? difficultyMap[params.difficulty] : 'variada';
   const type = params.questionType ?? 'MULTIPLE_5';
+  const bancaGuidance = getBancaGuidance(params.examBoard);
 
   const styleNote = params.cloneStyle
     ? '\nCLONADOR DE PROVA: o material abaixo é uma prova/lista de referência. Imite o ESTILO dela (tamanho dos enunciados, tom, tipo de cobrança e pegadinhas da banca) sem copiar as questões.\n'
@@ -153,24 +239,218 @@ export function buildQuestionsPrompt(params: GenerateQuestionsParams): string {
     ? `\nMATERIAL DE ESTUDO DO CANDIDATO (trechos ao longo do material; baseie-se ESTRITAMENTE neste material — cada questão deve poder ser respondida com o que está aqui; não cobre nada que não esteja no texto):${styleNote}\n${sampleContent(params.context, QUESTIONS_MAX_CONTEXT)}\n`
     : '';
 
-  return `Você é um elaborador experiente de questões de concursos públicos brasileiros. Gere ${params.quantity} questão(ões) sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
+  return `Você é um examinador experiente de concursos públicos brasileiros. Gere ${params.quantity} questão(ões) sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
 
-${params.examBoard ? `Estilo da banca: ${params.examBoard}. Siga o padrão de elaboração dessa banca.` : ''}
+${bancaGuidance}
 Dificuldade: ${diffText}.
 ${contextBlock}
 
 REGRAS OBRIGATÓRIAS:
 1. ${typeInstructions(type)}
-2. Em questões objetivas, apenas UMA alternativa inequivocamente correta — as demais devem estar claramente erradas para quem domina o conteúdo, sem ambiguidade
-3. O enunciado deve ser claro, autocontido e direto, sem duplas negações nem "pegadinhas" de redação confusa
-4. As alternativas erradas devem ser plausíveis (erros comuns de candidatos), curtas e com estrutura gramatical semelhante à correta
-5. NÃO invente leis, artigos, números ou datas; se não tiver certeza de um dado, não o utilize
-6. A explicação deve justificar a resposta correta e, nas objetivas, por que CADA uma das outras está errada
-7. Use linguagem formal e técnica adequada para concursos
-8. Varie a posição da resposta correta entre as questões
+2. Em questões objetivas, apenas UMA alternativa inequivocamente correta — as demais devem estar claramente erradas para quem domina o conteúdo, sem ambiguidade.
+3. O enunciado deve ser claro, autocontido e direto.
+4. As alternativas erradas (distratores) devem ser plausíveis e representar erros frequentes dos candidatos.
+5. NÃO invente leis, artigos, números ou datas; baseie-se exclusivamente no ordenamento real.
+6. A explicação deve justificar a resposta correta e explicar por que as demais alternativas estão erradas.
+7. Use linguagem formal e técnica adequada para concursos públicos.
+8. Varie a posição da alternativa correta.
 
 Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adicional:
 {"questions":[${exampleItem(type, params.difficulty ?? 'MEDIUM')}]}`;
+}
+
+export function buildExamSlicerPrompt(params: ExamSlicerParams): string {
+  const randomSeed = Date.now() % 10000;
+  const quantity = params.quantity ?? 10;
+  const answerKeyBlock = params.answerKeyContent
+    ? `\nGABARITO OFICIAL FORNECIDO PELO USUÁRIO (Use obrigatoriamente para validar o gabarito e justificar):\n${params.answerKeyContent.slice(0, 15000)}\n`
+    : '';
+
+  return `Você é um especialista em análise e fatiamento de Provas de Concursos Públicos Brasileiros.
+Sua missão é extrair fielmente ${quantity} questões reais do texto da prova fornecida, estruturando-as para resolução interativa.
+Semente de variação: ${randomSeed}. Não extraia apenas o início; percorra diferentes blocos da prova.
+
+TEXTO DA PROVA:
+${sampleContent(params.examContent, 25000)}
+${answerKeyBlock}
+
+REGRAS DE EXTRAÇÃO:
+1. Extraia até ${quantity} questões objetivas completas presentes no documento.
+2. Identifique se a questão possui texto-base de suporte/interpretação e preencha "referenceText" (se não houver texto-base próprio, use null).
+3. "statement" deve conter o enunciado limpo da questão.
+4. "alternatives" deve conter a lista com letter (A, B, C, D, E ou C, E) e o text correspondente.
+5. "correctAnswer" deve ser a letra da resposta correta (A-E ou C/E).
+6. "explanation" deve ser didática, citando a regra jurídica ou fundamento técnico da resposta.
+
+Responda APENAS com JSON válido no formato abaixo, sem markdown:
+{
+  "questions": [
+    {
+      "statement": "Enunciado da questão",
+      "referenceText": "Texto de apoio se houver, ou null",
+      "alternatives": [
+        { "letter": "A", "text": "Texto da alternativa A" },
+        { "letter": "B", "text": "Texto da alternativa B" }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Explicação completa e fundamentada"
+    }
+  ]
+}`;
+}
+
+export function buildAdvancedFlashcardsPrompt(params: AdvancedGenerateFlashcardsParams): {
+  prompt: string;
+  temperature: number;
+} {
+  const mode = params.mode ?? 'standard';
+  const difficulty = params.difficulty ?? 'MEDIUM';
+  const count = params.count;
+  const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : '';
+
+  const difficultyConfig = {
+    EASY: {
+      temperature: 0.3,
+      instructions: 'Foque em conceitos diretos, definições e identificação literal de regras.',
+    },
+    MEDIUM: {
+      temperature: 0.5,
+      instructions: 'Foque em aplicação de conceitos em cenários práticos, comparações e relações de causa/efeito.',
+    },
+    HARD: {
+      temperature: 0.65,
+      instructions: 'Foque em exceções à regra geral, pegadinhas doutrinárias, prazos específicos e distinções sutis.',
+    },
+  }[difficulty];
+
+  const memoryBlock =
+    params.previousQuestions && params.previousQuestions.length > 0
+      ? `\n🚨 DIRETRIZ DE EXCLUSÃO (ANTI-REPETIÇÃO):
+É ESTRITAMENTE PROIBIDO gerar perguntas sobre os mesmos tópicos ou abordagens destas questões já geradas:
+${params.previousQuestions.slice(-30).map((q) => `- ${q}`).join('\n')}
+Ignore essas partes e extraia outros detalhes essenciais do material.\n`
+      : '';
+
+  const focusBlock = params.customFocus?.trim()
+    ? `\n🎯 FOCO DO ALUNO: "${params.customFocus.trim()}". Priorize flashcards baseados estritamente nesse recorte.\n`
+    : '';
+
+  let modeSpecificPrompt = '';
+  let finalTemperature = difficultyConfig.temperature;
+
+  if (mode === 'cloze') {
+    finalTemperature = 0.35;
+    modeSpecificPrompt = `
+METODOLOGIA CLOZE (COMPLETAR A LACUNA):
+Transforme os conceitos em afirmações com lacuna ("________").
+A lacuna DEVE recair sobre a informação central:
+1. Prazos e quantitativos numéricos;
+2. Termos técnicos nucleares;
+3. Efeitos jurídicos e consequências;
+4. Exceções à regra.
+NUNCA oculte artigos ("o", "a"), preposições ("de", "em") ou verbos genéricos.
+DICA VISUAL: Para palavras compostas, use blocos de underlines proporcionais separados por espaço (Ex: "______ __ ________"). Na resposta ("back"), forneça apenas o termo ocultado sem underlines.`;
+  } else {
+    modeSpecificPrompt = `
+METODOLOGIA PADRÃO:
+A "front" deve ser uma pergunta atômica, clara e desafiadora. A "back" deve conter a resposta precisa acompanhada de justificativa concisa.`;
+  }
+
+  const prompt = `Você é um professor especialista em técnicas de estudo e memorização para concursos públicos.
+A partir do CONTEÚDO DE ESTUDO abaixo${subjectBlock}, crie EXATAMENTE ${count} flashcards de alta retenção.
+
+NÍVEL DE DIFICULDADE: ${difficulty}
+${difficultyConfig.instructions}
+${focusBlock}
+${memoryBlock}
+${modeSpecificPrompt}
+
+CONTEÚDO DE ESTUDO:
+${sampleContent(params.content, 18000)}
+
+Responda APENAS com JSON válido no formato abaixo, sem markdown ou texto adicional:
+{
+  "flashcards": [
+    {
+      "front": "${mode === 'cloze' ? 'Afirmação com lacuna: O prazo para recurso é de ________ dias.' : 'Pergunta direta e objetiva?'}",
+      "back": "${mode === 'cloze' ? '15' : 'Resposta concisa e completa.'}"
+    }
+  ]
+}`;
+
+  return { prompt, temperature: finalTemperature };
+}
+
+export function buildErrorRemediationPrompt(params: GenerateErrorRemediationParams): string {
+  const userAnswerBlock = params.userAnswer ? `\nRESPOSTA QUE O ALUNO MARCOU INCORRETAMENTE: "${params.userAnswer}"` : '';
+
+  return `Você é um mentor sênior especialista em preparação de candidatos para concursos públicos brasileiros.
+O aluno errou a seguinte questão e necessita de um ciclo corretivo imediato:
+
+QUESTÃO DO ERRO:
+"${params.question}"
+${userAnswerBlock}
+
+GABARITO E EXPLICAÇÃO CORRETA:
+"${params.correctAnswer} - ${params.explanation}"
+
+SUA TAREFA:
+Crie EXATAMENTE 3 flashcards estratégicos para fixar e sanar essa falha:
+1. Tipo "direct": 1 Pergunta conceitual direta sobre a regra que levou ao erro.
+2. Tipo "cloze": 1 Frase afirmativa com lacuna ("________") cobrando exatamente o prazo, exceção ou termo técnico que o aluno confundiu. Use dica proporcional de sublinhados se for termo composto.
+3. Tipo "true_false": 1 Afirmação declarativa para o aluno julgar como Verdadeiro ou Falso, formulando a pegadinha clássica da banca sobre o tema.
+
+Para CADA flashcard, forneça um campo "explanation" com explicação didática em Markdown destacando a legislação/jurisprudência aplicável e alertando para a pegadinha mais comum.
+
+Responda APENAS com JSON válido no formato abaixo, sem markdown:
+{
+  "flashcards": [
+    {
+      "front": "Pergunta ou afirmação com lacuna",
+      "back": "Resposta correta",
+      "type": "direct",
+      "explanation": "Explicação detalhada em Markdown com **destaques** e fundamentação legal."
+    }
+  ]
+}`;
+}
+
+export function buildTopicProbabilityPrompt(params: {
+  syllabus: EditalSyllabusEntry[];
+  examBoard: string;
+}): string {
+  const syllabusText = params.syllabus
+    .map((s) => `DISCIPLINA: ${s.discipline}\nTÓPICOS:\n${s.topics.map((t) => `- ${t}`).join('\n')}`)
+    .join('\n\n');
+
+  return `Você é um examinador especialista em estatística de bancas de concursos no Brasil.
+Analise o conteúdo programático abaixo tendo como foco a banca ${params.examBoard.toUpperCase()}.
+
+PERFIL HISTÓRICO DAS BANCAS:
+${BANCA_PROFILES}
+
+CONTEÚDO PROGRAMÁTICO:
+${syllabusText.slice(0, 16000)}
+
+TAREFA:
+Para os principais tópicos de cada disciplina, atribua a probabilidade de incidência na prova objetiva:
+- "alta": temas recorrentes e prioritários com histórico maciço de cobrança pela ${params.examBoard.toUpperCase()}.
+- "media": temas complementares de cobrança regular.
+- "baixa": temas marginais ou periféricos raramente cobrados.
+
+Forneça uma justificativa objetiva para cada classificação.
+
+Responda APENAS com JSON válido no seguinte formato:
+{
+  "analysis": [
+    {
+      "discipline": "Nome da Disciplina",
+      "topic": "Nome do Tópico",
+      "probability": "alta",
+      "justification": "Histórico massivo em provas anteriores da banca."
+    }
+  ]
+}`;
 }
 
 export function buildExtractQuestionsPrompt(content: string, subject?: string): string {
