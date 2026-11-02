@@ -84,6 +84,7 @@ jobs:
           ssh -i /home/runner/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
             cd /opt/engrama/deploy
             npm install --omit=dev
+            npx prisma db push --accept-data-loss || true
             pm2 restart engrama --update-env || pm2 start server.mjs --name engrama
             pm2 save
           "

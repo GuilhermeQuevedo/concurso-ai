@@ -49,6 +49,8 @@ model User {
   gameSessions          GameSession[]
   flashcardDecks        FlashcardDeck[]
   calendarIntegration   UserCalendarIntegration?
+  editalMaps            EditalMap[]
+  studySchedules        StudySchedule[]
 }
 
 model Session {
@@ -690,3 +692,35 @@ model PasswordResetToken {
   @@index([tokenHash])
 }
 
+model EditalMap {
+  id                  String   @id @default(cuid())
+  userId              String
+  editalName          String
+  banca               String?
+  cargo               String?
+  topicsTree          Json
+  coverageStatus      Json?
+  probabilityAnalysis Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model StudySchedule {
+  id                 String   @id @default(cuid())
+  userId             String
+  examDate           String
+  dailyHours         Int
+  subjects           Json
+  schedule           Json
+  hasPerformanceData Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

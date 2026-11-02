@@ -716,3 +716,176 @@ export function mapAuditAnswers(
 export function stripJsonMarkdown(raw: string): string {
   return raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 }
+
+
+export interface ZionEditalTree {
+  banca: string;
+  cargo: string;
+  subjects: Array<{
+    name: string;
+    weight: 'alta' | 'media' | 'baixa';
+    topics: Array<{
+      name: string;
+      subtopics: string[];
+    }>;
+  }>;
+}
+
+export function buildZionEditalExtractionPrompt(editalText: string): string {
+  return `Você é um analista de editais de concursos públicos de alta precisão.
+Sua única responsabilidade é extrair a árvore hierárquica das matérias e tópicos exigidos de um extrato de edital.
+
+Âncora anti-alucinação OBRIGATÓRIA:
+Extraia apenas o que está literalmente descrito no texto fornecido. NUNCA adicione tópicos por conhecimento externo, inferência ou experiência com editais parecidos. Se um tópico estiver ambíguo, extraia-o exatamente como escrito no documento original.
+
+Você deve responder APENAS com um JSON estrito seguindo este formato:
+{
+  "banca": "string",
+  "cargo": "string",
+  "subjects": [{
+    "name": "string",
+    "weight": "alta|media|baixa",
+    "topics": [{
+      "name": "string",
+      "subtopics": ["string"]
+    }]
+  }]
+}
+Se for impossível identificar a banca ou cargo, retorne "Não identificada". O peso ("weight") deve ser inferido com base na quantidade de tópicos ou menções de importância, ou use "media".
+
+Texto extraído do edital:
+
+${editalText.substring(0, 30000)}`;
+}
+
+export function buildZionProbabilityPrompt(topicsTree: ZionEditalTree, banca: string): string {
+  return `Você é um estatístico e estrategista de concursos altamente especializado em analisar o histórico das bancas examinadoras.
+Sua missão é classificar a probabilidade de cada tópico de uma árvore do edital cair na prova real, baseado APENAS no perfil histórico da banca informada: ${banca}.
+
+Perfis históricos conhecidos embutidos:
+${BANCA_PROFILES}
+
+Âncora anti-alucinação OBRIGATÓRIA:
+Baseie suas análises apenas no perfil histórico conhecido da banca. NUNCA invente dados ou porcentagens estapafúrdias. Se a banca for desconhecida ou não houver informação suficiente, RETORNE 'probability': 'media' e justifique afirmando: 'Banca sem histórico suficiente para análise precisa'.
+
+Retorne um JSON OBRIGATÓRIO no seguinte formato:
+{
+  "analysis": [
+    {
+      "subjectName": "string (exata ao enviado)",
+      "topicName": "string (exata ao enviado)",
+      "probability": "alta|media|baixa",
+      "justification": "Razão breve baseada no histórico."
+    }
+  ]
+}
+
+Banca Informada: ${banca}
+Árvore de Tópicos do Edital Extraída:
+${JSON.stringify(topicsTree, null, 2)}
+
+Por favor, classifique as probabilidades por matéria/tópico e retorne o JSON estruturado.`;
+}
+
+export interface ZionSchedulePromptInput {
+  subjects: string[];
+  examDate: string;
+  dailyHours: number;
+  performanceData?: Record<string, number> | null;
+  probabilityData?: Record<string, string> | null;
+  editalFileText?: string | null;
+  banca?: string | null;
+  userObservations?: string | null;
+}
+
+export function buildZionSchedulePrompt(input: ZionSchedulePromptInput): string {
+  const hasPerformance = input.performanceData && Object.keys(input.performanceData).length > 0;
+  const hasProbability = input.probabilityData && Object.keys(input.probabilityData).length > 0;
+  const hasEditalFile = Boolean(input.editalFileText);
+
+  return `Você é um planejador de estudos especializado em concursos.
+Sua missão é criar uma SEMANA MODELO (Ciclo de Estudos Base) de alto rendimento.
+Esta única semana servirá como template e será repetida pelo sistema até o dia da prova.
+
+### 1. INTERLEAVING (REGRA ABSOLUTA):
+Todo dia de estudo deve conter no mínimo 2 matérias diferentes. Um cronograma com uma única matéria por dia é pedagogicamente inferior e inaceitável.
+- Carga 2h - 4h: 2 matérias.
+- Carga 4h - 6h: 2 a 3 matérias.
+Distribua as matérias em "blocos" de 1h a 2h no máximo.
+
+### 2. ALTERNÂNCIA INTELIGENTE:
+Classifique cada matéria como: Analítica, Memorização ou Mista. NUNCA coloque dois blocos da mesma categoria em sequência se houver opções. Intercale.
+
+### 3. REVISÕES E QUESTÕES:
+- Reserve cerca de 30% da carga para resolução de questões (crie blocos "questoes").
+- Crie blocos específicos do tipo "revisao" (30 a 45 min) dentro do dia para a manutenção da memória (Ebbinghaus simplificado no ciclo).
+
+### 4. SAÚDE, REALISMO E POMODORO:
+- Respeite rigorosamente a carga diária de ${input.dailyHours} horas somando os blocos.
+- Domingo: Máximo 1 bloco leve de revisão ou descanso total.
+
+### 5. PERFIL DA BANCA E PARETO:
+${input.banca ? `- Banca Atual: **${input.banca.toUpperCase()}**.\n` : ''}
+${BANCA_PROFILES}
+- Se houver dados de probabilidade alta, priorize blocos dessas matérias.
+
+### FORMATO JSON OBRIGATÓRIO DE SAÍDA:
+Verifique rigorosamente a estrutura. Retorne APENAS o JSON válido sem markdown extra.
+{
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "phase": "base",
+      "days": [
+        {
+          "dayOfWeek": "Segunda-feira",
+          "type": "estudo|revisao|simulado|descanso|questoes",
+          "totalHours": number,
+          "blocks": [
+            {
+              "subject": "matéria (ou nulo)",
+              "type": "estudo|revisao|questoes",
+              "hours": number,
+              "priority": "alta|normal|baixa",
+              "revision": "R1|R2|R3|R4|null"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+Gere APENAS 1 SEMANA. Esta semana será o Ciclo Base do aluno.
+
+DADOS DO USUÁRIO PARA CRONOGRAMA:
+
+- Data da Prova: ${input.examDate}
+- Carga Diária: ${input.dailyHours} horas (Gere os múltiplos blocos respeitando essa soma diária)
+${input.banca ? `- Banca Informada: ${input.banca}` : '- Banca: Não Informada'}
+
+${
+  hasEditalFile
+    ? `[TEXTO EXTRAÍDO DO EDITAL]\n${input.editalFileText?.substring(0, 5000)}...`
+    : `[LISTA DE MATÉRIAS GERAIS]\n${input.subjects.join(', ')}`
+}
+
+${
+  hasPerformance
+    ? `[DESEMPENHO HISTÓRICO]\n${JSON.stringify(input.performanceData, null, 2)}`
+    : `(Sem histórico de desempenho).`
+}
+
+${
+  hasProbability
+    ? `[ANÁLISE DE PROBABILIDADE (PARETO)]\n${JSON.stringify(input.probabilityData, null, 2)}`
+    : `(Nenhuma análise de probabilidade disponível.)`
+}
+
+${
+  input.userObservations
+    ? `[OBSERVAÇÕES DO USUÁRIO]\n"${input.userObservations}"`
+    : ''
+}
+
+INSTRUÇÃO FINAL: Retorne APENAS o JSON válido para 1 SEMANA (Ciclo Base).`;
+}

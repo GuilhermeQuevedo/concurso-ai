@@ -14,6 +14,10 @@ import type {
   GenerateSummaryParams,
   AnswerQuestionsParams,
   ExtractQuestionsParams,
+  ZionEditalTree,
+  ZionProbabilityItem,
+  ZionScheduleWeek,
+  ZionSchedulePromptParams,
   QuestionType,
   ErrorRemediationFlashcard,
 } from '../interfaces/ai.interfaces.js';
@@ -252,4 +256,133 @@ Resumo condensado com foco em retenção a partir do material enviado.
   async answerQuestions(params: AnswerQuestionsParams): Promise<string[]> {
     return params.questions.map(() => 'C');
   }
+  async mapEditalZion(_editalText: string): Promise<ZionEditalTree> {
+    return {
+      banca: 'CEBRASPE',
+      cargo: 'Técnico Judiciário',
+      subjects: [
+        {
+          name: 'Língua Portuguesa',
+          weight: 'alta',
+          topics: [
+            { name: 'Compreensão e interpretação de textos', subtopics: ['Tipologia textual', 'Coesão e coerência'] },
+            { name: 'Ortografia e Acentuação gráfica', subtopics: ['Novo acordo ortográfico'] },
+            { name: 'Sintaxe da oração e do período', subtopics: ['Concordância nominal e verbal', 'Regência e Crase'] }
+          ]
+        },
+        {
+          name: 'Direito Constitucional',
+          weight: 'alta',
+          topics: [
+            { name: 'Direitos e Garantias Fundamentais', subtopics: ['Direitos individuais e coletivos (Art. 5º)', 'Remédios constitucionais'] },
+            { name: 'Organização do Estado', subtopics: ['Competências da União, Estados e Municípios'] },
+            { name: 'Poder Judiciário', subtopics: ['Disposições gerais', 'STF e STJ'] }
+          ]
+        },
+        {
+          name: 'Direito Administrativo',
+          weight: 'alta',
+          topics: [
+            { name: 'Princípios da Administração Pública', subtopics: ['LIMPE e princípios implícitos'] },
+            { name: 'Atos Administrativos', subtopics: ['Requisitos', 'Atributos', 'Extinção'] },
+            { name: 'Licitações e Contratos (Lei 14.133/21)', subtopics: ['Modalidades licitatórias', 'Contratação direta'] }
+          ]
+        },
+        {
+          name: 'Raciocínio Lógico',
+          weight: 'media',
+          topics: [
+            { name: 'Estruturas Lógicas e Proposições', subtopics: ['Tabelas-verdade', 'Equivalências lógicas'] },
+            { name: 'Lógica de Argumentação', subtopics: ['Diagramas lógicos', 'Falácias'] }
+          ]
+        }
+      ]
+    };
+  }
+
+  async analyzeProbabilitiesZion(topicsTree: ZionEditalTree, banca: string): Promise<ZionProbabilityItem[]> {
+    const analysis: ZionProbabilityItem[] = [];
+    topicsTree.subjects.forEach(subject => {
+      subject.topics.forEach((topic, idx) => {
+        analysis.push({
+          subjectName: subject.name,
+          topicName: topic.name,
+          probability: idx === 0 ? 'alta' : (idx === 1 ? 'media' : 'baixa'),
+          justification: `Historicamente cobrado com alta incidência pela banca ${banca}.`
+        });
+      });
+    });
+    return analysis;
+  }
+
+  async generateScheduleZion(input: ZionSchedulePromptParams): Promise<{ weeks: ZionScheduleWeek[] }> {
+    const subjects = input.subjects.length > 0 ? input.subjects : ['Língua Portuguesa', 'Direito Constitucional', 'Direito Administrativo', 'Raciocínio Lógico'];
+    const daysOfWeek = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    
+    const days: ZionScheduleDay[] = daysOfWeek.map((dayName, idx) => {
+      if (idx === 6) {
+        return {
+          date: '',
+          dayOfWeek: dayName,
+          type: 'descanso',
+          totalHours: 1,
+          blocks: [
+            {
+              order: 1,
+              subject: 'Revisão Leve',
+              type: 'revisao',
+              hours: 1,
+              priority: 'baixa',
+              revision: 'R1',
+              notes: 'Pomodoro: 2 ciclos de 25m'
+            }
+          ],
+          completed: false
+        };
+      }
+      
+      const sub1 = subjects[idx % subjects.length];
+      const sub2 = subjects[(idx + 1) % subjects.length];
+      const halfHours = Number((input.dailyHours / 2).toFixed(1));
+
+      return {
+        date: '',
+        dayOfWeek: dayName,
+        type: 'estudo',
+        totalHours: input.dailyHours,
+        blocks: [
+          {
+            order: 1,
+            subject: sub1,
+            type: 'estudo',
+            hours: halfHours,
+            priority: 'alta',
+            revision: null,
+            notes: `Pomodoro: ${Math.ceil(halfHours * 2)} ciclos de 25m`
+          },
+          {
+            order: 2,
+            subject: sub2,
+            type: idx % 2 === 0 ? 'questoes' : 'estudo',
+            hours: Number((input.dailyHours - halfHours).toFixed(1)),
+            priority: 'normal',
+            revision: null,
+            notes: `Pomodoro: ${Math.ceil((input.dailyHours - halfHours) * 2)} ciclos de 25m`
+          }
+        ],
+        completed: false
+      };
+    });
+
+    return {
+      weeks: [
+        {
+          weekNumber: 1,
+          phase: 'base',
+          days
+        }
+      ]
+    };
+  }
+
 }

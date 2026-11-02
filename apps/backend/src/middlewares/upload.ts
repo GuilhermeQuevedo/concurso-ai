@@ -36,3 +36,17 @@ export const upload = multer({
 export function mimeToDocType(mime: string): string {
   return ALLOWED_MIMES[mime] ?? 'TXT';
 }
+
+const MAX_EDITAL_SIZE = 50 * 1024 * 1024; // 50MB
+
+export const editalUpload = multer({
+  storage,
+  limits: { fileSize: MAX_EDITAL_SIZE },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_MIMES[file.mimetype]) {
+      cb(new AppError(400, 'INVALID_FILE_TYPE', 'Tipo de arquivo não suportado. Use PDF, TXT ou MD.'));
+      return;
+    }
+    cb(null, true);
+  },
+});

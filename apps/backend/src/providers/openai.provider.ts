@@ -23,6 +23,10 @@ import type {
   GenerateSummaryParams,
   AnswerQuestionsParams,
   ExtractQuestionsParams,
+  ZionEditalTree,
+  ZionProbabilityItem,
+  ZionScheduleWeek,
+  ZionSchedulePromptParams,
 } from '../interfaces/ai.interfaces.js';
 import { AppError } from '../middlewares/error-handler.js';
 import {
@@ -50,6 +54,9 @@ import {
   editalResponseSchema,
   flashcardsResponseSchema,
   truncateEdital,
+  buildZionEditalExtractionPrompt,
+  buildZionProbabilityPrompt,
+  buildZionSchedulePrompt,
   stripJsonMarkdown,
 } from './ai-prompts.js';
 import { CircuitBreaker } from './resilience/circuit-breaker.js';
@@ -295,4 +302,26 @@ export class OpenAIProvider implements IAIProvider {
       throw new AppError(502, 'AI_API_ERROR', `Falha na API da OpenAI: ${message}`);
     }
   }
+  async mapEditalZion(editalText: string): Promise<ZionEditalTree> {
+    const prompt = buildZionEditalExtractionPrompt(editalText);
+    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.2 }));
+    const parsed = this.parseJson(raw, 'extração de edital');
+    return parsed as ZionEditalTree;
+  }
+
+  async analyzeProbabilitiesZion(topicsTree: ZionEditalTree, banca: string): Promise<ZionProbabilityItem[]> {
+    const prompt = buildZionProbabilityPrompt(topicsTree, banca);
+    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.4 }));
+    const parsed = this.parseJson(raw, 'análise de probabilidades');
+    const obj = parsed as { analysis?: ZionProbabilityItem[] };
+    return obj?.analysis ?? [];
+  }
+
+  async generateScheduleZion(input: ZionSchedulePromptParams): Promise<{ weeks: ZionScheduleWeek[] }> {
+    const prompt = buildZionSchedulePrompt(input);
+    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.3 }));
+    const parsed = this.parseJson(raw, 'geração de cronograma');
+    return parsed as { weeks: ZionScheduleWeek[] };
+  }
+
 }

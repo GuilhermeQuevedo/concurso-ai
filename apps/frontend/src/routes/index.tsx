@@ -8,12 +8,12 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { SubjectsPage } from '@/pages/SubjectsPage';
 import { ExamBoardsPage } from '@/pages/ExamBoardsPage';
 import { GeneratePage } from '@/pages/GeneratePage';
-import { BoardPage } from '@/pages/BoardPage';
+import { EditalPage } from '@/pages/EditalPage';
+import { CronogramaPage } from '@/pages/CronogramaPage';
 import StudyPage from '@/pages/StudyPage';
 import { DocumentsPage } from '@/pages/DocumentsPage';
 import { FlashcardsPage } from '@/pages/FlashcardsPage';
 import { AchievementsPage } from '@/pages/AchievementsPage';
-import { StudyPlanPage } from '@/pages/StudyPlanPage';
 import { StatsPage } from '@/pages/StatsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
@@ -66,8 +66,10 @@ export function AppRoutes() {
       <Route path="/documents" element={<ProtectedLayout><DocumentsPage /></ProtectedLayout>} />
       <Route path="/flashcards" element={<ProtectedLayout><FlashcardsPage /></ProtectedLayout>} />
       <Route path="/achievements" element={<ProtectedLayout><AchievementsPage /></ProtectedLayout>} />
-      <Route path="/study-plan" element={<ProtectedLayout><StudyPlanPage /></ProtectedLayout>} />
-      <Route path="/board" element={<ProtectedLayout><BoardPage /></ProtectedLayout>} />
+      <Route path="/cronograma" element={<ProtectedLayout><CronogramaPage /></ProtectedLayout>} />
+      <Route path="/study-plan" element={<ProtectedLayout><CronogramaPage /></ProtectedLayout>} />
+      <Route path="/mapa" element={<ProtectedLayout><EditalPage /></ProtectedLayout>} />
+      <Route path="/board" element={<ProtectedLayout><EditalPage /></ProtectedLayout>} />
       <Route path="/contests" element={<ProtectedLayout><ContestsPage /></ProtectedLayout>} />
       <Route path="/calendar" element={<ProtectedLayout><CalendarPage /></ProtectedLayout>} />
       <Route path="/essays" element={<ProtectedLayout><EssayPage /></ProtectedLayout>} />

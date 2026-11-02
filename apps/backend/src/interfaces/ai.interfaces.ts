@@ -194,4 +194,69 @@ export interface IAIProvider {
   analyzeTopicProbabilities?(params: { syllabus: EditalSyllabusEntry[]; examBoard: string }): Promise<TopicProbabilityAnalysis[]>;
   generateSummary(params: GenerateSummaryParams): Promise<string>;
   answerQuestions(params: AnswerQuestionsParams): Promise<string[]>;
+  mapEditalZion?(editalText: string): Promise<ZionEditalTree>;
+  analyzeProbabilitiesZion?(topicsTree: ZionEditalTree, banca: string): Promise<ZionProbabilityItem[]>;
+  generateScheduleZion?(input: ZionSchedulePromptParams): Promise<{ weeks: ZionScheduleWeek[] }>;
+}
+
+
+export interface ZionEditalSubject {
+  name: string;
+  weight: 'alta' | 'media' | 'baixa';
+  topics: Array<{
+    name: string;
+    subtopics: string[];
+  }>;
+}
+
+export interface ZionEditalTree {
+  banca: string;
+  cargo: string;
+  subjects: ZionEditalSubject[];
+}
+
+export interface ZionProbabilityItem {
+  subjectName: string;
+  topicName: string;
+  probability: 'alta' | 'media' | 'baixa';
+  justification: string;
+}
+
+export interface ZionScheduleDayBlock {
+  order?: number;
+  subject: string;
+  type: 'estudo' | 'revisao' | 'questoes' | 'descanso';
+  hours: number;
+  priority: 'alta' | 'normal' | 'baixa';
+  revision?: string | null;
+  revisionNumber?: string | null;
+  cardTarget?: number;
+  notes?: string | null;
+}
+
+export interface ZionScheduleDay {
+  date: string;
+  dayOfWeek: string;
+  type: 'estudo' | 'revisao' | 'simulado' | 'descanso' | 'questoes';
+  totalHours: number;
+  blocks: ZionScheduleDayBlock[];
+  completed?: boolean;
+}
+
+export interface ZionScheduleWeek {
+  weekNumber: number;
+  phase: 'base' | 'intensification' | 'revision';
+  theme?: string;
+  days: ZionScheduleDay[];
+}
+
+export interface ZionSchedulePromptParams {
+  subjects: string[];
+  examDate: string;
+  dailyHours: number;
+  performanceData?: Record<string, number> | null;
+  probabilityData?: Record<string, string> | null;
+  editalFileText?: string | null;
+  banca?: string | null;
+  userObservations?: string | null;
 }

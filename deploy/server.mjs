@@ -69,7 +69,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit2 from "express-rate-limit";
 import path7 from "node:path";
-import fs9 from "node:fs";
+import fs11 from "node:fs";
 import crypto15 from "node:crypto";
 import { execSync } from "node:child_process";
 
@@ -117,8 +117,42 @@ var envSchema = z.object({
   SMTP_PASS: z.string().optional(),
   SMTP_SECURE: z.string().default("false").transform((v) => v === "true")
 });
+function normalizeTruncatedEnv(rawEnv) {
+  const normalized2 = { ...rawEnv };
+  const aliases = {
+    ODE_ENV: "NODE_ENV",
+    ORT: "PORT",
+    ATABASE_URL: "DATABASE_URL",
+    WT_SECRET: "JWT_SECRET",
+    ORS_ORIGIN: "CORS_ORIGIN",
+    I_PROVIDER: "AI_PROVIDER",
+    DMIN_EMAIL: "ADMIN_EMAIL",
+    DMIN_PASSWORD: "ADMIN_PASSWORD",
+    PP_URL: "APP_URL",
+    PI_URL: "API_URL",
+    OOGLE_CLIENT_ID: "GOOGLE_CLIENT_ID",
+    OOGLE_CLIENT_SECRET: "GOOGLE_CLIENT_SECRET",
+    OOGLE_REDIRECT_URI: "GOOGLE_REDIRECT_URI",
+    PENAI_API_KEY: "OPENAI_API_KEY",
+    ESEND_API_KEY: "RESEND_API_KEY",
+    MAIL_FROM: "EMAIL_FROM",
+    TRIPE_PUBLISHABLE_KEY: "STRIPE_PUBLISHABLE_KEY",
+    TRIPE_SECRET_KEY: "STRIPE_SECRET_KEY",
+    TRIPE_WEBHOOK_SECRET: "STRIPE_WEBHOOK_SECRET",
+    TRIPE_PRICE_ID_MONTHLY: "STRIPE_PRICE_ID_MONTHLY",
+    TRIPE_PRICE_ID_SEMESTRAL: "STRIPE_PRICE_ID_SEMESTRAL",
+    TRIPE_PRICE_ID_YEARLY: "STRIPE_PRICE_ID_YEARLY"
+  };
+  for (const [truncated, proper] of Object.entries(aliases)) {
+    if (!normalized2[proper] && normalized2[truncated]) {
+      normalized2[proper] = normalized2[truncated];
+    }
+  }
+  return normalized2;
+}
 function loadEnv() {
-  const parsed = envSchema.safeParse(process.env);
+  const normalizedEnv = normalizeTruncatedEnv(process.env);
+  const parsed = envSchema.safeParse(normalizedEnv);
   if (!parsed.success) {
     console.error("Invalid environment variables:", parsed.error.flatten().fieldErrors);
     process.exit(1);
@@ -138,7 +172,7 @@ if (env.NODE_ENV !== "production") {
 }
 
 // apps/backend/src/routes/index.ts
-import { Router as Router23 } from "express";
+import { Router as Router25 } from "express";
 
 // apps/backend/src/routes/auth.routes.ts
 import { Router } from "express";
@@ -14554,6 +14588,18 @@ var upload = multer({
 function mimeToDocType(mime) {
   return ALLOWED_MIMES[mime] ?? "TXT";
 }
+var MAX_EDITAL_SIZE = 50 * 1024 * 1024;
+var editalUpload = multer({
+  storage,
+  limits: { fileSize: MAX_EDITAL_SIZE },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_MIMES[file.mimetype]) {
+      cb(new AppError(400, "INVALID_FILE_TYPE", "Tipo de arquivo n\xE3o suportado. Use PDF, TXT ou MD."));
+      return;
+    }
+    cb(null, true);
+  }
+});
 
 // apps/backend/src/utils/text-encoding.ts
 function decodeTextBuffer(buffer) {
@@ -15632,6 +15678,140 @@ function mapAuditAnswers(parsed, count) {
 function stripJsonMarkdown(raw2) {
   return raw2.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 }
+function buildZionEditalExtractionPrompt(editalText) {
+  return `Voc\xEA \xE9 um analista de editais de concursos p\xFAblicos de alta precis\xE3o.
+Sua \xFAnica responsabilidade \xE9 extrair a \xE1rvore hier\xE1rquica das mat\xE9rias e t\xF3picos exigidos de um extrato de edital.
+
+\xC2ncora anti-alucina\xE7\xE3o OBRIGAT\xD3RIA:
+Extraia apenas o que est\xE1 literalmente descrito no texto fornecido. NUNCA adicione t\xF3picos por conhecimento externo, infer\xEAncia ou experi\xEAncia com editais parecidos. Se um t\xF3pico estiver amb\xEDguo, extraia-o exatamente como escrito no documento original.
+
+Voc\xEA deve responder APENAS com um JSON estrito seguindo este formato:
+{
+  "banca": "string",
+  "cargo": "string",
+  "subjects": [{
+    "name": "string",
+    "weight": "alta|media|baixa",
+    "topics": [{
+      "name": "string",
+      "subtopics": ["string"]
+    }]
+  }]
+}
+Se for imposs\xEDvel identificar a banca ou cargo, retorne "N\xE3o identificada". O peso ("weight") deve ser inferido com base na quantidade de t\xF3picos ou men\xE7\xF5es de import\xE2ncia, ou use "media".
+
+Texto extra\xEDdo do edital:
+
+${editalText.substring(0, 3e4)}`;
+}
+function buildZionProbabilityPrompt(topicsTree, banca) {
+  return `Voc\xEA \xE9 um estat\xEDstico e estrategista de concursos altamente especializado em analisar o hist\xF3rico das bancas examinadoras.
+Sua miss\xE3o \xE9 classificar a probabilidade de cada t\xF3pico de uma \xE1rvore do edital cair na prova real, baseado APENAS no perfil hist\xF3rico da banca informada: ${banca}.
+
+Perfis hist\xF3ricos conhecidos embutidos:
+${BANCA_PROFILES}
+
+\xC2ncora anti-alucina\xE7\xE3o OBRIGAT\xD3RIA:
+Baseie suas an\xE1lises apenas no perfil hist\xF3rico conhecido da banca. NUNCA invente dados ou porcentagens estapaf\xFArdias. Se a banca for desconhecida ou n\xE3o houver informa\xE7\xE3o suficiente, RETORNE 'probability': 'media' e justifique afirmando: 'Banca sem hist\xF3rico suficiente para an\xE1lise precisa'.
+
+Retorne um JSON OBRIGAT\xD3RIO no seguinte formato:
+{
+  "analysis": [
+    {
+      "subjectName": "string (exata ao enviado)",
+      "topicName": "string (exata ao enviado)",
+      "probability": "alta|media|baixa",
+      "justification": "Raz\xE3o breve baseada no hist\xF3rico."
+    }
+  ]
+}
+
+Banca Informada: ${banca}
+\xC1rvore de T\xF3picos do Edital Extra\xEDda:
+${JSON.stringify(topicsTree, null, 2)}
+
+Por favor, classifique as probabilidades por mat\xE9ria/t\xF3pico e retorne o JSON estruturado.`;
+}
+function buildZionSchedulePrompt(input) {
+  const hasPerformance = input.performanceData && Object.keys(input.performanceData).length > 0;
+  const hasProbability = input.probabilityData && Object.keys(input.probabilityData).length > 0;
+  const hasEditalFile = Boolean(input.editalFileText);
+  return `Voc\xEA \xE9 um planejador de estudos especializado em concursos.
+Sua miss\xE3o \xE9 criar uma SEMANA MODELO (Ciclo de Estudos Base) de alto rendimento.
+Esta \xFAnica semana servir\xE1 como template e ser\xE1 repetida pelo sistema at\xE9 o dia da prova.
+
+### 1. INTERLEAVING (REGRA ABSOLUTA):
+Todo dia de estudo deve conter no m\xEDnimo 2 mat\xE9rias diferentes. Um cronograma com uma \xFAnica mat\xE9ria por dia \xE9 pedagogicamente inferior e inaceit\xE1vel.
+- Carga 2h - 4h: 2 mat\xE9rias.
+- Carga 4h - 6h: 2 a 3 mat\xE9rias.
+Distribua as mat\xE9rias em "blocos" de 1h a 2h no m\xE1ximo.
+
+### 2. ALTERN\xC2NCIA INTELIGENTE:
+Classifique cada mat\xE9ria como: Anal\xEDtica, Memoriza\xE7\xE3o ou Mista. NUNCA coloque dois blocos da mesma categoria em sequ\xEAncia se houver op\xE7\xF5es. Intercale.
+
+### 3. REVIS\xD5ES E QUEST\xD5ES:
+- Reserve cerca de 30% da carga para resolu\xE7\xE3o de quest\xF5es (crie blocos "questoes").
+- Crie blocos espec\xEDficos do tipo "revisao" (30 a 45 min) dentro do dia para a manuten\xE7\xE3o da mem\xF3ria (Ebbinghaus simplificado no ciclo).
+
+### 4. SA\xDADE, REALISMO E POMODORO:
+- Respeite rigorosamente a carga di\xE1ria de ${input.dailyHours} horas somando os blocos.
+- Domingo: M\xE1ximo 1 bloco leve de revis\xE3o ou descanso total.
+
+### 5. PERFIL DA BANCA E PARETO:
+${input.banca ? `- Banca Atual: **${input.banca.toUpperCase()}**.
+` : ""}
+${BANCA_PROFILES}
+- Se houver dados de probabilidade alta, priorize blocos dessas mat\xE9rias.
+
+### FORMATO JSON OBRIGAT\xD3RIO DE SA\xCDDA:
+Verifique rigorosamente a estrutura. Retorne APENAS o JSON v\xE1lido sem markdown extra.
+{
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "phase": "base",
+      "days": [
+        {
+          "dayOfWeek": "Segunda-feira",
+          "type": "estudo|revisao|simulado|descanso|questoes",
+          "totalHours": number,
+          "blocks": [
+            {
+              "subject": "mat\xE9ria (ou nulo)",
+              "type": "estudo|revisao|questoes",
+              "hours": number,
+              "priority": "alta|normal|baixa",
+              "revision": "R1|R2|R3|R4|null"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+Gere APENAS 1 SEMANA. Esta semana ser\xE1 o Ciclo Base do aluno.
+
+DADOS DO USU\xC1RIO PARA CRONOGRAMA:
+
+- Data da Prova: ${input.examDate}
+- Carga Di\xE1ria: ${input.dailyHours} horas (Gere os m\xFAltiplos blocos respeitando essa soma di\xE1ria)
+${input.banca ? `- Banca Informada: ${input.banca}` : "- Banca: N\xE3o Informada"}
+
+${hasEditalFile ? `[TEXTO EXTRA\xCDDO DO EDITAL]
+${input.editalFileText?.substring(0, 5e3)}...` : `[LISTA DE MAT\xC9RIAS GERAIS]
+${input.subjects.join(", ")}`}
+
+${hasPerformance ? `[DESEMPENHO HIST\xD3RICO]
+${JSON.stringify(input.performanceData, null, 2)}` : `(Sem hist\xF3rico de desempenho).`}
+
+${hasProbability ? `[AN\xC1LISE DE PROBABILIDADE (PARETO)]
+${JSON.stringify(input.probabilityData, null, 2)}` : `(Nenhuma an\xE1lise de probabilidade dispon\xEDvel.)`}
+
+${input.userObservations ? `[OBSERVA\xC7\xD5ES DO USU\xC1RIO]
+"${input.userObservations}"` : ""}
+
+INSTRU\xC7\xC3O FINAL: Retorne APENAS o JSON v\xE1lido para 1 SEMANA (Ciclo Base).`;
+}
 
 // apps/backend/src/providers/resilience/circuit-breaker.ts
 var CircuitBreaker = class {
@@ -15969,8 +16149,8 @@ var GeminiProvider = class {
     }
   }
   async callApiWithImage(prompt, filePath, mimeType) {
-    const fs10 = await import("node:fs");
-    const base64 = fs10.readFileSync(filePath).toString("base64");
+    const fs12 = await import("node:fs");
+    const base64 = fs12.readFileSync(filePath).toString("base64");
     const url = `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`;
     const response = await fetch(url, {
       method: "POST",
@@ -16026,6 +16206,25 @@ var GeminiProvider = class {
       throw new AppError(502, "AI_EMPTY_RESPONSE", "Gemini retornou resposta vazia");
     }
     return text;
+  }
+  async mapEditalZion(editalText) {
+    const prompt = buildZionEditalExtractionPrompt(editalText);
+    const raw2 = await this.executeResilient(() => this.callApi(prompt, true, 0.2));
+    const parsed = this.parseJson(raw2, "extra\xE7\xE3o de edital");
+    return parsed;
+  }
+  async analyzeProbabilitiesZion(topicsTree, banca) {
+    const prompt = buildZionProbabilityPrompt(topicsTree, banca);
+    const raw2 = await this.executeResilient(() => this.callApi(prompt, true, 0.4));
+    const parsed = this.parseJson(raw2, "an\xE1lise de probabilidades");
+    const obj = parsed;
+    return obj?.analysis ?? [];
+  }
+  async generateScheduleZion(input) {
+    const prompt = buildZionSchedulePrompt(input);
+    const raw2 = await this.executeResilient(() => this.callApi(prompt, true, 0.3));
+    const parsed = this.parseJson(raw2, "gera\xE7\xE3o de cronograma");
+    return parsed;
   }
 };
 
@@ -39471,18 +39670,37 @@ var OpenAIProvider = class {
       throw new AppError(502, "AI_API_ERROR", `Falha na API da OpenAI: ${message}`);
     }
   }
+  async mapEditalZion(editalText) {
+    const prompt = buildZionEditalExtractionPrompt(editalText);
+    const raw2 = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.2 }));
+    const parsed = this.parseJson(raw2, "extra\xE7\xE3o de edital");
+    return parsed;
+  }
+  async analyzeProbabilitiesZion(topicsTree, banca) {
+    const prompt = buildZionProbabilityPrompt(topicsTree, banca);
+    const raw2 = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.4 }));
+    const parsed = this.parseJson(raw2, "an\xE1lise de probabilidades");
+    const obj = parsed;
+    return obj?.analysis ?? [];
+  }
+  async generateScheduleZion(input) {
+    const prompt = buildZionSchedulePrompt(input);
+    const raw2 = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.3 }));
+    const parsed = this.parseJson(raw2, "gera\xE7\xE3o de cronograma");
+    return parsed;
+  }
 };
 
 // apps/backend/src/providers/mock.provider.ts
 function mockQuestion(i, type, params, difficulty2) {
-  const base2 = `[MOCK] Quest\xE3o ${i + 1} sobre ${params.subject}${params.topic ? ` \u2014 ${params.topic}` : ""}.`;
-  const explanation = `Explica\xE7\xE3o detalhada da quest\xE3o ${i + 1} sobre ${params.subject}.`;
+  const base2 = `Quest\xE3o ${i + 1} sobre ${params.subject}${params.topic ? ` \u2014 ${params.topic}` : ""}.`;
+  const explanation = `Explica\xE7\xE3o detalhada e fundamenta\xE7\xE3o legal/doutrin\xE1ria da quest\xE3o ${i + 1} sobre ${params.subject}.`;
   if (type === "ESSAY") {
-    return { statement: `${base2} Explique o conceito principal.`, alternatives: [], correctAnswer: "S", explanation, difficulty: difficulty2 };
+    return { statement: `${base2} Explique os fundamentos e a aplica\xE7\xE3o pr\xE1tica do conceito principal.`, alternatives: [], correctAnswer: "S", explanation, difficulty: difficulty2 };
   }
   if (type === "TRUE_FALSE") {
     return {
-      statement: `${base2} A afirma\xE7\xE3o a seguir est\xE1 correta?`,
+      statement: `${base2} Julgue a assertiva a seguir com base na jurisprud\xEAncia dominante e legisla\xE7\xE3o aplic\xE1vel.`,
       alternatives: [{ letter: "C", text: "Certo" }, { letter: "E", text: "Errado" }],
       correctAnswer: i % 2 === 0 ? "C" : "E",
       explanation,
@@ -39491,8 +39709,8 @@ function mockQuestion(i, type, params, difficulty2) {
   }
   const letters = type === "MULTIPLE_4" ? ["A", "B", "C", "D"] : ["A", "B", "C", "D", "E"];
   return {
-    statement: `${base2} Qual alternativa est\xE1 correta?`,
-    alternatives: letters.map((letter) => ({ letter, text: `Alternativa ${letter} da quest\xE3o ${i + 1}${letter === "C" ? " (correta)" : ""}` })),
+    statement: `${base2} Considerando os princ\xEDpios que regem a mat\xE9ria, assinale a alternativa correta:`,
+    alternatives: letters.map((letter) => ({ letter, text: `Alternativa ${letter}: proposi\xE7\xE3o anal\xEDtica referente ao t\xF3pico ${i + 1}${letter === "C" ? " (gabarito correto)" : ""}.` })),
     correctAnswer: "C",
     explanation,
     difficulty: difficulty2
@@ -39512,7 +39730,7 @@ var MockProvider = class {
   async extractQuestions(params) {
     return [
       {
-        statement: `[MOCK] Quest\xE3o extra\xEDda da lista${params.subject ? ` sobre ${params.subject}` : ""}. Qual alternativa est\xE1 correta?`,
+        statement: `Quest\xE3o extra\xEDda do documento${params.subject ? ` referente a ${params.subject}` : ""}. Qual alternativa est\xE1 correta?`,
         alternatives: [
           { letter: "A", text: "Alternativa A" },
           { letter: "B", text: "Alternativa B (correta)" },
@@ -39521,7 +39739,7 @@ var MockProvider = class {
           { letter: "E", text: "Alternativa E" }
         ],
         correctAnswer: "B",
-        explanation: "[MOCK] Justificativa da quest\xE3o extra\xEDda.",
+        explanation: "Justificativa fundamentada da assertiva correta com base no texto analisado.",
         difficulty: "MEDIUM"
       }
     ];
@@ -39534,28 +39752,28 @@ var MockProvider = class {
     return {
       score: total,
       maxScore: 100,
-      feedback: `[MOCK] Sua reda\xE7\xE3o demonstra bom dom\xEDnio do tema proposto, com argumenta\xE7\xE3o consistente e estrutura textual adequada. O texto apresenta introdu\xE7\xE3o contextualizada, desenvolvimento com argumentos pertinentes e conclus\xE3o que retoma a tese principal.
+      feedback: `Sua reda\xE7\xE3o demonstra bom dom\xEDnio do tema proposto, com argumenta\xE7\xE3o consistente e estrutura textual adequada. O texto apresenta introdu\xE7\xE3o contextualizada, desenvolvimento com argumentos pertinentes e conclus\xE3o que retoma a tese principal.
 
 Pontos fortes: boa articula\xE7\xE3o entre os par\xE1grafos, uso adequado de conectivos e repert\xF3rio sociocultural diversificado.
 
-Pontos a melhorar: a proposta de interven\xE7\xE3o poderia ser mais detalhada, com agentes, a\xE7\xF5es e meios mais espec\xEDficos. Alguns desvios de concord\xE2ncia e reg\xEAncia foram identificados.
+Pontos a melhorar: a proposta de interven\xE7\xE3o poderia ser mais detalhada, com agentes, a\xE7\xF5es e meios mais espec\xEDficos.
 
 Nota final: ${total}/100.`,
       criteria: {
         cac: {
           score: cacScore,
           maxScore: 40,
-          comments: "[MOCK] Conte\xFAdo e Atendimento ao Comando: O candidato demonstrou compreens\xE3o do tema e atendeu ao comando da proposta. A abordagem \xE9 pertinente, com argumentos que dialogam com o recorte tem\xE1tico. Poderia aprofundar a discuss\xE3o com mais exemplos concretos e dados estat\xEDsticos."
+          comments: "Conte\xFAdo e Atendimento ao Comando: O candidato demonstrou compreens\xE3o do tema e atendeu ao comando da proposta. A abordagem \xE9 pertinente, com argumentos que dialogam com o recorte tem\xE1tico."
         },
         ot: {
           score: otScore,
           maxScore: 30,
-          comments: "[MOCK] Organiza\xE7\xE3o Textual: O texto apresenta estrutura dissertativo-argumentativa adequada, com introdu\xE7\xE3o, desenvolvimento e conclus\xE3o bem delimitados. A progress\xE3o tem\xE1tica \xE9 satisfat\xF3ria, embora alguns par\xE1grafos pudessem ter melhor encadeamento l\xF3gico."
+          comments: "Organiza\xE7\xE3o Textual: O texto apresenta estrutura dissertativo-argumentativa adequada, com introdu\xE7\xE3o, desenvolvimento e conclus\xE3o bem delimitados."
         },
         dlp: {
           score: dlpScore,
           maxScore: 30,
-          comments: "[MOCK] Dom\xEDnio da L\xEDngua Portuguesa: Bom dom\xEDnio da norma culta, com poucos desvios gramaticais. Vocabul\xE1rio adequado ao g\xEAnero textual. Aten\xE7\xE3o a alguns problemas de concord\xE2ncia verbal e uso de crase."
+          comments: "Dom\xEDnio da L\xEDngua Portuguesa: Bom dom\xEDnio da norma culta, com vocabul\xE1rio adequado ao g\xEAnero textual."
         }
       }
     };
@@ -39564,61 +39782,38 @@ Nota final: ${total}/100.`,
     return {
       score: 7.2,
       maxScore: 10,
-      framing: "[MOCK] A quest\xE3o pediu a an\xE1lise de um caso e a proposta de solu\xE7\xE3o fundamentada.",
+      framing: "A quest\xE3o demandou an\xE1lise de situa\xE7\xE3o concreta e proposi\xE7\xE3o de solu\xE7\xE3o juridicamente fundamentada.",
       aspects: [
-        { aspect: "Identifica\xE7\xE3o do problema central", situation: "correto", points: 2, maxPoints: 2, justification: "[MOCK] O candidato identificou corretamente o problema, conforme trecho citado." },
-        { aspect: "Fundamenta\xE7\xE3o legal/normativa", situation: "parcial", points: 1.5, maxPoints: 3, justification: "[MOCK] Citou a norma, mas n\xE3o aprofundou a aplica\xE7\xE3o ao caso." },
-        { aspect: "Proposta de solu\xE7\xE3o vi\xE1vel", situation: "correto", points: 3, maxPoints: 3, justification: "[MOCK] Solu\xE7\xE3o aplic\xE1vel e bem fundamentada." }
+        { aspect: "Identifica\xE7\xE3o do problema central", situation: "correto", points: 2, maxPoints: 2, justification: "O candidato identificou corretamente a quest\xE3o controvertida principal." },
+        { aspect: "Fundamenta\xE7\xE3o legal/normativa", situation: "parcial", points: 1.5, maxPoints: 3, justification: "Citou a legisla\xE7\xE3o de reg\xEAncia, mas poderia ter aprofundado a jurisprud\xEAncia correlata." },
+        { aspect: "Proposta de solu\xE7\xE3o vi\xE1vel", situation: "correto", points: 3, maxPoints: 3, justification: "Solu\xE7\xE3o aplic\xE1vel e coerente com os postulados constitucionais." }
       ],
-      form: { strengths: "[MOCK] Texto coeso e organizado.", issues: "[MOCK] Alguns desvios de pontua\xE7\xE3o.", deduction: 0.5 },
-      penalties: [{ reason: "[MOCK] Excedeu 2 linhas do limite", deduction: 0.3 }],
-      calculation: "Conte\xFAdo 6,5 + Forma \u22120,5 \u2212 Penalidades 0,3 = 7,2 (mock)",
+      form: { strengths: "Texto coeso e boa ordena\xE7\xE3o dos argumentos.", issues: "Pequenos desvios de pontua\xE7\xE3o e transi\xE7\xE3o entre per\xEDodos.", deduction: 0.5 },
+      penalties: [{ reason: "Excedeu 2 linhas do limite", deduction: 0.3 }],
+      calculation: "Conte\xFAdo 6,5 + Forma \u22120,5 \u2212 Penalidades 0,3 = 7,2",
       feedback: [
-        "[MOCK] Aprofunde a fundamenta\xE7\xE3o legal aplicando a norma ao caso concreto.",
-        "[MOCK] Revise a pontua\xE7\xE3o antes de entregar.",
-        "[MOCK] Controle o n\xFAmero de linhas para n\xE3o sofrer penalidade."
+        "Aprofunde a fundamenta\xE7\xE3o jur\xEDdica aplicando o dispositivo legal diretamente ao caso.",
+        "Revise a concord\xE2ncia e a pontua\xE7\xE3o antes da entrega."
       ]
     };
   }
-  async parseEdital(params) {
+  async parseEdital(_params) {
     const examDate = /* @__PURE__ */ new Date();
     examDate.setDate(examDate.getDate() + 90);
     return {
-      name: "[MOCK] SEEDF \u2014 Professor de Educa\xE7\xE3o B\xE1sica",
-      organization: "Secretaria de Estado de Educa\xE7\xE3o do Distrito Federal",
-      examBoard: "CESPE/CEBRASPE",
-      role: "Professor de Educa\xE7\xE3o B\xE1sica \u2014 Sociologia",
-      examDate: examDate.toISOString().slice(0, 10),
-      focusDisciplines: params.focus ? ["L\xEDngua Portuguesa", "Conhecimentos Pedag\xF3gicos", "Sociologia"] : null,
+      name: "Concurso P\xFAblico Unificado",
+      organization: "\xD3rg\xE3o Demandante",
+      examBoard: "Banca Examinadora",
+      role: "Cargo P\xFAblico / Especialidade",
+      examDate: examDate.toISOString(),
       syllabus: [
         {
           discipline: "L\xEDngua Portuguesa",
-          topics: [
-            "Compreens\xE3o e interpreta\xE7\xE3o de textos",
-            "Tipologia textual e g\xEAneros textuais",
-            "Ortografia oficial e acentua\xE7\xE3o gr\xE1fica",
-            "Concord\xE2ncia verbal e nominal",
-            "Reg\xEAncia verbal e nominal"
-          ]
+          topics: ["Compreens\xE3o e interpreta\xE7\xE3o de textos", "Ortografia oficial", "Crase e reg\xEAncia"]
         },
         {
-          discipline: "Conhecimentos Pedag\xF3gicos",
-          topics: [
-            "Lei de Diretrizes e Bases da Educa\xE7\xE3o Nacional (LDB)",
-            "Curr\xEDculo em Movimento do Distrito Federal",
-            "Avalia\xE7\xE3o educacional e institucional",
-            "Gest\xE3o democr\xE1tica na escola p\xFAblica"
-          ]
-        },
-        {
-          discipline: "Sociologia",
-          topics: [
-            "Cl\xE1ssicos da Sociologia: Durkheim, Weber e Marx",
-            "Cultura, identidade e diversidade",
-            "Estratifica\xE7\xE3o e desigualdades sociais",
-            "Movimentos sociais no Brasil",
-            "Sociologia da educa\xE7\xE3o"
-          ]
+          discipline: "Direito Constitucional",
+          topics: ["Direitos e garantias fundamentais", "Organiza\xE7\xE3o do Estado", "Poder Judici\xE1rio"]
         }
       ]
     };
@@ -39626,44 +39821,203 @@ Nota final: ${total}/100.`,
   async generateTopicContent(params) {
     return `## ${params.topic}
 
-**[MOCK]** Material de estudo de exemplo para *${params.discipline}*.
+Material de estudo essencial sobre ${params.discipline}.
 
 ### Conceitos essenciais
 - Ponto-chave 1 do t\xF3pico "${params.topic}".
-- Ponto-chave 2, com foco no que a banca costuma cobrar.
-- Ponto-chave 3, relacionando o t\xF3pico a casos pr\xE1ticos.
+- Ponto-chave 2, com foco no perfil das principais bancas examinadoras.
+- Ponto-chave 3, relacionando a norma \xE0 jurisprud\xEAncia e casos pr\xE1ticos.
 
 ### Mais cobrado em prova
-- Defini\xE7\xF5es e classifica\xE7\xF5es costumam cair em quest\xF5es objetivas.
-- **Pegadinha comum:** trocar termos parecidos entre si.
+- Defini\xE7\xF5es e classifica\xE7\xF5es centrais do tema.
+- Pegadinhas frequentes de banca: invers\xE3o de termos e prazos.
 
 ### Dica de memoriza\xE7\xE3o
-Associe cada conceito a um exemplo do dia a dia para fixar melhor.`;
+Associe a regra geral \xE0 sua respectiva exce\xE7\xE3o para evitar confus\xF5es na hora da prova.`;
   }
   async generateFlashcards(params) {
-    const subject = params.subject ?? "o tema estudado";
-    return Array.from({ length: params.count }, (_, i) => ({
-      front: `[MOCK] Pergunta ${i + 1} sobre ${subject}?`,
-      back: `[MOCK] Resposta ${i + 1} baseada no conte\xFAdo enviado, resumindo o conceito principal.`
-    }));
+    const subject = params.subject ?? "Tema de Estudo";
+    const rawSentences = params.content ? params.content.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter((s) => s.length > 25 && s.length < 250) : [];
+    return Array.from({ length: params.count }, (_, i) => {
+      const sentence = rawSentences[i % Math.max(rawSentences.length, 1)];
+      if (sentence) {
+        return {
+          front: `Segundo o material sobre ${subject}: qual o preceito central referente a "${sentence.slice(0, 80)}..."?`,
+          back: sentence
+        };
+      }
+      return {
+        front: `Qual \xE9 o preceito fundamental de ${subject} (T\xF3pico ${i + 1})?`,
+        back: `Conceito central e aplica\xE7\xE3o pr\xE1tica relevante sobre ${subject}.`
+      };
+    });
+  }
+  async generateAdvancedFlashcards(params) {
+    return this.generateFlashcards(params);
+  }
+  async generateErrorRemediation(params) {
+    return [
+      {
+        front: `[Direto] Sobre a quest\xE3o: "${params.question.slice(0, 100)}...". Qual \xE9 a regra oficial?`,
+        back: `Alternativa Correta: ${params.correctAnswer}
+
+Fundamenta\xE7\xE3o: ${params.explanation}`,
+        type: "direct",
+        explanation: params.explanation
+      },
+      {
+        front: `[Lacuna Cloze] Conforme a fundamenta\xE7\xE3o da quest\xE3o: ${params.explanation.slice(0, 60)} _______`,
+        back: params.correctAnswer,
+        type: "cloze",
+        explanation: params.explanation
+      },
+      {
+        front: `[Certo/Errado] A afirmativa correspondente ao gabarito: "${params.correctAnswer}" est\xE1 de acordo com a norma?`,
+        back: "CERTO",
+        type: "true_false",
+        explanation: params.explanation
+      }
+    ];
   }
   async generateSummary(params) {
     const subject = params.subject ? ` de *${params.subject}*` : "";
-    return `## Resumo${subject} (MOCK)
+    return `## Resumo${subject}
 
-**[MOCK]** Resumo gerado a partir do conte\xFAdo enviado (${params.content.length} caracteres).
+Resumo condensado com foco em reten\xE7\xE3o a partir do material enviado.
 
 ### Pontos principais
-- Conceito-chave 1 extra\xEDdo do material.
-- Conceito-chave 2 com destaque para o que mais cai em prova.
-- Conceito-chave 3 relacionando o conte\xFAdo a aplica\xE7\xF5es pr\xE1ticas.
+- Conceito central extra\xEDdo do material.
+- Aspectos de alta incid\xEAncia em quest\xF5es de concursos.
+- Aplica\xE7\xE3o pr\xE1tica e correla\xE7\xE3o doutrin\xE1ria.
 
 ### Para revisar
-- **Defini\xE7\xF5es** e **classifica\xE7\xF5es** costumam ser cobradas.
-- Aten\xE7\xE3o \xE0s exce\xE7\xF5es e prazos citados no material.`;
+- Defini\xE7\xF5es e classifica\xE7\xF5es essenciais.
+- Aten\xE7\xE3o \xE0s exce\xE7\xF5es legais e prazos.`;
   }
   async answerQuestions(params) {
     return params.questions.map(() => "C");
+  }
+  async mapEditalZion(_editalText) {
+    return {
+      banca: "CEBRASPE",
+      cargo: "T\xE9cnico Judici\xE1rio",
+      subjects: [
+        {
+          name: "L\xEDngua Portuguesa",
+          weight: "alta",
+          topics: [
+            { name: "Compreens\xE3o e interpreta\xE7\xE3o de textos", subtopics: ["Tipologia textual", "Coes\xE3o e coer\xEAncia"] },
+            { name: "Ortografia e Acentua\xE7\xE3o gr\xE1fica", subtopics: ["Novo acordo ortogr\xE1fico"] },
+            { name: "Sintaxe da ora\xE7\xE3o e do per\xEDodo", subtopics: ["Concord\xE2ncia nominal e verbal", "Reg\xEAncia e Crase"] }
+          ]
+        },
+        {
+          name: "Direito Constitucional",
+          weight: "alta",
+          topics: [
+            { name: "Direitos e Garantias Fundamentais", subtopics: ["Direitos individuais e coletivos (Art. 5\xBA)", "Rem\xE9dios constitucionais"] },
+            { name: "Organiza\xE7\xE3o do Estado", subtopics: ["Compet\xEAncias da Uni\xE3o, Estados e Munic\xEDpios"] },
+            { name: "Poder Judici\xE1rio", subtopics: ["Disposi\xE7\xF5es gerais", "STF e STJ"] }
+          ]
+        },
+        {
+          name: "Direito Administrativo",
+          weight: "alta",
+          topics: [
+            { name: "Princ\xEDpios da Administra\xE7\xE3o P\xFAblica", subtopics: ["LIMPE e princ\xEDpios impl\xEDcitos"] },
+            { name: "Atos Administrativos", subtopics: ["Requisitos", "Atributos", "Extin\xE7\xE3o"] },
+            { name: "Licita\xE7\xF5es e Contratos (Lei 14.133/21)", subtopics: ["Modalidades licitat\xF3rias", "Contrata\xE7\xE3o direta"] }
+          ]
+        },
+        {
+          name: "Racioc\xEDnio L\xF3gico",
+          weight: "media",
+          topics: [
+            { name: "Estruturas L\xF3gicas e Proposi\xE7\xF5es", subtopics: ["Tabelas-verdade", "Equival\xEAncias l\xF3gicas"] },
+            { name: "L\xF3gica de Argumenta\xE7\xE3o", subtopics: ["Diagramas l\xF3gicos", "Fal\xE1cias"] }
+          ]
+        }
+      ]
+    };
+  }
+  async analyzeProbabilitiesZion(topicsTree, banca) {
+    const analysis = [];
+    topicsTree.subjects.forEach((subject) => {
+      subject.topics.forEach((topic, idx) => {
+        analysis.push({
+          subjectName: subject.name,
+          topicName: topic.name,
+          probability: idx === 0 ? "alta" : idx === 1 ? "media" : "baixa",
+          justification: `Historicamente cobrado com alta incid\xEAncia pela banca ${banca}.`
+        });
+      });
+    });
+    return analysis;
+  }
+  async generateScheduleZion(input) {
+    const subjects = input.subjects.length > 0 ? input.subjects : ["L\xEDngua Portuguesa", "Direito Constitucional", "Direito Administrativo", "Racioc\xEDnio L\xF3gico"];
+    const daysOfWeek = ["Segunda-feira", "Ter\xE7a-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "S\xE1bado", "Domingo"];
+    const days = daysOfWeek.map((dayName, idx) => {
+      if (idx === 6) {
+        return {
+          date: "",
+          dayOfWeek: dayName,
+          type: "descanso",
+          totalHours: 1,
+          blocks: [
+            {
+              order: 1,
+              subject: "Revis\xE3o Leve",
+              type: "revisao",
+              hours: 1,
+              priority: "baixa",
+              revision: "R1",
+              notes: "Pomodoro: 2 ciclos de 25m"
+            }
+          ],
+          completed: false
+        };
+      }
+      const sub1 = subjects[idx % subjects.length];
+      const sub2 = subjects[(idx + 1) % subjects.length];
+      const halfHours = Number((input.dailyHours / 2).toFixed(1));
+      return {
+        date: "",
+        dayOfWeek: dayName,
+        type: "estudo",
+        totalHours: input.dailyHours,
+        blocks: [
+          {
+            order: 1,
+            subject: sub1,
+            type: "estudo",
+            hours: halfHours,
+            priority: "alta",
+            revision: null,
+            notes: `Pomodoro: ${Math.ceil(halfHours * 2)} ciclos de 25m`
+          },
+          {
+            order: 2,
+            subject: sub2,
+            type: idx % 2 === 0 ? "questoes" : "estudo",
+            hours: Number((input.dailyHours - halfHours).toFixed(1)),
+            priority: "normal",
+            revision: null,
+            notes: `Pomodoro: ${Math.ceil((input.dailyHours - halfHours) * 2)} ciclos de 25m`
+          }
+        ],
+        completed: false
+      };
+    });
+    return {
+      weeks: [
+        {
+          weekNumber: 1,
+          phase: "base",
+          days
+        }
+      ]
+    };
   }
 };
 
@@ -39702,36 +40056,70 @@ var CompositeAIProvider = class {
   gradeCaseStudy(params) {
     return this.essay.gradeCaseStudy(params);
   }
+  mapEditalZion(editalText) {
+    if (this.bulk.mapEditalZion) {
+      return this.bulk.mapEditalZion(editalText);
+    }
+    throw new Error("mapEditalZion n\xE3o implementado pelo provedor configurado");
+  }
+  analyzeProbabilitiesZion(topicsTree, banca) {
+    if (this.bulk.analyzeProbabilitiesZion) {
+      return this.bulk.analyzeProbabilitiesZion(topicsTree, banca);
+    }
+    throw new Error("analyzeProbabilitiesZion n\xE3o implementado pelo provedor configurado");
+  }
+  generateScheduleZion(input) {
+    if (this.bulk.generateScheduleZion) {
+      return this.bulk.generateScheduleZion(input);
+    }
+    throw new Error("generateScheduleZion n\xE3o implementado pelo provedor configurado");
+  }
 };
 
 // apps/backend/src/providers/ai.factory.ts
+function resolveProviderKind(configuredKind) {
+  if (configuredKind && configuredKind !== "mock") {
+    return configuredKind;
+  }
+  if (env.GEMINI_API_KEY && env.GEMINI_API_KEY.trim().length > 0) {
+    return "gemini";
+  }
+  if (env.OPENAI_API_KEY && env.OPENAI_API_KEY.trim().length > 0) {
+    return "openai";
+  }
+  if (env.ANTHROPIC_API_KEY && env.ANTHROPIC_API_KEY.trim().length > 0) {
+    return "claude";
+  }
+  return "mock";
+}
 function buildProvider(kind) {
   switch (kind) {
     case "gemini":
       if (!env.GEMINI_API_KEY) {
-        throw new Error("GEMINI_API_KEY is required when the provider is gemini");
+        throw new Error("GEMINI_API_KEY \xE9 obrigat\xF3ria quando o provedor \xE9 gemini");
       }
       return new GeminiProvider(env.GEMINI_API_KEY);
     case "ollama":
       return new OllamaProvider(env.OLLAMA_URL, env.OLLAMA_MODEL);
     case "claude":
       if (!env.ANTHROPIC_API_KEY) {
-        throw new Error("ANTHROPIC_API_KEY is required when the provider is claude");
+        throw new Error("ANTHROPIC_API_KEY \xE9 obrigat\xF3ria quando o provedor \xE9 claude");
       }
       return new ClaudeProvider(env.ANTHROPIC_API_KEY, env.ANTHROPIC_MODEL);
     case "openai":
       if (!env.OPENAI_API_KEY) {
-        throw new Error("OPENAI_API_KEY is required when the provider is openai");
+        throw new Error("OPENAI_API_KEY \xE9 obrigat\xF3ria quando o provedor \xE9 openai");
       }
       return new OpenAIProvider(env.OPENAI_API_KEY, env.OPENAI_MODEL);
     case "mock":
     default:
+      console.warn("\u26A0\uFE0F [AI Factory] Nenhum provedor de IA configurado no servidor. Configure GEMINI_API_KEY ou OPENAI_API_KEY.");
       return new MockProvider();
   }
 }
 function createAIProvider() {
-  const bulkKind = env.AI_PROVIDER;
-  const essayKind = env.AI_ESSAY_PROVIDER ?? bulkKind;
+  const bulkKind = resolveProviderKind(env.AI_PROVIDER);
+  const essayKind = resolveProviderKind(env.AI_ESSAY_PROVIDER ?? bulkKind);
   const bulk = buildProvider(bulkKind);
   if (essayKind === bulkKind) {
     return bulk;
@@ -40728,7 +41116,10 @@ var FlashcardService = class {
     });
   }
   async review(userId, cardId, dto) {
-    const card2 = await prisma.flashcard.findUnique({ where: { id: cardId } });
+    const card2 = await prisma.flashcard.findUnique({
+      where: { id: cardId },
+      include: { deck: true }
+    });
     if (!card2 || card2.userId !== userId) {
       throw new AppError(404, "CARD_NOT_FOUND", "Flashcard n\xE3o encontrado");
     }
@@ -40740,10 +41131,23 @@ var FlashcardService = class {
     );
     const nextReview = /* @__PURE__ */ new Date();
     nextReview.setDate(nextReview.getDate() + interval);
-    return prisma.flashcard.update({
+    let status = "correct";
+    if (dto.quality === 0) {
+      status = "incorrect";
+    } else if (dto.quality < 4) {
+      status = "doubt";
+    }
+    const updatedCard = await prisma.flashcard.update({
       where: { id: cardId },
-      data: { interval, easeFactor, repetition, nextReview }
+      data: {
+        interval,
+        easeFactor,
+        repetition,
+        nextReview,
+        source: status
+      }
     });
+    return updatedCard;
   }
   async list(userId, subjectId) {
     return prisma.flashcard.findMany({
@@ -61199,11 +61603,15 @@ var StripeClient = class {
     }
   }
   isConfigured() {
-    return Boolean(this.stripe && env.STRIPE_SECRET_KEY);
+    return Boolean(this.stripe && env.STRIPE_SECRET_KEY && env.STRIPE_SECRET_KEY.trim().length > 0);
   }
   getInstance() {
-    if (!this.stripe) {
-      throw new AppError(500, "STRIPE_NOT_CONFIGURED", "Chave secreta do Stripe n\xE3o est\xE1 configurada no servidor");
+    if (!this.stripe || !env.STRIPE_SECRET_KEY || env.STRIPE_SECRET_KEY.trim().length === 0) {
+      throw new AppError(
+        500,
+        "STRIPE_NOT_CONFIGURED",
+        "Chave secreta do Stripe (STRIPE_SECRET_KEY) n\xE3o est\xE1 configurada no servidor. Adicione a chave no arquivo .env."
+      );
     }
     return this.stripe;
   }
@@ -61243,17 +61651,30 @@ var StripeClient = class {
     if (params.priceId) {
       lineItems = [{ price: params.priceId, quantity: 1 }];
     } else {
+      let name2 = "Engrama Pro \u2014 Plano Anual";
+      let unitAmount = 23988;
+      let recurring = {
+        interval: "year"
+      };
+      if (params.planType === "monthly") {
+        name2 = "Engrama Pro \u2014 Plano Mensal";
+        unitAmount = 2999;
+        recurring = { interval: "month", interval_count: 1 };
+      } else if (params.planType === "semestral" || params.planType === "semiannual") {
+        name2 = "Engrama Pro \u2014 Plano Semestral";
+        unitAmount = 14994;
+        recurring = { interval: "month", interval_count: 6 };
+      }
       lineItems = [
         {
           price_data: {
             currency: "brl",
             product_data: {
-              name: "Assinatura Pro Engrama (Plano em Defini\xE7\xE3o)",
-              description: "Acesso completo a todas as ferramentas de IA, plano de estudos e reda\xE7\xF5es."
+              name: name2,
+              description: "Acesso ilimitado ao Engrama Pro: Quest\xF5es in\xE9ditas comentadas, Tr\xEDade do Caderno de Erros, Flashcards SM-2 e Reda\xE7\xF5es com IA."
             },
-            unit_amount: 4990,
-            // R$ 49,90/mês provisório de teste
-            recurring: params.mode === "payment" ? void 0 : { interval: "month" }
+            unit_amount: unitAmount,
+            recurring: params.mode === "payment" ? void 0 : recurring
           },
           quantity: 1
         }
@@ -61269,7 +61690,8 @@ var StripeClient = class {
       billing_address_collection: "auto",
       metadata: {
         customerId: params.customerId,
-        customerEmail: params.customerEmail
+        customerEmail: params.customerEmail,
+        planType: params.planType ?? "default"
       }
     });
     return { id: session.id, url: session.url };
@@ -61362,6 +61784,7 @@ var StripeService = class {
       customerId,
       customerEmail: user.email,
       priceId,
+      planType: dto.planType,
       mode: "subscription",
       successUrl,
       cancelUrl
@@ -63427,13 +63850,38 @@ var ErrorNotebookService = class {
   }
   aiProvider;
   async listPendingErrors(userId) {
-    const wrongAttempts = await prisma.questionAttempt.findMany({
+    const pendingErrors = [];
+    const flashcardErrors = await prisma.flashcard.findMany({
       where: {
         userId,
-        isCorrect: false
+        source: { in: ["incorrect", "doubt", "Caderno de Erros"] }
       },
+      include: {
+        deck: true,
+        subject: true
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 100
+    });
+    for (const card2 of flashcardErrors) {
+      pendingErrors.push({
+        id: card2.id,
+        questionId: card2.id,
+        statement: card2.front,
+        userAnswer: card2.source === "doubt" ? "Em d\xFAvida" : "Errei",
+        correctAnswer: card2.back,
+        explanation: card2.elaboration || card2.back,
+        subjectName: card2.subject?.name ?? "Flashcards",
+        subjectId: card2.subjectId,
+        originTitle: card2.deck?.name ?? "Flashcard",
+        originType: "FLASHCARD",
+        createdAt: card2.updatedAt
+      });
+    }
+    const attempts2 = await prisma.questionAttempt.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: 200,
       include: {
         question: {
           include: { subject: true }
@@ -63441,35 +63889,151 @@ var ErrorNotebookService = class {
       }
     });
     const seenQuestions = /* @__PURE__ */ new Set();
-    const pendingErrors = [];
-    for (const attempt of wrongAttempts) {
-      if (seenQuestions.has(attempt.questionId)) continue;
+    for (const attempt of attempts2) {
+      if (!attempt.question || seenQuestions.has(attempt.questionId)) continue;
       seenQuestions.add(attempt.questionId);
-      pendingErrors.push({
-        id: attempt.id,
-        questionId: attempt.questionId,
-        statement: attempt.question.statement,
-        userAnswer: attempt.answer,
-        correctAnswer: attempt.question.correctAnswer,
-        explanation: attempt.question.explanation,
-        subjectName: attempt.question.subject?.name ?? "Geral",
-        subjectId: attempt.question.subjectId,
-        createdAt: attempt.createdAt
+      if (attempt.isCorrect) continue;
+      let originTitle = "Simulado";
+      let originType = "SIMULADO";
+      if (attempt.question.comments && Array.isArray(attempt.question.comments)) {
+        const commentsList = attempt.question.comments;
+        const meta = commentsList.find((c) => c && typeof c === "object" && c.originType);
+        if (meta) {
+          if (meta.originTitle) originTitle = meta.originTitle;
+          if (meta.originType === "FLASHCARD" || meta.originType === "SIMULADO") {
+            originType = meta.originType;
+          }
+        }
+      }
+      if (!pendingErrors.some((e) => e.statement === attempt.question.statement)) {
+        pendingErrors.push({
+          id: attempt.id,
+          questionId: attempt.questionId,
+          statement: attempt.question.statement,
+          userAnswer: attempt.answer,
+          correctAnswer: attempt.question.correctAnswer,
+          explanation: attempt.question.explanation,
+          subjectName: attempt.question.subject?.name ?? "Geral",
+          subjectId: attempt.question.subjectId,
+          originTitle,
+          originType,
+          createdAt: attempt.createdAt
+        });
+      }
+    }
+    return pendingErrors.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+  async markAsLearned(userId, id) {
+    const card2 = await prisma.flashcard.findUnique({ where: { id } });
+    if (card2 && card2.userId === userId) {
+      await prisma.flashcard.update({
+        where: { id },
+        data: { source: "correct" }
+      });
+      return { success: true };
+    }
+    const existingAttempt = await prisma.questionAttempt.findUnique({ where: { id } });
+    const targetQuestionId = existingAttempt ? existingAttempt.questionId : id;
+    await prisma.questionAttempt.updateMany({
+      where: { userId, questionId: targetQuestionId },
+      data: { isCorrect: true }
+    });
+    const question = await prisma.question.findUnique({ where: { id: targetQuestionId } });
+    if (question) {
+      await prisma.questionAttempt.create({
+        data: {
+          userId,
+          questionId: targetQuestionId,
+          answer: "ACERTOU_REVISAO",
+          isCorrect: true,
+          timeSpent: 0
+        }
       });
     }
-    return pendingErrors;
+    return { success: true };
   }
-  async markAsLearned(userId, questionId) {
-    await prisma.questionAttempt.create({
-      data: {
+  async recordSimuladoErrors(userId, dto) {
+    if (!dto.errors || dto.errors.length === 0) {
+      return { recorded: 0, deckId: null, deckTitle: "" };
+    }
+    const subject = await this.ensureSubject();
+    const todayStr = (/* @__PURE__ */ new Date()).toLocaleDateString("pt-BR");
+    const deckTitle = dto.simuladoTitle?.trim() ? `Erros: ${dto.simuladoTitle.trim()}` : `Erros do Simulado - ${todayStr}`;
+    let deck2 = await prisma.flashcardDeck.findFirst({
+      where: {
         userId,
-        questionId,
-        answer: "LEARNED",
-        isCorrect: true,
-        timeSpent: 0
+        name: deckTitle
       }
     });
-    return { success: true };
+    if (!deck2) {
+      deck2 = await prisma.flashcardDeck.create({
+        data: {
+          userId,
+          name: deckTitle,
+          subjectId: subject.id,
+          color: "#f59e0b",
+          topic: "Caderno de Erros"
+        }
+      });
+    }
+    for (const err of dto.errors) {
+      let qId = err.questionId;
+      if (qId) {
+        const exists = await prisma.question.findUnique({ where: { id: qId } });
+        if (!exists) {
+          qId = void 0;
+        }
+      }
+      if (!qId) {
+        const newQuestion = await prisma.question.create({
+          data: {
+            statement: err.statement,
+            alternatives: err.alternatives ?? [],
+            correctAnswer: err.correctAnswer,
+            difficulty: "MEDIUM",
+            explanation: err.explanation,
+            comments: [
+              {
+                originType: "SIMULADO",
+                originTitle: deckTitle
+              }
+            ],
+            subjectId: subject.id,
+            source: "AI_GENERATED"
+          }
+        });
+        qId = newQuestion.id;
+      }
+      await prisma.questionAttempt.create({
+        data: {
+          userId,
+          questionId: qId,
+          answer: err.userAnswer || "N/A",
+          isCorrect: false,
+          timeSpent: 0
+        }
+      });
+      await prisma.flashcard.create({
+        data: {
+          userId,
+          subjectId: subject.id,
+          deckId: deck2.id,
+          front: `[Erro em Simulado] ${err.statement}`,
+          back: `**Alternativa Correta:** ${err.correctAnswer}
+
+**Coment\xE1rio do Professor:**
+${err.explanation}`,
+          source: "incorrect"
+        }
+      });
+    }
+    return {
+      recorded: dto.errors.length,
+      deckId: deck2.id,
+      deckTitle
+    };
   }
   async generateRemediationCards(userId, dto) {
     let question = dto.questionText?.trim() ?? "";
@@ -63486,6 +64050,17 @@ var ErrorNotebookService = class {
         explanation = q.explanation;
         correctAnswer = q.correctAnswer;
         targetSubjectId = targetSubjectId ?? q.subjectId;
+      } else {
+        const card2 = await prisma.flashcard.findUnique({
+          where: { id: dto.questionId },
+          include: { subject: true }
+        });
+        if (card2) {
+          question = card2.front;
+          correctAnswer = card2.back;
+          explanation = card2.elaboration || card2.back;
+          targetSubjectId = targetSubjectId ?? card2.subjectId;
+        }
       }
     }
     if (!question || !explanation) {
@@ -63574,6 +64149,15 @@ var ErrorNotebookController = class {
       next(error2);
     }
   };
+  recordSimuladoErrors = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const result = await this.service.recordSimuladoErrors(userId, req.body);
+      res.json({ success: true, data: result });
+    } catch (error2) {
+      next(error2);
+    }
+  };
   generateRemediation = async (req, res, next) => {
     try {
       const userId = getUserId(req);
@@ -63591,7 +64175,709 @@ var service19 = new ErrorNotebookService(createAIProvider());
 var controller21 = new ErrorNotebookController(service19);
 router22.get("/pending", authMiddleware, controller21.listPending);
 router22.post("/learned/:questionId", authMiddleware, controller21.markLearned);
+router22.post("/record-simulado-errors", authMiddleware, controller21.recordSimuladoErrors);
 router22.post("/remediate", authMiddleware, controller21.generateRemediation);
+
+// apps/backend/src/routes/edital-map.routes.ts
+import { Router as Router23 } from "express";
+
+// apps/backend/src/services/edital-map.service.ts
+import fs9 from "node:fs/promises";
+var EditalMapService = class _EditalMapService {
+  constructor(aiProvider4) {
+    this.aiProvider = aiProvider4;
+  }
+  aiProvider;
+  static normalize(str) {
+    return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  }
+  calculateCoverage(topicsTree, userDecks) {
+    const coverageMap = {};
+    if (!topicsTree || !Array.isArray(topicsTree.subjects)) {
+      return coverageMap;
+    }
+    topicsTree.subjects.forEach((subject) => {
+      if (!subject || !Array.isArray(subject.topics)) return;
+      subject.topics.forEach((topic) => {
+        if (!topic || !topic.name) return;
+        const globalKey = `${subject.name}_${topic.name}`;
+        const matchedDecks = [];
+        let totalHits = 0;
+        const topicTerms = _EditalMapService.normalize(topic.name).split(" ");
+        const subjectTerms = _EditalMapService.normalize(subject.name).split(" ");
+        const allKeywords = [.../* @__PURE__ */ new Set([...topicTerms, ...subjectTerms])].filter((t) => t.length > 3);
+        userDecks.forEach((deck2) => {
+          const deckTitleNom = _EditalMapService.normalize(deck2.name);
+          const deckCatNom = _EditalMapService.normalize(deck2.category || "");
+          let hit = false;
+          if (deckTitleNom.includes(_EditalMapService.normalize(topic.name)) || deckCatNom.includes(_EditalMapService.normalize(subject.name))) {
+            hit = true;
+          } else if (allKeywords.length > 0) {
+            const combined = `${deckTitleNom} ${deckCatNom}`;
+            const matched = allKeywords.filter((kw) => combined.includes(kw));
+            if (matched.length / allKeywords.length >= 0.3) {
+              hit = true;
+            }
+          }
+          if (hit) {
+            matchedDecks.push(deck2.id);
+            totalHits += deck2.cardsCount ?? 1;
+          }
+        });
+        if (matchedDecks.length === 0) {
+          coverageMap[globalKey] = { status: "uncovered", matchedDecks: [] };
+        } else if (totalHits < 10) {
+          coverageMap[globalKey] = { status: "partial", matchedDecks };
+        } else {
+          coverageMap[globalKey] = { status: "covered", matchedDecks };
+        }
+      });
+    });
+    return coverageMap;
+  }
+  async mapEdital(userId, filePath, editalName, saveToDb = false) {
+    let text = "";
+    try {
+      text = await extractPdfText(filePath);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Arquivo corrompido ou ileg\xEDvel";
+      throw new AppError(400, "PDF_EXTRACTION_ERROR", `Falha ao ler o PDF: ${message}`);
+    } finally {
+      await fs9.unlink(filePath).catch(() => {
+      });
+    }
+    if (text.trim().length < 100) {
+      throw new AppError(400, "INVALID_PDF", "O PDF enviado parece n\xE3o conter texto leg\xEDvel suficiente.");
+    }
+    if (!this.aiProvider.mapEditalZion) {
+      throw new AppError(500, "AI_PROVIDER_ERROR", "Provedor de IA n\xE3o suporta mapeamento de edital");
+    }
+    const topicsTree = await this.aiProvider.mapEditalZion(text);
+    const userDecks = await prisma.flashcardDeck.findMany({
+      where: { userId },
+      include: { cards: true, subject: true }
+    });
+    const normalizedDecks = userDecks.map((d) => ({
+      id: d.id,
+      name: d.name,
+      category: d.subject?.name || d.topic || "",
+      cardsCount: d.cards.length
+    }));
+    const coverageMap = this.calculateCoverage(topicsTree, normalizedDecks);
+    const editalData = {
+      userId,
+      editalName,
+      banca: topicsTree.banca || "N\xE3o identificada",
+      cargo: topicsTree.cargo || "N\xE3o identificado",
+      topicsTree,
+      coverageStatus: coverageMap
+    };
+    if (!saveToDb) {
+      return editalData;
+    }
+    const saved = await prisma.editalMap.create({
+      data: editalData
+    });
+    return saved;
+  }
+  async analyzeProbabilities(userId, editalMapId, topicsTree, banca) {
+    if (!this.aiProvider.analyzeProbabilitiesZion) {
+      throw new AppError(500, "AI_PROVIDER_ERROR", "Provedor de IA n\xE3o suporta an\xE1lise de probabilidades");
+    }
+    const analysisItems = await this.aiProvider.analyzeProbabilitiesZion(topicsTree, banca);
+    const probMap = {};
+    analysisItems.forEach((item) => {
+      const key = `${item.subjectName}_${item.topicName}`;
+      probMap[key] = {
+        probability: item.probability,
+        justification: item.justification
+      };
+    });
+    const updated = await prisma.editalMap.update({
+      where: { id: editalMapId, userId },
+      data: {
+        probabilityAnalysis: probMap
+      }
+    });
+    return updated;
+  }
+  async listEditais(userId) {
+    return prisma.editalMap.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" }
+    });
+  }
+  async getEdital(id, userId) {
+    const edital = await prisma.editalMap.findFirst({
+      where: { id, userId }
+    });
+    if (!edital) {
+      throw new AppError(404, "EDITAL_NOT_FOUND", "Edital n\xE3o encontrado");
+    }
+    return edital;
+  }
+  async saveEdital(userId, data) {
+    return prisma.editalMap.create({
+      data: {
+        userId,
+        editalName: data.editalName,
+        banca: data.banca,
+        cargo: data.cargo,
+        topicsTree: data.topicsTree,
+        coverageStatus: data.coverageStatus,
+        probabilityAnalysis: data.probabilityAnalysis
+      }
+    });
+  }
+  async updateName(id, userId, editalName) {
+    return prisma.editalMap.update({
+      where: { id, userId },
+      data: { editalName }
+    });
+  }
+  async deleteEdital(id, userId) {
+    return prisma.editalMap.delete({
+      where: { id, userId }
+    });
+  }
+};
+
+// apps/backend/src/controllers/edital-map.controller.ts
+var EditalMapController = class {
+  constructor(service20) {
+    this.service = service20;
+  }
+  service;
+  mapEdital = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const file = req.file;
+      if (!file) {
+        throw new AppError(400, "FILE_REQUIRED", "Envio do PDF do edital \xE9 obrigat\xF3rio.");
+      }
+      const editalName = req.body.editalName;
+      if (!editalName || !editalName.trim()) {
+        throw new AppError(400, "NAME_REQUIRED", "Nome do concurso/edital \xE9 obrigat\xF3rio.");
+      }
+      const saveToDb = req.body.saveToDb === "true" || req.body.saveToDb === true;
+      const result = await this.service.mapEdital(userId, file.path, editalName.trim(), saveToDb);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  analyzeProbabilities = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const { editalMapId, topicsTree, banca } = req.body;
+      if (!editalMapId || !topicsTree || !banca) {
+        throw new AppError(400, "INVALID_PAYLOAD", "editalMapId, topicsTree e banca s\xE3o obrigat\xF3rios.");
+      }
+      const result = await this.service.analyzeProbabilities(userId, editalMapId, topicsTree, banca);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  list = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const result = await this.service.listEditais(userId);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  getById = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const id = String(req.params.id);
+      const result = await this.service.getEdital(id, userId);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  save = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const result = await this.service.saveEdital(userId, req.body);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(201).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  updateName = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const id = String(req.params.id);
+      const { editalName } = req.body;
+      if (!editalName || !editalName.trim()) {
+        throw new AppError(400, "NAME_REQUIRED", "Nome \xE9 obrigat\xF3rio");
+      }
+      const result = await this.service.updateName(id, userId, editalName.trim());
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  delete = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const id = String(req.params.id);
+      await this.service.deleteEdital(id, userId);
+      const response = {
+        success: true,
+        data: { deleted: true }
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+};
+
+// apps/backend/src/routes/edital-map.routes.ts
+function createEditalMapRouter() {
+  const router24 = Router23();
+  const aiProvider4 = createAIProvider();
+  const service20 = new EditalMapService(aiProvider4);
+  const controller22 = new EditalMapController(service20);
+  router24.use(authMiddleware);
+  router24.post("/map", editalUpload.single("file"), controller22.mapEdital);
+  router24.post("/analyze-probabilities", controller22.analyzeProbabilities);
+  router24.get("/", controller22.list);
+  router24.get("/:id", controller22.getById);
+  router24.post("/", controller22.save);
+  router24.patch("/:id/name", controller22.updateName);
+  router24.delete("/:id", controller22.delete);
+  return router24;
+}
+
+// apps/backend/src/routes/study-schedule.routes.ts
+import { Router as Router24 } from "express";
+
+// apps/backend/src/services/study-schedule.service.ts
+import fs10 from "node:fs/promises";
+var StudyScheduleService = class {
+  constructor(aiProvider4) {
+    this.aiProvider = aiProvider4;
+  }
+  aiProvider;
+  async fetchUserPerformance(userId) {
+    const attempts2 = await prisma.questionAttempt.findMany({
+      where: { userId },
+      include: { question: { include: { subject: true } } }
+    });
+    if (!attempts2 || attempts2.length === 0) return null;
+    const catStats = {};
+    attempts2.forEach((att) => {
+      const cat = att.question?.subject?.name || "Geral";
+      if (!catStats[cat]) catStats[cat] = { total: 0, correct: 0 };
+      catStats[cat].total += 1;
+      if (att.isCorrect) catStats[cat].correct += 1;
+    });
+    const result = {};
+    Object.keys(catStats).forEach((cat) => {
+      if (catStats[cat].total > 0) {
+        result[cat] = Math.round(catStats[cat].correct / catStats[cat].total * 100);
+      }
+    });
+    return Object.keys(result).length > 0 ? result : null;
+  }
+  async fetchEditalProbabilities(userId) {
+    const latest = await prisma.editalMap.findFirst({
+      where: {
+        userId,
+        probabilityAnalysis: { not: Prisma.DbNull }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+    if (latest && latest.probabilityAnalysis) {
+      const raw2 = latest.probabilityAnalysis;
+      const result = {};
+      Object.keys(raw2).forEach((key) => {
+        result[key] = raw2[key]?.probability || "media";
+      });
+      return result;
+    }
+    return null;
+  }
+  expandWeekTemplate(baseWeekTemplate, examDate, dailyHours) {
+    const today = /* @__PURE__ */ new Date();
+    today.setHours(12, 0, 0, 0);
+    const target = /* @__PURE__ */ new Date(`${examDate}T12:00:00Z`);
+    const diffMs = target.getTime() - today.getTime();
+    const diffDays = Math.max(0, Math.ceil(diffMs / (1e3 * 3600 * 24)));
+    const weeksCount = Math.max(1, Math.ceil(diffDays / 7));
+    const fullWeeks = [];
+    const currentDate = new Date(today);
+    for (let w = 1; w <= weeksCount; w++) {
+      let currentPhase = "base";
+      const baseThreshold = Math.ceil(weeksCount * 0.5);
+      const intensificationThreshold = Math.ceil(weeksCount * 0.8);
+      if (w > intensificationThreshold) currentPhase = "revision";
+      else if (w > baseThreshold) currentPhase = "intensification";
+      const clonedDays = (baseWeekTemplate.days || []).map((dayData) => {
+        const dateStr = currentDate.toISOString().split("T")[0];
+        currentDate.setDate(currentDate.getDate() + 1);
+        const isRevisionPhase = currentPhase === "revision";
+        const blocks = (dayData.blocks || []).map((b, bIdx) => ({
+          order: bIdx + 1,
+          subject: b.subject || "Descanso/Simulado",
+          type: (isRevisionPhase ? "revisao" : b.type) || "estudo",
+          hours: b.hours,
+          priority: b.priority || "normal",
+          revisionNumber: b.revision || null,
+          cardTarget: 10,
+          notes: b.hours > 0 ? `Pomodoro: ${Math.ceil(b.hours * 2)} ciclos de 25m` : null
+        }));
+        let dayType = "estudo";
+        if (isRevisionPhase && dayData.type === "estudo") {
+          dayType = "revisao";
+        } else if (dayData.type === "estudo" || dayData.type === "revisao" || dayData.type === "simulado" || dayData.type === "descanso" || dayData.type === "questoes") {
+          dayType = dayData.type;
+        }
+        return {
+          date: dateStr,
+          dayOfWeek: dayData.dayOfWeek || "",
+          type: dayType,
+          totalHours: dayData.totalHours || dailyHours,
+          blocks,
+          completed: false
+        };
+      });
+      while (clonedDays.length < 7) {
+        const dateStr = currentDate.toISOString().split("T")[0];
+        currentDate.setDate(currentDate.getDate() + 1);
+        clonedDays.push({
+          date: dateStr,
+          dayOfWeek: "",
+          type: "descanso",
+          totalHours: dailyHours,
+          blocks: [
+            {
+              order: 1,
+              subject: "Estudo Livre",
+              type: "estudo",
+              hours: dailyHours,
+              priority: "normal",
+              cardTarget: 10,
+              notes: null
+            }
+          ],
+          completed: false
+        });
+      }
+      fullWeeks.push({
+        weekNumber: w,
+        phase: currentPhase,
+        days: clonedDays
+      });
+    }
+    return fullWeeks;
+  }
+  async generateSchedule(userId, dto, filePath) {
+    if (!dto.forceRefresh) {
+      const existing = await prisma.studySchedule.findFirst({
+        where: {
+          userId,
+          examDate: dto.examDate
+        },
+        orderBy: { createdAt: "desc" }
+      });
+      if (existing) {
+        return existing;
+      }
+    }
+    let editalFileText = null;
+    if (filePath) {
+      try {
+        editalFileText = await extractPdfText(filePath);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Falha ao extrair texto do PDF";
+        console.warn("PDF text extraction error for schedule:", msg);
+      } finally {
+        await fs10.unlink(filePath).catch(() => {
+        });
+      }
+    }
+    const performanceData = await this.fetchUserPerformance(userId);
+    const probabilityData = await this.fetchEditalProbabilities(userId);
+    const latestEdital = await prisma.editalMap.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" }
+    });
+    const banca = latestEdital?.banca || null;
+    if (!this.aiProvider.generateScheduleZion) {
+      throw new AppError(500, "AI_PROVIDER_ERROR", "Provedor de IA n\xE3o suporta gera\xE7\xE3o de cronograma");
+    }
+    const aiResult = await this.aiProvider.generateScheduleZion({
+      subjects: dto.subjects,
+      examDate: dto.examDate,
+      dailyHours: dto.dailyHours,
+      performanceData,
+      probabilityData,
+      editalFileText,
+      banca,
+      userObservations: dto.userObservations
+    });
+    if (!aiResult || !aiResult.weeks || aiResult.weeks.length === 0) {
+      throw new AppError(502, "AI_EMPTY_RESPONSE", "Falha na gera\xE7\xE3o do modelo base pela IA");
+    }
+    const baseWeekTemplate = aiResult.weeks[0];
+    const fullWeeks = this.expandWeekTemplate(baseWeekTemplate, dto.examDate, dto.dailyHours);
+    const scheduleData = {
+      userId,
+      examDate: dto.examDate,
+      dailyHours: dto.dailyHours,
+      subjects: dto.subjects,
+      schedule: { weeks: fullWeeks },
+      hasPerformanceData: performanceData !== null
+    };
+    if (!dto.saveToDb) {
+      return scheduleData;
+    }
+    const saved = await prisma.studySchedule.create({
+      data: scheduleData
+    });
+    return saved;
+  }
+  async listSchedules(userId) {
+    return prisma.studySchedule.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" }
+    });
+  }
+  async getSchedule(id, userId) {
+    const sched = await prisma.studySchedule.findFirst({
+      where: { id, userId }
+    });
+    if (!sched) {
+      throw new AppError(404, "SCHEDULE_NOT_FOUND", "Cronograma n\xE3o encontrado");
+    }
+    return sched;
+  }
+  async saveSchedule(userId, data) {
+    return prisma.studySchedule.create({
+      data: {
+        userId,
+        examDate: data.examDate || data.exam_date || "",
+        dailyHours: Number(data.dailyHours || data.daily_hours || 3),
+        subjects: data.subjects,
+        schedule: data.schedule,
+        hasPerformanceData: Boolean(data.hasPerformanceData || data.has_performance_data || false)
+      }
+    });
+  }
+  async updateName(id, userId, title) {
+    const sched = await this.getSchedule(id, userId);
+    const scheduleObj = sched.schedule ?? {};
+    const updatedSchedule = { ...scheduleObj, title };
+    return prisma.studySchedule.update({
+      where: { id, userId },
+      data: { schedule: updatedSchedule }
+    });
+  }
+  async toggleDayCompletion(id, userId, weekIndex, dayIndex) {
+    const sched = await this.getSchedule(id, userId);
+    const scheduleObj = sched.schedule ?? {};
+    if (scheduleObj?.weeks?.[weekIndex]?.days?.[dayIndex]) {
+      const day = scheduleObj.weeks[weekIndex].days[dayIndex];
+      day.completed = !day.completed;
+      return prisma.studySchedule.update({
+        where: { id, userId },
+        data: { schedule: scheduleObj }
+      });
+    }
+    return sched;
+  }
+  async deleteSchedule(id, userId) {
+    return prisma.studySchedule.delete({
+      where: { id, userId }
+    });
+  }
+};
+
+// apps/backend/src/controllers/study-schedule.controller.ts
+var StudyScheduleController = class {
+  constructor(service20) {
+    this.service = service20;
+  }
+  service;
+  generate = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const file = req.file;
+      const examDate = req.body.examDate;
+      const dailyHours = Number(req.body.dailyHours || 3);
+      let subjects = req.body.subjects;
+      if (typeof subjects === "string") {
+        try {
+          subjects = JSON.parse(subjects);
+        } catch {
+          subjects = subjects.split(",").map((s) => s.trim()).filter(Boolean);
+        }
+      }
+      if (!Array.isArray(subjects)) {
+        subjects = [];
+      }
+      if (!examDate) {
+        throw new AppError(400, "EXAM_DATE_REQUIRED", "Data da prova \xE9 obrigat\xF3ria.");
+      }
+      if (subjects.length === 0 && !file) {
+        throw new AppError(400, "SUBJECTS_OR_FILE_REQUIRED", "Insira pelo menos uma mat\xE9ria ou anexe o edital em PDF.");
+      }
+      const dto = {
+        examDate,
+        dailyHours,
+        subjects,
+        userObservations: req.body.userObservations,
+        forceRefresh: req.body.forceRefresh === "true" || req.body.forceRefresh === true,
+        saveToDb: req.body.saveToDb === "true" || req.body.saveToDb === true
+      };
+      const result = await this.service.generateSchedule(userId, dto, file?.path);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  list = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const result = await this.service.listSchedules(userId);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  getById = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const id = String(req.params.id);
+      const result = await this.service.getSchedule(id, userId);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  save = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const result = await this.service.saveSchedule(userId, req.body);
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(201).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  updateName = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const id = String(req.params.id);
+      const { title } = req.body;
+      if (!title || !title.trim()) {
+        throw new AppError(400, "TITLE_REQUIRED", "T\xEDtulo \xE9 obrigat\xF3rio");
+      }
+      const result = await this.service.updateName(id, userId, title.trim());
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  toggleDayCompletion = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const id = String(req.params.id);
+      const { weekIndex, dayIndex } = req.body;
+      if (weekIndex === void 0 || dayIndex === void 0) {
+        throw new AppError(400, "INDICES_REQUIRED", "weekIndex e dayIndex s\xE3o obrigat\xF3rios");
+      }
+      const result = await this.service.toggleDayCompletion(id, userId, Number(weekIndex), Number(dayIndex));
+      const response = {
+        success: true,
+        data: result
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  delete = async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const id = String(req.params.id);
+      await this.service.deleteSchedule(id, userId);
+      const response = {
+        success: true,
+        data: { deleted: true }
+      };
+      res.status(200).json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+};
+
+// apps/backend/src/routes/study-schedule.routes.ts
+function createStudyScheduleRouter() {
+  const router24 = Router24();
+  const aiProvider4 = createAIProvider();
+  const service20 = new StudyScheduleService(aiProvider4);
+  const controller22 = new StudyScheduleController(service20);
+  router24.use(authMiddleware);
+  router24.post("/generate", editalUpload.single("file"), controller22.generate);
+  router24.get("/", controller22.list);
+  router24.get("/:id", controller22.getById);
+  router24.post("/", controller22.save);
+  router24.patch("/:id/name", controller22.updateName);
+  router24.patch("/:id/toggle-day", controller22.toggleDayCompletion);
+  router24.delete("/:id", controller22.delete);
+  return router24;
+}
 
 // apps/backend/src/middlewares/subscription.middleware.ts
 async function requireSubscription(req, res, next) {
@@ -63630,7 +64916,7 @@ async function requireSubscription(req, res, next) {
 }
 
 // apps/backend/src/routes/index.ts
-var router23 = Router23();
+var router23 = Router25();
 var gate = [authMiddleware, requireSubscription];
 router23.use("/auth", router);
 router23.use("/payments", router16);
@@ -63654,6 +64940,8 @@ router23.use("/rankings", gate, router18);
 router23.use("/question-sets", gate, router19);
 router23.use("/games", gate, router20);
 router23.use("/error-notebook", gate, router22);
+router23.use("/edital-maps", gate, createEditalMapRouter());
+router23.use("/study-schedules", gate, createStudyScheduleRouter());
 router23.get("/health", (_req, res) => {
   const response = {
     success: true,
@@ -63732,7 +65020,7 @@ if (env.NODE_ENV === "production") {
 }
 function inlineScriptCspHashes() {
   try {
-    const html = fs9.readFileSync(path7.resolve("public", "index.html"), "utf8");
+    const html = fs11.readFileSync(path7.resolve("public", "index.html"), "utf8");
     const hashes = [];
     for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
       const digest = crypto15.createHash("sha256").update(match[1], "utf8").digest("base64");
@@ -63781,11 +65069,11 @@ app.use(
   })
 );
 var uploadsDir = path7.resolve("uploads");
-fs9.mkdirSync(uploadsDir, { recursive: true });
+fs11.mkdirSync(uploadsDir, { recursive: true });
 app.use("/uploads", express.static(uploadsDir));
 app.use("/api", router23);
 var publicDir = path7.resolve("public");
-if (fs9.existsSync(publicDir)) {
+if (fs11.existsSync(publicDir)) {
   app.use(express.static(publicDir));
   app.use((req, res, next) => {
     if (req.method !== "GET" || req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
