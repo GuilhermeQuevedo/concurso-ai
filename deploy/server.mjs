@@ -205,6 +205,7 @@ var AppError = class extends Error {
 };
 function errorHandler(err, _req, res, _next) {
   if (err instanceof AppError) {
+    console.warn(`[AppError ${err.statusCode}] ${err.code}: ${err.message}`);
     res.status(err.statusCode).json({
       success: false,
       error: { message: err.message, code: err.code }
@@ -212,10 +213,12 @@ function errorHandler(err, _req, res, _next) {
     return;
   }
   if (err instanceof ZodError) {
+    const validationMessage = err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", ");
+    console.warn(`[ZodError 400] ${validationMessage}`);
     res.status(400).json({
       success: false,
       error: {
-        message: err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", "),
+        message: validationMessage,
         code: "VALIDATION_ERROR"
       }
     });
@@ -15678,31 +15681,78 @@ function mapAuditAnswers(parsed, count) {
 function stripJsonMarkdown(raw2) {
   return raw2.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 }
-function buildZionEditalExtractionPrompt(editalText) {
-  return `Voc\xEA \xE9 um analista de editais de concursos p\xFAblicos de alta precis\xE3o.
-Sua \xFAnica responsabilidade \xE9 extrair a \xE1rvore hier\xE1rquica das mat\xE9rias e t\xF3picos exigidos de um extrato de edital.
+function extractRelevantEditalContent(editalText, maxLen = 25e4) {
+  const specificRegex = /(\b\d+\s*[-–—.]?\s*(?:dos\s+objetos\s+de\s+avalia[çc][ãa]o|do\s+conte[úu]do\s+program[áa]tico|dos\s+conte[úu]dos\s+program[áa]ticos)|anexo\s+[ivx0-9]+\s*[-–—:]\s*(?:conte[úu]do\s+program[áa]tico|objetos?\s+de\s+avalia[çc][ãa]o|programa)|conte[úu]do\s+program[áa]tico)/i;
+  const match = specificRegex.exec(editalText);
+  if (match && match.index > 3e3) {
+    const header = editalText.slice(0, 5e3);
+    const body = editalText.slice(match.index);
+    if (body.length > maxLen - 6e3) {
+      return `[CABE\xC7ALHO DO EDITAL]
+${header}
 
-\xC2ncora anti-alucina\xE7\xE3o OBRIGAT\xD3RIA:
-Extraia apenas o que est\xE1 literalmente descrito no texto fornecido. NUNCA adicione t\xF3picos por conhecimento externo, infer\xEAncia ou experi\xEAncia com editais parecidos. Se um t\xF3pico estiver amb\xEDguo, extraia-o exatamente como escrito no documento original.
+[CONTE\xDADO PROGRAM\xC1TICO COMPLETO (OBJETOS DE AVALIA\xC7\xC3O)]
+${body.slice(0, maxLen - 6e3)}`;
+    }
+    return `[CABE\xC7ALHO DO EDITAL]
+${header}
+
+[CONTE\xDADO PROGRAM\xC1TICO COMPLETO (OBJETOS DE AVALIA\xC7\xC3O)]
+${body}`;
+  }
+  if (editalText.length <= maxLen) {
+    return editalText;
+  }
+  const half = Math.floor(maxLen / 2);
+  const head = editalText.slice(0, half);
+  const tail = editalText.slice(-half);
+  return `${head}
+
+[... texto intermedi\xE1rio omitido ...]
+
+${tail}`;
+}
+function buildZionEditalExtractionPrompt(editalText) {
+  const relevantText = extractRelevantEditalContent(editalText, 25e4);
+  return `Voc\xEA \xE9 um analista s\xEAnior de editais de concursos p\xFAblicos de m\xE1xima precis\xE3o.
+Sua miss\xE3o \xE9 extrair a \xE1rvore hier\xE1rquica COMPLETA e EXAUSTIVA de TODAS as mat\xE9rias, especialidades e t\xF3picos do edital, SEM EXCE\xC7\xC3O.
+
+REGRAS OBRIGAT\xD3RIAS DE EXAUSTIVIDADE (SEM EXCE\xC7\xC3O):
+1. EXTRA\xC7\xC3O DE TODAS AS MAT\xC9RIAS E ESPECIALIDADES:
+   - Extraia TODAS as mat\xE9rias de conhecimentos gerais (ex: L\xEDngua Portuguesa, Legisla\xE7\xE3o, Racioc\xEDnio L\xF3gico, Inform\xE1tica, Primeiros Socorros, etc.).
+   - Se o edital contiver conhecimentos espec\xEDficos comuns e conhecimentos por especialidade (como TDAS - Agente Social, TDAS - Cuidador Social, TDAS - T\xE9cnico Administrativo, EDAS - Administra\xE7\xE3o, EDAS - Ci\xEAncias Cont\xE1beis, EDAS - Comunica\xE7\xE3o Social, EDAS - Direito, EDAS - Economia, EDAS - Educador Social, EDAS - Estat\xEDstica, EDAS - Nutri\xE7\xE3o, EDAS - Pedagogia, EDAS - Psicologia, EDAS - Servi\xE7o Social, EDAS - Sociologia, etc.):
+   - CADA UMA dessas especialidades DEVE SER OBRIGATORIAMENTE UMA ENTRADA INDIVIDUAL em "subjects", contendo todos os seus t\xF3picos pr\xF3prios.
+   - \xC9 ESTRITAMENTE PROIBIDO criar um t\xF3pico chamado "Conhecimentos Espec\xEDficos por Especialidade" ou agrupar os nomes das especialidades em subt\xF3picos. As especialidades N\xC3O s\xE3o subt\xF3picos, elas s\xE3o MAT\xC9RIAS (subjects) e cada uma tem seus pr\xF3prios t\xF3picos numerados no edital.
+   - Se o edital contiver 10, 15 ou 20 cargos/especialidades no conte\xFAdo program\xE1tico, a lista "subjects" DEVE conter todos os 10, 15 ou 20 itens correspondentes.
+2. ESTRUTURA DE T\xD3PICOS E SUBT\xD3PICOS:
+   - Para cada mat\xE9ria/especialidade em "subjects", cada grande tema program\xE1tico (ex: itens numerados 1, 2, 3...) \xE9 um item em "topics".
+   - Os detalhamentos (itens 1.1, 1.2, ou desdobramentos de conte\xFAdo) s\xE3o a lista de strings em "subtopics".
+   - "subtopics" DEVE ser OBRIGATORIAMENTE um array de strings puras, NUNCA objetos.
+3. \xC2NCORA ANTI-ALUCINA\xC7\xC3O:
+   - Extraia rigorosamente apenas o que est\xE1 no texto fornecido, sem adicionar ou inventar itens externos, preservando os termos exatos do edital.
 
 Voc\xEA deve responder APENAS com um JSON estrito seguindo este formato:
 {
   "banca": "string",
   "cargo": "string",
-  "subjects": [{
-    "name": "string",
-    "weight": "alta|media|baixa",
-    "topics": [{
-      "name": "string",
-      "subtopics": ["string"]
-    }]
-  }]
+  "subjects": [
+    {
+      "name": "Nome da Mat\xE9ria / Especialidade",
+      "weight": "alta|media|baixa",
+      "topics": [
+        {
+          "name": "Nome do T\xF3pico",
+          "subtopics": ["Subt\xF3pico 1", "Subt\xF3pico 2"]
+        }
+      ]
+    }
+  ]
 }
-Se for imposs\xEDvel identificar a banca ou cargo, retorne "N\xE3o identificada". O peso ("weight") deve ser inferido com base na quantidade de t\xF3picos ou men\xE7\xF5es de import\xE2ncia, ou use "media".
+Se for imposs\xEDvel identificar a banca ou cargo, retorne "N\xE3o identificada" ou "Diversos". O peso ("weight") deve ser inferido com base na quantidade de t\xF3picos ou relev\xE2ncia no edital ("alta", "media" ou "baixa").
 
 Texto extra\xEDdo do edital:
 
-${editalText.substring(0, 3e4)}`;
+${relevantText}`;
 }
 function buildZionProbabilityPrompt(topicsTree, banca) {
   return `Voc\xEA \xE9 um estat\xEDstico e estrategista de concursos altamente especializado em analisar o hist\xF3rico das bancas examinadoras.
@@ -15797,8 +15847,11 @@ DADOS DO USU\xC1RIO PARA CRONOGRAMA:
 - Carga Di\xE1ria: ${input.dailyHours} horas (Gere os m\xFAltiplos blocos respeitando essa soma di\xE1ria)
 ${input.banca ? `- Banca Informada: ${input.banca}` : "- Banca: N\xE3o Informada"}
 
-${hasEditalFile ? `[TEXTO EXTRA\xCDDO DO EDITAL]
-${input.editalFileText?.substring(0, 5e3)}...` : `[LISTA DE MAT\xC9RIAS GERAIS]
+${hasEditalFile ? `[CONTE\xDADO PROGRAM\xC1TICO DO EDITAL]
+${extractRelevantEditalContent(input.editalFileText ?? "", 6e4)}
+
+${input.subjects.length > 0 ? `[MAT\xC9RIAS INFORMADAS PELO USU\xC1RIO]
+${input.subjects.join(", ")}` : ""}` : `[LISTA DE MAT\xC9RIAS GERAIS]
 ${input.subjects.join(", ")}`}
 
 ${hasPerformance ? `[DESEMPENHO HIST\xD3RICO]
@@ -39470,7 +39523,7 @@ var OpenAIProvider = class {
     this.model = model;
     this.client = new OpenAI({ apiKey });
     this.circuitBreaker = new CircuitBreaker("openai-provider", { failureThreshold: 3, timeoutMs: 3e4 });
-    this.queue = new ConcurrencyQueue({ maxConcurrent: 4, timeoutMs: 6e4 });
+    this.queue = new ConcurrencyQueue({ maxConcurrent: 4, timeoutMs: 18e4 });
     this.retryStrategy = new RetryStrategy({ maxAttempts: 3, initialDelayMs: 1500 });
   }
   model;
@@ -39657,7 +39710,8 @@ var OpenAIProvider = class {
           }
         ],
         response_format: options.json ? { type: "json_object" } : void 0,
-        temperature: options.temperature ?? 0.7
+        temperature: options.temperature ?? 0.7,
+        max_tokens: options.maxTokens ?? 16e3
       });
       const text = response.choices[0]?.message?.content?.trim();
       if (!text) {
@@ -39672,8 +39726,28 @@ var OpenAIProvider = class {
   }
   async mapEditalZion(editalText) {
     const prompt = buildZionEditalExtractionPrompt(editalText);
-    const raw2 = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.2 }));
+    const raw2 = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.1, maxTokens: 16e3 }));
     const parsed = this.parseJson(raw2, "extra\xE7\xE3o de edital");
+    if (parsed && Array.isArray(parsed.subjects)) {
+      parsed.subjects.forEach((subject) => {
+        if (subject && Array.isArray(subject.topics)) {
+          subject.topics.forEach((topic) => {
+            if (topic && Array.isArray(topic.subtopics)) {
+              topic.subtopics = topic.subtopics.map((s) => {
+                if (typeof s === "string") return s;
+                if (s && typeof s === "object") {
+                  const record = s;
+                  return String(
+                    record.name || record.title || Object.values(record).filter((v) => typeof v === "string").join(" - ") || JSON.stringify(s)
+                  );
+                }
+                return String(s);
+              });
+            }
+          });
+        }
+      });
+    }
     return parsed;
   }
   async analyzeProbabilitiesZion(topicsTree, banca) {
@@ -64510,20 +64584,24 @@ var StudyScheduleService = class {
     return Object.keys(result).length > 0 ? result : null;
   }
   async fetchEditalProbabilities(userId) {
-    const latest = await prisma.editalMap.findFirst({
-      where: {
-        userId,
-        probabilityAnalysis: { not: Prisma.DbNull }
-      },
-      orderBy: { createdAt: "desc" }
+    const editais = await prisma.editalMap.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 5
     });
-    if (latest && latest.probabilityAnalysis) {
-      const raw2 = latest.probabilityAnalysis;
-      const result = {};
-      Object.keys(raw2).forEach((key) => {
-        result[key] = raw2[key]?.probability || "media";
-      });
-      return result;
+    for (const edital of editais) {
+      if (edital.probabilityAnalysis && typeof edital.probabilityAnalysis === "object") {
+        const raw2 = edital.probabilityAnalysis;
+        const result = {};
+        for (const [key, val] of Object.entries(raw2)) {
+          if (val && typeof val === "object" && val.probability) {
+            result[key] = val.probability;
+          }
+        }
+        if (Object.keys(result).length > 0) {
+          return result;
+        }
+      }
     }
     return null;
   }
@@ -64651,11 +64729,23 @@ var StudyScheduleService = class {
     }
     const baseWeekTemplate = aiResult.weeks[0];
     const fullWeeks = this.expandWeekTemplate(baseWeekTemplate, dto.examDate, dto.dailyHours);
+    const derivedSubjects = [...dto.subjects];
+    if (derivedSubjects.length === 0 && baseWeekTemplate?.days) {
+      const set = /* @__PURE__ */ new Set();
+      for (const d of baseWeekTemplate.days) {
+        for (const b of d.blocks || []) {
+          if (b.subject && b.subject !== "Descanso" && b.subject !== "Simulado" && b.subject !== "Descanso/Simulado" && b.subject !== "Estudo Livre") {
+            set.add(b.subject);
+          }
+        }
+      }
+      derivedSubjects.push(...Array.from(set));
+    }
     const scheduleData = {
       userId,
       examDate: dto.examDate,
       dailyHours: dto.dailyHours,
-      subjects: dto.subjects,
+      subjects: derivedSubjects,
       schedule: { weeks: fullWeeks },
       hasPerformanceData: performanceData !== null
     };

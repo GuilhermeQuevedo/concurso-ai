@@ -907,7 +907,7 @@ ${input.banca ? `- Banca Informada: ${input.banca}` : '- Banca: Não Informada'}
 
 ${
   hasEditalFile
-    ? `[CONTEÚDO PROGRAMÁTICO DO EDITAL]\n${extractRelevantEditalContent(input.editalFileText!, 60000)}\n\n${
+    ? `[CONTEÚDO PROGRAMÁTICO DO EDITAL]\n${extractRelevantEditalContent(input.editalFileText ?? '', 60000)}\n\n${
         input.subjects.length > 0 ? `[MATÉRIAS INFORMADAS PELO USUÁRIO]\n${input.subjects.join(', ')}` : ''
       }`
     : `[LISTA DE MATÉRIAS GERAIS]\n${input.subjects.join(', ')}`
