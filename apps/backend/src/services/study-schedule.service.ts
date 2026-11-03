@@ -65,21 +65,25 @@ export class StudyScheduleService {
   }
 
   private async fetchEditalProbabilities(userId: string): Promise<Record<string, string> | null> {
-    const latest = await prisma.editalMap.findFirst({
-      where: {
-        userId,
-        probabilityAnalysis: { not: Prisma.DbNull },
-      },
+    const editais = await prisma.editalMap.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
+      take: 5,
     });
 
-    if (latest && latest.probabilityAnalysis) {
-      const raw = latest.probabilityAnalysis as Record<string, { probability?: string }>;
-      const result: Record<string, string> = {};
-      Object.keys(raw).forEach((key) => {
-        result[key] = raw[key]?.probability || 'media';
-      });
-      return result;
+    for (const edital of editais) {
+      if (edital.probabilityAnalysis && typeof edital.probabilityAnalysis === 'object') {
+        const raw = edital.probabilityAnalysis as Record<string, { probability?: string }>;
+        const result: Record<string, string> = {};
+        for (const [key, val] of Object.entries(raw)) {
+          if (val && typeof val === 'object' && val.probability) {
+            result[key] = val.probability;
+          }
+        }
+        if (Object.keys(result).length > 0) {
+          return result;
+        }
+      }
     }
     return null;
   }
@@ -241,11 +245,30 @@ export class StudyScheduleService {
     const baseWeekTemplate = aiResult.weeks[0];
     const fullWeeks = this.expandWeekTemplate(baseWeekTemplate, dto.examDate, dto.dailyHours);
 
+    const derivedSubjects: string[] = [...dto.subjects];
+    if (derivedSubjects.length === 0 && baseWeekTemplate?.days) {
+      const set = new Set<string>();
+      for (const d of baseWeekTemplate.days) {
+        for (const b of d.blocks || []) {
+          if (
+            b.subject &&
+            b.subject !== 'Descanso' &&
+            b.subject !== 'Simulado' &&
+            b.subject !== 'Descanso/Simulado' &&
+            b.subject !== 'Estudo Livre'
+          ) {
+            set.add(b.subject);
+          }
+        }
+      }
+      derivedSubjects.push(...Array.from(set));
+    }
+
     const scheduleData = {
       userId,
       examDate: dto.examDate,
       dailyHours: dto.dailyHours,
-      subjects: dto.subjects as unknown as Prisma.InputJsonValue,
+      subjects: derivedSubjects as unknown as Prisma.InputJsonValue,
       schedule: { weeks: fullWeeks } as unknown as Prisma.InputJsonValue,
       hasPerformanceData: performanceData !== null,
     };

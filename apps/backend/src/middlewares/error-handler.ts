@@ -20,6 +20,7 @@ export function errorHandler(
   _next: NextFunction,
 ): void {
   if (err instanceof AppError) {
+    console.warn(`[AppError ${err.statusCode}] ${err.code}: ${err.message}`);
     res.status(err.statusCode).json({
       success: false,
       error: { message: err.message, code: err.code },
@@ -28,10 +29,12 @@ export function errorHandler(
   }
 
   if (err instanceof ZodError) {
+    const validationMessage = err.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
+    console.warn(`[ZodError 400] ${validationMessage}`);
     res.status(400).json({
       success: false,
       error: {
-        message: err.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        message: validationMessage,
         code: 'VALIDATION_ERROR',
       },
     });

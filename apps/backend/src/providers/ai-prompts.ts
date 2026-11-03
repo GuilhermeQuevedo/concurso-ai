@@ -731,31 +731,73 @@ export interface ZionEditalTree {
   }>;
 }
 
-export function buildZionEditalExtractionPrompt(editalText: string): string {
-  return `Você é um analista de editais de concursos públicos de alta precisão.
-Sua única responsabilidade é extrair a árvore hierárquica das matérias e tópicos exigidos de um extrato de edital.
+export function extractRelevantEditalContent(editalText: string, maxLen = 250000): string {
+  // Localiza o início formal do Conteúdo Programático / Objetos de Avaliação
+  const specificRegex = /(\b\d+\s*[-–—.]?\s*(?:dos\s+objetos\s+de\s+avalia[çc][ãa]o|do\s+conte[úu]do\s+program[áa]tico|dos\s+conte[úu]dos\s+program[áa]ticos)|anexo\s+[ivx0-9]+\s*[-–—:]\s*(?:conte[úu]do\s+program[áa]tico|objetos?\s+de\s+avalia[çc][ãa]o|programa)|conte[úu]do\s+program[áa]tico)/i;
+  const match = specificRegex.exec(editalText);
 
-Âncora anti-alucinação OBRIGATÓRIA:
-Extraia apenas o que está literalmente descrito no texto fornecido. NUNCA adicione tópicos por conhecimento externo, inferência ou experiência com editais parecidos. Se um tópico estiver ambíguo, extraia-o exatamente como escrito no documento original.
+  if (match && match.index > 3000) {
+    const header = editalText.slice(0, 5000);
+    const body = editalText.slice(match.index);
+    if (body.length > maxLen - 6000) {
+      return `[CABEÇALHO DO EDITAL]\n${header}\n\n[CONTEÚDO PROGRAMÁTICO COMPLETO (OBJETOS DE AVALIAÇÃO)]\n${body.slice(0, maxLen - 6000)}`;
+    }
+    return `[CABEÇALHO DO EDITAL]\n${header}\n\n[CONTEÚDO PROGRAMÁTICO COMPLETO (OBJETOS DE AVALIAÇÃO)]\n${body}`;
+  }
+
+  if (editalText.length <= maxLen) {
+    return editalText;
+  }
+
+  // Fallback: se não achar pelo regex específico, pega início e final onde normalmente estão os anexos
+  const half = Math.floor(maxLen / 2);
+  const head = editalText.slice(0, half);
+  const tail = editalText.slice(-half);
+  return `${head}\n\n[... texto intermediário omitido ...]\n\n${tail}`;
+}
+
+export function buildZionEditalExtractionPrompt(editalText: string): string {
+  const relevantText = extractRelevantEditalContent(editalText, 250000);
+
+  return `Você é um analista sênior de editais de concursos públicos de máxima precisão.
+Sua missão é extrair a árvore hierárquica COMPLETA e EXAUSTIVA de TODAS as matérias, especialidades e tópicos do edital, SEM EXCEÇÃO.
+
+REGRAS OBRIGATÓRIAS DE EXAUSTIVIDADE (SEM EXCEÇÃO):
+1. EXTRAÇÃO DE TODAS AS MATÉRIAS E ESPECIALIDADES:
+   - Extraia TODAS as matérias de conhecimentos gerais (ex: Língua Portuguesa, Legislação, Raciocínio Lógico, Informática, Primeiros Socorros, etc.).
+   - Se o edital contiver conhecimentos específicos comuns e conhecimentos por especialidade (como TDAS - Agente Social, TDAS - Cuidador Social, TDAS - Técnico Administrativo, EDAS - Administração, EDAS - Ciências Contábeis, EDAS - Comunicação Social, EDAS - Direito, EDAS - Economia, EDAS - Educador Social, EDAS - Estatística, EDAS - Nutrição, EDAS - Pedagogia, EDAS - Psicologia, EDAS - Serviço Social, EDAS - Sociologia, etc.):
+   - CADA UMA dessas especialidades DEVE SER OBRIGATORIAMENTE UMA ENTRADA INDIVIDUAL em "subjects", contendo todos os seus tópicos próprios.
+   - É ESTRITAMENTE PROIBIDO criar um tópico chamado "Conhecimentos Específicos por Especialidade" ou agrupar os nomes das especialidades em subtópicos. As especialidades NÃO são subtópicos, elas são MATÉRIAS (subjects) e cada uma tem seus próprios tópicos numerados no edital.
+   - Se o edital contiver 10, 15 ou 20 cargos/especialidades no conteúdo programático, a lista "subjects" DEVE conter todos os 10, 15 ou 20 itens correspondentes.
+2. ESTRUTURA DE TÓPICOS E SUBTÓPICOS:
+   - Para cada matéria/especialidade em "subjects", cada grande tema programático (ex: itens numerados 1, 2, 3...) é um item em "topics".
+   - Os detalhamentos (itens 1.1, 1.2, ou desdobramentos de conteúdo) são a lista de strings em "subtopics".
+   - "subtopics" DEVE ser OBRIGATORIAMENTE um array de strings puras, NUNCA objetos.
+3. ÂNCORA ANTI-ALUCINAÇÃO:
+   - Extraia rigorosamente apenas o que está no texto fornecido, sem adicionar ou inventar itens externos, preservando os termos exatos do edital.
 
 Você deve responder APENAS com um JSON estrito seguindo este formato:
 {
   "banca": "string",
   "cargo": "string",
-  "subjects": [{
-    "name": "string",
-    "weight": "alta|media|baixa",
-    "topics": [{
-      "name": "string",
-      "subtopics": ["string"]
-    }]
-  }]
+  "subjects": [
+    {
+      "name": "Nome da Matéria / Especialidade",
+      "weight": "alta|media|baixa",
+      "topics": [
+        {
+          "name": "Nome do Tópico",
+          "subtopics": ["Subtópico 1", "Subtópico 2"]
+        }
+      ]
+    }
+  ]
 }
-Se for impossível identificar a banca ou cargo, retorne "Não identificada". O peso ("weight") deve ser inferido com base na quantidade de tópicos ou menções de importância, ou use "media".
+Se for impossível identificar a banca ou cargo, retorne "Não identificada" ou "Diversos". O peso ("weight") deve ser inferido com base na quantidade de tópicos ou relevância no edital ("alta", "media" ou "baixa").
 
 Texto extraído do edital:
 
-${editalText.substring(0, 30000)}`;
+${relevantText}`;
 }
 
 export function buildZionProbabilityPrompt(topicsTree: ZionEditalTree, banca: string): string {
@@ -865,7 +907,9 @@ ${input.banca ? `- Banca Informada: ${input.banca}` : '- Banca: Não Informada'}
 
 ${
   hasEditalFile
-    ? `[TEXTO EXTRAÍDO DO EDITAL]\n${input.editalFileText?.substring(0, 5000)}...`
+    ? `[CONTEÚDO PROGRAMÁTICO DO EDITAL]\n${extractRelevantEditalContent(input.editalFileText!, 60000)}\n\n${
+        input.subjects.length > 0 ? `[MATÉRIAS INFORMADAS PELO USUÁRIO]\n${input.subjects.join(', ')}` : ''
+      }`
     : `[LISTA DE MATÉRIAS GERAIS]\n${input.subjects.join(', ')}`
 }
 

@@ -17,6 +17,7 @@ import type {
   ZionEditalTree,
   ZionProbabilityItem,
   ZionScheduleWeek,
+  ZionScheduleDay,
   ZionSchedulePromptParams,
   QuestionType,
   ErrorRemediationFlashcard,

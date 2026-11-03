@@ -75,7 +75,7 @@ export class OpenAIProvider implements IAIProvider {
   ) {
     this.client = new OpenAI({ apiKey });
     this.circuitBreaker = new CircuitBreaker('openai-provider', { failureThreshold: 3, timeoutMs: 30000 });
-    this.queue = new ConcurrencyQueue({ maxConcurrent: 4, timeoutMs: 60000 });
+    this.queue = new ConcurrencyQueue({ maxConcurrent: 4, timeoutMs: 180000 });
     this.retryStrategy = new RetryStrategy({ maxAttempts: 3, initialDelayMs: 1500 });
   }
 
@@ -273,7 +273,7 @@ export class OpenAIProvider implements IAIProvider {
 
   private async callChat(
     prompt: string,
-    options: { json?: boolean; filePath?: string; mimeType?: string; temperature?: number } = {},
+    options: { json?: boolean; filePath?: string; mimeType?: string; temperature?: number; maxTokens?: number } = {},
   ): Promise<string> {
     try {
       const content = this.buildUserMessageContent(prompt, options.filePath, options.mimeType);
@@ -288,6 +288,7 @@ export class OpenAIProvider implements IAIProvider {
         ],
         response_format: options.json ? { type: 'json_object' } : undefined,
         temperature: options.temperature ?? 0.7,
+        max_tokens: options.maxTokens ?? 16000,
       });
 
       const text = response.choices[0]?.message?.content?.trim();
@@ -304,9 +305,34 @@ export class OpenAIProvider implements IAIProvider {
   }
   async mapEditalZion(editalText: string): Promise<ZionEditalTree> {
     const prompt = buildZionEditalExtractionPrompt(editalText);
-    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.2 }));
-    const parsed = this.parseJson(raw, 'extração de edital');
-    return parsed as ZionEditalTree;
+    const raw = await this.executeResilient(() => this.callChat(prompt, { json: true, temperature: 0.1, maxTokens: 16000 }));
+    const parsed = this.parseJson(raw, 'extração de edital') as ZionEditalTree;
+    if (parsed && Array.isArray(parsed.subjects)) {
+      parsed.subjects.forEach((subject) => {
+        if (subject && Array.isArray(subject.topics)) {
+          subject.topics.forEach((topic) => {
+            if (topic && Array.isArray(topic.subtopics)) {
+              topic.subtopics = topic.subtopics.map((s: unknown) => {
+                if (typeof s === 'string') return s;
+                if (s && typeof s === 'object') {
+                  const record = s as Record<string, unknown>;
+                  return String(
+                    record.name ||
+                      record.title ||
+                      Object.values(record)
+                        .filter((v) => typeof v === 'string')
+                        .join(' - ') ||
+                      JSON.stringify(s)
+                  );
+                }
+                return String(s);
+              });
+            }
+          });
+        }
+      });
+    }
+    return parsed;
   }
 
   async analyzeProbabilitiesZion(topicsTree: ZionEditalTree, banca: string): Promise<ZionProbabilityItem[]> {

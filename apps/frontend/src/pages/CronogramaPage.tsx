@@ -506,7 +506,7 @@ export const CronogramaPage: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => void handleGenerate(false)}
+                  onClick={() => void handleGenerate(true)}
                   disabled={loading || !examDate}
                   className="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md cursor-pointer"
                 >

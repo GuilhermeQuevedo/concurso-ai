@@ -3,9 +3,6 @@ import type { ApiResponse } from '@concurso-ai/types';
 
 export const api = axios.create({
   baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 export function unwrapData<T>(response: { data: ApiResponse<T> }): T {
@@ -72,6 +69,11 @@ api.interceptors.response.use(
           window.location.href = '/login';
         }
       }
+    }
+
+    const backendMessage = error.response?.data?.error?.message;
+    if (backendMessage && typeof backendMessage === 'string') {
+      error.message = backendMessage;
     }
 
     return Promise.reject(error);

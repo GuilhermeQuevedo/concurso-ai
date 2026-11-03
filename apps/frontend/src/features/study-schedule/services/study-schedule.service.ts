@@ -25,9 +25,8 @@ export const studyScheduleService = {
       formData.append('forceRefresh', String(Boolean(params.forceRefresh)));
       formData.append('saveToDb', String(Boolean(params.saveToDb)));
 
-      const res = await api.post('/study-schedules/generate', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      // Do NOT set Content-Type header manually; browser will set multipart/form-data with proper boundary
+      const res = await api.post('/study-schedules/generate', formData);
       return unwrapData(res);
     }
 

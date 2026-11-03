@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import type { EditalTree, TopicCoverage, TopicProbability, EditalSubject, EditalTopic } from '../types';
-import { ChevronDown, ChevronRight, CheckCircle2, CircleDashed, AlertTriangle, BrainCircuit, Info, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle2, CircleDashed, AlertTriangle, BrainCircuit, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PriorityPopover } from './PriorityPopover';
-import { useNavigate } from 'react-router';
 
 interface TopicTreeViewerProps {
   tree: EditalTree;
@@ -20,14 +19,43 @@ export const TopicTreeViewer: React.FC<TopicTreeViewerProps> = ({
   filterUncoveredOnly,
   onAnalyzeProbabilities,
 }) => {
+  const [forceOpen, setForceOpen] = useState<boolean | null>(null);
+
   const getCoverageData = (subject: string, topic: string) =>
     coverageMap ? coverageMap[`${subject}_${topic}`] : undefined;
 
   const getProbabilityData = (subject: string, topic: string) =>
     probabilityMap ? probabilityMap[`${subject}_${topic}`] : undefined;
 
+  const subjectsCount = tree?.subjects?.length || 0;
+
   return (
     <div className="space-y-4">
+      {subjectsCount > 1 && (
+        <div className="flex items-center justify-between text-xs text-muted-foreground px-1 pb-1">
+          <span>
+            Exibindo <strong className="text-foreground">{subjectsCount}</strong> matérias e especialidades
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setForceOpen(true)}
+              className="hover:text-primary transition-colors cursor-pointer font-medium"
+            >
+              Expandir todas
+            </button>
+            <span className="text-border">|</span>
+            <button
+              type="button"
+              onClick={() => setForceOpen(false)}
+              className="hover:text-primary transition-colors cursor-pointer font-medium"
+            >
+              Recolher todas
+            </button>
+          </div>
+        </div>
+      )}
+
       {tree?.subjects &&
         Array.isArray(tree.subjects) &&
         tree.subjects.map((subject, idx) => (
@@ -39,6 +67,7 @@ export const TopicTreeViewer: React.FC<TopicTreeViewerProps> = ({
             probabilityMap={probabilityMap}
             filterUncoveredOnly={filterUncoveredOnly}
             onAnalyzeProbabilities={onAnalyzeProbabilities}
+            forceOpen={forceOpen}
           />
         ))}
     </div>
@@ -52,6 +81,7 @@ interface SubjectNodeProps {
   probabilityMap?: Record<string, TopicProbability>;
   filterUncoveredOnly: boolean;
   onAnalyzeProbabilities?: () => void;
+  forceOpen?: boolean | null;
 }
 
 const SubjectNode: React.FC<SubjectNodeProps> = ({
@@ -61,8 +91,15 @@ const SubjectNode: React.FC<SubjectNodeProps> = ({
   probabilityMap,
   filterUncoveredOnly,
   onAnalyzeProbabilities,
+  forceOpen,
 }) => {
   const [isOpen, setIsOpen] = useState(true);
+
+  React.useEffect(() => {
+    if (forceOpen !== null && forceOpen !== undefined) {
+      setIsOpen(forceOpen);
+    }
+  }, [forceOpen]);
 
   const topicsArray = Array.isArray(subject?.topics) ? subject.topics : [];
   const visibleTopics = topicsArray.filter((topic: EditalTopic) => {
@@ -80,7 +117,7 @@ const SubjectNode: React.FC<SubjectNodeProps> = ({
   const subjectBadgeNode = (
     <div
       className={cn(
-        'flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-sm uppercase tracking-wide cursor-pointer hover:opacity-80 transition-all border',
+        'flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded uppercase tracking-wide cursor-pointer hover:opacity-80 transition-opacity border',
         subject.weight === 'alta' && 'bg-red-500/10 border-red-500/30 text-red-500',
         subject.weight === 'media' && 'bg-amber-500/10 border-amber-500/30 text-amber-500',
         subject.weight === 'baixa' && 'bg-blue-500/10 border-blue-500/30 text-blue-400'
@@ -95,13 +132,13 @@ const SubjectNode: React.FC<SubjectNodeProps> = ({
   if (visibleTopics.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border/80 bg-card/60 shadow-sm overflow-hidden transition-all duration-300">
+    <div className="rounded-xl border border-border/80 bg-card/60 shadow-sm transition-all duration-300">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-muted/40 transition-colors text-left outline-none cursor-pointer',
-          isOpen && 'border-b border-border/50'
+          'w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors outline-none cursor-pointer',
+          isOpen ? 'rounded-t-xl border-b border-border/50' : 'rounded-xl'
         )}
       >
         <div className="flex items-center gap-3">
@@ -110,10 +147,9 @@ const SubjectNode: React.FC<SubjectNodeProps> = ({
           ) : (
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           )}
-          <h3 className="font-display font-medium text-base sm:text-lg text-foreground">
+          <h3 className="font-display font-medium text-lg text-foreground text-left">
             {subject.name}
           </h3>
-          <span className="text-xs text-muted-foreground">({visibleTopics.length} tópicos)</span>
         </div>
 
         <PriorityPopover
@@ -121,6 +157,7 @@ const SubjectNode: React.FC<SubjectNodeProps> = ({
           badgeNode={subjectBadgeNode}
           justification={justification}
           hasAnalysisRan={hasAnalysisRan}
+          align="right"
           onAnalyzeProbabilities={onAnalyzeProbabilities}
         >
           {({ onClick }) => <div onClick={onClick}>{subjectBadgeNode}</div>}
@@ -128,7 +165,7 @@ const SubjectNode: React.FC<SubjectNodeProps> = ({
       </button>
 
       {isOpen && (
-        <div className="divide-y divide-border/40">
+        <div className="divide-y divide-border/50">
           {visibleTopics.map((topic: EditalTopic, idx: number) => (
             <TopicNode
               key={idx}
@@ -164,25 +201,20 @@ const TopicNode: React.FC<TopicNodeProps> = ({
   probability,
   probabilityMap,
   onAnalyzeProbabilities,
+  isLast,
 }) => {
-  const navigate = useNavigate();
-
   let StatusIcon = CircleDashed;
-  let statusText = 'Não coberto';
-  let statusBadgeClass = 'text-amber-500 bg-amber-500/10 border-amber-500/30';
+  let statusColor = 'text-muted-foreground';
 
   if (coverage?.status === 'covered') {
     StatusIcon = CheckCircle2;
-    statusText = 'Coberto';
-    statusBadgeClass = 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
+    statusColor = 'text-emerald-500';
+  } else if (coverage?.status === 'uncovered') {
+    StatusIcon = AlertTriangle;
+    statusColor = 'text-amber-500';
   } else if (coverage?.status === 'partial') {
     StatusIcon = CircleDashed;
-    statusText = 'Parcial';
-    statusBadgeClass = 'text-blue-400 bg-blue-500/10 border-blue-500/30';
-  } else {
-    StatusIcon = AlertTriangle;
-    statusText = 'Não coberto';
-    statusBadgeClass = 'text-red-400 bg-red-500/10 border-red-500/30';
+    statusColor = 'text-blue-400';
   }
 
   const hasAnalysisRan = probabilityMap !== undefined;
@@ -192,80 +224,82 @@ const TopicNode: React.FC<TopicNodeProps> = ({
   const topicBadgeNode = probability ? (
     <div
       className={cn(
-        'flex items-center gap-1.5 text-[11px] font-medium border px-2 py-0.5 rounded cursor-pointer hover:opacity-80 transition-opacity',
+        'flex items-center gap-1.5 text-xs font-medium border px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity',
         probability.probability === 'alta'
           ? 'bg-red-500/10 border-red-500/20 text-red-400'
           : probability.probability === 'media'
-          ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+          ? 'bg-muted border-border text-muted-foreground'
           : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
       )}
-      title="Clique para ver a justificativa histórica"
+      title="Clique para ver a justificativa"
     >
+      <Info className="w-3 h-3" />
       <BrainCircuit className="w-3.5 h-3.5" />
       Probabilidade {probability.probability.toUpperCase()}
     </div>
   ) : (
     <div
-      className="flex items-center gap-1.5 text-[11px] font-medium border border-border px-2 py-0.5 rounded cursor-pointer hover:opacity-80 transition-opacity bg-secondary/50 text-muted-foreground"
+      className="flex items-center gap-1.5 text-xs font-medium border px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity bg-secondary/60 border-border text-muted-foreground"
       title="Clique para ver a justificativa"
     >
+      <Info className="w-3 h-3" />
       <BrainCircuit className="w-3.5 h-3.5" />
       Probabilidade -
     </div>
   );
 
   return (
-    <div className="p-4 pl-8 sm:pl-12 flex flex-col md:flex-row md:items-start justify-between gap-4 bg-background/50 hover:bg-secondary/15 transition-all duration-150">
-      <div className="space-y-1.5 flex-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={cn('flex items-center gap-1 text-[11px] font-semibold border px-2 py-0.5 rounded-sm', statusBadgeClass)}>
-            <StatusIcon className="w-3.5 h-3.5" />
-            {statusText}
-          </span>
-          <h4 className="font-medium text-sm text-foreground">{topic.name}</h4>
+    <div
+      className={cn(
+        'p-4 pl-8 sm:pl-12 flex flex-col md:flex-row md:items-start justify-between gap-4 bg-background hover:bg-secondary/10 transition-all duration-150',
+        isLast && 'rounded-b-xl'
+      )}
+    >
+      <div className="flex-1 space-y-1">
+        <div className="flex items-start gap-3">
+          <StatusIcon className={cn('w-5 h-5 mt-0.5 shrink-0', statusColor)} />
+          <div>
+            <h4 className="font-medium text-foreground text-sm sm:text-base">{topic?.name}</h4>
+            {topic?.subtopics && Array.isArray(topic.subtopics) && topic.subtopics.length > 0 && (
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                {topic.subtopics
+                  .map((sub: unknown) => {
+                    if (typeof sub === 'string') return sub;
+                    if (sub && typeof sub === 'object') {
+                      const record = sub as Record<string, unknown>;
+                      return String(
+                        record.name ||
+                          record.title ||
+                          Object.values(record)
+                            .filter((v) => typeof v === 'string')
+                            .join(' - ') ||
+                          JSON.stringify(sub)
+                      );
+                    }
+                    return String(sub);
+                  })
+                  .join(', ')}
+              </p>
+            )}
+          </div>
         </div>
 
-        {topic.subtopics && topic.subtopics.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1 pl-2">
-            {topic.subtopics.map((sub, sIdx) => (
-              <span
-                key={sIdx}
-                className="text-[11px] text-muted-foreground bg-secondary/60 px-2 py-0.5 rounded border border-border/40"
-              >
-                {sub}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2 self-start md:self-center shrink-0">
-        <PriorityPopover
-          title={`Tópico: ${topic.name}`}
-          badgeNode={topicBadgeNode}
-          justification={justification}
-          hasAnalysisRan={hasAnalysisRan}
-          onAnalyzeProbabilities={onAnalyzeProbabilities}
-        >
-          {({ onClick }) => <div onClick={onClick}>{topicBadgeNode}</div>}
-        </PriorityPopover>
-
-        <button
-          type="button"
-          onClick={() => {
-            navigate('/flashcards', {
-              state: {
-                initialSubject: subjectName,
-                initialTopic: topic.name,
-              },
-            });
-          }}
-          className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
-          title="Estudar este tópico nos Flashcards"
-        >
-          <Sparkles className="w-3 h-3" />
-          Estudar
-        </button>
+        <div className="pl-8 pt-2 relative">
+          <PriorityPopover
+            title={`Tópico: ${topic.name}`}
+            badgeNode={topicBadgeNode}
+            justification={justification}
+            hasAnalysisRan={hasAnalysisRan}
+            align="left"
+            onAnalyzeProbabilities={onAnalyzeProbabilities}
+          >
+            {({ onClick }) => (
+              <div onClick={onClick} className="cursor-pointer inline-block">
+                {topicBadgeNode}
+              </div>
+            )}
+          </PriorityPopover>
+        </div>
       </div>
     </div>
   );

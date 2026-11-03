@@ -12,11 +12,8 @@ export const editalMapService = {
     formData.append('editalName', editalName);
     formData.append('saveToDb', String(saveToDb));
 
-    const res = await api.post('/edital-maps/map', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    // Do NOT set Content-Type header manually; browser will set multipart/form-data with proper boundary
+    const res = await api.post('/edital-maps/map', formData);
     return unwrapData(res);
   },
 

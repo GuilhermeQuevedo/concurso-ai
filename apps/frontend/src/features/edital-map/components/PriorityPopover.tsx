@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Play } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PriorityPopoverProps {
   title: string;
   badgeNode: React.ReactNode;
   justification: string | null;
   hasAnalysisRan: boolean;
+  align?: 'left' | 'right';
   onAnalyzeProbabilities?: () => void;
   children: (props: { onClick: (e: React.MouseEvent) => void }) => React.ReactNode;
 }
@@ -15,6 +17,7 @@ export const PriorityPopover = ({
   badgeNode,
   justification,
   hasAnalysisRan,
+  align = 'left',
   onAnalyzeProbabilities,
   children,
 }: PriorityPopoverProps) => {
@@ -49,10 +52,13 @@ export const PriorityPopover = ({
 
       {isOpen && (
         <div
-          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 sm:w-80 
-                     bg-card/95 backdrop-blur-xl border border-border 
-                     shadow-2xl rounded-xl p-4 
-                     animate-in fade-in slide-in-from-bottom-2 duration-200"
+          className={cn(
+            'absolute z-50 top-full mt-2 w-72 sm:w-80',
+            align === 'right' ? 'right-0' : 'left-0',
+            'bg-card/95 backdrop-blur-xl border border-border/80',
+            'shadow-2xl rounded-xl p-4',
+            'animate-in fade-in slide-in-from-top-2 duration-200'
+          )}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-start mb-3 gap-2">
@@ -60,11 +66,12 @@ export const PriorityPopover = ({
               {title}
             </h4>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsOpen(false);
               }}
-              className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1 -mr-1 -mt-1 rounded-full hover:bg-secondary/50"
+              className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1 -mr-1 -mt-1 rounded-full hover:bg-secondary/50 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -82,12 +89,13 @@ export const PriorityPopover = ({
                 </p>
                 {onAnalyzeProbabilities && (
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsOpen(false);
                       onAnalyzeProbabilities();
                     }}
-                    className="flex w-full items-center justify-center gap-2 h-9 px-3 rounded-md bg-accent text-accent-foreground font-medium hover:bg-accent/90 transition-colors text-xs"
+                    className="flex w-full items-center justify-center gap-2 h-9 px-3 rounded-md bg-accent text-accent-foreground font-medium hover:bg-accent/90 transition-colors text-xs cursor-pointer"
                   >
                     <Play className="w-3.5 h-3.5" /> Executar Análise
                   </button>
