@@ -12,7 +12,6 @@ import {
   TargetIcon,
   CronogramaIcon,
   LayersIcon,
-  MapaEditalIcon,
   AwardIcon,
   MedalIcon,
   ShieldIcon,
@@ -66,7 +65,6 @@ const navGroups: NavGroup[] = [
       { path: '/contests', label: 'Minhas Provas', icon: TargetIcon },
       { path: '/calendar', label: 'Calendário', icon: ClockIcon },
       { path: '/cronograma', label: 'Cronograma', icon: CronogramaIcon },
-      { path: '/mapa', label: 'Mapa do Edital', icon: MapaEditalIcon },
     ],
   },
   {
@@ -146,7 +144,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   // Abre automaticamente o grupo ativo quando a rota mudar
   useEffect(() => {
-    const activeGroup = navGroups.find((g) => g.items.some((i) => i.path === location.pathname || (i.path === '/cronograma' && location.pathname === '/study-plan') || (i.path === '/mapa' && location.pathname === '/board')));
+    const activeGroup = navGroups.find((g) => g.items.some((i) => i.path === location.pathname || (i.path === '/cronograma' && location.pathname === '/study-plan')));
     if (activeGroup && !expanded.includes(activeGroup.key)) {
       setExpanded((prev) => {
         const next = [...prev, activeGroup.key];
@@ -170,7 +168,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   };
 
   const renderItem = (item: NavItem, indent = false) => {
-    const isActive = location.pathname === item.path || (item.path === '/cronograma' && location.pathname === '/study-plan') || (item.path === '/mapa' && location.pathname === '/board');
+    const isActive = location.pathname === item.path || (item.path === '/cronograma' && location.pathname === '/study-plan');
     const IconComp = item.icon;
 
     return (
@@ -252,7 +250,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           {/* Grupos Expansíveis (Acordeão como estava antes) */}
           {navGroups.map((group) => {
             const isOpen = expanded.includes(group.key) || tourActive;
-            const hasActive = group.items.some((i) => i.path === location.pathname || (i.path === '/cronograma' && location.pathname === '/study-plan') || (i.path === '/mapa' && location.pathname === '/board'));
+            const hasActive = group.items.some((i) => i.path === location.pathname || (i.path === '/cronograma' && location.pathname === '/study-plan'));
             const GroupIcon = group.icon;
 
             return (

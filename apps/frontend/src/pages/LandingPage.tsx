@@ -107,9 +107,9 @@ const FEATURES_LIST = [
   },
   {
     icon: MapaEditalIcon,
-    title: 'Mapeamento de Tópicos e Fraquezas',
+    title: 'Progresso por Prova e Tópico',
     description:
-      'Quadro visual em tempo real mostrando onde você domina e quais matérias precisam de reforço imediato antes da prova.',
+      'Marque o que já estudou em cada prova e acompanhe, em tempo real, quanto falta e quais matérias precisam de reforço.',
   },
   {
     icon: AwardIcon,
