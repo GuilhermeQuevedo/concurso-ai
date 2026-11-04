@@ -21,6 +21,8 @@ import type {
   ZionSchedulePromptParams,
   QuestionType,
   ErrorRemediationFlashcard,
+  ExamSlicerParams,
+  SlicedQuestion,
 } from '../interfaces/ai.interfaces.js';
 
 function mockQuestion(
@@ -256,6 +258,24 @@ Resumo condensado com foco em retenção a partir do material enviado.
 
   async answerQuestions(params: AnswerQuestionsParams): Promise<string[]> {
     return params.questions.map(() => 'C');
+  }
+
+  async sliceExam(params: ExamSlicerParams): Promise<SlicedQuestion[]> {
+    const qty = params.quantity ?? 5;
+    const subject = params.subjectName || 'Geral';
+    return Array.from({ length: qty }, (_, i) => ({
+      statement: `[${subject}] Questão ${i + 1} da prova real: No que concerne aos princípios e normas aplicáveis, assinale a opção correta.`,
+      referenceText: i === 0 ? 'Texto-base da prova para resolução das questões subsequentes.' : null,
+      alternatives: [
+        { letter: 'A', text: 'Assertiva contendo generalização e erro de preceito legal.' },
+        { letter: 'B', text: 'Assertiva perfeitamente conforme ao entendimento pacífico e dispositivos normativos de regência.' },
+        { letter: 'C', text: 'Proposição com inversão de competências entre órgãos públicos.' },
+        { letter: 'D', text: 'Alternativa que contraria a jurisprudência sumulada.' },
+        { letter: 'E', text: 'Alternativa incorreta com prazo divergente do texto legal.' },
+      ],
+      correctAnswer: 'B',
+      explanation: `💡 **Gabarito e Síntese**: A alternativa **B** é a correta, pois reproduz fielmente a disciplina legal aplicável.\n\n📖 **Fundamentação & Fontes**:\n- Dispositivo de regência: CF/88, Art. 5º e legislação infraconstitucional correspondente.\n- Jurisprudência correlata: Súmula vinculante do STF e precedentes do STJ.\n\n🔍 **Análise dos Distratores**:\n- **A**: Incorreta pela generalização indevida.\n- **C**: Incorreta, pois a competência é originária e não delegável neste caso.\n- **D**: Incorreta por frontal violação à jurisprudência pacificada.\n- **E**: Incorreta, o prazo legal é de 15 dias e não de 30 dias.\n\n⚠️ **Dica do Especialista**: Atenção à troca sutil de prazos e competências recorrente na banca.`,
+    }));
   }
   async mapEditalZion(_editalText: string): Promise<ZionEditalTree> {
     return {

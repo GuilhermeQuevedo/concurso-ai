@@ -137,6 +137,7 @@ export interface ExamSlicerParams {
   examContent: string;
   answerKeyContent?: string;
   quantity?: number;
+  subjectName?: string;
 }
 
 export interface SlicedQuestion {

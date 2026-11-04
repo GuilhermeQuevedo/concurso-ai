@@ -143,59 +143,152 @@ export function sampleContent(content: string, maxChars: number, windows = 5): s
   return parts.join('\n\n[... trecho omitido ...]\n\n');
 }
 
-const QUESTIONS_MAX_CONTEXT = 14000;
+const QUESTIONS_MAX_CONTEXT = 40000;
 const ALT_LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
 
-function getBancaGuidance(examBoard?: string): string {
-  if (!examBoard) return '';
+export function getSmartChunks(text: string, numChunks: number, maxChunkChars = 35000): string[] {
+  if (numChunks <= 1 || text.length <= maxChunkChars) {
+    return [text.slice(0, maxChunkChars)];
+  }
+
+  const paragraphs = text.split(/\n\n+/);
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const para of paragraphs) {
+    if (currentChunk.length + para.length > maxChunkChars && currentChunk.length > 0) {
+      chunks.push(currentChunk.trim());
+      currentChunk = '';
+    }
+    currentChunk += para + '\n\n';
+  }
+
+  if (currentChunk.trim().length > 0) {
+    chunks.push(currentChunk.trim());
+  }
+
+  return chunks;
+}
+
+export function getBancaGuidance(examBoard?: string): string {
+  if (!examBoard || examBoard.trim() === '') {
+    return `ESTILO PADRÃO: Crie questões claras e objetivas, testando a compreensão e aplicação do conceito sem ambiguidades extremas. Evite pegadinhas injustas, foque no aprendizado e retenção técnica de alto nível.`;
+  }
   const board = examBoard.trim().toUpperCase();
 
   if (board.includes('CESPE') || board.includes('CEBRASPE') || board.includes('QUADRIX')) {
     return `
 ESTILO CESPE/CEBRASPE/QUADRIX:
-- Para questões de Certo ou Errado: formule afirmações declarativas longas e assertivas.
-- Utilize pegadinhas clássicas: palavras restritivas ("apenas", "somente", "sempre", "nunca", "exclusivamente").
-- Empregue inversão conceitual sutil: troque "prescindível" por "imprescindível", "pode" por "deve", "vedado" por "permitido".
-- O candidato deve ser desafiado a detectar detalhes de doutrina e jurisprudência pacificada.`;
+- Para questões de Certo ou Errado: Crie afirmações declarativas assertivas para julgamento (Certo ou Errado). Misture conceitos de diferentes partes do texto/matéria.
+- Utilize "pegadinhas" clássicas de concurso: restrição (palavras como "apenas", "somente", "sempre", "nunca", "exclusivamente"), extrapolação (afirmar algo que o texto/lei não prevê) e inversão conceitual.
+- Troque sutilmente termos técnicos: "prescindível" por "imprescindível", "pode" por "deve", "vedado" por "permitido". A frase deve induzir ao erro por desatenção a um único termo sutil.
+- Informática pesa muito na Quadrix; Direito Constitucional e Administrativo com peso dobrado.
+
+EXEMPLO DE QUESTÃO NO ESTILO CESPE/CEBRASPE:
+Enunciado: "À luz da Constituição Federal, os ministros de Estado são julgados originariamente pelo Supremo Tribunal Federal nos crimes de responsabilidade, independentemente de conexão com o Presidente da República."
+Alternativas: [{"letter":"C","text":"Certo"},{"letter":"E","text":"Errado"}]
+correctAnswer: "E"
+explanation: "Errado. Conforme art. 102, I, 'c' da CF/88, compete ao STF processar e julgar Ministros de Estado nos crimes comuns e nos crimes de responsabilidade APENAS se houver conexão com os do Presidente da República. A afirmação generalizou indevidamente o julgamento de responsabilidade originário ao excluir o requisito de conexão."
+Por que é estilo CESPE: Utilizou detalhe restritivo doutrinário de conexão com o Presidente da República numa afirmação corrida e assertiva.`;
   }
 
   if (board.includes('FGV')) {
     return `
 ESTILO FGV (Fundação Getulio Vargas):
-- Crie enunciados no formato de "Casos Concretos" (situações hipotéticas ou historinhas com personagens fictícios aplicando a matéria).
-- Alternativas de A a E longas, muito plausíveis e gramaticalmente parecidas entre si.
-- Exija raciocínio jurídico/técnico aplicado e interpretação de texto, focando em EXCEÇÕES à regra geral.`;
+- Nível de complexidade altíssimo. Crie "casos concretos" (situações hipotéticas ou historinhas com personagens fictícios, ex: "João, servidor recém empossado...") onde o candidato precisa aplicar a teoria à prática.
+- As alternativas de A a E devem ser longas, extremamente plausíveis e parecidas entre si.
+- Exija interpretação de texto profunda, raciocínio lógico/jurídico aplicado e foco nas EXCEÇÕES à regra geral. Fuja da literalidade pura.
+- Raciocínio Lógico e Estatística com peso máximo; alto risco eliminatório.
+
+EXEMPLO DE QUESTÃO NO ESTILO FGV:
+Enunciado: "João, servidor recém empossado, no exercício da função e mediante uso abusivo de suas atribuições, constrangeu subordinado. Considerando o texto normativo adotado no órgão, João:"
+Alternativas: [
+  {"letter":"A","text":"Responderá por falta disciplinar, sendo imprescindível a instauração imediata de sindicância de rito sumário preparatório."},
+  {"letter":"B","text":"Não sofrerá sanções caso não haja dolo específico comprovado da intenção lesiva, respondendo apenas administrativamente de forma branda."},
+  {"letter":"C","text":"Sofrerá processo administrativo apuratório, garantindo-se contraditório apenas na fase de defesa."},
+  {"letter":"D","text":"Poderá vir a responder administrativamente, civilmente e penalmente, dada as esferas independentes, em face da materialidade do excesso exercido."},
+  {"letter":"E","text":"Terá a falta relevada pelo princípio da insignificância funcional adotada internamente pelo conselho ético."}
+]
+correctAnswer: "D"
+explanation: "A alternativa D está correta. Pelo princípio da independência das instâncias (art. 121 a 125 da Lei 8.112/90 e doutrina pacificada), as sanções civis, penais e administrativas poderão cumular-se, sendo independentes entre si. As demais alternativas criam falsos requisitos processuais ou atenuantes inexistentes."
+Por que é estilo FGV: O enunciado é caso prático simulado (fictício) e as alternativas parecem todas plausivelmente corretas, exigindo aplicação da teoria para achar a exata.`;
   }
 
   if (board.includes('FCC')) {
     return `
 ESTILO FCC (Fundação Carlos Chagas):
-- Foco cirúrgico na literalidade do texto legal ou técnico.
-- As alternativas incorretas devem conter alterações pontuais e sutis: troca de prazos (ex: 15 por 30 dias), conjunções ("e" por "ou", "salvo" por "inclusive") e conceitos procedimentais ("suspensão" por "interrupção").`;
+- Foco pesado na literalidade exata do texto/regra legal ou técnica, mas com maldades sutis.
+- O erro das alternativas incorretas consiste na alteração pontual de um único dado: prazos (de 15 para 30 dias), porcentagens, competências, conjunções ("e" por "ou", "salvo" por "inclusive") e conceitos processuais ("suspensão" por "interrupção").
+- Crie alternativas de A a E onde o erro de 4 delas está em uma única palavra cirurgicamente alterada em relação ao texto original.
+- Português eliminatório, literalidade de legislação sem elucubrações doutrinárias.
+
+EXEMPLO DE QUESTÃO NO ESTILO FCC:
+Enunciado: "Nos termos da legislação de regência, é correto afirmar sobre a suspensão e contagem de prazos:"
+Alternativas: [
+  {"letter":"A","text":"Suspende-se o curso do prazo a partir do primeiro dia útil e retorna a fluir do doze subsequente."},
+  {"letter":"B","text":"O prazo legal interrompe, exceto nas instâncias em dilação de urgência contínua."},
+  {"letter":"C","text":"O fluxo sofre suspensão no período de recesso formal de 20 de dezembro a 20 de janeiro, inclusive."},
+  {"letter":"D","text":"Fica vedada a prática de qualquer ato processual administrativo, sem exceção de urgência no período de 20 a 30 de janeiro."},
+  {"letter":"E","text":"Os prazos prescricionais ficam excluídos da suspensão geral, salvo em decisão fundamentada em sigilo."}
+]
+correctAnswer: "C"
+explanation: "A alternativa C é a literalidade correta (ex: art. 220 do CPC). As alternativas A, B, D e E alteram cirurgicamente prazos, trocam suspensão por interrupção ou criam vedações absolutas inexistentes."
+Por que é estilo FCC: Questão seca literal de uma regrinha técnica onde as alternativas erradas trocaram sutis elementos como 'suspensão' por 'interrupção' e datas.`;
   }
 
   if (board.includes('VUNESP')) {
     return `
 ESTILO VUNESP:
-- Situações contextualizadas simples do dia a dia da administração pública.
-- Alternativas diretas e enxutas testando aplicação literal de deveres funcionais, proibições e prazos.`;
+- Situações contextualizadas simples envolvendo o cotidiano administrativo da repartição (ex: um servidor público, uma rotina administrativa).
+- As alternativas de A a E são diretas e enxutas, testando a aplicação literal da regra, deveres, proibições e prazos.
+- É uma banca direta, menos interpretativa que a FGV, focada na retenção precisa e fidedigna da informação.
+- Foco regional, legislação municipal/estadual tem peso máximo.
+
+EXEMPLO DE QUESTÃO NO ESTILO VUNESP:
+Enunciado: "Ana Beatriz, servidora pública em exercício na repartição, precisou retirar autos físicos do setor por 3 dias sem prévia autorização da autoridade competente. De acordo com o estatuto funcional, Ana Beatriz:"
+Alternativas: [
+  {"letter":"A","text":"Tem o prazo de 24h para comunicar formalmente a ocorrência sem incorrer em penalidade disciplinar."},
+  {"letter":"B","text":"Cometeu infração funcional punível com penalidade administrativa de suspensão."},
+  {"letter":"C","text":"Praticou ato passível exclusivamente de advertência verbal sumária caso seja ré primária."},
+  {"letter":"D","text":"Possui amparo legal irrestrito com esteio no princípio da eficiência funcional."},
+  {"letter":"E","text":"Terá a irregularidade automaticamente relevada mediante declaração de boa-fé subscrita."}
+]
+correctAnswer: "B"
+explanation: "A alternativa B é a correta. A retirada não autorizada de documentos ou autos da repartição pública configura falta disciplinar grave punível com suspensão nos estatutos dos servidores públicos civis."
+Por que é estilo VUNESP: Historinha do cotidiano pragmático do setor, alternativas focadas na aplicação direta do regulamento sem malabarismos.`;
   }
 
   if (board.includes('CESGRANRIO')) {
     return `
 ESTILO CESGRANRIO:
-- Questões fortemente contextualizadas simulando o mercado de trabalho (rotinas administrativas, bancárias ou de engenharia).
-- Distratores construídos em cima de equívocos clássicos de profissionais novatos ou desatentos.`;
+- Questões muito objetivas e perfeitamente equilibradas entre teoria e prática.
+- Crie enunciados fortemente contextualizados, simulando situações reais do mercado de trabalho (como rotinas bancárias, financeiras, administrativas, comerciais ou de engenharia).
+- Evite 'pegadinhas' baseadas apenas em trocas semânticas de palavras; o foco deve ser testar se o candidato domina o conceito central e sabe aplicá-lo na prática.
+- As alternativas incorretas (distratores) devem representar erros conceituais clássicos que um profissional novato ou desatento cometeria no dia a dia.
+- Matemática Financeira, Legislação Específica e Contabilidade com peso alto.`;
   }
 
-  if (board.includes('IBFC') || board.includes('AOCP') || board.includes('IDECAN')) {
+  if (
+    board.includes('IBFC') ||
+    board.includes('AOCP') ||
+    board.includes('IDECAN') ||
+    board.includes('CONSULPLAN') ||
+    board.includes('FUNDEP') ||
+    board.includes('IADES') ||
+    board.includes('FEPESE') ||
+    board.includes('FUNRIO')
+  ) {
     return `
-ESTILO IBFC/AOCP/IDECAN:
-- Questões diretas, literais e secas ("Assinale a alternativa correta sobre...", "É INCORRETO afirmar que...").
-- Foco em listas, enumerações e decoreba de conceitos literais.`;
+ESTILO ${board}:
+- Questões secas, diretas e literais ("Assinale a alternativa correta sobre...", "Com base no texto/legislação, é INCORRETO afirmar que...").
+- Foco extremo em memorização de conceitos, listas e enumerações literais presentes no texto ou na lei.
+- Alternativas de A a E tendem a ser mais curtas e diretas ao ponto, sem historinhas prolixas.`;
   }
 
-  return `Banca Alvo: ${examBoard}. Adapte o vocabulário, estrutura e nível de cobrança ao perfil histórico desta banca.`;
+  return `Banca Alvo: ${examBoard}.
+Aplique o estilo característico e o nível de exigência desta banca.
+Perfil geral de referência:
+${BANCA_PROFILES}`;
 }
 
 function typeInstructions(type: QuestionType): string {
@@ -239,61 +332,147 @@ export function buildQuestionsPrompt(params: GenerateQuestionsParams): string {
     ? `\nMATERIAL DE ESTUDO DO CANDIDATO (trechos ao longo do material; baseie-se ESTRITAMENTE neste material — cada questão deve poder ser respondida com o que está aqui; não cobre nada que não esteja no texto):${styleNote}\n${sampleContent(params.context, QUESTIONS_MAX_CONTEXT)}\n`
     : '';
 
-  return `Você é um examinador experiente de concursos públicos brasileiros. Gere ${params.quantity} questão(ões) sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
+  return `Você é um examinador sênior e de alta precisão de concursos públicos brasileiros.
+Gere ${params.quantity} questão(ões) inéditas sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ''}.
 
+======================================================================
+DIRETRIZES DE ESTILO DA BANCA EXAMINADORA:
+======================================================================
 ${bancaGuidance}
-Dificuldade: ${diffText}.
+
+Nível de Dificuldade: ${diffText}.
 ${contextBlock}
 
-REGRAS OBRIGATÓRIAS:
+======================================================================
+🚨 ÂNCORA ANTI-ALUCINAÇÃO (MANDATÓRIO):
+======================================================================
+Baseie as perguntas e respostas exclusivamente no conhecimento técnico real e na legislação vigente no Brasil.
+Nunca invente legislação, números de artigos inexistentes, súmulas ou jurisprudências fictícias.
+Se houver material fornecido pelo candidato, as questões devem ater-se aos limites temáticos do texto.
+
+REGRAS OBRIGATÓRIAS DE QUALIDADE PEDAGÓGICA (PADRÃO ZION):
 1. ${typeInstructions(type)}
 2. Em questões objetivas, apenas UMA alternativa inequivocamente correta — as demais devem estar claramente erradas para quem domina o conteúdo, sem ambiguidade.
-3. O enunciado deve ser claro, autocontido e direto.
-4. As alternativas erradas (distratores) devem ser plausíveis e representar erros frequentes dos candidatos.
+3. O enunciado deve ser claro, autocontido, elaborado e refletir com exatidão o formato e a malícia típica da banca.
+4. As alternativas erradas (distratores) devem ser altamente verossímeis e representar erros conceituais clássicos que candidatos cometem sob pressão.
 5. NÃO invente leis, artigos, números ou datas; baseie-se exclusivamente no ordenamento real.
-6. A explicação deve justificar a resposta correta e explicar por que as demais alternativas estão erradas.
-7. Use linguagem formal e técnica adequada para concursos públicos.
-8. Varie a posição da alternativa correta.
+6. A explicação ("explanation") deve ser completa, didática e aprofundada:
+   - Justificar a resposta correta citando o fundamento legal (lei, artigo, súmula ou teoria pacificada);
+   - Explicar por que cada alternativa incorreta está errada;
+   - Destacar a pegadinha clássica da banca para que o estudante memorize o padrão.
+7. Varie e equilibre a posição da alternativa correta.
+8. Use linguagem formal e técnica adequada para concursos públicos.
 
 Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adicional:
 {"questions":[${exampleItem(type, params.difficulty ?? 'MEDIUM')}]}`;
 }
 
+export function prepareExamTextForSubject(
+  examContent: string,
+  subjectName?: string,
+  maxChars = 160000,
+): string {
+  const text = examContent.trim();
+  if (text.length <= maxChars) {
+    return text;
+  }
+
+  const cleanSubject = subjectName?.trim().toUpperCase();
+  const isGeneric =
+    !cleanSubject ||
+    ['TODAS AS MATÉRIAS', 'TODAS', 'GERAL', 'PROVAS ANTERIORES', 'SIMULADO'].includes(cleanSubject);
+
+  if (!isGeneric) {
+    const subjectPatterns = [
+      new RegExp(`(?:^|\\n)\\s*(?:conhecimentos\\s+espec[íi]ficos\\s*[-–:]?\\s*)?${cleanSubject}`, 'i'),
+      new RegExp(`(?:no[çc][õo]es\\s+de\\s+)?${cleanSubject}`, 'i'),
+    ];
+
+    let foundIdx = -1;
+    for (const pattern of subjectPatterns) {
+      const match = pattern.exec(text);
+      if (match && match.index >= 0) {
+        foundIdx = match.index;
+        break;
+      }
+    }
+
+    if (foundIdx >= 0) {
+      const start = Math.max(0, foundIdx - 1000);
+      const end = Math.min(text.length, start + maxChars);
+      return text.slice(start, end);
+    }
+  }
+
+  const windows = 4;
+  const windowSize = Math.floor(maxChars / windows);
+  const step = Math.max(windowSize, Math.floor((text.length - windowSize) / (windows - 1)));
+  const parts: string[] = [];
+  for (let i = 0; i < windows; i++) {
+    const start = Math.min(i * step, text.length - windowSize);
+    parts.push(text.slice(start, start + windowSize));
+  }
+  return parts.join('\n\n[... continuidade do texto da prova ...]\n\n');
+}
+
 export function buildExamSlicerPrompt(params: ExamSlicerParams): string {
   const randomSeed = Date.now() % 10000;
   const quantity = params.quantity ?? 10;
+  const targetSubject = params.subjectName?.trim();
+  const isSpecificSubject =
+    targetSubject &&
+    !['Todas as Matérias', 'Todas', 'Geral', 'Provas Anteriores', 'Simulado'].includes(targetSubject);
+
+  const subjectDirective = isSpecificSubject
+    ? `\n🎯 DIRETRIZ DE MATÉRIA OBRIGATÓRIA:
+O candidato solicitou EXCLUSIVAMENTE a matéria: "${targetSubject}".
+- Você DEVE percorrer todo o texto da prova e extrair UNICAMENTE questões pertencentes a "${targetSubject}".
+- É TERMINANTEMENTE PROIBIDO extrair questões de outras matérias quando esta disciplina for especificada.
+- Se houver mais de ${quantity} questões desta matéria, selecione as ${quantity} mais representativas e bem formuladas.\n`
+    : `\n🎯 DIRETRIZ GERAL:
+O candidato solicitou extração ampla da prova. Percorra todo o texto e extraia ${quantity} questões distribuídas harmonicamente pelas diversas disciplinas presentes na prova.\n`;
+
   const answerKeyBlock = params.answerKeyContent
-    ? `\nGABARITO OFICIAL FORNECIDO PELO USUÁRIO (Use obrigatoriamente para validar o gabarito e justificar):\n${params.answerKeyContent.slice(0, 15000)}\n`
+    ? `\n📋 GABARITO OFICIAL FORNECIDO (Valide rigorosamente o gabarito de cada questão contra este documento oficial):\n${params.answerKeyContent.slice(0, 20000)}\n`
     : '';
 
-  return `Você é um especialista em análise e fatiamento de Provas de Concursos Públicos Brasileiros.
-Sua missão é extrair fielmente ${quantity} questões reais do texto da prova fornecida, estruturando-as para resolução interativa.
-Semente de variação: ${randomSeed}. Não extraia apenas o início; percorra diferentes blocos da prova.
+  const examText = prepareExamTextForSubject(params.examContent, targetSubject, 160000);
+
+  return `Você é um analista sênior e professor especializado em Provas de Concursos Públicos Brasileiros (estilo CEBRASPE, FGV, FCC, VUNESP, etc.).
+Sua missão é extrair com máxima precisão e fidelidade ${quantity} questões reais do texto da prova fornecida, estruturando-as com comentários de altíssimo valor pedagógico para estudo aprofundado.
+Semente de variação: ${randomSeed}.
+
+${subjectDirective}
+
+REGRAS DE EXTRAÇÃO E FORMATAÇÃO:
+1. Extraia até ${quantity} questões objetivas completas presentes no documento da prova.
+2. Identifique se a questão possui texto-base de suporte/interpretação (artigo, poema, situação-problema compartilhada) e preencha "referenceText" com o texto de apoio correspondente (se não houver, use null).
+3. "statement": Enunciado fiel, claro e completo da questão (sem truncar).
+4. "alternatives": Array com a letra (A, B, C, D, E ou C, E) e o texto integral de cada alternativa da prova.
+5. "correctAnswer": Letra oficial da resposta correta (A-E ou C/E), conferida com o gabarito oficial se fornecido.
+6. "explanation" (OBRIGATÓRIO SER RICO, FUNDAMENTADO E ESTRUTURADO):
+   A explicação DEVE ser detalhada, aprofundada e formatada obrigatoriamente com os seguintes blocos:
+   - 💡 **Gabarito e Síntese**: Justifique por que a alternativa correta é a verdadeira de forma clara e direta.
+   - 📖 **Fundamentação & Fontes**: Cite expressamente os artigos de lei (CF/88, Códigos, Legislação Específica), súmulas vinculantes ou jurisprudência pacífica (STF/STJ), regras gramaticais ou conceitos técnicos normativos.
+   - 🔍 **Análise dos Distratores**: Aponte de forma cirúrgica onde está o erro de cada uma das alternativas incorretas, demonstrando o que as torna falsas.
+   - ⚠️ **Dica do Especialista / Pegadinha da Banca**: Alerte sobre pegadinhas típicas (palavras de restrição como "apenas/sempre/nunca", inversões de competência, trocas conceituais).
 
 TEXTO DA PROVA:
-${sampleContent(params.examContent, 25000)}
+${examText}
 ${answerKeyBlock}
 
-REGRAS DE EXTRAÇÃO:
-1. Extraia até ${quantity} questões objetivas completas presentes no documento.
-2. Identifique se a questão possui texto-base de suporte/interpretação e preencha "referenceText" (se não houver texto-base próprio, use null).
-3. "statement" deve conter o enunciado limpo da questão.
-4. "alternatives" deve conter a lista com letter (A, B, C, D, E ou C, E) e o text correspondente.
-5. "correctAnswer" deve ser a letra da resposta correta (A-E ou C/E).
-6. "explanation" deve ser didática, citando a regra jurídica ou fundamento técnico da resposta.
-
-Responda APENAS com JSON válido no formato abaixo, sem markdown:
+Responda APENAS com JSON estrito no formato abaixo, sem markdown ou caracteres fora do JSON:
 {
   "questions": [
     {
-      "statement": "Enunciado da questão",
+      "statement": "Enunciado fiel da questão",
       "referenceText": "Texto de apoio se houver, ou null",
       "alternatives": [
         { "letter": "A", "text": "Texto da alternativa A" },
         { "letter": "B", "text": "Texto da alternativa B" }
       ],
       "correctAnswer": "A",
-      "explanation": "Explicação completa e fundamentada"
+      "explanation": "💡 **Gabarito e Síntese**: ...\\n\\n📖 **Fundamentação & Fontes**: ...\\n\\n🔍 **Análise dos Distratores**: ...\\n\\n⚠️ **Dica do Especialista**: ..."
     }
   ]
 }`;
