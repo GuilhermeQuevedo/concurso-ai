@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { studyScheduleService } from '@/features/study-schedule/services/study-schedule.service';
-import { editalMapService } from '@/features/edital-map/services/edital-map.service';
 import type { StudySchedule, ScheduleWeek, ScheduleBlock, ScheduleDay } from '@/features/study-schedule/types';
 import { ScheduleDayRow } from '@/features/study-schedule/components/ScheduleDayRow';
 import { exportScheduleToCsv, exportScheduleToPrint } from '@/features/study-schedule/utils/schedule-export';
-import { PdfDropzone } from '@/components/ui/PdfDropzone';
+import { ScheduleWizard } from '@/features/study-schedule/wizard/ScheduleWizard';
+import type { WizardSubmitPayload } from '@/features/study-schedule/wizard/useScheduleWizard';
 import {
   Loader2,
   Calendar,
-  Plus,
-  Minus,
   ChevronDown,
   ChevronUp,
   Pencil,
@@ -20,8 +18,6 @@ import {
   FileText,
   AlertCircle,
   X,
-  Sparkles,
-  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router';
@@ -40,11 +36,6 @@ export const CronogramaPage: React.FC = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [userObservations, setUserObservations] = useState('');
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
-
-  const [file, setFile] = useState<File | null>(null);
-
-  const [editalName, setEditalName] = useState<string | null>(null);
-  const [editalExtractedSubjects, setEditalExtractedSubjects] = useState<string[]>([]);
 
   const [savedSchedules, setSavedSchedules] = useState<StudySchedule[]>([]);
   const [showSavedModal, setShowSavedModal] = useState(false);
@@ -66,18 +57,7 @@ export const CronogramaPage: React.FC = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [editais, schedules] = await Promise.all([
-          editalMapService.listEditais().catch(() => []),
-          studyScheduleService.listSchedules().catch(() => []),
-        ]);
-
-        if (editais && editais.length > 0) {
-          const first = editais[0];
-          setEditalName(first.editalName || first.edital_name || null);
-          const tree = first.topicsTree || first.topics_tree;
-          const subjectsList = tree?.subjects?.map((s) => s.name) || [];
-          setEditalExtractedSubjects(subjectsList);
-        }
+        const schedules = await studyScheduleService.listSchedules().catch(() => []);
 
         if (schedules && schedules.length > 0) {
           setSavedSchedules(schedules);
@@ -154,49 +134,28 @@ export const CronogramaPage: React.FC = () => {
     localStorage.setItem('@schedule_draft', JSON.stringify(draft));
   }, [isInitialized, schedule, examDate, dailyHours, subjects, userObservations, daysRemaining]);
 
-  const handleImportEdital = () => {
-    const merged = Array.from(new Set([...subjects, ...editalExtractedSubjects]));
-    setSubjects(merged);
-    showNotification('Matérias do edital importadas com sucesso!');
-  };
-
-  const handleGenerate = async (force = false) => {
-    if (!examDate || dailyHours <= 0) {
-      showNotification('Preencha a data da prova e insira a carga horária diária.', true);
-      return;
-    }
-    if (subjects.length === 0 && !file) {
-      showNotification('Insira pelo menos uma matéria ou anexe o edital em PDF.', true);
-      return;
-    }
-
+  const handleWizardGenerate = async (payload: WizardSubmitPayload) => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const result = await studyScheduleService.generateSchedule(
-        {
-          examDate,
-          dailyHours,
-          subjects,
-          userObservations: userObservations.trim() || undefined,
-          forceRefresh: force,
-          saveToDb: false,
-        },
-        file
-      );
-
+      const result = await studyScheduleService.generateSchedule({
+        examDate: payload.examDate,
+        dailyHours: payload.dailyHours,
+        subjects: payload.subjects,
+        availability: payload.availability,
+        forceRefresh: true,
+        saveToDb: false,
+      });
+      setExamDate(payload.examDate);
+      setDailyHours(payload.dailyHours);
+      setSubjects(payload.subjects);
       setSchedule(result);
       localStorage.removeItem('@zion_creating_schedule');
-
-      const today = new Date();
-      const target = new Date(`${examDate}T12:00:00Z`);
-      const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 3600 * 24));
+      const diff = Math.ceil((new Date(`${payload.examDate}T12:00:00Z`).getTime() - Date.now()) / 86400000);
       setDaysRemaining(diff > 0 ? diff : 0);
-
-      showNotification('Cronograma Base Gerado! Clique em Salvar para mantê-lo salvo.');
+      showNotification('Cronograma gerado! Clique em Salvar para mantê-lo.');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Falha na geração do cronograma.';
-      showNotification(message, true);
+      showNotification(err instanceof Error ? err.message : 'Falha na geração do cronograma.', true);
     } finally {
       setLoading(false);
     }
@@ -376,154 +335,8 @@ export const CronogramaPage: React.FC = () => {
           )}
         </div>
 
-        {/* ESTADO VAZIO: Formulário de criação */}
-        {!schedule && (
-          <div className="max-w-2xl mx-auto space-y-6">
-            {/* Aviso de Edital Mapeado Existente */}
-            {editalName && editalExtractedSubjects.length > 0 && (
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-center justify-between shadow-sm">
-                <div className="flex gap-3 items-center">
-                  <BookOpen className="w-5 h-5 text-primary shrink-0" />
-                  <div>
-                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-primary">
-                      Você possui um edital mapeado:
-                    </h3>
-                    <p className="text-sm font-semibold text-foreground">{editalName}</p>
-                    <p className="text-xs text-muted-foreground">{editalExtractedSubjects.length} matérias disponíveis</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleImportEdital}
-                  className="w-full sm:w-auto px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors text-xs shrink-0 cursor-pointer shadow-sm"
-                >
-                  Importar Matérias
-                </button>
-              </div>
-            )}
-
-            <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-8 shadow-sm">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-6 pb-2 border-b border-border/50">
-                CRIAR PLANEJAMENTO
-              </h2>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-2">
-                    DATA DA PROVA
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full h-11 px-3.5 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/40 outline-none transition-all cursor-pointer font-medium"
-                    value={examDate}
-                    onChange={(e) => setExamDate(e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-3">
-                    CARGA HORÁRIA DIÁRIA
-                  </label>
-                  <div className="flex items-center gap-6 bg-secondary/30 p-4 rounded-xl border border-border/60">
-                    <button
-                      type="button"
-                      onClick={() => setDailyHours(Math.max(1, dailyHours - 1))}
-                      className={cn(
-                        'w-11 h-11 flex items-center justify-center rounded-full bg-background border border-border shadow-sm transition-colors text-foreground',
-                        dailyHours <= 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-secondary cursor-pointer'
-                      )}
-                      disabled={dailyHours <= 1 || loading}
-                    >
-                      <Minus className="w-5 h-5" />
-                    </button>
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-display font-bold text-primary">{dailyHours}</span>
-                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-0.5">
-                        Horas / Dia
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setDailyHours(Math.min(12, dailyHours + 1))}
-                      className={cn(
-                        'w-11 h-11 flex items-center justify-center rounded-full bg-background border border-border shadow-sm transition-colors text-foreground',
-                        dailyHours >= 12 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-secondary cursor-pointer'
-                      )}
-                      disabled={dailyHours >= 12 || loading}
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
-                    OBSERVAÇÕES PARA A IA <span className="text-muted-foreground font-normal text-[10px] lowercase">(Opcional)</span>
-                  </label>
-                  <p className="text-xs text-muted-foreground mb-2.5">
-                    A IA vai considerar suas preferências na montagem do cronograma.
-                  </p>
-                  <textarea
-                    className="w-full h-28 px-3.5 py-2.5 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/40 outline-none text-sm text-foreground transition-all resize-y placeholder:text-muted-foreground/50"
-                    placeholder="Ex: Prefiro descansar aos domingos.&#10;Tenho dificuldade com Raciocínio Lógico, quero mais sessões dessa matéria.&#10;Trabalho de manhã, prefiro estudar à noite."
-                    value={userObservations}
-                    onChange={(e) => setUserObservations(e.target.value)}
-                    disabled={loading}
-                  />
-
-                  {subjects.length > 0 && (
-                    <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                      <h4 className="font-semibold text-xs text-primary mb-2.5">
-                        Matérias que serão enviadas para a IA ({subjects.length}):
-                      </h4>
-                      <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
-                        {subjects.map((sub, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-flex py-1 px-2.5 rounded-md bg-background border border-border text-xs font-medium text-foreground"
-                          >
-                            {sub}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-2">
-                    ENVIE O EDITAL EM PDF <span className="text-muted-foreground font-normal text-[10px] lowercase">(Ou importe acima)</span>
-                  </label>
-                  <PdfDropzone
-                    file={file}
-                    onFileSelect={setFile}
-                    disabled={loading}
-                    title="Envie o edital em PDF (até 50MB)"
-                    subtitle="A IA extrairá as matérias automaticamente para o cronograma"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => void handleGenerate(true)}
-                  disabled={loading || !examDate}
-                  className="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md cursor-pointer"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Gerando o cronograma de estudos com IA...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" /> Gerar Cronograma
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* ESTADO VAZIO: assistente de cronograma */}
+        {!schedule && <ScheduleWizard loading={loading} onGenerate={(payload) => void handleWizardGenerate(payload)} />}
 
         {/* ESTADO COM CRONOGRAMA GERADO / CARREGADO */}
         {schedule && (
