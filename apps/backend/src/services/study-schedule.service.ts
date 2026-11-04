@@ -4,12 +4,14 @@ import type { IAIProvider, ZionScheduleWeek, ZionScheduleDay } from '../interfac
 import { extractPdfText } from '../utils/pdf.js';
 import { AppError } from '../middlewares/error-handler.js';
 import fs from 'node:fs/promises';
+import { formatAvailabilityForPrompt, type ScheduleAvailability } from '../dto/schedule-availability.dto.js';
 
 export interface GenerateScheduleDTO {
   examDate: string;
   dailyHours: number;
   subjects: string[];
   userObservations?: string;
+  availability?: ScheduleAvailability;
   forceRefresh?: boolean;
   saveToDb?: boolean;
 }
@@ -236,6 +238,7 @@ export class StudyScheduleService {
       editalFileText,
       banca,
       userObservations: dto.userObservations,
+      availability: dto.availability ? formatAvailabilityForPrompt(dto.availability) : null,
     });
 
     if (!aiResult || !aiResult.weeks || aiResult.weeks.length === 0) {

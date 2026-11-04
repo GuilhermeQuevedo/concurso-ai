@@ -260,4 +260,5 @@ export interface ZionSchedulePromptParams {
   editalFileText?: string | null;
   banca?: string | null;
   userObservations?: string | null;
+  availability?: string | null;
 }

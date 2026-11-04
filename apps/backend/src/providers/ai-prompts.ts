@@ -1017,6 +1017,7 @@ export interface ZionSchedulePromptInput {
   editalFileText?: string | null;
   banca?: string | null;
   userObservations?: string | null;
+  availability?: string | null;
 }
 
 export function buildZionSchedulePrompt(input: ZionSchedulePromptInput): string {

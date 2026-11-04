@@ -3,6 +3,22 @@ import type { StudyScheduleService, GenerateScheduleDTO } from '../services/stud
 import type { ApiResponse } from '@concurso-ai/types';
 import { getUserId } from '../utils/request.js';
 import { AppError } from '../middlewares/error-handler.js';
+import { scheduleAvailabilitySchema, type ScheduleAvailability } from '../dto/schedule-availability.dto.js';
+
+function parseAvailability(raw: unknown): ScheduleAvailability | undefined {
+  if (raw === undefined || raw === null || raw === '') return undefined;
+  let value = raw;
+  if (typeof raw === 'string') {
+    try {
+      value = JSON.parse(raw);
+    } catch {
+      throw new AppError(400, 'INVALID_AVAILABILITY', 'Disponibilidade inválida.');
+    }
+  }
+  const parsed = scheduleAvailabilitySchema.safeParse(value);
+  if (!parsed.success) throw new AppError(400, 'INVALID_AVAILABILITY', 'Disponibilidade inválida.');
+  return parsed.data;
+}
 
 export class StudyScheduleController {
   constructor(private readonly service: StudyScheduleService) {}
@@ -26,6 +42,10 @@ export class StudyScheduleController {
       if (!Array.isArray(subjects)) {
         subjects = [];
       }
+      const availability = parseAvailability(req.body.availability);
+      if (subjects.length === 0 && availability) {
+        subjects = availability.subjects.map((item) => item.name);
+      }
 
       if (!examDate) {
         throw new AppError(400, 'EXAM_DATE_REQUIRED', 'Data da prova é obrigatória.');
@@ -40,6 +60,7 @@ export class StudyScheduleController {
         dailyHours,
         subjects,
         userObservations: req.body.userObservations,
+        availability,
         forceRefresh: req.body.forceRefresh === 'true' || req.body.forceRefresh === true,
         saveToDb: req.body.saveToDb === 'true' || req.body.saveToDb === true,
       };
