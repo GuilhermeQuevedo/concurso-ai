@@ -1,4 +1,6 @@
-import { Building2, CalendarDays, Clock } from 'lucide-react';
+import { Building2, CalendarDays, CheckCircle2, Circle, Clock } from 'lucide-react';
+
+import { useSetContestDone } from '../hooks/useSetContestDone';
 import type { ContestSummary } from '../services/contest.service';
 
 // Data da prova é "somente data" (armazenada como meia-noite UTC) —
@@ -18,6 +20,8 @@ export function formatExamDate(dateStr: string): string {
 }
 
 export function ContestCard({ contest, onClick }: { contest: ContestSummary; onClick: () => void }) {
+  const setDone = useSetContestDone();
+  const isDone = contest.status === 'DONE';
   const days = daysUntil(contest.examDate);
   const progress = contest.totalTopics > 0
     ? Math.round((contest.studiedTopics / contest.totalTopics) * 100)
@@ -27,13 +31,30 @@ export function ContestCard({ contest, onClick }: { contest: ContestSummary; onC
     days === null ? '' : days <= 14 ? 'text-red-600 dark:text-red-400' : days <= 45 ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400';
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="flex w-full flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 text-left transition-colors hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800"
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      className={`flex w-full cursor-pointer flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 text-left transition-colors hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800 ${isDone ? 'opacity-75' : ''}`}
     >
       <div className="flex items-start justify-between gap-4">
+        <button
+          type="button"
+          disabled={setDone.isPending}
+          aria-pressed={isDone}
+          aria-label={isDone ? 'Reabrir prova' : 'Marcar prova como concluída'}
+          title={isDone ? 'Concluída. Clique para reabrir' : 'Marcar como concluída'}
+          onClick={(e) => {
+            e.stopPropagation();
+            setDone.mutate({ id: contest.id, done: !isDone });
+          }}
+          className="mt-0.5 shrink-0 text-gray-400 transition-colors hover:text-primary-600 disabled:opacity-50"
+        >
+          {isDone ? <CheckCircle2 className="h-6 w-6 text-green-600" /> : <Circle className="h-6 w-6" />}
+        </button>
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-white">{contest.name}</h3>
+          <h3 className={`font-semibold text-gray-900 dark:text-white ${isDone ? 'line-through' : ''}`}>{contest.name}</h3>
           {contest.role && (
             <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{contest.role}</p>
           )}
@@ -79,6 +100,6 @@ export function ContestCard({ contest, onClick }: { contest: ContestSummary; onC
           </div>
         </div>
       )}
-    </button>
+    </div>
   );
 }
