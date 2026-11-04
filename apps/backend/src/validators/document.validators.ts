@@ -24,3 +24,11 @@ export const updateDocumentKindSchema = z.object({
     kind: documentKindSchema,
   }),
 });
+
+export const documentNameSchema = z.string().trim().min(1, 'Informe o nome do documento').max(200, 'Nome muito longo');
+
+export const updateDocumentNameSchema = z.object({
+  body: z.object({
+    name: documentNameSchema,
+  }),
+});
