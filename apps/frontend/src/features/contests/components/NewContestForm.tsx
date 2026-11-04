@@ -7,31 +7,27 @@ import {
   documentService,
   type DocumentKind,
   KIND_LABELS,
-  KIND_OPTIONS,
 } from '@/features/documents/services/document.service';
 
 type Mode = 'edital' | 'manual';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const OBJETIVO_KINDS: DocumentKind[] = ['EDITAL', 'EMENTA', 'CRONOGRAMA'];
+const UPLOAD_KINDS: DocumentKind[] = ['EDITAL', 'EMENTA', 'CRONOGRAMA', 'LISTA_QUESTOES'];
 const ALLOWED_TYPES = ['application/pdf', 'text/plain', 'text/html', 'text/markdown', ''];
 
-const KIND_INFO: Record<DocumentKind, string> = {
+const KIND_INFO: Partial<Record<DocumentKind, string>> = {
   EDITAL: 'A IA lê o edital e extrai órgão, banca, cargo, data da prova e o conteúdo programático como checklist.',
   EMENTA: 'A IA lê a ementa/plano de ensino e monta seu checklist de estudo com as disciplinas e tópicos.',
   CRONOGRAMA: 'A IA lê o cronograma e monta seu objetivo de estudo com os tópicos e a contagem regressiva.',
-  MATERIAL: 'A IA gera um kit de estudo a partir do material: resumo, flashcards e questões.',
   LISTA_QUESTOES: 'A IA extrai as questões prontas do arquivo e importa para o seu banco de questões.',
-  OUTRO: 'A IA gera um kit de estudo a partir do conteúdo: resumo, flashcards e questões.',
 };
 
-const KIND_ACTION: Record<DocumentKind, string> = {
+const KIND_ACTION: Partial<Record<DocumentKind, string>> = {
   EDITAL: 'Analisar e Criar Objetivo',
   EMENTA: 'Analisar e Criar Objetivo',
   CRONOGRAMA: 'Analisar e Criar Objetivo',
-  MATERIAL: 'Gerar Kit de Estudo',
   LISTA_QUESTOES: 'Importar Questões',
-  OUTRO: 'Gerar Kit de Estudo',
 };
 
 export function NewContestForm({ onBack, onCreated }: { onBack: () => void; onCreated: (id: string) => void }) {
@@ -94,8 +90,6 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       if (result.pipeline === 'objetivo') {
         onCreated(result.contestId);
-      } else if (result.pipeline === 'kit') {
-        navigate('/flashcards');
       } else {
         navigate('/generate');
       }
@@ -129,7 +123,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
           onChange={(e) => setKind(e.target.value as DocumentKind)}
           className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         >
-          {KIND_OPTIONS.map((k) => (
+          {UPLOAD_KINDS.map((k) => (
             <option key={k} value={k}>
               {KIND_LABELS[k]}
             </option>
@@ -139,7 +133,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
 
       <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
         <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
-        <p>{KIND_INFO[kind]}</p>
+        <p>{KIND_INFO[kind] ?? ''}</p>
       </div>
 
       {isObjetivo && (
@@ -222,7 +216,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            {KIND_ACTION[kind]}
+            {KIND_ACTION[kind] ?? 'Enviar'}
           </>
         )}
       </button>
