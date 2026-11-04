@@ -39,6 +39,7 @@ export interface GenerateSetParams {
   subjectId?: string;
   quantity: number;
   examBoardId?: string;
+  examBoardName?: string;
   difficulty?: Difficulty;
   topic?: string;
   documentId?: string;

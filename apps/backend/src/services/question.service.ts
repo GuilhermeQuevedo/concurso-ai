@@ -1,21 +1,13 @@
 import type { IAIProvider, GeneratedQuestion } from '../interfaces/ai.interfaces.js';
-import type { GenerateQuestionsDTO } from '../validators/question.validators.js';
+import type { GenerateQuestionsDTO, SliceExamDTO } from '../validators/question.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { DocumentService } from './document.service.js';
 import { htmlToPlainText } from '../utils/html.js';
+import { getSmartChunks } from '../providers/ai-prompts.js';
 
 export const ESSAY_ANSWER = 'S';
 const MIN_AUDIT_ALTERNATIVES = 2;
-
-export interface SliceExamDTO {
-  examContent: string;
-  answerKeyContent?: string;
-  quantity?: number;
-  subjectId?: string;
-  subjectName?: string;
-  examBoardId?: string;
-}
 
 export class QuestionService {
   private readonly documentService = new DocumentService();
@@ -73,18 +65,42 @@ export class QuestionService {
   }
 
   private async generateWithAI(userId: string, dto: GenerateQuestionsDTO, subjectName: string) {
-    let examBoardName: string | undefined;
-    if (dto.examBoardId) {
-      const board = await prisma.examBoard.findUnique({ where: { id: dto.examBoardId } });
+    let examBoardName: string | undefined = dto.examBoardName?.trim();
+    let resolvedBoardId: string | undefined = dto.examBoardId;
+
+    if (resolvedBoardId) {
+      const board = await prisma.examBoard.findUnique({ where: { id: resolvedBoardId } });
       if (!board) {
         throw new AppError(404, 'EXAM_BOARD_NOT_FOUND', 'Banca não encontrada');
       }
       examBoardName = board.name;
+    } else if (examBoardName) {
+      const board = await prisma.examBoard.findFirst({
+        where: {
+          OR: [
+            { name: { contains: examBoardName } },
+            { slug: examBoardName.toLowerCase().replace(/[^a-z0-9]/g, '') },
+          ],
+        },
+      });
+      if (board) {
+        resolvedBoardId = board.id;
+        examBoardName = board.name;
+      }
+    }
+
+    // Padrão Zion: se a banca for CESPE/CEBRASPE/QUADRIX e não foi especificado tipo de questão, auto-seleciona Certo ou Errado
+    let effectiveQuestionType = dto.questionType;
+    if (!effectiveQuestionType && examBoardName) {
+      const upperBoard = examBoardName.toUpperCase();
+      if (upperBoard.includes('CESPE') || upperBoard.includes('CEBRASPE') || upperBoard.includes('QUADRIX')) {
+        effectiveQuestionType = 'TRUE_FALSE';
+      }
     }
 
     let context: string;
     if (dto.content?.trim()) {
-      context = dto.content;
+      context = dto.content.trim();
     } else if (dto.documentId) {
       const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
       if (!doc || doc.userId !== userId) {
@@ -95,18 +111,44 @@ export class QuestionService {
       context = await this.documentService.getContentBySubject(dto.subjectId);
     }
 
-    const generated = await this.aiProvider.generateQuestions({
-      subject: subjectName,
-      topic: dto.topic,
-      examBoard: examBoardName,
-      difficulty: dto.difficulty,
-      quantity: dto.quantity,
-      context: context || undefined,
-      questionType: dto.questionType,
-      cloneStyle: dto.cloneStyle,
-    });
+    // Chunking inteligente (Padrão Zion): materiais extensos divididos em blocos sem truncamento
+    let generated: GeneratedQuestion[];
+    if (context && context.length > 25000 && dto.quantity >= 5) {
+      const numChunks = dto.quantity <= 5 ? 1 : Math.min(4, Math.ceil(dto.quantity / 5));
+      const chunks = getSmartChunks(context, numChunks, 35000);
+      const targetPerChunk = Math.ceil(dto.quantity / chunks.length);
 
-    const kept = await this.auditQuestions(generated, subjectName);
+      const chunkResults = await Promise.all(
+        chunks.map(async (chunk, index) => {
+          return this.aiProvider.generateQuestions({
+            subject: subjectName,
+            topic: dto.topic,
+            examBoard: examBoardName,
+            difficulty: dto.difficulty,
+            quantity: targetPerChunk,
+            context: `[Parte ${index + 1} de ${chunks.length} do Material Fonte]\n${chunk}`,
+            questionType: effectiveQuestionType,
+            cloneStyle: dto.cloneStyle,
+          });
+        }),
+      );
+      generated = chunkResults.flat().slice(0, dto.quantity);
+    } else {
+      generated = await this.aiProvider.generateQuestions({
+        subject: subjectName,
+        topic: dto.topic,
+        examBoard: examBoardName,
+        difficulty: dto.difficulty,
+        quantity: dto.quantity,
+        context: context ? context.slice(0, 40000) : undefined,
+        questionType: effectiveQuestionType,
+        cloneStyle: dto.cloneStyle,
+      });
+    }
+
+    // Embaralhamento das alternativas e remapeamento de gabarito para balanceamento (Padrão Zion)
+    const balancedQuestions = this.balanceQuestionAlternatives(generated);
+    const kept = await this.auditQuestions(balancedQuestions, subjectName);
 
     return prisma.$transaction(
       kept.map((q) =>
@@ -119,13 +161,48 @@ export class QuestionService {
             explanation: q.explanation,
             comments: [],
             subjectId: dto.subjectId,
-            examBoardId: dto.examBoardId,
+            examBoardId: resolvedBoardId,
             source: 'AI_GENERATED',
           },
           include: { subject: true, examBoard: true },
         }),
       ),
     );
+  }
+
+  private balanceQuestionAlternatives(questions: GeneratedQuestion[]): GeneratedQuestion[] {
+    const letters = ['A', 'B', 'C', 'D', 'E'];
+    return questions.map((q) => {
+      if (!q.alternatives || q.alternatives.length < 2) return q;
+
+      // Mantém Certo/Errado imutável
+      const isTrueFalse =
+        q.alternatives.length === 2 &&
+        q.alternatives.some((a) => a.letter === 'C' || a.text.toLowerCase().includes('certo'));
+      if (isTrueFalse) return q;
+
+      const altsWithStatus = q.alternatives.map((a) => ({
+        text: a.text,
+        isCorrect: a.letter.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase(),
+      }));
+
+      const hasCorrect = altsWithStatus.some((a) => a.isCorrect);
+      if (!hasCorrect) return q;
+
+      const shuffled = [...altsWithStatus].sort(() => Math.random() - 0.5);
+      const newAlternatives = shuffled.map((item, idx) => ({
+        letter: letters[idx] ?? String.fromCharCode(65 + idx),
+        text: item.text,
+      }));
+      const newCorrectIndex = shuffled.findIndex((item) => item.isCorrect);
+      const newCorrectLetter = letters[newCorrectIndex] ?? 'A';
+
+      return {
+        ...q,
+        alternatives: newAlternatives,
+        correctAnswer: newCorrectLetter,
+      };
+    });
   }
 
   private async auditQuestions(
@@ -202,6 +279,7 @@ export class QuestionService {
       examContent: dto.examContent,
       answerKeyContent: dto.answerKeyContent,
       quantity: dto.quantity ?? 10,
+      subjectName: dto.subjectName,
     });
 
     let subjectId = dto.subjectId;

@@ -10,6 +10,7 @@ interface GenerateSetInput {
   subjectId?: string;
   quantity: number;
   examBoardId?: string;
+  examBoardName?: string;
   difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
   topic?: string;
   documentId?: string;
@@ -77,6 +78,7 @@ export class QuestionSetService {
       subjectId: subject.id,
       quantity: dto.quantity,
       examBoardId: dto.examBoardId,
+      examBoardName: dto.examBoardName,
       difficulty: dto.difficulty,
       topic: dto.topic,
       documentId: dto.documentId,
