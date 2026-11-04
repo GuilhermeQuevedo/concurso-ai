@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router';
 
 import { contestService } from '@/features/contests/services/contest.service';
 
@@ -25,7 +26,8 @@ export interface WizardSubmitPayload {
 const clampLevel = (value: number) => Math.min(5, Math.max(1, Math.round(value) || 3));
 
 export function useScheduleWizard() {
-  const [contestId, setContestId] = useState('');
+  const [searchParams] = useSearchParams();
+  const [contestId, setContestId] = useState(searchParams.get('prova') ?? '');
   const [examDate, setExamDate] = useState('');
   const [subjects, setSubjects] = useState<WizardSubject[]>([]);
   const [days, setDays] = useState<DayLimit[]>(DEFAULT_DAY_LIMITS);
