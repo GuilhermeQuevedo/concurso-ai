@@ -14779,275 +14779,8 @@ function htmlToPlainText(input) {
   return input.replace(/<\s*br\s*\/?\s*>/gi, "\n").replace(/<\s*\/\s*(p|div|li|tr)\s*>/gi, "\n").replace(/<\s*li[^>]*>/gi, "\u2022 ").replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
-// apps/backend/src/services/question.service.ts
-var ESSAY_ANSWER = "S";
-var MIN_AUDIT_ALTERNATIVES = 2;
-var QuestionService = class {
-  constructor(aiProvider4) {
-    this.aiProvider = aiProvider4;
-  }
-  aiProvider;
-  documentService = new DocumentService();
-  async generate(userId, dto) {
-    const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
-    if (!subject) {
-      throw new AppError(404, "SUBJECT_NOT_FOUND", "Disciplina n\xE3o encontrada");
-    }
-    if (dto.documentId || dto.content) {
-      return this.generateWithAI(userId, dto, subject.name);
-    }
-    const imported = await this.findImportedQuestions(dto);
-    if (imported.length > 0) {
-      return imported;
-    }
-    return this.generateWithAI(userId, dto, subject.name);
-  }
-  async findImportedQuestions(dto) {
-    const subjectIds = await this.getSubjectTreeIds(dto.subjectId);
-    const where = {
-      subjectId: { in: subjectIds },
-      source: "IMPORTED"
-    };
-    if (dto.examBoardId) where.examBoardId = dto.examBoardId;
-    if (dto.difficulty) where.difficulty = dto.difficulty;
-    const total = await prisma.question.count({ where });
-    if (total === 0) return [];
-    const skip = Math.max(0, Math.floor(Math.random() * (total - dto.quantity)));
-    return prisma.question.findMany({
-      where,
-      skip,
-      take: dto.quantity,
-      include: { subject: true, examBoard: true }
-    });
-  }
-  async getSubjectTreeIds(subjectId) {
-    const children = await prisma.subject.findMany({
-      where: { parentId: subjectId },
-      select: { id: true }
-    });
-    if (children.length === 0) return [subjectId];
-    return [subjectId, ...children.map((c) => c.id)];
-  }
-  async generateWithAI(userId, dto, subjectName) {
-    let examBoardName;
-    if (dto.examBoardId) {
-      const board = await prisma.examBoard.findUnique({ where: { id: dto.examBoardId } });
-      if (!board) {
-        throw new AppError(404, "EXAM_BOARD_NOT_FOUND", "Banca n\xE3o encontrada");
-      }
-      examBoardName = board.name;
-    }
-    let context;
-    if (dto.content?.trim()) {
-      context = dto.content;
-    } else if (dto.documentId) {
-      const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
-      if (!doc || doc.userId !== userId) {
-        throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
-      }
-      context = doc.content;
-    } else {
-      context = await this.documentService.getContentBySubject(dto.subjectId);
-    }
-    const generated = await this.aiProvider.generateQuestions({
-      subject: subjectName,
-      topic: dto.topic,
-      examBoard: examBoardName,
-      difficulty: dto.difficulty,
-      quantity: dto.quantity,
-      context: context || void 0,
-      questionType: dto.questionType,
-      cloneStyle: dto.cloneStyle
-    });
-    const kept = await this.auditQuestions(generated, subjectName);
-    return prisma.$transaction(
-      kept.map(
-        (q) => prisma.question.create({
-          data: {
-            statement: q.statement,
-            alternatives: q.alternatives,
-            correctAnswer: q.correctAnswer,
-            difficulty: q.difficulty,
-            explanation: q.explanation,
-            comments: [],
-            subjectId: dto.subjectId,
-            examBoardId: dto.examBoardId,
-            source: "AI_GENERATED"
-          },
-          include: { subject: true, examBoard: true }
-        })
-      )
-    );
-  }
-  async auditQuestions(generated, subjectName) {
-    const objective = generated.map((q, idx) => ({ q, idx })).filter(({ q }) => q.alternatives.length >= MIN_AUDIT_ALTERNATIVES);
-    if (objective.length === 0) return generated;
-    const answers = await this.aiProvider.answerQuestions({
-      questions: objective.map(({ q }) => ({ statement: q.statement, alternatives: q.alternatives })),
-      subject: subjectName
-    });
-    const discardedIndexes = /* @__PURE__ */ new Set();
-    objective.forEach(({ q, idx }, i) => {
-      const solverAns = answers[i]?.trim().toUpperCase();
-      const expectedAns = q.correctAnswer.trim().toUpperCase();
-      if (solverAns && solverAns !== expectedAns) {
-        discardedIndexes.add(idx);
-      }
-    });
-    if (discardedIndexes.size > 0) {
-      console.warn(`Auditoria da IA descartou ${discardedIndexes.size} quest\xE3o(\xF5es) inconsistente(s).`);
-    }
-    const kept = generated.filter((_, idx) => !discardedIndexes.has(idx));
-    return kept.length > 0 ? kept : generated;
-  }
-  async importFromContent(subjectId, content, subjectName) {
-    const plain = htmlToPlainText(content).trim();
-    if (plain.length < 50) {
-      throw new AppError(400, "CONTENT_TOO_SHORT", "Conte\xFAdo muito curto para extrair quest\xF5es");
-    }
-    const extracted = await this.aiProvider.extractQuestions({
-      content: plain,
-      subject: subjectName
-    });
-    if (extracted.length === 0) {
-      throw new AppError(422, "NO_QUESTIONS_FOUND", "Nenhuma quest\xE3o identificada no conte\xFAdo");
-    }
-    return prisma.$transaction(
-      extracted.map(
-        (q) => prisma.question.create({
-          data: {
-            statement: q.statement,
-            alternatives: q.alternatives,
-            correctAnswer: q.correctAnswer,
-            difficulty: q.difficulty,
-            explanation: q.explanation,
-            comments: [],
-            subjectId,
-            source: "IMPORTED",
-            aiModel: null
-          }
-        })
-      )
-    );
-  }
-  async sliceExam(_userId, dto) {
-    if (!this.aiProvider.sliceExam) {
-      throw new AppError(500, "AI_PROVIDER_ERROR", "Provedor de IA n\xE3o suporta fatiamento de prova.");
-    }
-    const sliced = await this.aiProvider.sliceExam({
-      examContent: dto.examContent,
-      answerKeyContent: dto.answerKeyContent,
-      quantity: dto.quantity ?? 10
-    });
-    let subjectId = dto.subjectId;
-    if (!subjectId) {
-      const subjectName = dto.subjectName?.trim() || "Provas Comentadas";
-      const existing = await prisma.subject.findFirst({ where: { name: subjectName } });
-      const subject = existing ?? await prisma.subject.create({ data: { name: subjectName } });
-      subjectId = subject.id;
-    }
-    return prisma.$transaction(
-      sliced.map(
-        (q) => prisma.question.create({
-          data: {
-            statement: q.referenceText ? `${q.referenceText}
-
-${q.statement}` : q.statement,
-            alternatives: q.alternatives,
-            correctAnswer: q.correctAnswer,
-            explanation: q.explanation,
-            difficulty: "MEDIUM",
-            comments: [],
-            subjectId,
-            examBoardId: dto.examBoardId,
-            source: "IMPORTED"
-          },
-          include: { subject: true, examBoard: true }
-        })
-      )
-    );
-  }
-  async getBySubject(subjectId) {
-    return prisma.question.findMany({
-      where: { subjectId },
-      orderBy: { createdAt: "desc" },
-      include: { subject: true, examBoard: true }
-    });
-  }
-  async getById(id) {
-    const question = await prisma.question.findUnique({
-      where: { id },
-      include: { subject: true, examBoard: true }
-    });
-    if (!question) {
-      throw new AppError(404, "QUESTION_NOT_FOUND", "Quest\xE3o n\xE3o encontrada");
-    }
-    return question;
-  }
-};
-
-// apps/backend/src/controllers/question.controller.ts
-var QuestionController = class {
-  constructor(service20) {
-    this.service = service20;
-  }
-  service;
-  generate = async (req, res, next) => {
-    try {
-      const questions = await this.service.generate(getUserId(req), req.body);
-      const response = { success: true, data: questions };
-      res.status(201).json(response);
-    } catch (error2) {
-      next(error2);
-    }
-  };
-  sliceExam = async (req, res, next) => {
-    try {
-      const questions = await this.service.sliceExam(getUserId(req), req.body);
-      const response = { success: true, data: questions };
-      res.status(201).json(response);
-    } catch (error2) {
-      next(error2);
-    }
-  };
-  getBySubject = async (req, res, next) => {
-    try {
-      const questions = await this.service.getBySubject(req.params.subjectId);
-      const response = { success: true, data: questions };
-      res.json(response);
-    } catch (error2) {
-      next(error2);
-    }
-  };
-  getById = async (req, res, next) => {
-    try {
-      const question = await this.service.getById(req.params.id);
-      const response = { success: true, data: question };
-      res.json(response);
-    } catch (error2) {
-      next(error2);
-    }
-  };
-};
-
-// apps/backend/src/validators/question.validators.ts
-import { z as z5 } from "zod";
-var generateQuestionsSchema = z5.object({
-  body: z5.object({
-    subjectId: z5.string().min(1),
-    topic: z5.string().max(200).optional(),
-    examBoardId: z5.string().min(1).optional(),
-    difficulty: z5.enum(["EASY", "MEDIUM", "HARD"]).optional(),
-    quantity: z5.number().int().min(1).max(10).default(5),
-    documentId: z5.string().min(1).optional(),
-    content: z5.string().max(8e4).optional(),
-    questionType: z5.enum(["MULTIPLE_4", "MULTIPLE_5", "TRUE_FALSE", "ESSAY", "MIXED"]).optional(),
-    cloneStyle: z5.boolean().optional()
-  })
-});
-
 // apps/backend/src/providers/ai-prompts.ts
-import { z as z6 } from "zod";
+import { z as z5 } from "zod";
 
 // apps/backend/src/providers/banca-profiles.ts
 var BANCA_PROFILES = `
@@ -15061,98 +14794,98 @@ As mat\xE9rias eliminat\xF3rias/b\xE1sicas (tipo Portugu\xEAs, Dir. Const.) NUNC
 `;
 
 // apps/backend/src/providers/ai-prompts.ts
-var questionsResponseSchema = z6.object({
-  questions: z6.array(
-    z6.object({
-      statement: z6.string(),
-      alternatives: z6.array(z6.object({ letter: z6.string(), text: z6.string() })).max(5),
-      correctAnswer: z6.string(),
-      explanation: z6.string(),
-      difficulty: z6.enum(["EASY", "MEDIUM", "HARD"])
+var questionsResponseSchema = z5.object({
+  questions: z5.array(
+    z5.object({
+      statement: z5.string(),
+      alternatives: z5.array(z5.object({ letter: z5.string(), text: z5.string() })).max(5),
+      correctAnswer: z5.string(),
+      explanation: z5.string(),
+      difficulty: z5.enum(["EASY", "MEDIUM", "HARD"])
     })
   )
 });
-var examSlicerResponseSchema = z6.object({
-  questions: z6.array(
-    z6.object({
-      statement: z6.string().min(1),
-      referenceText: z6.string().nullable().optional(),
-      alternatives: z6.array(z6.object({ letter: z6.string(), text: z6.string() })).min(2),
-      correctAnswer: z6.string().min(1),
-      explanation: z6.string().min(1)
+var examSlicerResponseSchema = z5.object({
+  questions: z5.array(
+    z5.object({
+      statement: z5.string().min(1),
+      referenceText: z5.string().nullable().optional(),
+      alternatives: z5.array(z5.object({ letter: z5.string(), text: z5.string() })).min(2),
+      correctAnswer: z5.string().min(1),
+      explanation: z5.string().min(1)
     })
   )
 });
-var errorRemediationResponseSchema = z6.object({
-  flashcards: z6.array(
-    z6.object({
-      front: z6.string().min(1),
-      back: z6.string().min(1),
-      type: z6.enum(["direct", "cloze", "true_false"]),
-      explanation: z6.string().min(1)
+var errorRemediationResponseSchema = z5.object({
+  flashcards: z5.array(
+    z5.object({
+      front: z5.string().min(1),
+      back: z5.string().min(1),
+      type: z5.enum(["direct", "cloze", "true_false"]),
+      explanation: z5.string().min(1)
     })
   )
 });
-var topicProbabilityResponseSchema = z6.object({
-  analysis: z6.array(
-    z6.object({
-      discipline: z6.string(),
-      topic: z6.string(),
-      probability: z6.enum(["alta", "media", "baixa"]),
-      justification: z6.string()
+var topicProbabilityResponseSchema = z5.object({
+  analysis: z5.array(
+    z5.object({
+      discipline: z5.string(),
+      topic: z5.string(),
+      probability: z5.enum(["alta", "media", "baixa"]),
+      justification: z5.string()
     })
   )
 });
-var essayCriterionSchema = z6.object({
-  score: z6.number().min(0),
-  maxScore: z6.number(),
-  comments: z6.string()
+var essayCriterionSchema = z5.object({
+  score: z5.number().min(0),
+  maxScore: z5.number(),
+  comments: z5.string()
 });
-var essayResponseSchema = z6.object({
-  score: z6.number().min(0).max(100),
-  maxScore: z6.number(),
-  feedback: z6.string(),
-  criteria: z6.object({
+var essayResponseSchema = z5.object({
+  score: z5.number().min(0).max(100),
+  maxScore: z5.number(),
+  feedback: z5.string(),
+  criteria: z5.object({
     cac: essayCriterionSchema,
     ot: essayCriterionSchema,
     dlp: essayCriterionSchema
   })
 });
-var caseStudyResponseSchema = z6.object({
-  score: z6.number().min(0),
-  maxScore: z6.number().min(1),
-  framing: z6.string(),
-  aspects: z6.array(
-    z6.object({
-      aspect: z6.string(),
-      situation: z6.enum(["correto", "parcial", "incorreto", "ausente"]),
-      points: z6.number().min(0),
-      maxPoints: z6.number().min(0),
-      justification: z6.string()
+var caseStudyResponseSchema = z5.object({
+  score: z5.number().min(0),
+  maxScore: z5.number().min(1),
+  framing: z5.string(),
+  aspects: z5.array(
+    z5.object({
+      aspect: z5.string(),
+      situation: z5.enum(["correto", "parcial", "incorreto", "ausente"]),
+      points: z5.number().min(0),
+      maxPoints: z5.number().min(0),
+      justification: z5.string()
     })
   ).min(1),
-  form: z6.object({
-    strengths: z6.string(),
-    issues: z6.string(),
-    deduction: z6.number()
+  form: z5.object({
+    strengths: z5.string(),
+    issues: z5.string(),
+    deduction: z5.number()
   }),
-  penalties: z6.array(z6.object({ reason: z6.string(), deduction: z6.number() })),
-  calculation: z6.string(),
-  feedback: z6.array(z6.string()).min(1)
+  penalties: z5.array(z5.object({ reason: z5.string(), deduction: z5.number() })),
+  calculation: z5.string(),
+  feedback: z5.array(z5.string()).min(1)
 });
-var editalResponseSchema = z6.object({
-  name: z6.string(),
-  organization: z6.string().nullable(),
-  examBoard: z6.string().nullable(),
-  role: z6.string().nullable(),
-  examDate: z6.string().nullable(),
-  syllabus: z6.array(
-    z6.object({
-      discipline: z6.string(),
-      topics: z6.array(z6.string())
+var editalResponseSchema = z5.object({
+  name: z5.string(),
+  organization: z5.string().nullable(),
+  examBoard: z5.string().nullable(),
+  role: z5.string().nullable(),
+  examDate: z5.string().nullable(),
+  syllabus: z5.array(
+    z5.object({
+      discipline: z5.string(),
+      topics: z5.array(z5.string())
     })
   ),
-  focusDisciplines: z6.array(z6.string()).nullable().optional()
+  focusDisciplines: z5.array(z5.string()).nullable().optional()
 });
 var EDITAL_MAX_CHARS = 7e5;
 var EDITAL_HEAD_CHARS = 15e4;
@@ -15179,51 +14912,130 @@ function sampleContent(content, maxChars, windows = 5) {
   }
   return parts.join("\n\n[... trecho omitido ...]\n\n");
 }
-var QUESTIONS_MAX_CONTEXT = 14e3;
+var QUESTIONS_MAX_CONTEXT = 4e4;
 var ALT_LETTERS = ["A", "B", "C", "D", "E"];
+function getSmartChunks(text, numChunks, maxChunkChars = 35e3) {
+  if (numChunks <= 1 || text.length <= maxChunkChars) {
+    return [text.slice(0, maxChunkChars)];
+  }
+  const paragraphs = text.split(/\n\n+/);
+  const chunks = [];
+  let currentChunk = "";
+  for (const para of paragraphs) {
+    if (currentChunk.length + para.length > maxChunkChars && currentChunk.length > 0) {
+      chunks.push(currentChunk.trim());
+      currentChunk = "";
+    }
+    currentChunk += para + "\n\n";
+  }
+  if (currentChunk.trim().length > 0) {
+    chunks.push(currentChunk.trim());
+  }
+  return chunks;
+}
 function getBancaGuidance(examBoard) {
-  if (!examBoard) return "";
+  if (!examBoard || examBoard.trim() === "") {
+    return `ESTILO PADR\xC3O: Crie quest\xF5es claras e objetivas, testando a compreens\xE3o e aplica\xE7\xE3o do conceito sem ambiguidades extremas. Evite pegadinhas injustas, foque no aprendizado e reten\xE7\xE3o t\xE9cnica de alto n\xEDvel.`;
+  }
   const board = examBoard.trim().toUpperCase();
   if (board.includes("CESPE") || board.includes("CEBRASPE") || board.includes("QUADRIX")) {
     return `
 ESTILO CESPE/CEBRASPE/QUADRIX:
-- Para quest\xF5es de Certo ou Errado: formule afirma\xE7\xF5es declarativas longas e assertivas.
-- Utilize pegadinhas cl\xE1ssicas: palavras restritivas ("apenas", "somente", "sempre", "nunca", "exclusivamente").
-- Empregue invers\xE3o conceitual sutil: troque "prescind\xEDvel" por "imprescind\xEDvel", "pode" por "deve", "vedado" por "permitido".
-- O candidato deve ser desafiado a detectar detalhes de doutrina e jurisprud\xEAncia pacificada.`;
+- Para quest\xF5es de Certo ou Errado: Crie afirma\xE7\xF5es declarativas assertivas para julgamento (Certo ou Errado). Misture conceitos de diferentes partes do texto/mat\xE9ria.
+- Utilize "pegadinhas" cl\xE1ssicas de concurso: restri\xE7\xE3o (palavras como "apenas", "somente", "sempre", "nunca", "exclusivamente"), extrapola\xE7\xE3o (afirmar algo que o texto/lei n\xE3o prev\xEA) e invers\xE3o conceitual.
+- Troque sutilmente termos t\xE9cnicos: "prescind\xEDvel" por "imprescind\xEDvel", "pode" por "deve", "vedado" por "permitido". A frase deve induzir ao erro por desaten\xE7\xE3o a um \xFAnico termo sutil.
+- Inform\xE1tica pesa muito na Quadrix; Direito Constitucional e Administrativo com peso dobrado.
+
+EXEMPLO DE QUEST\xC3O NO ESTILO CESPE/CEBRASPE:
+Enunciado: "\xC0 luz da Constitui\xE7\xE3o Federal, os ministros de Estado s\xE3o julgados originariamente pelo Supremo Tribunal Federal nos crimes de responsabilidade, independentemente de conex\xE3o com o Presidente da Rep\xFAblica."
+Alternativas: [{"letter":"C","text":"Certo"},{"letter":"E","text":"Errado"}]
+correctAnswer: "E"
+explanation: "Errado. Conforme art. 102, I, 'c' da CF/88, compete ao STF processar e julgar Ministros de Estado nos crimes comuns e nos crimes de responsabilidade APENAS se houver conex\xE3o com os do Presidente da Rep\xFAblica. A afirma\xE7\xE3o generalizou indevidamente o julgamento de responsabilidade origin\xE1rio ao excluir o requisito de conex\xE3o."
+Por que \xE9 estilo CESPE: Utilizou detalhe restritivo doutrin\xE1rio de conex\xE3o com o Presidente da Rep\xFAblica numa afirma\xE7\xE3o corrida e assertiva.`;
   }
   if (board.includes("FGV")) {
     return `
 ESTILO FGV (Funda\xE7\xE3o Getulio Vargas):
-- Crie enunciados no formato de "Casos Concretos" (situa\xE7\xF5es hipot\xE9ticas ou historinhas com personagens fict\xEDcios aplicando a mat\xE9ria).
-- Alternativas de A a E longas, muito plaus\xEDveis e gramaticalmente parecidas entre si.
-- Exija racioc\xEDnio jur\xEDdico/t\xE9cnico aplicado e interpreta\xE7\xE3o de texto, focando em EXCE\xC7\xD5ES \xE0 regra geral.`;
+- N\xEDvel de complexidade alt\xEDssimo. Crie "casos concretos" (situa\xE7\xF5es hipot\xE9ticas ou historinhas com personagens fict\xEDcios, ex: "Jo\xE3o, servidor rec\xE9m empossado...") onde o candidato precisa aplicar a teoria \xE0 pr\xE1tica.
+- As alternativas de A a E devem ser longas, extremamente plaus\xEDveis e parecidas entre si.
+- Exija interpreta\xE7\xE3o de texto profunda, racioc\xEDnio l\xF3gico/jur\xEDdico aplicado e foco nas EXCE\xC7\xD5ES \xE0 regra geral. Fuja da literalidade pura.
+- Racioc\xEDnio L\xF3gico e Estat\xEDstica com peso m\xE1ximo; alto risco eliminat\xF3rio.
+
+EXEMPLO DE QUEST\xC3O NO ESTILO FGV:
+Enunciado: "Jo\xE3o, servidor rec\xE9m empossado, no exerc\xEDcio da fun\xE7\xE3o e mediante uso abusivo de suas atribui\xE7\xF5es, constrangeu subordinado. Considerando o texto normativo adotado no \xF3rg\xE3o, Jo\xE3o:"
+Alternativas: [
+  {"letter":"A","text":"Responder\xE1 por falta disciplinar, sendo imprescind\xEDvel a instaura\xE7\xE3o imediata de sindic\xE2ncia de rito sum\xE1rio preparat\xF3rio."},
+  {"letter":"B","text":"N\xE3o sofrer\xE1 san\xE7\xF5es caso n\xE3o haja dolo espec\xEDfico comprovado da inten\xE7\xE3o lesiva, respondendo apenas administrativamente de forma branda."},
+  {"letter":"C","text":"Sofrer\xE1 processo administrativo apurat\xF3rio, garantindo-se contradit\xF3rio apenas na fase de defesa."},
+  {"letter":"D","text":"Poder\xE1 vir a responder administrativamente, civilmente e penalmente, dada as esferas independentes, em face da materialidade do excesso exercido."},
+  {"letter":"E","text":"Ter\xE1 a falta relevada pelo princ\xEDpio da insignific\xE2ncia funcional adotada internamente pelo conselho \xE9tico."}
+]
+correctAnswer: "D"
+explanation: "A alternativa D est\xE1 correta. Pelo princ\xEDpio da independ\xEAncia das inst\xE2ncias (art. 121 a 125 da Lei 8.112/90 e doutrina pacificada), as san\xE7\xF5es civis, penais e administrativas poder\xE3o cumular-se, sendo independentes entre si. As demais alternativas criam falsos requisitos processuais ou atenuantes inexistentes."
+Por que \xE9 estilo FGV: O enunciado \xE9 caso pr\xE1tico simulado (fict\xEDcio) e as alternativas parecem todas plausivelmente corretas, exigindo aplica\xE7\xE3o da teoria para achar a exata.`;
   }
   if (board.includes("FCC")) {
     return `
 ESTILO FCC (Funda\xE7\xE3o Carlos Chagas):
-- Foco cir\xFArgico na literalidade do texto legal ou t\xE9cnico.
-- As alternativas incorretas devem conter altera\xE7\xF5es pontuais e sutis: troca de prazos (ex: 15 por 30 dias), conjun\xE7\xF5es ("e" por "ou", "salvo" por "inclusive") e conceitos procedimentais ("suspens\xE3o" por "interrup\xE7\xE3o").`;
+- Foco pesado na literalidade exata do texto/regra legal ou t\xE9cnica, mas com maldades sutis.
+- O erro das alternativas incorretas consiste na altera\xE7\xE3o pontual de um \xFAnico dado: prazos (de 15 para 30 dias), porcentagens, compet\xEAncias, conjun\xE7\xF5es ("e" por "ou", "salvo" por "inclusive") e conceitos processuais ("suspens\xE3o" por "interrup\xE7\xE3o").
+- Crie alternativas de A a E onde o erro de 4 delas est\xE1 em uma \xFAnica palavra cirurgicamente alterada em rela\xE7\xE3o ao texto original.
+- Portugu\xEAs eliminat\xF3rio, literalidade de legisla\xE7\xE3o sem elucubra\xE7\xF5es doutrin\xE1rias.
+
+EXEMPLO DE QUEST\xC3O NO ESTILO FCC:
+Enunciado: "Nos termos da legisla\xE7\xE3o de reg\xEAncia, \xE9 correto afirmar sobre a suspens\xE3o e contagem de prazos:"
+Alternativas: [
+  {"letter":"A","text":"Suspende-se o curso do prazo a partir do primeiro dia \xFAtil e retorna a fluir do doze subsequente."},
+  {"letter":"B","text":"O prazo legal interrompe, exceto nas inst\xE2ncias em dila\xE7\xE3o de urg\xEAncia cont\xEDnua."},
+  {"letter":"C","text":"O fluxo sofre suspens\xE3o no per\xEDodo de recesso formal de 20 de dezembro a 20 de janeiro, inclusive."},
+  {"letter":"D","text":"Fica vedada a pr\xE1tica de qualquer ato processual administrativo, sem exce\xE7\xE3o de urg\xEAncia no per\xEDodo de 20 a 30 de janeiro."},
+  {"letter":"E","text":"Os prazos prescricionais ficam exclu\xEDdos da suspens\xE3o geral, salvo em decis\xE3o fundamentada em sigilo."}
+]
+correctAnswer: "C"
+explanation: "A alternativa C \xE9 a literalidade correta (ex: art. 220 do CPC). As alternativas A, B, D e E alteram cirurgicamente prazos, trocam suspens\xE3o por interrup\xE7\xE3o ou criam veda\xE7\xF5es absolutas inexistentes."
+Por que \xE9 estilo FCC: Quest\xE3o seca literal de uma regrinha t\xE9cnica onde as alternativas erradas trocaram sutis elementos como 'suspens\xE3o' por 'interrup\xE7\xE3o' e datas.`;
   }
   if (board.includes("VUNESP")) {
     return `
 ESTILO VUNESP:
-- Situa\xE7\xF5es contextualizadas simples do dia a dia da administra\xE7\xE3o p\xFAblica.
-- Alternativas diretas e enxutas testando aplica\xE7\xE3o literal de deveres funcionais, proibi\xE7\xF5es e prazos.`;
+- Situa\xE7\xF5es contextualizadas simples envolvendo o cotidiano administrativo da reparti\xE7\xE3o (ex: um servidor p\xFAblico, uma rotina administrativa).
+- As alternativas de A a E s\xE3o diretas e enxutas, testando a aplica\xE7\xE3o literal da regra, deveres, proibi\xE7\xF5es e prazos.
+- \xC9 uma banca direta, menos interpretativa que a FGV, focada na reten\xE7\xE3o precisa e fidedigna da informa\xE7\xE3o.
+- Foco regional, legisla\xE7\xE3o municipal/estadual tem peso m\xE1ximo.
+
+EXEMPLO DE QUEST\xC3O NO ESTILO VUNESP:
+Enunciado: "Ana Beatriz, servidora p\xFAblica em exerc\xEDcio na reparti\xE7\xE3o, precisou retirar autos f\xEDsicos do setor por 3 dias sem pr\xE9via autoriza\xE7\xE3o da autoridade competente. De acordo com o estatuto funcional, Ana Beatriz:"
+Alternativas: [
+  {"letter":"A","text":"Tem o prazo de 24h para comunicar formalmente a ocorr\xEAncia sem incorrer em penalidade disciplinar."},
+  {"letter":"B","text":"Cometeu infra\xE7\xE3o funcional pun\xEDvel com penalidade administrativa de suspens\xE3o."},
+  {"letter":"C","text":"Praticou ato pass\xEDvel exclusivamente de advert\xEAncia verbal sum\xE1ria caso seja r\xE9 prim\xE1ria."},
+  {"letter":"D","text":"Possui amparo legal irrestrito com esteio no princ\xEDpio da efici\xEAncia funcional."},
+  {"letter":"E","text":"Ter\xE1 a irregularidade automaticamente relevada mediante declara\xE7\xE3o de boa-f\xE9 subscrita."}
+]
+correctAnswer: "B"
+explanation: "A alternativa B \xE9 a correta. A retirada n\xE3o autorizada de documentos ou autos da reparti\xE7\xE3o p\xFAblica configura falta disciplinar grave pun\xEDvel com suspens\xE3o nos estatutos dos servidores p\xFAblicos civis."
+Por que \xE9 estilo VUNESP: Historinha do cotidiano pragm\xE1tico do setor, alternativas focadas na aplica\xE7\xE3o direta do regulamento sem malabarismos.`;
   }
   if (board.includes("CESGRANRIO")) {
     return `
 ESTILO CESGRANRIO:
-- Quest\xF5es fortemente contextualizadas simulando o mercado de trabalho (rotinas administrativas, banc\xE1rias ou de engenharia).
-- Distratores constru\xEDdos em cima de equ\xEDvocos cl\xE1ssicos de profissionais novatos ou desatentos.`;
+- Quest\xF5es muito objetivas e perfeitamente equilibradas entre teoria e pr\xE1tica.
+- Crie enunciados fortemente contextualizados, simulando situa\xE7\xF5es reais do mercado de trabalho (como rotinas banc\xE1rias, financeiras, administrativas, comerciais ou de engenharia).
+- Evite 'pegadinhas' baseadas apenas em trocas sem\xE2nticas de palavras; o foco deve ser testar se o candidato domina o conceito central e sabe aplic\xE1-lo na pr\xE1tica.
+- As alternativas incorretas (distratores) devem representar erros conceituais cl\xE1ssicos que um profissional novato ou desatento cometeria no dia a dia.
+- Matem\xE1tica Financeira, Legisla\xE7\xE3o Espec\xEDfica e Contabilidade com peso alto.`;
   }
-  if (board.includes("IBFC") || board.includes("AOCP") || board.includes("IDECAN")) {
+  if (board.includes("IBFC") || board.includes("AOCP") || board.includes("IDECAN") || board.includes("CONSULPLAN") || board.includes("FUNDEP") || board.includes("IADES") || board.includes("FEPESE") || board.includes("FUNRIO")) {
     return `
-ESTILO IBFC/AOCP/IDECAN:
-- Quest\xF5es diretas, literais e secas ("Assinale a alternativa correta sobre...", "\xC9 INCORRETO afirmar que...").
-- Foco em listas, enumera\xE7\xF5es e decoreba de conceitos literais.`;
+ESTILO ${board}:
+- Quest\xF5es secas, diretas e literais ("Assinale a alternativa correta sobre...", "Com base no texto/legisla\xE7\xE3o, \xE9 INCORRETO afirmar que...").
+- Foco extremo em memoriza\xE7\xE3o de conceitos, listas e enumera\xE7\xF5es literais presentes no texto ou na lei.
+- Alternativas de A a E tendem a ser mais curtas e diretas ao ponto, sem historinhas prolixas.`;
   }
-  return `Banca Alvo: ${examBoard}. Adapte o vocabul\xE1rio, estrutura e n\xEDvel de cobran\xE7a ao perfil hist\xF3rico desta banca.`;
+  return `Banca Alvo: ${examBoard}.
+Aplique o estilo caracter\xEDstico e o n\xEDvel de exig\xEAncia desta banca.
+Perfil geral de refer\xEAncia:
+${BANCA_PROFILES}`;
 }
 function typeInstructions(type) {
   switch (type) {
@@ -15256,60 +15068,131 @@ function buildQuestionsPrompt(params) {
 MATERIAL DE ESTUDO DO CANDIDATO (trechos ao longo do material; baseie-se ESTRITAMENTE neste material \u2014 cada quest\xE3o deve poder ser respondida com o que est\xE1 aqui; n\xE3o cobre nada que n\xE3o esteja no texto):${styleNote}
 ${sampleContent(params.context, QUESTIONS_MAX_CONTEXT)}
 ` : "";
-  return `Voc\xEA \xE9 um examinador experiente de concursos p\xFAblicos brasileiros. Gere ${params.quantity} quest\xE3o(\xF5es) sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ""}.
+  return `Voc\xEA \xE9 um examinador s\xEAnior e de alta precis\xE3o de concursos p\xFAblicos brasileiros.
+Gere ${params.quantity} quest\xE3o(\xF5es) in\xE9ditas sobre "${params.subject}"${params.topic ? `, especificamente sobre "${params.topic}"` : ""}.
 
+======================================================================
+DIRETRIZES DE ESTILO DA BANCA EXAMINADORA:
+======================================================================
 ${bancaGuidance}
-Dificuldade: ${diffText}.
+
+N\xEDvel de Dificuldade: ${diffText}.
 ${contextBlock}
 
-REGRAS OBRIGAT\xD3RIAS:
+======================================================================
+\u{1F6A8} \xC2NCORA ANTI-ALUCINA\xC7\xC3O (MANDAT\xD3RIO):
+======================================================================
+Baseie as perguntas e respostas exclusivamente no conhecimento t\xE9cnico real e na legisla\xE7\xE3o vigente no Brasil.
+Nunca invente legisla\xE7\xE3o, n\xFAmeros de artigos inexistentes, s\xFAmulas ou jurisprud\xEAncias fict\xEDcias.
+Se houver material fornecido pelo candidato, as quest\xF5es devem ater-se aos limites tem\xE1ticos do texto.
+
+REGRAS OBRIGAT\xD3RIAS DE QUALIDADE PEDAG\xD3GICA (PADR\xC3O ZION):
 1. ${typeInstructions(type)}
 2. Em quest\xF5es objetivas, apenas UMA alternativa inequivocamente correta \u2014 as demais devem estar claramente erradas para quem domina o conte\xFAdo, sem ambiguidade.
-3. O enunciado deve ser claro, autocontido e direto.
-4. As alternativas erradas (distratores) devem ser plaus\xEDveis e representar erros frequentes dos candidatos.
+3. O enunciado deve ser claro, autocontido, elaborado e refletir com exatid\xE3o o formato e a mal\xEDcia t\xEDpica da banca.
+4. As alternativas erradas (distratores) devem ser altamente veross\xEDmeis e representar erros conceituais cl\xE1ssicos que candidatos cometem sob press\xE3o.
 5. N\xC3O invente leis, artigos, n\xFAmeros ou datas; baseie-se exclusivamente no ordenamento real.
-6. A explica\xE7\xE3o deve justificar a resposta correta e explicar por que as demais alternativas est\xE3o erradas.
-7. Use linguagem formal e t\xE9cnica adequada para concursos p\xFAblicos.
-8. Varie a posi\xE7\xE3o da alternativa correta.
+6. A explica\xE7\xE3o ("explanation") deve ser completa, did\xE1tica e aprofundada:
+   - Justificar a resposta correta citando o fundamento legal (lei, artigo, s\xFAmula ou teoria pacificada);
+   - Explicar por que cada alternativa incorreta est\xE1 errada;
+   - Destacar a pegadinha cl\xE1ssica da banca para que o estudante memorize o padr\xE3o.
+7. Varie e equilibre a posi\xE7\xE3o da alternativa correta.
+8. Use linguagem formal e t\xE9cnica adequada para concursos p\xFAblicos.
 
 Responda APENAS com JSON v\xE1lido no seguinte formato, sem markdown ou texto adicional:
 {"questions":[${exampleItem(type, params.difficulty ?? "MEDIUM")}]}`;
 }
+function prepareExamTextForSubject(examContent, subjectName, maxChars = 16e4) {
+  const text = examContent.trim();
+  if (text.length <= maxChars) {
+    return text;
+  }
+  const cleanSubject = subjectName?.trim().toUpperCase();
+  const isGeneric = !cleanSubject || ["TODAS AS MAT\xC9RIAS", "TODAS", "GERAL", "PROVAS ANTERIORES", "SIMULADO"].includes(cleanSubject);
+  if (!isGeneric) {
+    const subjectPatterns = [
+      new RegExp(`(?:^|\\n)\\s*(?:conhecimentos\\s+espec[\xEDi]ficos\\s*[-\u2013:]?\\s*)?${cleanSubject}`, "i"),
+      new RegExp(`(?:no[\xE7c][\xF5o]es\\s+de\\s+)?${cleanSubject}`, "i")
+    ];
+    let foundIdx = -1;
+    for (const pattern of subjectPatterns) {
+      const match = pattern.exec(text);
+      if (match && match.index >= 0) {
+        foundIdx = match.index;
+        break;
+      }
+    }
+    if (foundIdx >= 0) {
+      const start = Math.max(0, foundIdx - 1e3);
+      const end = Math.min(text.length, start + maxChars);
+      return text.slice(start, end);
+    }
+  }
+  const windows = 4;
+  const windowSize = Math.floor(maxChars / windows);
+  const step = Math.max(windowSize, Math.floor((text.length - windowSize) / (windows - 1)));
+  const parts = [];
+  for (let i = 0; i < windows; i++) {
+    const start = Math.min(i * step, text.length - windowSize);
+    parts.push(text.slice(start, start + windowSize));
+  }
+  return parts.join("\n\n[... continuidade do texto da prova ...]\n\n");
+}
 function buildExamSlicerPrompt(params) {
   const randomSeed = Date.now() % 1e4;
   const quantity = params.quantity ?? 10;
+  const targetSubject = params.subjectName?.trim();
+  const isSpecificSubject = targetSubject && !["Todas as Mat\xE9rias", "Todas", "Geral", "Provas Anteriores", "Simulado"].includes(targetSubject);
+  const subjectDirective = isSpecificSubject ? `
+\u{1F3AF} DIRETRIZ DE MAT\xC9RIA OBRIGAT\xD3RIA:
+O candidato solicitou EXCLUSIVAMENTE a mat\xE9ria: "${targetSubject}".
+- Voc\xEA DEVE percorrer todo o texto da prova e extrair UNICAMENTE quest\xF5es pertencentes a "${targetSubject}".
+- \xC9 TERMINANTEMENTE PROIBIDO extrair quest\xF5es de outras mat\xE9rias quando esta disciplina for especificada.
+- Se houver mais de ${quantity} quest\xF5es desta mat\xE9ria, selecione as ${quantity} mais representativas e bem formuladas.
+` : `
+\u{1F3AF} DIRETRIZ GERAL:
+O candidato solicitou extra\xE7\xE3o ampla da prova. Percorra todo o texto e extraia ${quantity} quest\xF5es distribu\xEDdas harmonicamente pelas diversas disciplinas presentes na prova.
+`;
   const answerKeyBlock = params.answerKeyContent ? `
-GABARITO OFICIAL FORNECIDO PELO USU\xC1RIO (Use obrigatoriamente para validar o gabarito e justificar):
-${params.answerKeyContent.slice(0, 15e3)}
+\u{1F4CB} GABARITO OFICIAL FORNECIDO (Valide rigorosamente o gabarito de cada quest\xE3o contra este documento oficial):
+${params.answerKeyContent.slice(0, 2e4)}
 ` : "";
-  return `Voc\xEA \xE9 um especialista em an\xE1lise e fatiamento de Provas de Concursos P\xFAblicos Brasileiros.
-Sua miss\xE3o \xE9 extrair fielmente ${quantity} quest\xF5es reais do texto da prova fornecida, estruturando-as para resolu\xE7\xE3o interativa.
-Semente de varia\xE7\xE3o: ${randomSeed}. N\xE3o extraia apenas o in\xEDcio; percorra diferentes blocos da prova.
+  const examText = prepareExamTextForSubject(params.examContent, targetSubject, 16e4);
+  return `Voc\xEA \xE9 um analista s\xEAnior e professor especializado em Provas de Concursos P\xFAblicos Brasileiros (estilo CEBRASPE, FGV, FCC, VUNESP, etc.).
+Sua miss\xE3o \xE9 extrair com m\xE1xima precis\xE3o e fidelidade ${quantity} quest\xF5es reais do texto da prova fornecida, estruturando-as com coment\xE1rios de alt\xEDssimo valor pedag\xF3gico para estudo aprofundado.
+Semente de varia\xE7\xE3o: ${randomSeed}.
+
+${subjectDirective}
+
+REGRAS DE EXTRA\xC7\xC3O E FORMATA\xC7\xC3O:
+1. Extraia at\xE9 ${quantity} quest\xF5es objetivas completas presentes no documento da prova.
+2. Identifique se a quest\xE3o possui texto-base de suporte/interpreta\xE7\xE3o (artigo, poema, situa\xE7\xE3o-problema compartilhada) e preencha "referenceText" com o texto de apoio correspondente (se n\xE3o houver, use null).
+3. "statement": Enunciado fiel, claro e completo da quest\xE3o (sem truncar).
+4. "alternatives": Array com a letra (A, B, C, D, E ou C, E) e o texto integral de cada alternativa da prova.
+5. "correctAnswer": Letra oficial da resposta correta (A-E ou C/E), conferida com o gabarito oficial se fornecido.
+6. "explanation" (OBRIGAT\xD3RIO SER RICO, FUNDAMENTADO E ESTRUTURADO):
+   A explica\xE7\xE3o DEVE ser detalhada, aprofundada e formatada obrigatoriamente com os seguintes blocos:
+   - \u{1F4A1} **Gabarito e S\xEDntese**: Justifique por que a alternativa correta \xE9 a verdadeira de forma clara e direta.
+   - \u{1F4D6} **Fundamenta\xE7\xE3o & Fontes**: Cite expressamente os artigos de lei (CF/88, C\xF3digos, Legisla\xE7\xE3o Espec\xEDfica), s\xFAmulas vinculantes ou jurisprud\xEAncia pac\xEDfica (STF/STJ), regras gramaticais ou conceitos t\xE9cnicos normativos.
+   - \u{1F50D} **An\xE1lise dos Distratores**: Aponte de forma cir\xFArgica onde est\xE1 o erro de cada uma das alternativas incorretas, demonstrando o que as torna falsas.
+   - \u26A0\uFE0F **Dica do Especialista / Pegadinha da Banca**: Alerte sobre pegadinhas t\xEDpicas (palavras de restri\xE7\xE3o como "apenas/sempre/nunca", invers\xF5es de compet\xEAncia, trocas conceituais).
 
 TEXTO DA PROVA:
-${sampleContent(params.examContent, 25e3)}
+${examText}
 ${answerKeyBlock}
 
-REGRAS DE EXTRA\xC7\xC3O:
-1. Extraia at\xE9 ${quantity} quest\xF5es objetivas completas presentes no documento.
-2. Identifique se a quest\xE3o possui texto-base de suporte/interpreta\xE7\xE3o e preencha "referenceText" (se n\xE3o houver texto-base pr\xF3prio, use null).
-3. "statement" deve conter o enunciado limpo da quest\xE3o.
-4. "alternatives" deve conter a lista com letter (A, B, C, D, E ou C, E) e o text correspondente.
-5. "correctAnswer" deve ser a letra da resposta correta (A-E ou C/E).
-6. "explanation" deve ser did\xE1tica, citando a regra jur\xEDdica ou fundamento t\xE9cnico da resposta.
-
-Responda APENAS com JSON v\xE1lido no formato abaixo, sem markdown:
+Responda APENAS com JSON estrito no formato abaixo, sem markdown ou caracteres fora do JSON:
 {
   "questions": [
     {
-      "statement": "Enunciado da quest\xE3o",
+      "statement": "Enunciado fiel da quest\xE3o",
       "referenceText": "Texto de apoio se houver, ou null",
       "alternatives": [
         { "letter": "A", "text": "Texto da alternativa A" },
         { "letter": "B", "text": "Texto da alternativa B" }
       ],
       "correctAnswer": "A",
-      "explanation": "Explica\xE7\xE3o completa e fundamentada"
+      "explanation": "\u{1F4A1} **Gabarito e S\xEDntese**: ...\\n\\n\u{1F4D6} **Fundamenta\xE7\xE3o & Fontes**: ...\\n\\n\u{1F50D} **An\xE1lise dos Distratores**: ...\\n\\n\u26A0\uFE0F **Dica do Especialista**: ..."
     }
   ]
 }`;
@@ -15594,8 +15477,8 @@ Responda APENAS com JSON v\xE1lido no seguinte formato, sem markdown ou texto ad
 }`;
 }
 var FLASHCARD_MAX_CONTENT = 12e3;
-var flashcardsResponseSchema = z6.object({
-  flashcards: z6.array(z6.object({ front: z6.string().min(1), back: z6.string().min(1) })).min(1)
+var flashcardsResponseSchema = z5.object({
+  flashcards: z5.array(z5.object({ front: z5.string().min(1), back: z5.string().min(1) })).min(1)
 });
 function buildFlashcardsPrompt(params) {
   const content = sampleContent(params.content, FLASHCARD_MAX_CONTENT);
@@ -15651,8 +15534,8 @@ REGRAS OBRIGAT\xD3RIAS:
 
 Responda APENAS com o resumo em Markdown, sem pre\xE2mbulo.`;
 }
-var auditResponseSchema = z6.object({
-  answers: z6.array(z6.object({ index: z6.number().int(), letter: z6.string().min(1) }))
+var auditResponseSchema = z5.object({
+  answers: z5.array(z5.object({ index: z5.number().int(), letter: z5.string().min(1) }))
 });
 function buildAuditPrompt(params) {
   const subjectBlock = params.subject ? ` de ${params.subject}` : "";
@@ -15865,6 +15748,356 @@ ${input.userObservations ? `[OBSERVA\xC7\xD5ES DO USU\xC1RIO]
 
 INSTRU\xC7\xC3O FINAL: Retorne APENAS o JSON v\xE1lido para 1 SEMANA (Ciclo Base).`;
 }
+
+// apps/backend/src/services/question.service.ts
+var ESSAY_ANSWER = "S";
+var MIN_AUDIT_ALTERNATIVES = 2;
+var QuestionService = class {
+  constructor(aiProvider4) {
+    this.aiProvider = aiProvider4;
+  }
+  aiProvider;
+  documentService = new DocumentService();
+  async generate(userId, dto) {
+    const subject = await prisma.subject.findUnique({ where: { id: dto.subjectId } });
+    if (!subject) {
+      throw new AppError(404, "SUBJECT_NOT_FOUND", "Disciplina n\xE3o encontrada");
+    }
+    if (dto.documentId || dto.content) {
+      return this.generateWithAI(userId, dto, subject.name);
+    }
+    const imported = await this.findImportedQuestions(dto);
+    if (imported.length > 0) {
+      return imported;
+    }
+    return this.generateWithAI(userId, dto, subject.name);
+  }
+  async findImportedQuestions(dto) {
+    const subjectIds = await this.getSubjectTreeIds(dto.subjectId);
+    const where = {
+      subjectId: { in: subjectIds },
+      source: "IMPORTED"
+    };
+    if (dto.examBoardId) where.examBoardId = dto.examBoardId;
+    if (dto.difficulty) where.difficulty = dto.difficulty;
+    const total = await prisma.question.count({ where });
+    if (total === 0) return [];
+    const skip = Math.max(0, Math.floor(Math.random() * (total - dto.quantity)));
+    return prisma.question.findMany({
+      where,
+      skip,
+      take: dto.quantity,
+      include: { subject: true, examBoard: true }
+    });
+  }
+  async getSubjectTreeIds(subjectId) {
+    const children = await prisma.subject.findMany({
+      where: { parentId: subjectId },
+      select: { id: true }
+    });
+    if (children.length === 0) return [subjectId];
+    return [subjectId, ...children.map((c) => c.id)];
+  }
+  async generateWithAI(userId, dto, subjectName) {
+    let examBoardName = dto.examBoardName?.trim();
+    let resolvedBoardId = dto.examBoardId;
+    if (resolvedBoardId) {
+      const board = await prisma.examBoard.findUnique({ where: { id: resolvedBoardId } });
+      if (!board) {
+        throw new AppError(404, "EXAM_BOARD_NOT_FOUND", "Banca n\xE3o encontrada");
+      }
+      examBoardName = board.name;
+    } else if (examBoardName) {
+      const board = await prisma.examBoard.findFirst({
+        where: {
+          OR: [
+            { name: { contains: examBoardName } },
+            { slug: examBoardName.toLowerCase().replace(/[^a-z0-9]/g, "") }
+          ]
+        }
+      });
+      if (board) {
+        resolvedBoardId = board.id;
+        examBoardName = board.name;
+      }
+    }
+    let effectiveQuestionType = dto.questionType;
+    if (!effectiveQuestionType && examBoardName) {
+      const upperBoard = examBoardName.toUpperCase();
+      if (upperBoard.includes("CESPE") || upperBoard.includes("CEBRASPE") || upperBoard.includes("QUADRIX")) {
+        effectiveQuestionType = "TRUE_FALSE";
+      }
+    }
+    let context;
+    if (dto.content?.trim()) {
+      context = dto.content.trim();
+    } else if (dto.documentId) {
+      const doc = await prisma.document.findUnique({ where: { id: dto.documentId } });
+      if (!doc || doc.userId !== userId) {
+        throw new AppError(404, "DOCUMENT_NOT_FOUND", "Documento n\xE3o encontrado");
+      }
+      context = doc.content;
+    } else {
+      context = await this.documentService.getContentBySubject(dto.subjectId);
+    }
+    let generated;
+    if (context && context.length > 25e3 && dto.quantity >= 5) {
+      const numChunks = dto.quantity <= 5 ? 1 : Math.min(4, Math.ceil(dto.quantity / 5));
+      const chunks = getSmartChunks(context, numChunks, 35e3);
+      const targetPerChunk = Math.ceil(dto.quantity / chunks.length);
+      const chunkResults = await Promise.all(
+        chunks.map(async (chunk, index) => {
+          return this.aiProvider.generateQuestions({
+            subject: subjectName,
+            topic: dto.topic,
+            examBoard: examBoardName,
+            difficulty: dto.difficulty,
+            quantity: targetPerChunk,
+            context: `[Parte ${index + 1} de ${chunks.length} do Material Fonte]
+${chunk}`,
+            questionType: effectiveQuestionType,
+            cloneStyle: dto.cloneStyle
+          });
+        })
+      );
+      generated = chunkResults.flat().slice(0, dto.quantity);
+    } else {
+      generated = await this.aiProvider.generateQuestions({
+        subject: subjectName,
+        topic: dto.topic,
+        examBoard: examBoardName,
+        difficulty: dto.difficulty,
+        quantity: dto.quantity,
+        context: context ? context.slice(0, 4e4) : void 0,
+        questionType: effectiveQuestionType,
+        cloneStyle: dto.cloneStyle
+      });
+    }
+    const balancedQuestions = this.balanceQuestionAlternatives(generated);
+    const kept = await this.auditQuestions(balancedQuestions, subjectName);
+    return prisma.$transaction(
+      kept.map(
+        (q) => prisma.question.create({
+          data: {
+            statement: q.statement,
+            alternatives: q.alternatives,
+            correctAnswer: q.correctAnswer,
+            difficulty: q.difficulty,
+            explanation: q.explanation,
+            comments: [],
+            subjectId: dto.subjectId,
+            examBoardId: resolvedBoardId,
+            source: "AI_GENERATED"
+          },
+          include: { subject: true, examBoard: true }
+        })
+      )
+    );
+  }
+  balanceQuestionAlternatives(questions) {
+    const letters = ["A", "B", "C", "D", "E"];
+    return questions.map((q) => {
+      if (!q.alternatives || q.alternatives.length < 2) return q;
+      const isTrueFalse = q.alternatives.length === 2 && q.alternatives.some((a) => a.letter === "C" || a.text.toLowerCase().includes("certo"));
+      if (isTrueFalse) return q;
+      const altsWithStatus = q.alternatives.map((a) => ({
+        text: a.text,
+        isCorrect: a.letter.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase()
+      }));
+      const hasCorrect = altsWithStatus.some((a) => a.isCorrect);
+      if (!hasCorrect) return q;
+      const shuffled = [...altsWithStatus].sort(() => Math.random() - 0.5);
+      const newAlternatives = shuffled.map((item, idx) => ({
+        letter: letters[idx] ?? String.fromCharCode(65 + idx),
+        text: item.text
+      }));
+      const newCorrectIndex = shuffled.findIndex((item) => item.isCorrect);
+      const newCorrectLetter = letters[newCorrectIndex] ?? "A";
+      return {
+        ...q,
+        alternatives: newAlternatives,
+        correctAnswer: newCorrectLetter
+      };
+    });
+  }
+  async auditQuestions(generated, subjectName) {
+    const objective = generated.map((q, idx) => ({ q, idx })).filter(({ q }) => q.alternatives.length >= MIN_AUDIT_ALTERNATIVES);
+    if (objective.length === 0) return generated;
+    const answers = await this.aiProvider.answerQuestions({
+      questions: objective.map(({ q }) => ({ statement: q.statement, alternatives: q.alternatives })),
+      subject: subjectName
+    });
+    const discardedIndexes = /* @__PURE__ */ new Set();
+    objective.forEach(({ q, idx }, i) => {
+      const solverAns = answers[i]?.trim().toUpperCase();
+      const expectedAns = q.correctAnswer.trim().toUpperCase();
+      if (solverAns && solverAns !== expectedAns) {
+        discardedIndexes.add(idx);
+      }
+    });
+    if (discardedIndexes.size > 0) {
+      console.warn(`Auditoria da IA descartou ${discardedIndexes.size} quest\xE3o(\xF5es) inconsistente(s).`);
+    }
+    const kept = generated.filter((_, idx) => !discardedIndexes.has(idx));
+    return kept.length > 0 ? kept : generated;
+  }
+  async importFromContent(subjectId, content, subjectName) {
+    const plain = htmlToPlainText(content).trim();
+    if (plain.length < 50) {
+      throw new AppError(400, "CONTENT_TOO_SHORT", "Conte\xFAdo muito curto para extrair quest\xF5es");
+    }
+    const extracted = await this.aiProvider.extractQuestions({
+      content: plain,
+      subject: subjectName
+    });
+    if (extracted.length === 0) {
+      throw new AppError(422, "NO_QUESTIONS_FOUND", "Nenhuma quest\xE3o identificada no conte\xFAdo");
+    }
+    return prisma.$transaction(
+      extracted.map(
+        (q) => prisma.question.create({
+          data: {
+            statement: q.statement,
+            alternatives: q.alternatives,
+            correctAnswer: q.correctAnswer,
+            difficulty: q.difficulty,
+            explanation: q.explanation,
+            comments: [],
+            subjectId,
+            source: "IMPORTED",
+            aiModel: null
+          }
+        })
+      )
+    );
+  }
+  async sliceExam(_userId, dto) {
+    if (!this.aiProvider.sliceExam) {
+      throw new AppError(500, "AI_PROVIDER_ERROR", "Provedor de IA n\xE3o suporta fatiamento de prova.");
+    }
+    const sliced = await this.aiProvider.sliceExam({
+      examContent: dto.examContent,
+      answerKeyContent: dto.answerKeyContent,
+      quantity: dto.quantity ?? 10,
+      subjectName: dto.subjectName
+    });
+    let subjectId = dto.subjectId;
+    if (!subjectId) {
+      const subjectName = dto.subjectName?.trim() || "Provas Comentadas";
+      const existing = await prisma.subject.findFirst({ where: { name: subjectName } });
+      const subject = existing ?? await prisma.subject.create({ data: { name: subjectName } });
+      subjectId = subject.id;
+    }
+    return prisma.$transaction(
+      sliced.map(
+        (q) => prisma.question.create({
+          data: {
+            statement: q.referenceText ? `${q.referenceText}
+
+${q.statement}` : q.statement,
+            alternatives: q.alternatives,
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation,
+            difficulty: "MEDIUM",
+            comments: [],
+            subjectId,
+            examBoardId: dto.examBoardId,
+            source: "IMPORTED"
+          },
+          include: { subject: true, examBoard: true }
+        })
+      )
+    );
+  }
+  async getBySubject(subjectId) {
+    return prisma.question.findMany({
+      where: { subjectId },
+      orderBy: { createdAt: "desc" },
+      include: { subject: true, examBoard: true }
+    });
+  }
+  async getById(id) {
+    const question = await prisma.question.findUnique({
+      where: { id },
+      include: { subject: true, examBoard: true }
+    });
+    if (!question) {
+      throw new AppError(404, "QUESTION_NOT_FOUND", "Quest\xE3o n\xE3o encontrada");
+    }
+    return question;
+  }
+};
+
+// apps/backend/src/controllers/question.controller.ts
+var QuestionController = class {
+  constructor(service20) {
+    this.service = service20;
+  }
+  service;
+  generate = async (req, res, next) => {
+    try {
+      const questions = await this.service.generate(getUserId(req), req.body);
+      const response = { success: true, data: questions };
+      res.status(201).json(response);
+    } catch (error2) {
+      next(error2);
+    }
+  };
+  sliceExam = async (req, res, next) => {
+    try {
+      const questions = await this.service.sliceExam(getUserId(req), req.body);
+      const response = { success: true, data: questions };
+      res.status(201).json(response);
+    } catch (error2) {
+      next(error2);
+    }
+  };
+  getBySubject = async (req, res, next) => {
+    try {
+      const questions = await this.service.getBySubject(req.params.subjectId);
+      const response = { success: true, data: questions };
+      res.json(response);
+    } catch (error2) {
+      next(error2);
+    }
+  };
+  getById = async (req, res, next) => {
+    try {
+      const question = await this.service.getById(req.params.id);
+      const response = { success: true, data: question };
+      res.json(response);
+    } catch (error2) {
+      next(error2);
+    }
+  };
+};
+
+// apps/backend/src/validators/question.validators.ts
+import { z as z6 } from "zod";
+var generateQuestionsSchema = z6.object({
+  body: z6.object({
+    subjectId: z6.string().min(1),
+    topic: z6.string().max(200).optional(),
+    examBoardId: z6.string().min(1).optional(),
+    examBoardName: z6.string().max(100).optional(),
+    difficulty: z6.enum(["EASY", "MEDIUM", "HARD"]).optional(),
+    quantity: z6.number().int().min(1).max(30).default(5),
+    documentId: z6.string().min(1).optional(),
+    content: z6.string().max(5e5).optional(),
+    questionType: z6.enum(["MULTIPLE_4", "MULTIPLE_5", "TRUE_FALSE", "ESSAY", "MIXED"]).optional(),
+    cloneStyle: z6.boolean().optional()
+  })
+});
+var sliceExamSchema = z6.object({
+  body: z6.object({
+    examContent: z6.string().min(10, "Conte\xFAdo da prova \xE9 obrigat\xF3rio"),
+    answerKeyContent: z6.string().optional(),
+    quantity: z6.number().int().min(1).max(50).default(10),
+    subjectId: z6.string().optional(),
+    subjectName: z6.string().max(150).optional(),
+    examBoardId: z6.string().optional()
+  })
+});
 
 // apps/backend/src/providers/resilience/circuit-breaker.ts
 var CircuitBreaker = class {
@@ -39971,6 +40204,35 @@ Resumo condensado com foco em reten\xE7\xE3o a partir do material enviado.
   async answerQuestions(params) {
     return params.questions.map(() => "C");
   }
+  async sliceExam(params) {
+    const qty = params.quantity ?? 5;
+    const subject = params.subjectName || "Geral";
+    return Array.from({ length: qty }, (_, i) => ({
+      statement: `[${subject}] Quest\xE3o ${i + 1} da prova real: No que concerne aos princ\xEDpios e normas aplic\xE1veis, assinale a op\xE7\xE3o correta.`,
+      referenceText: i === 0 ? "Texto-base da prova para resolu\xE7\xE3o das quest\xF5es subsequentes." : null,
+      alternatives: [
+        { letter: "A", text: "Assertiva contendo generaliza\xE7\xE3o e erro de preceito legal." },
+        { letter: "B", text: "Assertiva perfeitamente conforme ao entendimento pac\xEDfico e dispositivos normativos de reg\xEAncia." },
+        { letter: "C", text: "Proposi\xE7\xE3o com invers\xE3o de compet\xEAncias entre \xF3rg\xE3os p\xFAblicos." },
+        { letter: "D", text: "Alternativa que contraria a jurisprud\xEAncia sumulada." },
+        { letter: "E", text: "Alternativa incorreta com prazo divergente do texto legal." }
+      ],
+      correctAnswer: "B",
+      explanation: `\u{1F4A1} **Gabarito e S\xEDntese**: A alternativa **B** \xE9 a correta, pois reproduz fielmente a disciplina legal aplic\xE1vel.
+
+\u{1F4D6} **Fundamenta\xE7\xE3o & Fontes**:
+- Dispositivo de reg\xEAncia: CF/88, Art. 5\xBA e legisla\xE7\xE3o infraconstitucional correspondente.
+- Jurisprud\xEAncia correlata: S\xFAmula vinculante do STF e precedentes do STJ.
+
+\u{1F50D} **An\xE1lise dos Distratores**:
+- **A**: Incorreta pela generaliza\xE7\xE3o indevida.
+- **C**: Incorreta, pois a compet\xEAncia \xE9 origin\xE1ria e n\xE3o deleg\xE1vel neste caso.
+- **D**: Incorreta por frontal viola\xE7\xE3o \xE0 jurisprud\xEAncia pacificada.
+- **E**: Incorreta, o prazo legal \xE9 de 15 dias e n\xE3o de 30 dias.
+
+\u26A0\uFE0F **Dica do Especialista**: Aten\xE7\xE3o \xE0 troca sutil de prazos e compet\xEAncias recorrente na banca.`
+    }));
+  }
   async mapEditalZion(_editalText) {
     return {
       banca: "CEBRASPE",
@@ -40208,7 +40470,7 @@ var aiProvider = createAIProvider();
 var service3 = new QuestionService(aiProvider);
 var controller3 = new QuestionController(service3);
 router4.post("/generate", authMiddleware, validateRequest(generateQuestionsSchema), controller3.generate);
-router4.post("/slice-exam", authMiddleware, controller3.sliceExam);
+router4.post("/slice-exam", authMiddleware, validateRequest(sliceExamSchema), controller3.sliceExam);
 router4.get("/subject/:subjectId", authMiddleware, controller3.getBySubject);
 router4.get("/:id", authMiddleware, controller3.getById);
 
@@ -62687,6 +62949,7 @@ var QuestionSetService = class {
       subjectId: subject.id,
       quantity: dto.quantity,
       examBoardId: dto.examBoardId,
+      examBoardName: dto.examBoardName,
       difficulty: dto.difficulty,
       topic: dto.topic,
       documentId: dto.documentId,
@@ -62868,12 +63131,13 @@ var generateQuestionSetSchema = z17.object({
   body: z17.object({
     name: z17.string().max(120).optional(),
     subjectId: z17.string().min(1).optional(),
-    quantity: z17.number().int().min(1).max(20),
+    quantity: z17.number().int().min(1).max(30),
     examBoardId: z17.string().min(1).optional(),
+    examBoardName: z17.string().max(100).optional(),
     difficulty: difficulty.optional(),
     topic: z17.string().max(200).optional(),
     documentId: z17.string().min(1).optional(),
-    content: z17.string().max(8e4).optional(),
+    content: z17.string().max(5e5).optional(),
     questionType: questionType.optional(),
     cloneStyle: z17.boolean().optional(),
     mode: mode.optional()
@@ -63938,10 +64202,11 @@ var ErrorNotebookService = class {
       take: 100
     });
     for (const card2 of flashcardErrors) {
+      const cleanStatement = card2.front.startsWith("[Erro em Simulado] ") ? card2.front.replace("[Erro em Simulado] ", "") : card2.front;
       pendingErrors.push({
         id: card2.id,
         questionId: card2.id,
-        statement: card2.front,
+        statement: cleanStatement,
         userAnswer: card2.source === "doubt" ? "Em d\xFAvida" : "Errei",
         correctAnswer: card2.back,
         explanation: card2.elaboration || card2.back,
@@ -63979,7 +64244,10 @@ var ErrorNotebookService = class {
           }
         }
       }
-      if (!pendingErrors.some((e) => e.statement === attempt.question.statement)) {
+      const alreadyPresent = pendingErrors.some(
+        (e) => e.questionId === attempt.questionId || e.statement.trim() === attempt.question.statement.trim()
+      );
+      if (!alreadyPresent) {
         pendingErrors.push({
           id: attempt.id,
           questionId: attempt.questionId,
