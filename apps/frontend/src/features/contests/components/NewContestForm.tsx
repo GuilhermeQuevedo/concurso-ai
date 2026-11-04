@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, FileText, Loader2, Sparkles, Upload, X } from 'lucide-react';
+import { DocumentNameInput } from '@/features/documents/components/DocumentNameInput';
 import { contestService } from '../services/contest.service';
 import {
   documentService,
@@ -75,6 +76,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
   const [focus, setFocus] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [fileError, setFileError] = useState('');
+  const [docName, setDocName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isObjetivo = OBJETIVO_KINDS.includes(kind);
@@ -82,7 +84,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error('Selecione o arquivo');
-      const uploaded = await documentService.upload(file, { kind });
+      const uploaded = await documentService.upload(file, { kind, name: docName });
       return documentService.process(uploaded.id, isObjetivo ? focus || undefined : undefined);
     },
     onSuccess: (result) => {
@@ -154,6 +156,8 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
         </div>
       )}
 
+      <DocumentNameInput value={docName} onChange={setDocName} showError={Boolean(file) && !docName.trim()} />
+
       {file ? (
         <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950">
           <FileText className="h-8 w-8 text-red-500" />
@@ -205,7 +209,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
 
       <button
         onClick={() => mutation.mutate()}
-        disabled={!file || mutation.isPending}
+        disabled={!file || !docName.trim() || mutation.isPending}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-5 py-3 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
       >
         {mutation.isPending ? (

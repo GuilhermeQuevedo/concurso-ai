@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, FileText, Trash2, Loader2, FileUp, Trophy, Sparkles } from 'lucide-react';
 import { rankingService } from '@/features/rankings/services/ranking.service';
+import { DocumentNameInput } from '@/features/documents/components/DocumentNameInput';
+import { EditableDocumentName } from '@/features/documents/components/EditableDocumentName';
 import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
 import {
   documentService,
@@ -28,6 +30,8 @@ export function DocumentsPage() {
   const [subjectFilter, setSubjectFilter] = useState('');
   const [uploadSubject, setUploadSubject] = useState('');
   const [uploadKind, setUploadKind] = useState<DocumentKind | ''>('');
+  const [uploadName, setUploadName] = useState('');
+  const [nameMissing, setNameMissing] = useState(false);
   const [lastUpload, setLastUpload] = useState<UploadedDocumentDTO | null>(null);
 
   const { data: subjects = [] } = useQuery({
@@ -45,9 +49,12 @@ export function DocumentsPage() {
       documentService.upload(file, {
         subjectId: uploadSubject || undefined,
         kind: uploadKind || undefined,
+        name: uploadName,
       }),
     onSuccess: (uploaded) => {
       setLastUpload(uploaded);
+      setUploadName('');
+      setNameMissing(false);
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
@@ -88,7 +95,13 @@ export function DocumentsPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadMutation.mutate(file);
+    if (!file) return;
+    if (!uploadName.trim()) {
+      setNameMissing(true);
+      e.target.value = '';
+      return;
+    }
+    uploadMutation.mutate(file);
   };
 
   const flatSubjects = flattenSubjects(subjects);
@@ -112,6 +125,14 @@ export function DocumentsPage() {
       <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Enviar documento</h2>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <DocumentNameInput
+            value={uploadName}
+            onChange={(value) => {
+              setUploadName(value);
+              if (value.trim()) setNameMissing(false);
+            }}
+            showError={nameMissing}
+          />
           <div className="min-w-0 flex-1">
             <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
               O que é este arquivo?
@@ -257,7 +278,7 @@ export function DocumentsPage() {
                   <FileText className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{doc.name}</p>
+                  <EditableDocumentName id={doc.id} name={doc.name} />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {doc.type} · {new Date(doc.createdAt).toLocaleDateString('pt-BR')}
                   </p>
