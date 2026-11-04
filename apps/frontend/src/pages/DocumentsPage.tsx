@@ -198,7 +198,7 @@ export function DocumentsPage() {
                 onClick={() => navigate('/contests')}
                 className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700"
               >
-                Ver em Meus Objetivos
+                Ver em Minhas Provas
               </button>
             </div>
           )}

@@ -32,7 +32,7 @@ function ContestList({ onNew, onOpen }: { onNew: () => void; onOpen: (id: string
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meus Objetivos</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Minhas Provas</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Envie um edital, ementa ou plano de curso e a IA monta seu checklist de estudo com contagem regressiva
           </p>
@@ -42,7 +42,7 @@ function ContestList({ onNew, onOpen }: { onNew: () => void; onOpen: (id: string
           className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
         >
           <Plus className="h-4 w-4" />
-          Novo Objetivo
+          Nova Prova
         </button>
       </div>
 
