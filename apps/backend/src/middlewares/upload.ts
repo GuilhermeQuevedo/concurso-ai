@@ -2,6 +2,7 @@ import multer from 'multer';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { AppError } from './error-handler.js';
+import { fixMulterFilename } from '../utils/text-encoding.js';
 
 const UPLOAD_DIR = path.resolve('uploads');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -25,6 +26,7 @@ export const upload = multer({
   storage,
   limits: { fileSize: MAX_FILE_SIZE },
   fileFilter: (_req, file, cb) => {
+    file.originalname = fixMulterFilename(file.originalname);
     if (!ALLOWED_MIMES[file.mimetype]) {
       cb(new AppError(400, 'INVALID_FILE_TYPE', 'Tipo de arquivo não suportado. Use PDF, TXT, MD ou HTML.'));
       return;

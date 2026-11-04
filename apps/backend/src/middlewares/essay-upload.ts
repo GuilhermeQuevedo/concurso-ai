@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { AppError } from './error-handler.js';
+import { fixMulterFilename } from '../utils/text-encoding.js';
 
 const UPLOAD_DIR = path.resolve('uploads/essays');
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -30,6 +31,7 @@ export const essayUpload = multer({
   storage,
   limits: { fileSize: MAX_FILE_SIZE },
   fileFilter: (_req, file, cb) => {
+    file.originalname = fixMulterFilename(file.originalname);
     if (!ALLOWED_MIMES[file.mimetype]) {
       cb(new AppError(400, 'INVALID_FILE_TYPE', 'Tipo de arquivo não suportado. Use PDF, JPG, PNG ou WebP.'));
       return;

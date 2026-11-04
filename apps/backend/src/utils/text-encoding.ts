@@ -9,3 +9,11 @@ export function decodeTextBuffer(buffer: Buffer): string {
   }
   return utf8;
 }
+
+// O multer entrega o nome do arquivo como Latin-1, mas navegadores enviam UTF-8.
+// Sem este reparo "Expedições" vira "ExpediÃ§Ãµes".
+export function fixMulterFilename(name: string): string {
+  if (/[^\u0000-ÿ]/.test(name)) return name;
+  const repaired = Buffer.from(name, 'latin1').toString('utf8');
+  return repaired.includes('�') ? name : repaired;
+}
