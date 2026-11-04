@@ -45,7 +45,7 @@ export function useStripeBilling() {
       const apiMessage =
         (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ??
         (err as Error)?.message ??
-        'Erro ao iniciar o checkout seguro da Stripe. Verifique as configurações.';
+        'Erro ao iniciar o pagamento seguro. Verifique as configurações.';
       setErrorMessage(apiMessage);
     },
   });
@@ -63,7 +63,7 @@ export function useStripeBilling() {
       const apiMessage =
         (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ??
         (err as Error)?.message ??
-        'Erro ao abrir portal de faturamento da Stripe.';
+        'Erro ao abrir portal de assinatura.';
       setErrorMessage(apiMessage);
     },
   });

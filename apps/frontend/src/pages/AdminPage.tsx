@@ -40,7 +40,7 @@ export function AdminPage() {
       </div>
 
       <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-400">
-        Os valores exatos de faturamento, saques e taxas ficam no Kiwify (Financeiro). Aqui mostramos o que chegou pelos webhooks.
+        Os valores exatos de faturamento, saques e taxas ficam no Stripe (Financeiro). Aqui mostramos o que chegou pelos webhooks.
       </div>
 
       <div className="mt-6">

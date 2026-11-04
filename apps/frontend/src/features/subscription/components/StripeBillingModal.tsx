@@ -79,11 +79,11 @@ export function StripeBillingModal({ onClose }: StripeBillingModalProps) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Pagamentos & Assinatura (Stripe)</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Pagamentos & Assinatura</h2>
                 {config?.isConfigured && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-400">
                     <ShieldCheck className="h-3 w-3" />
-                    Stripe Conectado
+                    Pagamento ativo
                   </span>
                 )}
               </div>
@@ -116,9 +116,9 @@ export function StripeBillingModal({ onClose }: StripeBillingModalProps) {
           <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs font-medium text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
             <div className="flex items-center gap-2 font-bold mb-1">
               <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
-              <span>Stripe em Configuração no Servidor</span>
+              <span>Pagamento em configuração</span>
             </div>
-            <p>A chave <strong>STRIPE_SECRET_KEY</strong> ainda não foi configurada no arquivo <code>/opt/engrama/deploy/.env</code>.</p>
+            <p>O pagamento online estará disponível em instantes. Se o aviso persistir, fale com o suporte.</p>
           </div>
         )}
 
