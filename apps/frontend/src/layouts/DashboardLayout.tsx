@@ -202,7 +202,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-body text-slate-900 dark:bg-slate-950 dark:text-slate-100 overflow-x-hidden">
+    <div className="flex min-h-screen bg-slate-50 font-body text-slate-900 dark:bg-slate-950 dark:text-slate-100 overflow-x-clip">
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
@@ -302,7 +302,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               className="group relative flex w-full max-w-full box-border items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-white/65 transition-all hover:bg-white/6 hover:text-white overflow-hidden"
             >
               <CreditCardIcon size={18} className="shrink-0 text-white/50 group-hover:text-white/80" />
-              <span className="min-w-0 flex-1 truncate">Assinatura & Planos</span>
+              <span className="min-w-0 flex-1 truncate text-left">Assinatura & Planos</span>
             </button>
           </div>
         </nav>
