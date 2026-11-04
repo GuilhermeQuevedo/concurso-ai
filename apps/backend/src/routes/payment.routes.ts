@@ -12,9 +12,6 @@ const service = new PaymentService();
 const controller = new PaymentController(service);
 const stripeController = new StripeController();
 
-// Kiwify Webhook
-router.post('/kiwify/webhook', raw({ type: '*/*' }), controller.kiwifyWebhook);
-
 // Stripe Webhook
 router.post('/stripe/webhook', raw({ type: '*/*' }), stripeController.handleWebhook);
 
