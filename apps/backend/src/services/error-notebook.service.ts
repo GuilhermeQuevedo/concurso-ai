@@ -62,10 +62,14 @@ export class ErrorNotebookService {
     });
 
     for (const card of flashcardErrors) {
+      const cleanStatement = card.front.startsWith('[Erro em Simulado] ')
+        ? card.front.replace('[Erro em Simulado] ', '')
+        : card.front;
+
       pendingErrors.push({
         id: card.id,
         questionId: card.id,
-        statement: card.front,
+        statement: cleanStatement,
         userAnswer: card.source === 'doubt' ? 'Em dúvida' : 'Errei',
         correctAnswer: card.back,
         explanation: card.elaboration || card.back,
@@ -115,7 +119,11 @@ export class ErrorNotebookService {
       }
 
       // Evita duplicar se já foi trazido como flashcard
-      if (!pendingErrors.some((e) => e.statement === attempt.question.statement)) {
+      const alreadyPresent = pendingErrors.some(
+        (e) => e.questionId === attempt.questionId || e.statement.trim() === attempt.question.statement.trim(),
+      );
+
+      if (!alreadyPresent) {
         pendingErrors.push({
           id: attempt.id,
           questionId: attempt.questionId,
