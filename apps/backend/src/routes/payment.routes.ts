@@ -3,12 +3,14 @@ import { PaymentService } from '../services/payment.service.js';
 import { PaymentController } from '../controllers/payment.controller.js';
 import { StripeController } from '../controllers/stripe.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { AuthRepository } from '../repositories/auth.repository.js';
+import { EntitlementRepository } from '../repositories/entitlement.repository.js';
 import { validateRequest } from '../middlewares/validate.js';
 import { createCheckoutSessionSchema } from '../validators/stripe.validators.js';
 
 const router: RouterType = Router();
 
-const service = new PaymentService();
+const service = new PaymentService(new AuthRepository(), new EntitlementRepository());
 const controller = new PaymentController(service);
 const stripeController = new StripeController();
 
