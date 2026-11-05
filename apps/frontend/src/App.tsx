@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router';
+import { Toaster } from './components/ui/Toaster';
 import { AuthProvider } from './features/auth/contexts/AuthContext';
 import { TourProvider } from './features/tour/TourProvider';
 import { AppRoutes } from './routes';
@@ -21,6 +22,7 @@ export function App() {
         <AuthProvider>
           <TourProvider>
             <AppRoutes />
+            <Toaster />
           </TourProvider>
         </AuthProvider>
       </BrowserRouter>
