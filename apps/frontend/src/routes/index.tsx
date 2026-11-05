@@ -8,7 +8,6 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { SubjectsPage } from '@/pages/SubjectsPage';
 import { ExamBoardsPage } from '@/pages/ExamBoardsPage';
 import { GeneratePage } from '@/pages/GeneratePage';
-import { EditalPage } from '@/pages/EditalPage';
 import { CronogramaPage } from '@/pages/CronogramaPage';
 import StudyPage from '@/pages/StudyPage';
 import { DocumentsPage } from '@/pages/DocumentsPage';
@@ -68,8 +67,8 @@ export function AppRoutes() {
       <Route path="/achievements" element={<ProtectedLayout><AchievementsPage /></ProtectedLayout>} />
       <Route path="/cronograma" element={<ProtectedLayout><CronogramaPage /></ProtectedLayout>} />
       <Route path="/study-plan" element={<ProtectedLayout><CronogramaPage /></ProtectedLayout>} />
-      <Route path="/mapa" element={<ProtectedLayout><EditalPage /></ProtectedLayout>} />
-      <Route path="/board" element={<ProtectedLayout><EditalPage /></ProtectedLayout>} />
+      <Route path="/mapa" element={<Navigate to="/contests" replace />} />
+      <Route path="/board" element={<Navigate to="/contests" replace />} />
       <Route path="/contests" element={<ProtectedLayout><ContestsPage /></ProtectedLayout>} />
       <Route path="/calendar" element={<ProtectedLayout><CalendarPage /></ProtectedLayout>} />
       <Route path="/essays" element={<ProtectedLayout><EssayPage /></ProtectedLayout>} />

@@ -102,7 +102,7 @@ export function LoginForm() {
             <Sparkles className="h-4 w-4 text-teal-600" />
             <span>Assinatura Engrama Pro ({planLabel})</span>
           </div>
-          <p>Faça login para prosseguir diretamente ao checkout seguro da Stripe com ativação imediata.</p>
+          <p>Faça login para prosseguir diretamente ao pagamento seguro com ativação imediata.</p>
         </div>
       )}
 

@@ -58,7 +58,7 @@ export function RegisterForm() {
             <Sparkles className="h-4 w-4 text-teal-600" />
             <span>Assinatura Engrama Pro ({planLabel})</span>
           </div>
-          <p>Crie sua conta para prosseguir diretamente ao checkout seguro da Stripe com ativação imediata.</p>
+          <p>Crie sua conta para prosseguir diretamente ao pagamento seguro com ativação imediata.</p>
         </div>
       )}
 

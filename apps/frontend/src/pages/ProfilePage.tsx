@@ -12,7 +12,6 @@ import {
   Pencil,
   Loader2,
   ChevronRight,
-  ExternalLink,
   CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -156,11 +155,6 @@ export function ProfilePage() {
                   <CreditCard className="h-3.5 w-3.5" />
                   Faturas & Cartão
                 </button>
-                {access?.checkoutUrl && access.status !== 'ADMIN' && (
-                  <a href={access.checkoutUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                    {access.active ? 'Kiwify' : 'Assinar Kiwify'} <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
               </div>
             </div>
           </div>

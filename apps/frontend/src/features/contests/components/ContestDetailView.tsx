@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Building2,
@@ -20,6 +21,7 @@ import { PriorityBadge, ImportanceSelect } from './DisciplineHeaderMeta';
 
 export function ContestDetailView({ contestId, onBack }: { contestId: string; onBack: () => void }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: contest, isLoading } = useQuery({
     queryKey: ['contest', contestId],
@@ -137,6 +139,17 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
             <p className="text-xs text-primary-600 dark:text-primary-400">até a prova</p>
           </div>
         </div>
+      )}
+
+      {total > 0 && (
+        <button
+          type="button"
+          onClick={() => navigate(`/cronograma?prova=${contest.id}`)}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
+        >
+          <CalendarDays className="h-4 w-4" />
+          Faça o seu cronograma para esta prova
+        </button>
       )}
 
       {total > 0 && (

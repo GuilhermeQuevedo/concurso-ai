@@ -4,6 +4,14 @@ import type { DocumentProcessService } from '../services/document-process.servic
 import type { ApiResponse } from '@concurso-ai/types';
 import { AppError } from '../middlewares/error-handler.js';
 import { getUserId } from '../utils/request.js';
+import { documentNameSchema } from '../validators/document.validators.js';
+
+function parseOptionalName(raw: unknown): string | undefined {
+  if (raw === undefined || raw === null || raw === '') return undefined;
+  const parsed = documentNameSchema.safeParse(raw);
+  if (!parsed.success) throw new AppError(400, 'INVALID_NAME', parsed.error.issues[0]?.message ?? 'Nome inválido');
+  return parsed.data;
+}
 
 export class DocumentController {
   constructor(
@@ -25,9 +33,20 @@ export class DocumentController {
         | 'LISTA_QUESTOES'
         | 'OUTRO'
         | undefined;
-      const doc = await this.service.upload(getUserId(req), req.file, subjectId, kind);
+      const name = parseOptionalName(req.body.name);
+      const doc = await this.service.upload(getUserId(req), req.file, subjectId, kind, name);
       const response: ApiResponse<typeof doc> = { success: true, data: doc };
       res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateName = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const doc = await this.service.updateName(getUserId(req), req.params.id as string, req.body.name as string);
+      const response: ApiResponse<typeof doc> = { success: true, data: doc };
+      res.json(response);
     } catch (error) {
       next(error);
     }

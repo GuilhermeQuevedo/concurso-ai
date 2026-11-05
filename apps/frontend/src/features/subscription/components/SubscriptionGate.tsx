@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Lock, Sparkles, RefreshCw, LogOut, CreditCard, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, RefreshCw, LogOut, CreditCard, Loader2, AlertCircle } from 'lucide-react';
 import { subscriptionService } from '../services/subscription.service';
 import { useStripeBilling } from '../hooks/useStripeBilling';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -51,32 +51,22 @@ export function SubscriptionGate({ children }: { children: React.ReactNode }) {
               {isStartingCheckout ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Abrindo Stripe Checkout...
+                  Abrindo pagamento seguro...
                 </>
               ) : (
                 <>
                   <CreditCard className="h-4 w-4" />
-                  Assinar com Stripe (Cartão)
+                  Assinar com cartão
                 </>
               )}
             </button>
           )}
 
-          {data.checkoutUrl ? (
-            <a
-              href={data.checkoutUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
-            >
-              <Sparkles className="h-4 w-4" />
-              Assinar via Kiwify
-            </a>
-          ) : !config?.isConfigured ? (
+          {!config?.isConfigured && (
             <p className="rounded-lg border border-dashed border-gray-300 p-3 text-xs text-gray-500 dark:border-gray-700">
-              O link de assinatura ainda não foi configurado.
+              O pagamento online estará disponível em instantes.
             </p>
-          ) : null}
+          )}
         </div>
 
         <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">

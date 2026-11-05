@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2, Plus, Target } from 'lucide-react';
 import { contestService } from '@/features/contests/services/contest.service';
 import { ContestCard } from '@/features/contests/components/ContestCard';
+import { useSetContestDone } from '@/features/contests/hooks/useSetContestDone';
 import { NewContestForm } from '@/features/contests/components/NewContestForm';
 import { ContestDetailView } from '@/features/contests/components/ContestDetailView';
 
@@ -22,17 +23,23 @@ export function ContestsPage() {
   return <ContestList onNew={() => setView('new')} onOpen={openDetail} />;
 }
 
-function ContestList({ onNew, onOpen }: { onNew: () => void; onOpen: (id: string) => void }) {
+interface ContestListProps {
+  onNew: () => void;
+  onOpen: (id: string) => void;
+}
+
+function ContestList({ onNew, onOpen }: ContestListProps) {
   const { data: contests = [], isLoading } = useQuery({
     queryKey: ['contests'],
     queryFn: contestService.list,
   });
+  const setDone = useSetContestDone();
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meus Objetivos</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Minhas Provas</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Envie um edital, ementa ou plano de curso e a IA monta seu checklist de estudo com contagem regressiva
           </p>
@@ -42,7 +49,7 @@ function ContestList({ onNew, onOpen }: { onNew: () => void; onOpen: (id: string
           className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
         >
           <Plus className="h-4 w-4" />
-          Novo Objetivo
+          Nova Prova
         </button>
       </div>
 
@@ -63,7 +70,13 @@ function ContestList({ onNew, onOpen }: { onNew: () => void; onOpen: (id: string
       ) : (
         <div className="space-y-3">
           {contests.map((contest) => (
-            <ContestCard key={contest.id} contest={contest} onClick={() => onOpen(contest.id)} />
+            <ContestCard
+              key={contest.id}
+              contest={contest}
+              onOpen={() => onOpen(contest.id)}
+              onToggleDone={(done) => setDone.mutate({ id: contest.id, done })}
+              togglePending={setDone.isPending && setDone.variables?.id === contest.id}
+            />
           ))}
         </div>
       )}

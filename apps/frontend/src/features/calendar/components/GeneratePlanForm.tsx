@@ -61,7 +61,7 @@ export function GeneratePlanForm({ onClose }: { onClose: () => void }) {
 
       {eligible.length === 0 ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
-          Nenhum objetivo com data de prova futura. Cadastre um em "Meus Objetivos".
+          Nenhum objetivo com data de prova futura. Cadastre um em "Minhas Provas".
         </p>
       ) : (
         <div className="space-y-4">

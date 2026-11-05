@@ -107,9 +107,9 @@ const FEATURES_LIST = [
   },
   {
     icon: MapaEditalIcon,
-    title: 'Mapeamento de Tópicos e Fraquezas',
+    title: 'Progresso por Prova e Tópico',
     description:
-      'Quadro visual em tempo real mostrando onde você domina e quais matérias precisam de reforço imediato antes da prova.',
+      'Marque o que já estudou em cada prova e acompanhe, em tempo real, quanto falta e quais matérias precisam de reforço.',
   },
   {
     icon: AwardIcon,
@@ -122,19 +122,19 @@ const FEATURES_LIST = [
 const FAQS = [
   {
     q: 'Como funciona o cancelamento da assinatura?',
-    a: 'Você tem controle total pelo portal de autoatendimento Stripe. O cancelamento pode ser feito com 1 clique a qualquer momento, sem taxas ocultas.',
+    a: 'Você tem controle total pela sua área de assinatura. O cancelamento pode ser feito com 1 clique a qualquer momento, sem taxas ocultas.',
   },
   {
     q: 'A garantia de 7 dias é real?',
-    a: 'Sim, incondicional. Se você assinar e não gostar por qualquer motivo, basta solicitar o reembolso nos primeiros 7 dias e o Stripe estorna 100% do valor.',
+    a: 'Sim, incondicional. Se você assinar e não gostar por qualquer motivo, basta solicitar o reembolso nos primeiros 7 dias e devolvemos 100% do valor.',
   },
   {
-    q: 'As questões geradas por IA são confiáveis para concursos?',
+    q: 'As questões geradas por IA são confiáveis para provas e concursos?',
     a: 'Sim. Nosso motor utiliza modelos avançados de IA treinados especificamente com jurisprudência, súmulas e histórico de pegadinhas das maiores bancas do país.',
   },
   {
     q: 'Como recebo meu acesso após pagar?',
-    a: 'A ativação é instantânea. O Stripe processa seu pagamento e o sistema libera o acesso em menos de 2 segundos.',
+    a: 'A ativação é instantânea. Assim que o pagamento é confirmado, o sistema libera o seu acesso em poucos segundos.',
   },
 ];
 
@@ -229,7 +229,7 @@ export function LandingPage() {
           {/* Badge de Destaque */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 py-1.5 text-xs font-bold text-teal-800 shadow-xs dark:border-teal-800/60 dark:bg-teal-950/60 dark:text-teal-300">
             <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-            <span>Inteligência Artificial & Neurociência da Memória para Concursos</span>
+            <span>Inteligência Artificial & Neurociência da Memória para os seus Estudos</span>
           </div>
 
           <h1 className="font-display text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl dark:text-white">
@@ -274,7 +274,7 @@ export function LandingPage() {
               <span className="metric-value text-3xl font-extrabold text-teal-600 dark:text-teal-400">
                 2 seg
               </span>
-              <span className="metric-label mt-1 text-[11px]">Ativação Stripe</span>
+              <span className="metric-label mt-1 text-[11px]">Ativação imediata</span>
             </div>
             <div className="flex flex-col items-center p-3">
               <span className="metric-value text-3xl font-extrabold text-slate-800 dark:text-white">
@@ -291,7 +291,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <span className="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">
-              O Arsenal do Concursando de Alta Performance
+              O Arsenal de Estudo de Alta Performance
             </span>
             <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
               Tudo o que você precisa para ser aprovado
@@ -336,7 +336,7 @@ export function LandingPage() {
               Escolha o plano ideal para a sua jornada
             </h2>
             <p className="mt-3 text-base text-slate-600 dark:text-slate-300">
-              Sem fidelidade forçada. Pagamento 100% criptografado e seguro pelo Stripe com liberação imediata.
+              Sem fidelidade forçada. Pagamento 100% criptografado e seguro, com liberação imediata.
             </p>
           </div>
 
@@ -401,7 +401,7 @@ export function LandingPage() {
                   {isStartingCheckout && selectedPlanLoading === plan.type ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin text-current" />
-                      Abrindo Checkout Stripe...
+                      Abrindo pagamento seguro...
                     </>
                   ) : (
                     <>
@@ -414,7 +414,7 @@ export function LandingPage() {
             ))}
           </div>
 
-          {/* Banner de Garantia Stripe */}
+          {/* Banner de Garantia */}
           <div className="mt-14 rounded-2xl border border-teal-200/80 bg-gradient-to-r from-teal-50/70 via-emerald-50/40 to-teal-50/70 p-6 text-center dark:border-teal-900/40 dark:from-teal-950/30 dark:to-emerald-950/20">
             <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
               <ShieldCheck className="h-6 w-6 text-teal-600 dark:text-teal-400" />
@@ -423,7 +423,7 @@ export function LandingPage() {
               </h4>
             </div>
             <p className="mx-auto mt-1 max-w-xl text-xs text-slate-600 dark:text-slate-300">
-              Se você não sentir um salto imediato na memorização dos seus estudos, devolvemos 100% do seu dinheiro com 1 clique pela Stripe. Risco zero para você.
+              Se você não sentir um salto imediato na memorização dos seus estudos, devolvemos 100% do seu dinheiro com 1 clique. Risco zero para você.
             </p>
           </div>
         </div>

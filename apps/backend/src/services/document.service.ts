@@ -14,7 +14,7 @@ interface UploadedFile {
 }
 
 export class DocumentService {
-  async upload(userId: string, file: UploadedFile, subjectId?: string, kind?: DocumentKind) {
+  async upload(userId: string, file: UploadedFile, subjectId?: string, kind?: DocumentKind, name?: string) {
     if (subjectId) {
       const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
       if (!subject) {
@@ -30,7 +30,7 @@ export class DocumentService {
     const document = await prisma.document.create({
       data: {
         userId,
-        name: file.originalname,
+        name: name?.trim() || file.originalname,
         type: docType as 'PDF' | 'TXT' | 'HTML' | 'MARKDOWN' | 'DOCX',
         kind: finalKind,
         content,
@@ -41,6 +41,14 @@ export class DocumentService {
     await fs.unlink(file.path).catch(() => {});
 
     return { ...document, suggestedKind, kindAutoDetected: !kind };
+  }
+
+  async updateName(userId: string, id: string, name: string) {
+    const doc = await prisma.document.findUnique({ where: { id } });
+    if (!doc || doc.userId !== userId) {
+      throw new AppError(404, 'DOCUMENT_NOT_FOUND', 'Documento não encontrado');
+    }
+    return prisma.document.update({ where: { id }, data: { name: name.trim() } });
   }
 
   async updateKind(userId: string, id: string, kind: DocumentKind) {

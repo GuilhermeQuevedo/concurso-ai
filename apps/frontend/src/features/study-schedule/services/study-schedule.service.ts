@@ -1,11 +1,13 @@
 import { api, unwrapData } from '@/services/api';
 import type { StudySchedule } from '../types';
+import type { ScheduleAvailability } from '../wizard/schedule-wizard.model';
 
 export interface GenerateScheduleParams {
   examDate: string;
   dailyHours: number;
   subjects: string[];
   userObservations?: string;
+  availability?: ScheduleAvailability;
   forceRefresh?: boolean;
   saveToDb?: boolean;
 }
@@ -22,6 +24,7 @@ export const studyScheduleService = {
       formData.append('dailyHours', String(params.dailyHours));
       formData.append('subjects', JSON.stringify(params.subjects));
       if (params.userObservations) formData.append('userObservations', params.userObservations);
+      if (params.availability) formData.append('availability', JSON.stringify(params.availability));
       formData.append('forceRefresh', String(Boolean(params.forceRefresh)));
       formData.append('saveToDb', String(Boolean(params.saveToDb)));
 

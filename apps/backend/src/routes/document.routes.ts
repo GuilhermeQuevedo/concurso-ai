@@ -5,7 +5,7 @@ import { DocumentController } from '../controllers/document.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validateRequest } from '../middlewares/validate.js';
 import { upload } from '../middlewares/upload.js';
-import { updateDocumentKindSchema } from '../validators/document.validators.js';
+import { updateDocumentKindSchema, updateDocumentNameSchema } from '../validators/document.validators.js';
 import { createAIProvider } from '../providers/ai.factory.js';
 
 const router: RouterType = Router();
@@ -18,6 +18,7 @@ router.post('/', authMiddleware, upload.single('file'), controller.upload);
 router.get('/', authMiddleware, controller.list);
 router.get('/:id', authMiddleware, controller.getById);
 router.patch('/:id/kind', authMiddleware, validateRequest(updateDocumentKindSchema), controller.updateKind);
+router.patch('/:id/name', authMiddleware, validateRequest(updateDocumentNameSchema), controller.updateName);
 router.post('/:id/process', authMiddleware, controller.process);
 router.delete('/:id', authMiddleware, controller.delete);
 

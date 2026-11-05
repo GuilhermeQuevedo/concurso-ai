@@ -6,7 +6,6 @@ export interface AccessStatus {
   enforced: boolean;
   status: 'NONE' | 'ACTIVE' | 'CANCELED' | 'EXPIRED' | 'REFUNDED' | 'ADMIN';
   expiresAt: string | null;
-  checkoutUrl: string;
 }
 
 export const subscriptionService = {

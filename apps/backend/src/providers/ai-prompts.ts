@@ -1017,22 +1017,43 @@ export interface ZionSchedulePromptInput {
   editalFileText?: string | null;
   banca?: string | null;
   userObservations?: string | null;
+  availability?: string | null;
+}
+
+function buildInterleavingRule(hasAvailability: boolean): string {
+  if (hasAvailability) {
+    return `Todo dia de estudo deve alternar matérias diferentes, respeitando o "Máximo de matérias por dia" da [DISPONIBILIDADE DO ESTUDANTE] (se não houver, use no mínimo 2 matérias por dia que tenham 2h ou mais). Um dia curto pode ter uma única matéria.
+Distribua as matérias em "blocos" de 1h a 2h no máximo.`;
+  }
+  return `Todo dia de estudo deve conter no mínimo 2 matérias diferentes. Um cronograma com uma única matéria por dia é pedagogicamente inferior e inaceitável.
+- Carga 2h - 4h: 2 matérias.
+- Carga 4h - 6h: 2 a 3 matérias.
+Distribua as matérias em "blocos" de 1h a 2h no máximo.`;
+}
+
+function buildLoadRules(input: ZionSchedulePromptInput, hasAvailability: boolean): string {
+  if (hasAvailability) {
+    return `- A carga NÃO é fixa: cada dia deve somar horas entre o MÍNIMO e o MÁXIMO que o estudante definiu em [DISPONIBILIDADE DO ESTUDANTE].
+- Dia marcado como SEM estudo: type "descanso", totalHours 0 e nenhum bloco.
+- Não aplique a regra padrão de domingo nem outra folga: os dias de estudo e de descanso são exatamente os informados pelo estudante.
+- Se houver meta semanal, a soma das horas da semana deve ficar próxima dela, sem passar do máximo de nenhum dia.`;
+  }
+  return `- Respeite rigorosamente a carga diária de ${input.dailyHours} horas somando os blocos.
+- Domingo: Máximo 1 bloco leve de revisão ou descanso total.`;
 }
 
 export function buildZionSchedulePrompt(input: ZionSchedulePromptInput): string {
   const hasPerformance = input.performanceData && Object.keys(input.performanceData).length > 0;
   const hasProbability = input.probabilityData && Object.keys(input.probabilityData).length > 0;
   const hasEditalFile = Boolean(input.editalFileText);
+  const hasAvailability = Boolean(input.availability?.trim());
 
   return `Você é um planejador de estudos especializado em concursos.
 Sua missão é criar uma SEMANA MODELO (Ciclo de Estudos Base) de alto rendimento.
 Esta única semana servirá como template e será repetida pelo sistema até o dia da prova.
 
 ### 1. INTERLEAVING (REGRA ABSOLUTA):
-Todo dia de estudo deve conter no mínimo 2 matérias diferentes. Um cronograma com uma única matéria por dia é pedagogicamente inferior e inaceitável.
-- Carga 2h - 4h: 2 matérias.
-- Carga 4h - 6h: 2 a 3 matérias.
-Distribua as matérias em "blocos" de 1h a 2h no máximo.
+${buildInterleavingRule(hasAvailability)}
 
 ### 2. ALTERNÂNCIA INTELIGENTE:
 Classifique cada matéria como: Analítica, Memorização ou Mista. NUNCA coloque dois blocos da mesma categoria em sequência se houver opções. Intercale.
@@ -1042,8 +1063,7 @@ Classifique cada matéria como: Analítica, Memorização ou Mista. NUNCA coloqu
 - Crie blocos específicos do tipo "revisao" (30 a 45 min) dentro do dia para a manutenção da memória (Ebbinghaus simplificado no ciclo).
 
 ### 4. SAÚDE, REALISMO E POMODORO:
-- Respeite rigorosamente a carga diária de ${input.dailyHours} horas somando os blocos.
-- Domingo: Máximo 1 bloco leve de revisão ou descanso total.
+${buildLoadRules(input, hasAvailability)}
 
 ### 5. PERFIL DA BANCA E PARETO:
 ${input.banca ? `- Banca Atual: **${input.banca.toUpperCase()}**.\n` : ''}
@@ -1081,7 +1101,11 @@ Gere APENAS 1 SEMANA. Esta semana será o Ciclo Base do aluno.
 DADOS DO USUÁRIO PARA CRONOGRAMA:
 
 - Data da Prova: ${input.examDate}
-- Carga Diária: ${input.dailyHours} horas (Gere os múltiplos blocos respeitando essa soma diária)
+${
+  hasAvailability
+    ? `- Carga diária média: ${input.dailyHours} horas (apenas referência; use os limites de cada dia em [DISPONIBILIDADE DO ESTUDANTE])`
+    : `- Carga Diária: ${input.dailyHours} horas (Gere os múltiplos blocos respeitando essa soma diária)`
+}
 ${input.banca ? `- Banca Informada: ${input.banca}` : '- Banca: Não Informada'}
 
 ${
@@ -1104,6 +1128,7 @@ ${
     : `(Nenhuma análise de probabilidade disponível.)`
 }
 
+${hasAvailability ? `[DISPONIBILIDADE DO ESTUDANTE]\n${input.availability}\n` : ''}
 ${
   input.userObservations
     ? `[OBSERVAÇÕES DO USUÁRIO]\n"${input.userObservations}"`

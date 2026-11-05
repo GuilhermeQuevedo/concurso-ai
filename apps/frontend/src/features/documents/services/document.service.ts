@@ -49,12 +49,13 @@ export type ProcessResult =
 export const documentService = {
   async upload(
     file: File,
-    options?: { subjectId?: string; kind?: DocumentKind },
+    options?: { subjectId?: string; kind?: DocumentKind; name?: string },
   ): Promise<UploadedDocumentDTO> {
     const formData = new FormData();
     formData.append('file', file);
     if (options?.subjectId) formData.append('subjectId', options.subjectId);
     if (options?.kind) formData.append('kind', options.kind);
+    if (options?.name?.trim()) formData.append('name', options.name.trim());
 
     const response = await api.post<ApiResponse<UploadedDocumentDTO>>('/documents', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -65,6 +66,11 @@ export const documentService = {
   async list(subjectId?: string): Promise<DocumentDTO[]> {
     const params = subjectId ? { subjectId } : {};
     const response = await api.get<ApiResponse<DocumentDTO[]>>('/documents', { params });
+    return unwrapData(response);
+  },
+
+  async rename(id: string, name: string): Promise<DocumentDTO> {
+    const response = await api.patch<ApiResponse<DocumentDTO>>(`/documents/${id}/name`, { name });
     return unwrapData(response);
   },
 

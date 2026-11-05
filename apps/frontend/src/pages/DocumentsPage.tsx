@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, FileText, Trash2, Loader2, FileUp, Trophy, Sparkles } from 'lucide-react';
 import { rankingService } from '@/features/rankings/services/ranking.service';
+import { DocumentNameInput } from '@/features/documents/components/DocumentNameInput';
+import { EditableDocumentName } from '@/features/documents/components/EditableDocumentName';
 import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
 import {
   documentService,
@@ -14,13 +16,11 @@ import {
   KIND_OPTIONS,
 } from '@/features/documents/services/document.service';
 
-const ACTION_LABELS: Record<DocumentKind, string> = {
+const ACTION_LABELS: Partial<Record<DocumentKind, string>> = {
   EDITAL: 'Criar objetivo',
   EMENTA: 'Criar objetivo',
   CRONOGRAMA: 'Criar objetivo',
-  MATERIAL: 'Gerar kit de estudo',
   LISTA_QUESTOES: 'Importar questões',
-  OUTRO: 'Gerar kit de estudo',
 };
 
 export function DocumentsPage() {
@@ -30,6 +30,8 @@ export function DocumentsPage() {
   const [subjectFilter, setSubjectFilter] = useState('');
   const [uploadSubject, setUploadSubject] = useState('');
   const [uploadKind, setUploadKind] = useState<DocumentKind | ''>('');
+  const [uploadName, setUploadName] = useState('');
+  const [nameMissing, setNameMissing] = useState(false);
   const [lastUpload, setLastUpload] = useState<UploadedDocumentDTO | null>(null);
 
   const { data: subjects = [] } = useQuery({
@@ -47,9 +49,12 @@ export function DocumentsPage() {
       documentService.upload(file, {
         subjectId: uploadSubject || undefined,
         kind: uploadKind || undefined,
+        name: uploadName,
       }),
     onSuccess: (uploaded) => {
       setLastUpload(uploaded);
+      setUploadName('');
+      setNameMissing(false);
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
@@ -90,7 +95,13 @@ export function DocumentsPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadMutation.mutate(file);
+    if (!file) return;
+    if (!uploadName.trim()) {
+      setNameMissing(true);
+      e.target.value = '';
+      return;
+    }
+    uploadMutation.mutate(file);
   };
 
   const flatSubjects = flattenSubjects(subjects);
@@ -114,6 +125,14 @@ export function DocumentsPage() {
       <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Enviar documento</h2>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <DocumentNameInput
+            value={uploadName}
+            onChange={(value) => {
+              setUploadName(value);
+              if (value.trim()) setNameMissing(false);
+            }}
+            showError={nameMissing}
+          />
           <div className="min-w-0 flex-1">
             <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
               O que é este arquivo?
@@ -198,30 +217,8 @@ export function DocumentsPage() {
                 onClick={() => navigate('/contests')}
                 className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700"
               >
-                Ver em Meus Objetivos
+                Ver em Minhas Provas
               </button>
-            </div>
-          )}
-          {processResult.pipeline === 'kit' && (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm text-gray-800 dark:text-gray-200">
-                Kit gerado: {processResult.summary ? 'resumo, ' : ''}
-                {processResult.flashcards} flashcards e {processResult.questions} questões.
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => navigate('/flashcards')}
-                  className="rounded-lg border border-primary-400 px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900/40"
-                >
-                  Flashcards
-                </button>
-                <button
-                  onClick={() => navigate('/generate')}
-                  className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700"
-                >
-                  Praticar questões
-                </button>
-              </div>
             </div>
           )}
           {processResult.pipeline === 'questoes' && (
@@ -281,29 +278,31 @@ export function DocumentsPage() {
                   <FileText className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{doc.name}</p>
+                  <EditableDocumentName id={doc.id} name={doc.name} />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {doc.type} · {new Date(doc.createdAt).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => processMutation.mutate(doc)}
-                  disabled={processingId !== null}
-                  title="Processar este documento conforme o tipo"
-                  className="flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
-                >
-                  {processingId === doc.id ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Processando…
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-3.5 w-3.5" /> {ACTION_LABELS[doc.kind ?? 'OUTRO']}
-                    </>
-                  )}
-                </button>
+                {ACTION_LABELS[doc.kind ?? 'OUTRO'] && (
+                  <button
+                    onClick={() => processMutation.mutate(doc)}
+                    disabled={processingId !== null}
+                    title="Processar este documento conforme o tipo"
+                    className="flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+                  >
+                    {processingId === doc.id ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Processando…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3.5 w-3.5" /> {ACTION_LABELS[doc.kind ?? 'OUTRO']}
+                      </>
+                    )}
+                  </button>
+                )}
                 {suggestedDocId === doc.id ? (
                   <span className="text-xs font-medium text-green-600">Sugerido ao admin ✓</span>
                 ) : (
