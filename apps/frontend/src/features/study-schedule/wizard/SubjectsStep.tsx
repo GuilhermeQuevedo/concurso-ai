@@ -10,7 +10,13 @@ interface SubjectsStepProps {
 
 const LEVELS = [1, 2, 3, 4, 5];
 
-function LevelPicker({ label, value, onPick }: { label: string; value: number; onPick: (n: number) => void }) {
+interface LevelPickerProps {
+  label: string;
+  value: number;
+  onPick: (level: number) => void;
+}
+
+function LevelPicker({ label, value, onPick }: LevelPickerProps) {
   return (
     <div>
       <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>

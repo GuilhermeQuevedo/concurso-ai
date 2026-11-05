@@ -5,7 +5,13 @@ interface DaysStepProps {
   onChange: (days: DayLimit[]) => void;
 }
 
-function MinutesInput({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
+interface MinutesInputProps {
+  label: string;
+  value: number;
+  onChange: (minutes: number) => void;
+}
+
+function MinutesInput({ label, value, onChange }: MinutesInputProps) {
   return (
     <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
       {label}

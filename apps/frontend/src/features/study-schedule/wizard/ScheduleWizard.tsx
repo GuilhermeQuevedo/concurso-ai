@@ -11,7 +11,14 @@ interface ScheduleWizardProps {
   onGenerate: (payload: WizardSubmitPayload) => void;
 }
 
-function Section({ number, title, hint, children }: { number: number; title: string; hint?: string; children: ReactNode }) {
+interface SectionProps {
+  number: number;
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}
+
+function Section({ number, title, hint, children }: SectionProps) {
   return (
     <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6">
       <h2 className="mb-1 flex items-center gap-2 text-sm font-bold text-foreground">
