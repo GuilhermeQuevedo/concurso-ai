@@ -1,34 +1,41 @@
 import { z } from 'zod';
 
+// Chaves de domínio em inglês; os rótulos em português existem só para o prompt e a interface.
+export const WEEK_DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+export type WeekDayKey = (typeof WEEK_DAY_KEYS)[number];
+
 const level = z.number().int().min(1).max(5);
+
+const dayLimitSchema = z
+  .object({
+    day: z.enum(WEEK_DAY_KEYS),
+    minMinutes: z.number().int().min(0).max(1440),
+    maxMinutes: z.number().int().min(0).max(1440),
+  })
+  .refine((d) => d.minMinutes <= d.maxMinutes, {
+    message: 'O mínimo de minutos não pode ser maior que o máximo.',
+    path: ['minMinutes'],
+  });
 
 export const scheduleAvailabilitySchema = z.object({
   subjects: z
     .array(z.object({ name: z.string().trim().min(1).max(200), importance: level, difficulty: level }))
     .max(60),
-  days: z
-    .array(
-      z.object({
-        day: z.enum(['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom']),
-        minMinutes: z.number().int().min(0).max(1440),
-        maxMinutes: z.number().int().min(0).max(1440),
-      }),
-    )
-    .max(7),
+  days: z.array(dayLimitSchema).max(7),
   weeklyGoalMinutes: z.number().int().min(0).max(10080).optional(),
   maxSubjectsPerDay: z.number().int().min(1).max(10).optional(),
 });
 
 export type ScheduleAvailability = z.infer<typeof scheduleAvailabilitySchema>;
 
-const DAY_LABELS: Record<string, string> = {
-  seg: 'Segunda',
-  ter: 'Terça',
-  qua: 'Quarta',
-  qui: 'Quinta',
-  sex: 'Sexta',
-  sab: 'Sábado',
-  dom: 'Domingo',
+const DAY_LABELS: Record<WeekDayKey, string> = {
+  mon: 'Segunda',
+  tue: 'Terça',
+  wed: 'Quarta',
+  thu: 'Quinta',
+  fri: 'Sexta',
+  sat: 'Sábado',
+  sun: 'Domingo',
 };
 
 export function formatAvailabilityForPrompt(a: ScheduleAvailability): string {
