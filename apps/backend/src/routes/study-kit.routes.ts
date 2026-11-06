@@ -3,12 +3,13 @@ import { StudyKitService } from '../services/study-kit.service.js';
 import { StudyKitController } from '../controllers/study-kit.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { createAIProvider } from '../providers/ai.factory.js';
+import { heavyRateLimiter } from '../middlewares/rate-limit.middleware.js';
 
 const router: RouterType = Router();
 
 const service = new StudyKitService(createAIProvider());
 const controller = new StudyKitController(service);
 
-router.post('/generate', authMiddleware, controller.generate);
+router.post('/generate', authMiddleware, heavyRateLimiter, controller.generate);
 
 export { router as studyKitRouter };

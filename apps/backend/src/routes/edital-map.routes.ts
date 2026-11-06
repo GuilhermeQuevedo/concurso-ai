@@ -4,6 +4,7 @@ import { EditalMapController } from '../controllers/edital-map.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { editalUpload } from '../middlewares/upload.js';
 import { createAIProvider } from '../providers/ai.factory.js';
+import { heavyRateLimiter } from '../middlewares/rate-limit.middleware.js';
 
 export function createEditalMapRouter(): Router {
   const router = Router();
@@ -13,8 +14,8 @@ export function createEditalMapRouter(): Router {
 
   router.use(authMiddleware);
 
-  router.post('/map', editalUpload.single('file'), controller.mapEdital);
-  router.post('/analyze-probabilities', controller.analyzeProbabilities);
+  router.post('/map', heavyRateLimiter, editalUpload.single('file'), controller.mapEdital);
+  router.post('/analyze-probabilities', heavyRateLimiter, controller.analyzeProbabilities);
   router.get('/', controller.list);
   router.get('/:id', controller.getById);
   router.post('/', controller.save);

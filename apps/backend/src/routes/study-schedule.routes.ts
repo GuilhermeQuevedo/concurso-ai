@@ -4,6 +4,7 @@ import { StudyScheduleController } from '../controllers/study-schedule.controlle
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { editalUpload } from '../middlewares/upload.js';
 import { createAIProvider } from '../providers/ai.factory.js';
+import { heavyRateLimiter } from '../middlewares/rate-limit.middleware.js';
 
 export function createStudyScheduleRouter(): Router {
   const router = Router();
@@ -13,7 +14,7 @@ export function createStudyScheduleRouter(): Router {
 
   router.use(authMiddleware);
 
-  router.post('/generate', editalUpload.single('file'), controller.generate);
+  router.post('/generate', heavyRateLimiter, editalUpload.single('file'), controller.generate);
   router.get('/', controller.list);
   router.get('/:id', controller.getById);
   router.post('/', controller.save);
