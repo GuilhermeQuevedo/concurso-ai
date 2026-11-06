@@ -117,6 +117,7 @@ model Question {
   @@index([subjectId])
   @@index([examBoardId])
   @@index([difficulty])
+  @@index([subjectId, difficulty])
 }
 
 model QuestionAttempt {
@@ -134,6 +135,8 @@ model QuestionAttempt {
   @@index([userId])
   @@index([questionId])
   @@index([userId, createdAt])
+  @@index([userId, isCorrect])
+  @@index([userId, questionId])
 }
 
 model StudySession {
@@ -146,6 +149,7 @@ model StudySession {
   mode           StudyMode
   difficulty     Difficulty?
   examBoardId    String?
+  finishedAt     DateTime?
   createdAt      DateTime    @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -424,6 +428,8 @@ model Contest {
   studyTasks StudyTask[]
 
   @@index([userId])
+  @@index([userId, createdAt])
+  @@index([userId, status])
 }
 
 model ContestSyllabusItem {
@@ -460,6 +466,7 @@ model TopicReview {
 
   @@index([userId, scheduledFor])
   @@index([syllabusItemId])
+  @@index([userId, completedAt])
 }
 
 enum ContestStatus {
@@ -516,6 +523,7 @@ model Entitlement {
   updatedAt   DateTime          @updatedAt
 
   @@index([email])
+  @@index([status])
 }
 
 model Payment {
@@ -595,6 +603,7 @@ model QuestionSet {
   items   QuestionSetItem[]
 
   @@index([userId])
+  @@index([userId, lastAttemptAt, createdAt])
 }
 
 model QuestionSetItem {

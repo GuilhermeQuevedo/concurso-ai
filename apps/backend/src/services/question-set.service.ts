@@ -53,23 +53,44 @@ export class QuestionSetService {
       },
     });
 
-    return Promise.all(
-      sets.map(async (s) => {
-        const qIds = s.items.map((i) => i.questionId);
-        const answered = qIds.length ? await this.countAnswered(userId, qIds) : 0;
-        return {
-          id: s.id,
-          name: s.name,
-          mode: s.mode,
-          questionType: s.questionType,
-          subject: s.subject,
-          createdAt: s.createdAt,
-          lastAttemptAt: s.lastAttemptAt,
-          total: qIds.length,
-          answered,
-        };
-      }),
+    if (sets.length === 0) {
+      return [];
+    }
+
+    // Otimização: elimina N+1 buscando todas as tentativas respondidas em 1 única query agregada
+    const allQuestionIds = Array.from(
+      new Set(sets.flatMap((s) => s.items.map((i) => i.questionId))),
     );
+
+    let answeredSet = new Set<string>();
+    if (allQuestionIds.length > 0) {
+      const distinctAnswered = await prisma.questionAttempt.findMany({
+        where: { userId, questionId: { in: allQuestionIds } },
+        distinct: ['questionId'],
+        select: { questionId: true },
+      });
+      answeredSet = new Set(distinctAnswered.map((a) => a.questionId));
+    }
+
+    return sets.map((s) => {
+      const total = s.items.length;
+      const answered = s.items.reduce(
+        (acc, item) => acc + (answeredSet.has(item.questionId) ? 1 : 0),
+        0,
+      );
+
+      return {
+        id: s.id,
+        name: s.name,
+        mode: s.mode,
+        questionType: s.questionType,
+        subject: s.subject,
+        createdAt: s.createdAt,
+        lastAttemptAt: s.lastAttemptAt,
+        total,
+        answered,
+      };
+    });
   }
 
   async generate(userId: string, dto: GenerateSetInput) {
@@ -173,15 +194,6 @@ export class QuestionSetService {
     if (!set || set.userId !== userId) {
       throw new AppError(404, 'SET_NOT_FOUND', 'Simulado não encontrado');
     }
-  }
-
-  private async countAnswered(userId: string, questionIds: string[]): Promise<number> {
-    const distinct = await prisma.questionAttempt.findMany({
-      where: { userId, questionId: { in: questionIds } },
-      distinct: ['questionId'],
-      select: { questionId: true },
-    });
-    return distinct.length;
   }
 
   // Matéria é opcional: sem ela, usa (ou cria) uma matéria "Geral"
