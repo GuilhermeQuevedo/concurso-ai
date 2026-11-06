@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
-import type { ScheduleWeek, ScheduleDay, ScheduleBlock } from '../types';
+
+import type { ScheduleBlock, ScheduleDay, ScheduleWeek } from '../types';
 import { ScheduleDayRow } from './ScheduleDayRow';
 
 export interface WeekCollapsibleProps {
@@ -12,58 +14,45 @@ export interface WeekCollapsibleProps {
   onGenerate: (dayIndex: number, day: ScheduleDay, block?: ScheduleBlock) => void;
 }
 
-export function WeekCollapsible({
-  week,
-  weekIndex,
-  defaultOpen,
-  onToggleDay,
-  onGenerate,
-}: WeekCollapsibleProps) {
+const PHASE_LABEL: Record<ScheduleWeek['phase'], string> = {
+  base: 'Fase Base (50%)',
+  intensification: 'Fase Intensificação (30%)',
+  revision: 'Fase Reta Final / Revisões (20%)',
+};
+
+const PHASE_BADGE: Record<ScheduleWeek['phase'], string> = {
+  base: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  intensification: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  revision: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+};
+
+export function WeekCollapsible({ week, weekIndex, defaultOpen, onToggleDay, onGenerate }: WeekCollapsibleProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  const phaseLabel =
-    week.phase === 'base'
-      ? 'Fase Base (50%)'
-      : week.phase === 'intensification'
-      ? 'Fase Intensificação (30%)'
-      : 'Fase Reta Final / Revisões (20%)';
-
-  const phaseBadgeClass =
-    week.phase === 'base'
-      ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
-      : week.phase === 'intensification'
-      ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800'
-      : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800';
-
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-2xl border border-border/80 bg-card shadow-sm overflow-hidden transition-all duration-300">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full cursor-pointer items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        aria-expanded={isOpen}
+        className="w-full flex items-center justify-between p-5 bg-card hover:bg-muted/30 transition-colors text-left cursor-pointer"
       >
         <div className="flex flex-col items-start gap-1">
           <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Semana {week.weekNumber}
-            </h3>
-            <span className={cn('rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider', phaseBadgeClass)}>
-              {phaseLabel}
+            <h3 className="font-display font-bold text-base sm:text-lg text-foreground">Semana {week.weekNumber}</h3>
+            <span className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border', PHASE_BADGE[week.phase])}>
+              {PHASE_LABEL[week.phase]}
             </span>
           </div>
-          {week.theme && (
-            <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
-              {week.theme}
-            </span>
-          )}
+          {week.theme && <span className="text-xs font-medium text-primary uppercase tracking-wide">{week.theme}</span>}
         </div>
-        <div className="rounded-full p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-          {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        <div className="p-1 rounded-full bg-secondary text-muted-foreground">
+          {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </div>
       </button>
 
       {isOpen && (
-        <div className="flex flex-col border-t border-gray-200 dark:border-gray-800">
+        <div className="flex flex-col bg-background/50 border-t border-border/50">
           {week.days.map((day, dayIndex) => (
             <ScheduleDayRow
               key={dayIndex}

@@ -1,191 +1,117 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, Loader2, Plus } from 'lucide-react';
-import { studyScheduleService } from '@/features/study-schedule/services/study-schedule.service';
-import { ScheduleCard } from '@/features/study-schedule/components/ScheduleCard';
-import { NewScheduleView } from '@/features/study-schedule/components/NewScheduleView';
-import { ScheduleDetailView } from '@/features/study-schedule/components/ScheduleDetailView';
-import type { StudySchedule } from '@/features/study-schedule/types';
+import { Calendar } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router';
 
-type View = 'list' | 'new' | 'detail';
-
-export interface ScheduleListProps {
-  schedules: StudySchedule[];
-  isLoading: boolean;
-  onNew: () => void;
-  onOpen: (schedule: StudySchedule) => void;
-  onDelete: (id: string) => void;
-  onRename: (id: string, title: string) => void;
-}
-
-function ScheduleList({
-  schedules,
-  isLoading,
-  onNew,
-  onOpen,
-  onDelete,
-  onRename,
-}: ScheduleListProps) {
-  return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cronograma de Estudos</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Monte ciclos semanais inteligentes com divisão por blocos, revisões espaçadas e resolução de questões
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onNew}
-          className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-        >
-          <Plus className="h-4 w-4" />
-          Novo Cronograma
-        </button>
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        </div>
-      ) : schedules.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
-          <Calendar className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-          <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-            Nenhum cronograma cadastrado
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Crie seu primeiro cronograma personalizado e a IA organizará suas sessões de estudo
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {schedules.map((schedule, idx) => (
-            <ScheduleCard
-              key={schedule.id || idx}
-              schedule={schedule}
-              onClick={() => onOpen(schedule)}
-              onDelete={onDelete}
-              onRename={onRename}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import { SavedSchedulesModal } from '@/features/study-schedule/components/SavedSchedulesModal';
+import { ScheduleSummary } from '@/features/study-schedule/components/ScheduleSummary';
+import { WeekCollapsible } from '@/features/study-schedule/components/WeekCollapsible';
+import { useStudySchedules } from '@/features/study-schedule/hooks/useStudySchedules';
+import type { ScheduleBlock, ScheduleDay } from '@/features/study-schedule/types';
+import { daysUntilExam, scheduleExamDate } from '@/features/study-schedule/utils/schedule-dates';
+import { exportScheduleToCsv, exportScheduleToPrint } from '@/features/study-schedule/utils/schedule-export';
+import { ScheduleWizard } from '@/features/study-schedule/wizard/ScheduleWizard';
+import type { WizardSubmitPayload } from '@/features/study-schedule/wizard/useScheduleWizard';
 
 export function CronogramaPage() {
-  const [searchParams] = useSearchParams();
-  const initialProva = searchParams.get('prova');
-  const [view, setView] = useState<View>(initialProva ? 'new' : 'list');
-  const [selectedSchedule, setSelectedSchedule] = useState<StudySchedule | null>(null);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  // Atalho "Faça o seu cronograma para esta prova": abre o assistente na hora, ignorando o cronograma aberto.
+  const startFromContest = Boolean(searchParams.get('prova'));
 
-  const queryClient = useQueryClient();
+  const studies = useStudySchedules(startFromContest);
+  const { schedule, savedSchedules, loading } = studies;
+  const [showSaved, setShowSaved] = useState(false);
 
-  const { data: schedules = [], isLoading } = useQuery({
-    queryKey: ['study-schedules'],
-    queryFn: studyScheduleService.listSchedules,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => studyScheduleService.deleteSchedule(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['study-schedules'] });
-      setView('list');
-      setSelectedSchedule(null);
-    },
-  });
-
-  const renameMutation = useMutation({
-    mutationFn: ({ id, title }: { id: string; title: string }) =>
-      studyScheduleService.updateName(id, title),
-    onSuccess: (updated) => {
-      queryClient.invalidateQueries({ queryKey: ['study-schedules'] });
-      if (selectedSchedule?.id === updated.id) {
-        setSelectedSchedule(updated);
-      }
-    },
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: (sched: StudySchedule) => studyScheduleService.saveSchedule(sched),
-    onSuccess: (saved) => {
-      queryClient.invalidateQueries({ queryKey: ['study-schedules'] });
-      setSelectedSchedule(saved);
-    },
-  });
-
-  const toggleDayMutation = useMutation({
-    mutationFn: ({ id, weekIndex, dayIndex }: { id: string; weekIndex: number; dayIndex: number }) =>
-      studyScheduleService.toggleDayCompletion(id, weekIndex, dayIndex),
-    onSuccess: (updated) => {
-      queryClient.invalidateQueries({ queryKey: ['study-schedules'] });
-      setSelectedSchedule(updated);
-    },
-  });
-
-  const openDetail = (sched: StudySchedule) => {
-    setSelectedSchedule(sched);
-    setView('detail');
+  const handleGenerate = async (payload: WizardSubmitPayload) => {
+    const generated = await studies.generate(payload);
+    if (generated && startFromContest) setSearchParams({}, { replace: true });
   };
 
-  const handleToggleDay = (weekIndex: number, dayIndex: number) => {
-    if (!selectedSchedule?.schedule?.weeks) return;
-    const clone = { ...selectedSchedule };
-    const day = clone.schedule.weeks[weekIndex]?.days[dayIndex];
-    if (!day) return;
-    day.completed = !day.completed;
-    setSelectedSchedule({ ...clone });
-
-    if (clone.id) {
-      toggleDayMutation.mutate({ id: clone.id, weekIndex, dayIndex });
-    }
+  const openContentFor = (day: ScheduleDay, block?: ScheduleBlock) => {
+    const subject = block ? block.subject : day.subject;
+    const wantsQuestions = block?.type === 'questoes' || day.type === 'questoes';
+    void navigate(wantsQuestions ? '/generate' : '/flashcards', { state: { initialSubject: subject } });
   };
 
-  if (view === 'new') {
-    return (
-      <NewScheduleView
-        onBack={() => setView('list')}
-        onCreated={(newSched) => openDetail(newSched)}
-      />
-    );
-  }
-
-  if (view === 'detail' && selectedSchedule) {
-    return (
-      <ScheduleDetailView
-        schedule={selectedSchedule}
-        isSaving={saveMutation.isPending}
-        onBack={() => setView('list')}
-        onSave={async (sched) => {
-          await saveMutation.mutateAsync(sched);
-        }}
-        onDelete={async (id) => {
-          if (window.confirm('Tem certeza que deseja excluir este cronograma?')) {
-            await deleteMutation.mutateAsync(id);
-          }
-        }}
-        onToggleDayCompletion={handleToggleDay}
-      />
-    );
-  }
+  const ready = startFromContest || studies.isInitialized;
 
   return (
-    <ScheduleList
-      schedules={schedules}
-      isLoading={isLoading}
-      onNew={() => setView('new')}
-      onOpen={openDetail}
-      onDelete={(id) => {
-        if (window.confirm('Tem certeza que deseja excluir este cronograma?')) {
-          deleteMutation.mutate(id);
-        }
-      }}
-      onRename={(id, title) => renameMutation.mutate({ id, title })}
-    />
+    <div className="min-h-screen pb-20">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-8 border-b border-border/60 pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Calendar className="w-6 h-6 text-primary" />
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Cronograma de Estudos</h1>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Um plano de estudos focado e dinâmico, otimizado por IA com blocos Pomodoro e ciclos intercalados.
+            </p>
+          </div>
+
+          {savedSchedules.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowSaved(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-secondary/70 hover:bg-secondary text-foreground text-sm font-medium rounded-lg border border-border/60 transition-colors cursor-pointer"
+            >
+              Meus Cronogramas ({savedSchedules.length})
+            </button>
+          )}
+        </div>
+
+        {!ready && <div className="h-72 animate-pulse rounded-2xl bg-secondary/60" />}
+
+        {ready && !schedule && <ScheduleWizard loading={loading} onGenerate={(payload) => void handleGenerate(payload)} />}
+
+        {ready && schedule && (
+          <div className="space-y-6 animate-fade-in">
+            <ScheduleSummary
+              schedule={schedule}
+              daysRemaining={daysUntilExam(scheduleExamDate(schedule))}
+              isSaving={studies.isSaving}
+              busy={loading}
+              onSave={() => void studies.save()}
+              onExportPdf={() => exportScheduleToPrint(schedule)}
+              onExportCsv={() => exportScheduleToCsv(schedule)}
+            />
+
+            <div className="space-y-4">
+              {schedule.schedule.weeks.map((week, index) => (
+                <WeekCollapsible
+                  key={index}
+                  week={week}
+                  weekIndex={index}
+                  defaultOpen={index === 0}
+                  onToggleDay={(weekIndex, dayIndex) => void studies.toggleDay(weekIndex, dayIndex)}
+                  onGenerate={(_dayIndex, day, block) => openContentFor(day, block)}
+                />
+              ))}
+            </div>
+
+            <div className="text-center pt-8 border-t border-border/50">
+              <button
+                type="button"
+                onClick={studies.createAnother}
+                className="text-muted-foreground text-sm hover:text-foreground transition-colors underline underline-offset-4 cursor-pointer"
+              >
+                Criar outro cronograma
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showSaved && (
+          <SavedSchedulesModal
+            schedules={savedSchedules}
+            onSelect={studies.select}
+            onRename={studies.rename}
+            onDelete={(id) => void studies.remove(id)}
+            onClose={() => setShowSaved(false)}
+          />
+        )}
+      </div>
+    </div>
   );
 }
 

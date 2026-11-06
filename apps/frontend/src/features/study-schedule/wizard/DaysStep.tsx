@@ -8,7 +8,7 @@ export interface DaysStepProps {
 export interface MinutesInputProps {
   label: string;
   value: number;
-  onChange: (n: number) => void;
+  onChange: (minutes: number) => void;
 }
 
 function MinutesInput({ label, value, onChange }: MinutesInputProps) {

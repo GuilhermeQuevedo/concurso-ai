@@ -1,13 +1,14 @@
-export type WeekDay = 'seg' | 'ter' | 'qua' | 'qui' | 'sex' | 'sab' | 'dom';
+// Chaves de domínio em inglês (mesmas do backend); os rótulos em português são só da interface.
+export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
 export const WEEK_DAYS: Array<{ key: WeekDay; label: string }> = [
-  { key: 'seg', label: 'Seg' },
-  { key: 'ter', label: 'Ter' },
-  { key: 'qua', label: 'Qua' },
-  { key: 'qui', label: 'Qui' },
-  { key: 'sex', label: 'Sex' },
-  { key: 'sab', label: 'Sáb' },
-  { key: 'dom', label: 'Dom' },
+  { key: 'mon', label: 'Seg' },
+  { key: 'tue', label: 'Ter' },
+  { key: 'wed', label: 'Qua' },
+  { key: 'thu', label: 'Qui' },
+  { key: 'fri', label: 'Sex' },
+  { key: 'sat', label: 'Sáb' },
+  { key: 'sun', label: 'Dom' },
 ];
 
 export interface WizardSubject {
@@ -48,7 +49,7 @@ export const SCHEDULE_PRESETS: SchedulePreset[] = [
 
 export const DEFAULT_DAY_LIMITS: DayLimit[] = WEEK_DAYS.map(({ key }) => ({
   day: key,
-  enabled: key !== 'dom',
+  enabled: key !== 'sun',
   minMinutes: 60,
   maxMinutes: 180,
 }));
