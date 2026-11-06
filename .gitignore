@@ -34,3 +34,7 @@ uploads/
 
 # Dados de importação (grandes demais para o git)
 nap-questoes-all.json
+
+# Scratch & Loadtest binaries
+scratch/
+loadtests/bin/
