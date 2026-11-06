@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, FileText, Loader2, Sparkles, Upload, X } from 'lucide-react';
 import { DocumentNameInput } from '@/features/documents/components/DocumentNameInput';
+import { getErrorMessage } from '@/utils/error-message';
 import { contestService } from '../services/contest.service';
 import {
   documentService,
@@ -203,7 +204,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
 
       {mutation.isError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-          Erro ao processar o arquivo. Verifique se ele contém texto e tente novamente.
+          {getErrorMessage(mutation.error, 'Erro ao processar o arquivo. Verifique se ele contém texto e tente novamente.')}
         </div>
       )}
 

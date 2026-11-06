@@ -271,14 +271,19 @@ export class OpenAIProvider implements IAIProvider {
     return prompt;
   }
 
+  private isReasoningModel(): boolean {
+    return /^o[0-9]|gpt-6/i.test(this.model);
+  }
+
   private async callChat(
     prompt: string,
     options: { json?: boolean; filePath?: string; mimeType?: string; temperature?: number; maxTokens?: number } = {},
   ): Promise<string> {
     try {
       const content = this.buildUserMessageContent(prompt, options.filePath, options.mimeType);
+      const isReasoning = this.isReasoningModel();
 
-      const response = await this.client.chat.completions.create({
+      const completionParams: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming = {
         model: this.model,
         messages: [
           {
@@ -287,9 +292,18 @@ export class OpenAIProvider implements IAIProvider {
           },
         ],
         response_format: options.json ? { type: 'json_object' } : undefined,
-        temperature: options.temperature ?? 0.7,
-        max_tokens: options.maxTokens ?? 16000,
-      });
+      };
+
+      if (isReasoning) {
+        // Modelos de raciocínio da OpenAI (GPT-6, o1, o3) exigem max_completion_tokens
+        // e não aceitam temperature customizada (apenas o valor default 1).
+        completionParams.max_completion_tokens = options.maxTokens ?? 16000;
+      } else {
+        completionParams.temperature = options.temperature ?? 0.7;
+        completionParams.max_tokens = options.maxTokens ?? 16000;
+      }
+
+      const response = await this.client.chat.completions.create(completionParams);
 
       const text = response.choices[0]?.message?.content?.trim();
       if (!text) {
