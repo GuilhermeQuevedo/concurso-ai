@@ -1,3 +1,4 @@
+import { invalidateSubscriptionCache } from '../middlewares/subscription.middleware.js';
 import type Stripe from 'stripe';
 import { prisma } from '../database/prisma.js';
 import { env } from '../config/env.js';
@@ -141,6 +142,7 @@ export class StripeService {
       },
     });
 
+    invalidateSubscriptionCache(email);
     await prisma.payment.create({
       data: {
         email,
@@ -193,6 +195,7 @@ export class StripeService {
         expiresAt,
       },
     });
+    invalidateSubscriptionCache(email);
   }
 
   private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
@@ -208,6 +211,7 @@ export class StripeService {
       where: { email: user.email.toLowerCase().trim() },
       data: { status: 'CANCELED' },
     });
+    invalidateSubscriptionCache(user.email);
   }
 
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {

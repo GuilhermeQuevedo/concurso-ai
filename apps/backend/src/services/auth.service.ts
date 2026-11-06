@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import bcrypt from 'bcrypt';
+import { safeBcryptHash, safeBcryptCompare } from '../utils/crypto-semaphore.js';
 import { AUTH } from '@concurso-ai/shared';
 import { AppError } from '../middlewares/error-handler.js';
 import type { IAuthRepository, AuthTokens } from '../interfaces/auth.interfaces.js';
@@ -44,15 +44,24 @@ export class AuthService {
     }
 
     const isPermanentAdmin = isPermanentAdminEmail(email);
-    const hashedPassword = await bcrypt.hash(dto.password, AUTH.BCRYPT_SALT_ROUNDS);
+    const hashedPassword = await safeBcryptHash(dto.password, AUTH.BCRYPT_SALT_ROUNDS);
 
-    const user = await this.authRepository.createUser({
-      name: dto.name,
-      email,
-      phone: dto.phone,
-      password: hashedPassword,
-      role: isPermanentAdmin ? 'ADMIN' : 'USER',
-    });
+    let user;
+    try {
+      user = await this.authRepository.createUser({
+        name: dto.name,
+        email,
+        phone: dto.phone,
+        password: hashedPassword,
+        role: isPermanentAdmin ? 'ADMIN' : 'USER',
+      });
+    } catch (err: unknown) {
+      const prismaErr = err as { code?: string };
+      if (prismaErr?.code === 'P2002') {
+        throw new AppError(409, 'EMAIL_EXISTS', 'E-mail já cadastrado');
+      }
+      throw err;
+    }
 
     if (isPermanentAdmin) {
       await this.ensureAdminEntitlement(email);
@@ -93,7 +102,7 @@ export class AuthService {
       );
     }
 
-    const passwordValid = await bcrypt.compare(dto.password, user.password);
+    const passwordValid = await safeBcryptCompare(dto.password, user.password);
     if (!passwordValid) {
       const attempt = BruteForceGuard.recordFailedAttempt(email);
       if (attempt.isNowBlocked) {
@@ -161,7 +170,7 @@ export class AuthService {
       throw new AppError(400, 'INVALID_OR_EXPIRED_TOKEN', 'Link de redefinição inválido ou expirado.');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.newPassword, AUTH.BCRYPT_SALT_ROUNDS);
+    const hashedPassword = await safeBcryptHash(dto.newPassword, AUTH.BCRYPT_SALT_ROUNDS);
 
     await this.authRepository.consumePasswordResetToken(validRecord.id, validRecord.userId, hashedPassword);
 
@@ -324,11 +333,11 @@ export class AuthService {
     if (!user.password) {
       throw new AppError(400, 'NO_PASSWORD_SET', 'Defina uma senha usando a recuperação de conta.');
     }
-    const valid = await bcrypt.compare(dto.currentPassword, user.password);
+    const valid = await safeBcryptCompare(dto.currentPassword, user.password);
     if (!valid) {
       throw new AppError(400, 'INVALID_PASSWORD', 'Senha atual incorreta');
     }
-    const hashed = await bcrypt.hash(dto.newPassword, AUTH.BCRYPT_SALT_ROUNDS);
+    const hashed = await safeBcryptHash(dto.newPassword, AUTH.BCRYPT_SALT_ROUNDS);
     await this.authRepository.updateUser(userId, { password: hashed });
   }
 
@@ -340,7 +349,7 @@ export class AuthService {
     if (!user.password) {
       throw new AppError(400, 'NO_PASSWORD_SET', 'Conta vinculada ao Google sem senha local.');
     }
-    const valid = await bcrypt.compare(dto.password, user.password);
+    const valid = await safeBcryptCompare(dto.password, user.password);
     if (!valid) {
       throw new AppError(400, 'INVALID_PASSWORD', 'Senha incorreta');
     }
@@ -368,7 +377,7 @@ export class AuthService {
       throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
     }
     if (user.password) {
-      const valid = await bcrypt.compare(dto.password, user.password);
+      const valid = await safeBcryptCompare(dto.password, user.password);
       if (!valid) {
         throw new AppError(400, 'INVALID_PASSWORD', 'Senha incorreta');
       }

@@ -56,9 +56,17 @@ export class GroupService {
       throw new AppError(409, 'ALREADY_MEMBER', 'Você já faz parte deste grupo');
     }
 
-    await prisma.groupMember.create({
-      data: { groupId: group.id, userId },
-    });
+    try {
+      await prisma.groupMember.create({
+        data: { groupId: group.id, userId },
+      });
+    } catch (err: unknown) {
+      const prismaErr = err as { code?: string };
+      if (prismaErr?.code === 'P2002') {
+        throw new AppError(409, 'ALREADY_MEMBER', 'Você já faz parte deste grupo');
+      }
+      throw err;
+    }
 
     return this.getById(userId, group.id);
   }

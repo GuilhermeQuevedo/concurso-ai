@@ -43,7 +43,18 @@ export function useScheduleWizard() {
 
   useEffect(() => {
     if (!detail.data) return;
-    setExamDate(detail.data.examDate ? detail.data.examDate.slice(0, 10) : '');
+    const rawExamDate = detail.data.examDate ? detail.data.examDate.slice(0, 10) : '';
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Se o edital não tiver data ou se a data já expirou, define 90 dias a partir de hoje
+    if (!rawExamDate || rawExamDate < todayStr) {
+      const defaultTarget = new Date();
+      defaultTarget.setDate(defaultTarget.getDate() + 90);
+      setExamDate(defaultTarget.toISOString().split('T')[0]);
+    } else {
+      setExamDate(rawExamDate);
+    }
+
     setSubjects(
       detail.data.disciplines
         .filter((d) => d.inFocus)
@@ -56,6 +67,10 @@ export function useScheduleWizard() {
 
   const validate = (): string | null => {
     if (!examDate) return 'Informe a data da prova.';
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (examDate < todayStr) {
+      return 'A data da prova deve ser uma data futura (a partir de amanhã).';
+    }
     if (subjects.length === 0) return 'Adicione pelo menos uma matéria.';
     return validateDays(days);
   };

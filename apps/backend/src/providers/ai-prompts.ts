@@ -340,7 +340,16 @@ DIRETRIZES DE ESTILO DA BANCA EXAMINADORA:
 ======================================================================
 ${bancaGuidance}
 
-Nível de Dificuldade: ${diffText}.
+======================================================================
+NÍVEL DE DIFICULDADE REAL: ${params.difficulty ?? 'MEDIUM'} (${diffText})
+======================================================================
+${
+  {
+    EASY: 'DIRETRIZ DE DIFICULDADE (FÁCIL): Foque na literalidade da lei, conceitos fundamentais e definições diretas. Distratores simples, com erros evidentes para quem estudou a base teórica.',
+    MEDIUM: 'DIRETRIZ DE DIFICULDADE (MÉDIA): Enunciados contextualizados com situações-problema e aplicação prática da regra geral. Distratores plausíveis baseados em confusões conceituais clássicas.',
+    HARD: 'DIRETRIZ DE DIFICULDADE (DIFÍCIL / AVANÇADA): Enunciados complexos e aprofundados. Foque em exceções à regra, jurisprudência pacificada (súmulas e informativos STF/STJ), prazos minuciosos e conflitos normativos aparentes. Distratores refinados com inversão sutil de conceitos que induzem o candidato desatento ao erro.',
+  }[params.difficulty ?? 'MEDIUM']
+}
 ${contextBlock}
 
 ======================================================================
@@ -771,7 +780,10 @@ EXTRAIA:
 3. **examBoard** — Banca organizadora (ex: CESPE/CEBRASPE, FGV, FCC). null se não encontrar.
 4. **role** — Cargo/função principal do edital. null se não encontrar.
 5. **examDate** — Data da prova objetiva no formato YYYY-MM-DD. null se não encontrada.
-6. **syllabus** — Conteúdo programático COMPLETO: para cada disciplina, liste TODOS os tópicos exatamente como aparecem no edital. Não resuma, não omita tópicos. Separe tópicos compostos em itens individuais quando fizer sentido.${focusBlock}
+6. **syllabus** — Conteúdo programático COMPLETO e EXAUSTIVO:
+   - Extraia TODAS as disciplinas e TODOS os tópicos constantes no edital (tanto conhecimentos básicos/gerais quanto específicos), SEM EXCEÇÃO.
+   - É ESTRITAMENTE PROIBIDO resumir, omitir matérias, fundir disciplinas distintas ou colocar 'etc.'.
+   - Liste cada tópico individualmente no array 'topics' de cada disciplina correspondente.${focusBlock}
 
 Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adicional:
 {
@@ -1070,6 +1082,12 @@ ${input.banca ? `- Banca Atual: **${input.banca.toUpperCase()}**.\n` : ''}
 ${BANCA_PROFILES}
 - Se houver dados de probabilidade alta, priorize blocos dessas matérias.
 
+### 6. PONDERAÇÃO REAL DE DIFICULDADE, IMPORTÂNCIA E LIMITES:
+- Cada matéria possui pesos de Importância (1 a 5) e Dificuldade (1 a 5).
+- Matérias com alta DIFICULDADE (níveis 4 e 5) e alta IMPORTÂNCIA devem receber proporcionalmente MAIS HORAS SEMANAIS e mais blocos de estudo denso/teórico com exercícios.
+- Matérias com baixa DIFICULDADE (níveis 1 e 2) devem receber MENOS HORAS semanais, com foco direto em revisões sucintas e resolução de questões/simulados.
+- Respeite rigorosamente os limites de minutos diários (mínimo e máximo), os dias de descanso (dias sem estudo) e o limite máximo de matérias por dia especificados na disponibilidade.
+
 ### FORMATO JSON OBRIGATÓRIO DE SAÍDA:
 Verifique rigorosamente a estrutura. Retorne APENAS o JSON válido sem markdown extra.
 {
@@ -1129,6 +1147,12 @@ ${
 }
 
 ${hasAvailability ? `[DISPONIBILIDADE DO ESTUDANTE]\n${input.availability}\n` : ''}
+${
+  input.availability && input.availability.trim()
+    ? `[CONFIGURAÇÃO DE DISPONIBILIDADE, LIMITES E PESOS DAS MATÉRIAS (MANDATÓRIO)]\n${input.availability}\n`
+    : ''
+}
+
 ${
   input.userObservations
     ? `[OBSERVAÇÕES DO USUÁRIO]\n"${input.userObservations}"`

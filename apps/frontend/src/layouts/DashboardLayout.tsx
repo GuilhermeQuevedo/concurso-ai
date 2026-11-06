@@ -62,7 +62,7 @@ const navGroups: NavGroup[] = [
     label: 'Planejamento',
     icon: TargetIcon,
     items: [
-      { path: '/contests', label: 'Minhas Provas', icon: TargetIcon },
+      { path: '/contests', label: 'Meus Editais', icon: TargetIcon },
       { path: '/calendar', label: 'Calendário', icon: ClockIcon },
       { path: '/cronograma', label: 'Cronograma', icon: CronogramaIcon },
     ],

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import type { ScheduleBlock, ScheduleDay, ScheduleWeek } from '../types';
 import { ScheduleDayRow } from './ScheduleDayRow';
 
-interface WeekCollapsibleProps {
+export interface WeekCollapsibleProps {
   week: ScheduleWeek;
   weekIndex: number;
   defaultOpen: boolean;

@@ -114,3 +114,5 @@ export function CronogramaPage() {
     </div>
   );
 }
+
+export default CronogramaPage;

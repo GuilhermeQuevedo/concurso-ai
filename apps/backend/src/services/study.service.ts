@@ -79,30 +79,46 @@ export class StudyService {
     const correctCount = attempts.filter((a) => a.isCorrect).length;
     const totalTime = attempts.reduce((sum, a) => sum + a.timeSpent, 0);
 
-    const updated = await prisma.studySession.update({
-      where: { id: sessionId },
-      data: { correctCount, totalTime },
+    // Update condicional atômico: garante que apenas a primeira requisição concorrente processe a finalização
+    const updateResult = await prisma.studySession.updateMany({
+      where: {
+        id: sessionId,
+        userId,
+        finishedAt: null,
+      },
+      data: {
+        correctCount,
+        totalTime,
+        finishedAt: new Date(),
+      },
     });
 
-    await this.gamification.updateStreak(userId);
-    const newAchievements = await this.gamification.checkAchievements(userId);
+    const isFirstFinalizer = updateResult.count > 0;
+    let newAchievements: string[] = [];
 
-    const isPerfect = correctCount === session.questionsCount && session.questionsCount > 0;
-    await this.groups.recordActivity(
-      userId,
-      isPerfect ? 'PERFECT_SESSION' : 'SESSION_COMPLETED',
-      `Completou sessão: ${correctCount}/${session.questionsCount} acertos`,
-    );
+    if (isFirstFinalizer) {
+      await this.gamification.updateStreak(userId);
+      newAchievements = await this.gamification.checkAchievements(userId);
+
+      const isPerfect = correctCount === session.questionsCount && session.questionsCount > 0;
+      await this.groups.recordActivity(
+        userId,
+        isPerfect ? 'PERFECT_SESSION' : 'SESSION_COMPLETED',
+        `Completou sessão: ${correctCount}/${session.questionsCount} acertos`,
+      );
+    }
+
+    const currentSession = await prisma.studySession.findUnique({ where: { id: sessionId } });
 
     return {
-      session: updated,
+      session: currentSession ?? session,
       attempts,
       stats: {
         total: session.questionsCount,
-        correct: correctCount,
-        wrong: session.questionsCount - correctCount,
-        accuracy: session.questionsCount > 0 ? Math.round((correctCount / session.questionsCount) * 100) : 0,
-        totalTime,
+        correct: currentSession?.correctCount ?? correctCount,
+        wrong: session.questionsCount - (currentSession?.correctCount ?? correctCount),
+        accuracy: session.questionsCount > 0 ? Math.round(((currentSession?.correctCount ?? correctCount) / session.questionsCount) * 100) : 0,
+        totalTime: currentSession?.totalTime ?? totalTime,
       },
       newAchievements,
     };

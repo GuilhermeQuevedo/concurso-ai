@@ -10,7 +10,7 @@ const envSchema = z.object({
   AI_ESSAY_PROVIDER: z.enum(['gemini', 'ollama', 'mock', 'claude', 'openai']).optional(),
   GEMINI_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
-  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+  OPENAI_MODEL: z.string().default('gpt-6-luna'),
   OLLAMA_URL: z.string().default('http://localhost:11434'),
   OLLAMA_MODEL: z.string().default('qwen2.5:14b'),
   ANTHROPIC_API_KEY: z.string().optional(),
@@ -44,6 +44,11 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_SECURE: z.string().default('false').transform((v) => v === 'true'),
+  REDIS_URL: z.string().optional(),
+  RATE_LIMIT_AUTH_MAX: z.coerce.number().int().positive().default(15),
+  RATE_LIMIT_API_MAX: z.coerce.number().int().positive().default(300),
+  RATE_LIMIT_PUBLIC_MAX: z.coerce.number().int().positive().default(60),
+  RATE_LIMIT_HEAVY_MAX: z.coerce.number().int().positive().default(5),
 });
 
 function normalizeTruncatedEnv(rawEnv: NodeJS.ProcessEnv): NodeJS.ProcessEnv {

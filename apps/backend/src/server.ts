@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -11,7 +10,6 @@ import { env } from './config/env.js';
 import { prisma } from './database/prisma.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler } from './middlewares/error-handler.js';
-import { RATE_LIMIT } from '@concurso-ai/shared';
 import { MASTER_ADMIN_EMAILS } from './utils/security.js';
 
 async function bootstrapAdmin(): Promise<void> {
@@ -47,56 +45,62 @@ async function bootstrapAdmin(): Promise<void> {
         });
         console.log(`[Admin Bootstrap] Nova conta ADMIN criada: ${email}.`);
       }
-
-      // Garante Entitlement vitalício ativo para administradores autorizados
-      await prisma.entitlement.upsert({
-        where: { email },
-        create: {
-          email,
-          status: 'ACTIVE',
-          provider: 'admin',
-          expiresAt: new Date('2099-12-31T23:59:59.999Z'),
-        },
-        update: {
-          status: 'ACTIVE',
-          expiresAt: new Date('2099-12-31T23:59:59.999Z'),
-        },
-      });
     } catch (error) {
-      console.error(`[Admin Bootstrap] Falha ao sincronizar admin ${email}:`, error);
+      console.error(`[Admin Bootstrap] Erro ao processar conta ${email}:`, error);
     }
   }
 }
 
-function applyMigrations(): void {
-  try {
-    const out = execSync(
-      `"${process.execPath}" node_modules/prisma/build/index.js db push --schema prisma/schema.prisma --accept-data-loss --skip-generate`,
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-    );
-    console.log('Migrations aplicadas com sucesso:\n', out);
-  } catch (error) {
-    const e = error as { stdout?: string; stderr?: string; message?: string };
-    console.error('Falha ao aplicar migrations.');
-    console.error('STDOUT:', e.stdout ?? '');
-    console.error('STDERR:', e.stderr ?? '');
-    console.error('MSG:', e.message ?? '');
-  }
-}
-
-if (env.NODE_ENV === 'production') {
-  applyMigrations();
-}
-
-// CSP exige liberar explicitamente os scripts inline do index.html (ex.: init de
-// tema antes do paint). Calculamos o hash em runtime para nunca ficar defasado.
+/**
+ * Coleta hashes sha256 de scripts inline do index.html gerado pelo Vite
+ * para permitir no script-src da CSP sem abrir mão de 'self'.
+ */
 function inlineScriptCspHashes(): string[] {
+  const candidates = [
+    path.resolve('public', 'index.html'),
+    path.resolve('..', 'frontend', 'dist', 'index.html'),
+  ];
+  let html = '';
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        html = fs.readFileSync(p, 'utf-8');
+        break;
+      }
+    } catch {
+      // continua tentando
+    }
+  }
+
+  // Em desenvolvimento, o bundle em disco pode não existir (Vite serve em memória).
+  // Gera o index.html sob demanda se não achou em disco.
+  if (!html && env.NODE_ENV === 'development') {
+    const frontendDir = path.resolve('..', 'frontend');
+    const indexHtmlPath = path.resolve(frontendDir, 'dist', 'index.html');
+    try {
+      if (!fs.existsSync(indexHtmlPath) && fs.existsSync(path.resolve(frontendDir, 'package.json'))) {
+        execSync('pnpm build', { cwd: frontendDir, stdio: 'ignore', timeout: 60000 });
+        if (fs.existsSync(indexHtmlPath)) {
+          html = fs.readFileSync(indexHtmlPath, 'utf-8');
+        }
+      }
+    } catch {
+      // se o build falhar, segue com array vazio
+    }
+  }
+
+  if (!html) return [];
+
   try {
-    const html = fs.readFileSync(path.resolve('public', 'index.html'), 'utf8');
+    const scriptRegex = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
     const hashes: string[] = [];
-    for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
-      const digest = crypto.createHash('sha256').update(match[1], 'utf8').digest('base64');
-      hashes.push(`'sha256-${digest}'`);
+    let match: RegExpExecArray | null;
+    while ((match = scriptRegex.exec(html)) !== null) {
+      const inlineContent = match[1];
+      if (inlineContent && inlineContent.trim().length > 0) {
+        const hash = crypto.createHash('sha256').update(inlineContent).digest('base64');
+        hashes.push(`'sha256-${hash}'`);
+      }
     }
     return hashes;
   } catch {
@@ -127,14 +131,6 @@ app.use(
   }),
 );
 app.use(
-  rateLimit({
-    windowMs: RATE_LIMIT.GENERAL_WINDOW_MS,
-    max: env.NODE_ENV === 'development' ? 2000 : RATE_LIMIT.GENERAL_MAX,
-    standardHeaders: true,
-    legacyHeaders: false,
-  }),
-);
-app.use(
   express.json({
     limit: '10mb',
     verify: (req, _res, buf) => {
@@ -146,6 +142,21 @@ app.use(
 const uploadsDir = path.resolve('uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
+
+let isShuttingDown = false;
+
+// Middleware durante shutdown gracioso: rejeita novas conexões para permitir que as ativas terminem
+app.use((req, res, next) => {
+  if (isShuttingDown && req.path.startsWith('/api') && !req.path.startsWith('/api/health')) {
+    res.setHeader('Connection', 'close');
+    res.status(503).json({
+      success: false,
+      error: { code: 'SERVER_SHUTTING_DOWN', message: 'Servidor em processo de reinicialização limpa.' },
+    });
+    return;
+  }
+  next();
+});
 
 app.use('/api', apiRouter);
 
@@ -170,5 +181,33 @@ const server = app.listen(env.PORT, () => {
 
 // IA local pode levar vários minutos em editais grandes
 server.requestTimeout = 660000;
+
+function handleGracefulShutdown(signal: string): void {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log(`[GracefulShutdown] Sinal ${signal} recebido. Drenando conexões ativas...`);
+
+  // Para de aceitar novas requisições
+  server.close(async () => {
+    console.log('[GracefulShutdown] Servidor HTTP fechado. Desconectando Prisma...');
+    try {
+      await prisma.$disconnect();
+      console.log('[GracefulShutdown] Prisma desconectado com sucesso.');
+    } catch (err) {
+      console.error('[GracefulShutdown] Erro ao desconectar Prisma:', err);
+    }
+    console.log('[GracefulShutdown] Processo finalizado com sucesso.');
+    process.exit(0);
+  });
+
+  // Timeout forçado de 15 segundos para evitar processos zumbis
+  setTimeout(() => {
+    console.warn('[GracefulShutdown] Timeout forçado de 15s atingido. Encerrando processo.');
+    process.exit(1);
+  }, 15000).unref();
+}
+
+process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
 
 export { app };

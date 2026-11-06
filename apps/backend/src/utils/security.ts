@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import { safeBcryptCompare } from './crypto-semaphore.js';
 import { env } from '../config/env.js';
 
 // Dummy hash pré-computado para mitigar ataques de timing (quando e-mail não existe no banco)
@@ -122,6 +122,6 @@ export function isPermanentAdminEmail(email: string): boolean {
 export const isVipEmail = isPermanentAdminEmail;
 
 export async function dummyPasswordCheck(password: string): Promise<void> {
-  // Executa um hash simulado para igualar o tempo de resposta e evitar enumeração de contas por timing attack
-  await bcrypt.compare(password, DUMMY_HASH);
+  // Executa um hash simulado protegido por semáforo para igualar o tempo de resposta e evitar enumeração de contas por timing attack
+  await safeBcryptCompare(password, DUMMY_HASH);
 }

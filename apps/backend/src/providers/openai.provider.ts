@@ -53,7 +53,7 @@ import {
   caseStudyResponseSchema,
   editalResponseSchema,
   flashcardsResponseSchema,
-  truncateEdital,
+  extractRelevantEditalContent,
   buildZionEditalExtractionPrompt,
   buildZionProbabilityPrompt,
   buildZionSchedulePrompt,
@@ -71,7 +71,7 @@ export class OpenAIProvider implements IAIProvider {
 
   constructor(
     apiKey: string,
-    private readonly model: string = 'gpt-4o-mini',
+    private readonly model: string = 'gpt-6-luna',
   ) {
     this.client = new OpenAI({ apiKey });
     this.circuitBreaker = new CircuitBreaker('openai-provider', { failureThreshold: 3, timeoutMs: 30000 });
@@ -151,9 +151,9 @@ export class OpenAIProvider implements IAIProvider {
   }
 
   async parseEdital(params: ParseEditalParams): Promise<EditalParseResult> {
-    const truncated = truncateEdital(params.content);
+    const relevant = extractRelevantEditalContent(params.content, 250000);
     const raw = await this.executeResilient(() =>
-      this.callChat(buildEditalPrompt(truncated, params.focus), { json: true }),
+      this.callChat(buildEditalPrompt(relevant, params.focus), { json: true, maxTokens: 16000 }),
     );
     const parsed = editalResponseSchema.safeParse(this.parseJson(raw, 'análise de edital'));
     if (!parsed.success) {
