@@ -3,17 +3,23 @@ import { Plus, X } from 'lucide-react';
 
 import type { WizardSubject } from './schedule-wizard.model';
 
-interface SubjectsStepProps {
+export interface SubjectsStepProps {
   subjects: WizardSubject[];
   onChange: (subjects: WizardSubject[]) => void;
 }
 
+export interface LevelPickerProps {
+  label: string;
+  value: number;
+  onPick: (n: number) => void;
+}
+
 const LEVELS = [1, 2, 3, 4, 5];
 
-function LevelPicker({ label, value, onPick }: { label: string; value: number; onPick: (n: number) => void }) {
+function LevelPicker({ label, value, onPick }: LevelPickerProps) {
   return (
     <div>
-      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</span>
       <div className="flex gap-1">
         {LEVELS.map((n) => (
           <button
@@ -23,8 +29,8 @@ function LevelPicker({ label, value, onPick }: { label: string; value: number; o
             aria-label={`${label} ${n}`}
             className={`h-7 w-7 rounded-md border text-xs font-semibold transition-colors ${
               n === value
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border bg-background text-muted-foreground hover:border-primary/50'
+                ? 'border-primary-600 bg-primary-600 text-white'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-primary-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300'
             }`}
           >
             {n}
@@ -51,14 +57,14 @@ export function SubjectsStep({ subjects, onChange }: SubjectsStepProps) {
   return (
     <div className="space-y-3">
       {subjects.map((subject, index) => (
-        <div key={subject.name} className="rounded-xl border border-border/70 bg-background p-4">
+        <div key={subject.name} className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <div className="mb-3 flex items-start justify-between gap-2">
-            <p className="text-sm font-semibold text-foreground">{subject.name}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{subject.name}</p>
             <button
               type="button"
               onClick={() => onChange(subjects.filter((_, i) => i !== index))}
               aria-label={`Remover ${subject.name}`}
-              className="text-muted-foreground hover:text-destructive"
+              className="text-gray-400 hover:text-red-600"
             >
               <X className="h-4 w-4" />
             </button>
@@ -81,12 +87,12 @@ export function SubjectsStep({ subjects, onChange }: SubjectsStepProps) {
             }
           }}
           placeholder="Adicionar matéria"
-          className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+          className="h-10 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         />
         <button
           type="button"
           onClick={add}
-          className="flex h-10 items-center gap-1 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary"
+          className="flex h-10 items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >
           <Plus className="h-4 w-4" /> Criar matéria
         </button>

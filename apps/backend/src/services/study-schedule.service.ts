@@ -97,10 +97,29 @@ export class StudyScheduleService {
   ): ZionScheduleWeek[] {
     const today = new Date();
     today.setHours(12, 0, 0, 0);
-    const target = new Date(`${examDate}T12:00:00Z`);
+
+    const cleanDateStr = String(examDate).split('T')[0].trim();
+    let target = new Date(`${cleanDateStr}T12:00:00Z`);
+    if (isNaN(target.getTime())) {
+      target = new Date(today);
+      target.setDate(target.getDate() + 90);
+    }
+
     const diffMs = target.getTime() - today.getTime();
-    const diffDays = Math.max(0, Math.ceil(diffMs / (1000 * 3600 * 24)));
-    const weeksCount = Math.max(1, Math.ceil(diffDays / 7));
+    const diffDays = Math.ceil(diffMs / (1000 * 3600 * 24));
+
+    // Se a data já passou ou for hoje, garante um ciclo estruturado de 8 semanas
+    const weeksCount = diffDays <= 0 ? 8 : Math.max(1, Math.ceil(diffDays / 7));
+
+    const dayNames = [
+      'Domingo',
+      'Segunda-feira',
+      'Terça-feira',
+      'Quarta-feira',
+      'Quinta-feira',
+      'Sexta-feira',
+      'Sábado',
+    ];
 
     const fullWeeks: ZionScheduleWeek[] = [];
     const currentDate = new Date(today);
@@ -110,28 +129,52 @@ export class StudyScheduleService {
       const baseThreshold = Math.ceil(weeksCount * 0.5);
       const intensificationThreshold = Math.ceil(weeksCount * 0.8);
 
-      if (w > intensificationThreshold) currentPhase = 'revision';
-      else if (w > baseThreshold) currentPhase = 'intensification';
+      let theme = `Ciclo Base — Fundamentação Teórica (Semana ${w} de ${weeksCount})`;
 
-      const clonedDays: ZionScheduleDay[] = (baseWeekTemplate.days || []).map((dayData) => {
+      if (w > intensificationThreshold) {
+        currentPhase = 'revision';
+        theme = `Reta Final — Revisão Global e Simulados (Semana ${w} de ${weeksCount})`;
+      } else if (w > baseThreshold) {
+        currentPhase = 'intensification';
+        theme = `Intensificação — Questões e Pontos Críticos (Semana ${w} de ${weeksCount})`;
+      }
+
+      const isRevisionPhase = currentPhase === 'revision';
+      const isIntensificationPhase = currentPhase === 'intensification';
+
+      const clonedDays: ZionScheduleDay[] = (baseWeekTemplate.days || []).map((dayData, dayIdx) => {
         const dateStr = currentDate.toISOString().split('T')[0];
+        const dayOfWeek = dayNames[currentDate.getDay()];
         currentDate.setDate(currentDate.getDate() + 1);
 
-        const isRevisionPhase = currentPhase === 'revision';
-        const blocks = (dayData.blocks || []).map((b, bIdx) => ({
-          order: bIdx + 1,
-          subject: b.subject || 'Descanso/Simulado',
-          type: (isRevisionPhase ? 'revisao' : b.type) || 'estudo',
-          hours: b.hours,
-          priority: b.priority || 'normal',
-          revisionNumber: b.revision || null,
-          cardTarget: 10,
-          notes: b.hours > 0 ? `Pomodoro: ${Math.ceil(b.hours * 2)} ciclos de 25m` : null,
-        }));
+        const blocks = (dayData.blocks || []).map((b, bIdx) => {
+          let blockType: 'estudo' | 'revisao' | 'questoes' | 'descanso' = b.type || 'estudo';
+          let notes = b.hours > 0 ? `Pomodoro: ${Math.ceil(b.hours * 2)} ciclos de 25m` : null;
+
+          if (isRevisionPhase && blockType === 'estudo') {
+            blockType = 'revisao';
+            notes = `Revisão Ativa & Flashcards: ${Math.ceil(b.hours * 2)} ciclos Pomodoro`;
+          } else if (isIntensificationPhase && bIdx === 0 && blockType === 'estudo') {
+            notes = `Aprofundamento & Questões Comentadas: ${Math.ceil(b.hours * 2)} ciclos Pomodoro`;
+          }
+
+          return {
+            order: bIdx + 1,
+            subject: b.subject || 'Descanso/Simulado',
+            type: blockType,
+            hours: b.hours,
+            priority: b.priority || 'normal',
+            revisionNumber: b.revision || null,
+            cardTarget: 10,
+            notes,
+          };
+        });
 
         let dayType: 'estudo' | 'revisao' | 'simulado' | 'descanso' | 'questoes' = 'estudo';
         if (isRevisionPhase && dayData.type === 'estudo') {
           dayType = 'revisao';
+        } else if (isIntensificationPhase && dayIdx === 5 && dayData.type !== 'descanso') {
+          dayType = 'simulado';
         } else if (
           dayData.type === 'estudo' ||
           dayData.type === 'revisao' ||
@@ -144,7 +187,7 @@ export class StudyScheduleService {
 
         return {
           date: dateStr,
-          dayOfWeek: dayData.dayOfWeek || '',
+          dayOfWeek,
           type: dayType,
           totalHours: dayData.totalHours || dailyHours,
           blocks,
@@ -154,10 +197,11 @@ export class StudyScheduleService {
 
       while (clonedDays.length < 7) {
         const dateStr = currentDate.toISOString().split('T')[0];
+        const dayOfWeek = dayNames[currentDate.getDay()];
         currentDate.setDate(currentDate.getDate() + 1);
         clonedDays.push({
           date: dateStr,
-          dayOfWeek: '',
+          dayOfWeek,
           type: 'descanso',
           totalHours: dailyHours,
           blocks: [
@@ -178,6 +222,7 @@ export class StudyScheduleService {
       fullWeeks.push({
         weekNumber: w,
         phase: currentPhase,
+        theme,
         days: clonedDays,
       });
     }

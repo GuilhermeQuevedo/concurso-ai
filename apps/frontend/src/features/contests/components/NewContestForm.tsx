@@ -41,7 +41,7 @@ export function NewContestForm({ onBack, onCreated }: { onBack: () => void; onCr
         Voltar
       </button>
 
-      <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">Nova Prova ou Estudo</h2>
+      <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">Novo Edital ou Estudo</h2>
 
       <div className="mb-4 flex gap-2">
         <ModeButton active={mode === 'edital'} onClick={() => setMode('edital')} label="A partir de um arquivo (IA)" />

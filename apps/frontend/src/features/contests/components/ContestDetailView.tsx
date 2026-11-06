@@ -148,7 +148,7 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
           className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
         >
           <CalendarDays className="h-4 w-4" />
-          Faça o seu cronograma para esta prova
+          Faça o seu cronograma para este edital
         </button>
       )}
 
