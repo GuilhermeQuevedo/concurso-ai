@@ -1,5 +1,4 @@
 import { type Router as RouterType, Router } from 'express';
-import type { ApiResponse } from '@concurso-ai/types';
 import { authRouter } from './auth.routes.js';
 import { subjectRouter } from './subject.routes.js';
 import { examBoardRouter } from './exam-board.routes.js';
@@ -24,18 +23,23 @@ import { calendarIntegrationRouter } from './calendar-integration.routes.js';
 import { errorNotebookRouter } from './error-notebook.routes.js';
 import { createEditalMapRouter } from './edital-map.routes.js';
 import { createStudyScheduleRouter } from './study-schedule.routes.js';
+import { healthRouter } from './health.routes.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { requireSubscription } from '../middlewares/subscription.middleware.js';
+import {
+  authenticatedRateLimiter,
+  publicRateLimiter,
+} from '../middlewares/rate-limit.middleware.js';
 
 const router: RouterType = Router();
 
-const gate = [authMiddleware, requireSubscription];
+const gate = [authMiddleware, requireSubscription, authenticatedRateLimiter];
 
 router.use('/auth', authRouter);
 router.use('/payments', paymentRouter);
 router.use('/admin', adminRouter);
-router.use('/subjects', subjectRouter);
-router.use('/exam-boards', examBoardRouter);
+router.use('/subjects', publicRateLimiter, subjectRouter);
+router.use('/exam-boards', publicRateLimiter, examBoardRouter);
 router.use('/gamification', gate, gamificationRouter);
 router.use('/groups', gate, groupRouter);
 router.use('/questions', gate, questionRouter);
@@ -56,15 +60,6 @@ router.use('/error-notebook', gate, errorNotebookRouter);
 router.use('/edital-maps', gate, createEditalMapRouter());
 router.use('/study-schedules', gate, createStudyScheduleRouter());
 
-router.get('/health', (_req, res) => {
-  const response: ApiResponse<{ status: string; timestamp: string }> = {
-    success: true,
-    data: {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    },
-  };
-  res.json(response);
-});
+router.use('/health', healthRouter);
 
 export { router as apiRouter };
