@@ -55,7 +55,7 @@ export class LocalStorageService implements IStorageService {
 
   async delete(key: string): Promise<void> {
     // Proteção contra escape de diretório (Path Traversal)
-    const safeKey = path.normalize(key).replace(/^(\.\.[\/\\])+/, '');
+    const safeKey = path.normalize(key).replace(/^(\.\.[/\\])+/, '');
     const fullPath = path.join(this.baseDir, safeKey);
 
     if (fs.existsSync(fullPath)) {
@@ -64,7 +64,7 @@ export class LocalStorageService implements IStorageService {
   }
 
   getUrl(key: string): string {
-    const safeKey = path.normalize(key).replace(/^(\.\.[\/\\])+/, '');
+    const safeKey = path.normalize(key).replace(/^(\.\.[/\\])+/, '');
     return `${this.baseUrl}/${safeKey.replace(/\\/g, '/')}`;
   }
 }
