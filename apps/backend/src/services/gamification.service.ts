@@ -95,15 +95,35 @@ export class GamificationService {
 
   async checkAchievements(userId: string) {
     const stats = await this.getGameStats(userId);
-    const existing = await prisma.achievement.findMany({ where: { userId } });
+    const existing = await prisma.achievement.findMany({ where: { userId }, select: { type: true } });
     const existingTypes = new Set(existing.map((a) => a.type));
+
+    const candidates = Object.entries(ACHIEVEMENT_DEFS)
+      .filter(([type, def]) => !existingTypes.has(type) && def.check(stats))
+      .map(([type]) => type);
+
+    if (candidates.length === 0) {
+      return [];
+    }
 
     const newAchievements: string[] = [];
 
-    for (const [type, def] of Object.entries(ACHIEVEMENT_DEFS)) {
-      if (!existingTypes.has(type) && def.check(stats)) {
-        await prisma.achievement.create({ data: { userId, type } });
+    for (const type of candidates) {
+      try {
+        await prisma.achievement.upsert({
+          where: { userId_type: { userId, type } },
+          create: { userId, type },
+          update: {},
+        });
         newAchievements.push(type);
+      } catch (err: unknown) {
+        // Idempotência: se requisição concorrente já criou o registro (P2002), não é erro
+        const prismaErr = err as { code?: string };
+        if (prismaErr?.code === 'P2002') {
+          newAchievements.push(type);
+        } else {
+          throw err;
+        }
       }
     }
 
