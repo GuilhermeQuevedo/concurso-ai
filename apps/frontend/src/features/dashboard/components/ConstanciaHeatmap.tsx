@@ -1,20 +1,18 @@
-import { useMemo } from 'react';
-import { Flame } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, Flame } from 'lucide-react';
+
 import type { HeatmapDay } from '../services/dashboard.service';
 
-const WEEKS = 26;
-const WEEKDAY_LABELS = ['', 'S', '', 'Q', '', 'S', ''];
+const WEEKDAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+// O backend envia cerca de 6 meses de histórico, então não adianta navegar mais para trás.
+const MAX_MONTHS_BACK = 6;
 
-function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function addDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
+interface DayCell {
+  key: string;
+  day: number;
+  count: number;
+  isFuture: boolean;
+  isToday: boolean;
 }
 
 function dateKey(date: Date): string {
@@ -23,13 +21,25 @@ function dateKey(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-function levelClass(count: number, isFuture: boolean): string {
-  if (isFuture) return 'bg-transparent';
-  if (count === 0) return 'bg-gray-100 dark:bg-gray-800';
-  if (count <= 2) return 'bg-primary-200 dark:bg-primary-900';
-  if (count <= 5) return 'bg-primary-400 dark:bg-primary-700';
-  if (count <= 10) return 'bg-primary-500 dark:bg-primary-500';
-  return 'bg-primary-600 dark:bg-primary-400';
+function buildMonth(year: number, month: number, counts: Map<string, number>, today: Date): (DayCell | null)[] {
+  const first = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: (DayCell | null)[] = Array.from({ length: first.getDay() }, () => null);
+  const todayKey = dateKey(today);
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const key = dateKey(date);
+    cells.push({ key, day, count: counts.get(key) ?? 0, isFuture: date > today, isToday: key === todayKey });
+  }
+  return cells;
+}
+
+function cellClass(cell: DayCell): string {
+  const base = 'relative flex h-10 flex-col items-center justify-center rounded-lg text-xs';
+  if (cell.isFuture) return `${base} text-gray-300 dark:text-gray-700`;
+  const ring = cell.isToday ? ' ring-2 ring-primary-500' : '';
+  if (cell.count > 0) return `${base} bg-orange-50 font-semibold text-orange-700 dark:bg-orange-500/10 dark:text-orange-300${ring}`;
+  return `${base} bg-gray-50 text-gray-500 dark:bg-gray-800/60 dark:text-gray-400${ring}`;
 }
 
 export function ConstanciaHeatmap({
@@ -39,28 +49,23 @@ export function ConstanciaHeatmap({
   heatmap: HeatmapDay[];
   streak: { current: number; longest: number };
 }) {
-  const columns = useMemo(() => {
-    const counts = new Map(heatmap.map((h) => [h.date, h.count]));
-    const today = startOfDay(new Date());
-    const gridEnd = addDays(today, 6 - today.getDay());
-    const gridStart = addDays(gridEnd, -(WEEKS * 7 - 1));
+  const [monthsBack, setMonthsBack] = useState(0);
+  const today = useMemo(() => new Date(), []);
+  const counts = useMemo(() => new Map(heatmap.map((h) => [h.date, h.count])), [heatmap]);
 
-    const weeks: { key: string; count: number; isFuture: boolean }[][] = [];
-    for (let w = 0; w < WEEKS; w++) {
-      const col: { key: string; count: number; isFuture: boolean }[] = [];
-      for (let d = 0; d < 7; d++) {
-        const date = addDays(gridStart, w * 7 + d);
-        const key = dateKey(date);
-        col.push({ key, count: counts.get(key) ?? 0, isFuture: date > today });
-      }
-      weeks.push(col);
-    }
-    return weeks;
-  }, [heatmap]);
+  const shown = new Date(today.getFullYear(), today.getMonth() - monthsBack, 1);
+  const cells = useMemo(
+    () => buildMonth(shown.getFullYear(), shown.getMonth(), counts, today),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [monthsBack, counts, today],
+  );
+  const activeDays = cells.filter((c) => c && c.count > 0).length;
+  const rawLabel = shown.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const monthLabel = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Constância</h2>
         <div className="flex items-center gap-3 text-xs">
           <span className="flex items-center gap-1 font-medium text-orange-600 dark:text-orange-400">
@@ -71,37 +76,59 @@ export function ConstanciaHeatmap({
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <div className="flex flex-col gap-[3px] pt-[1px] text-[9px] text-gray-400">
-          {WEEKDAY_LABELS.map((label, i) => (
-            <span key={i} className="flex h-[11px] items-center leading-none">
+      <div className="mx-auto max-w-md">
+        <div className="mb-2 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setMonthsBack((m) => Math.min(MAX_MONTHS_BACK, m + 1))}
+            disabled={monthsBack >= MAX_MONTHS_BACK}
+            aria-label="Mês anterior"
+            className="rounded p-1 text-gray-500 hover:bg-gray-100 disabled:opacity-30 dark:hover:bg-gray-800"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+            {monthLabel}
+            <span className="ml-2 text-xs font-normal normal-case text-gray-400">
+              {activeDays} dia{activeDays === 1 ? '' : 's'} de estudo
+            </span>
+          </p>
+          <button
+            type="button"
+            onClick={() => setMonthsBack((m) => Math.max(0, m - 1))}
+            disabled={monthsBack === 0}
+            aria-label="Próximo mês"
+            className="rounded p-1 text-gray-500 hover:bg-gray-100 disabled:opacity-30 dark:hover:bg-gray-800"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1.5">
+          {WEEKDAYS.map((label, i) => (
+            <span key={i} className="pb-1 text-center text-[10px] font-medium text-gray-400">
               {label}
             </span>
           ))}
+          {cells.map((cell, i) =>
+            cell ? (
+              <div
+                key={cell.key}
+                title={cell.isFuture ? '' : `${cell.key}: ${cell.count} atividade${cell.count === 1 ? '' : 's'}`}
+                className={cellClass(cell)}
+              >
+                {cell.count > 0 && <Flame className="h-3.5 w-3.5 fill-orange-400 text-orange-500" aria-label="Dia de estudo" />}
+                <span className={cell.count > 0 ? 'text-[10px] leading-none' : ''}>{cell.day}</span>
+              </div>
+            ) : (
+              <span key={`blank-${i}`} />
+            ),
+          )}
         </div>
-        <div className="flex gap-[3px] overflow-x-auto">
-          {columns.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
-              {week.map((cell) => (
-                <div
-                  key={cell.key}
-                  title={cell.isFuture ? '' : `${cell.key}: ${cell.count} atividade${cell.count === 1 ? '' : 's'}`}
-                  className={`h-[11px] w-[11px] rounded-[2px] ${levelClass(cell.count, cell.isFuture)}`}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1 text-[10px] text-gray-400">
-        <span>menos</span>
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-gray-100 dark:bg-gray-800" />
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-primary-200 dark:bg-primary-900" />
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-primary-400 dark:bg-primary-700" />
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-primary-500" />
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-primary-600 dark:bg-primary-400" />
-        <span>mais</span>
+        <p className="mt-3 flex items-center justify-end gap-1.5 text-[10px] text-gray-400">
+          <Flame className="h-3 w-3 fill-orange-400 text-orange-500" /> dia em que você estudou
+        </p>
       </div>
     </div>
   );
