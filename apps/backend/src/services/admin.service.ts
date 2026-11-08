@@ -70,7 +70,9 @@ export class AdminService {
     const entMap = new Map(
       entitlements.map((e) => [
         e.email,
-        e.status === 'ACTIVE' && (!e.expiresAt || e.expiresAt > now),
+        e.status === 'ACTIVE' && (!e.expiresAt || e.expiresAt > now)
+          ? { provider: e.provider, expiresAt: e.expiresAt && e.expiresAt.getFullYear() < 2099 ? e.expiresAt : null }
+          : null,
       ]),
     );
 
@@ -80,7 +82,8 @@ export class AdminService {
       email: u.email,
       role: u.role,
       createdAt: u.createdAt,
-      activeSubscriber: entMap.get(u.email.toLowerCase()) ?? false,
+      activeSubscriber: !!entMap.get(u.email.toLowerCase()),
+      access: entMap.get(u.email.toLowerCase()) ?? null,
       streak: u.streak?.current ?? 0,
       questionsAnswered: u._count.attempts,
       essays: u._count.essays,
