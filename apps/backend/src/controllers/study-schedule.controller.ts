@@ -63,6 +63,7 @@ export class StudyScheduleController {
         availability,
         forceRefresh: req.body.forceRefresh === 'true' || req.body.forceRefresh === true,
         saveToDb: req.body.saveToDb === 'true' || req.body.saveToDb === true,
+        contestId: typeof req.body.contestId === 'string' && req.body.contestId ? req.body.contestId : undefined,
       };
 
       const result = await this.service.generateSchedule(userId, dto, file?.path);

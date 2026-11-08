@@ -7,6 +7,8 @@ import {
   type PendingErrorDTO,
   type RemediationCardDTO,
 } from '@/features/error-notebook/services/error-notebook.service';
+import { ErrorFilterBar } from '@/features/error-notebook/components/ErrorFilterBar';
+import { NO_FILTERS, filterErrors, type ErrorFilters } from '@/features/error-notebook/utils/filter-errors';
 import { FlashcardViewer, type ViewerCard } from '@/features/flashcards/components/FlashcardViewer';
 
 export function ErrorNotebookPage() {
@@ -14,6 +16,7 @@ export function ErrorNotebookPage() {
   const [errorQuestion, setErrorQuestion] = useState('');
   const [errorExplanation, setErrorExplanation] = useState('');
   const [generatedCards, setGeneratedCards] = useState<RemediationCardDTO[] | null>(null);
+  const [filters, setFilters] = useState<ErrorFilters>(NO_FILTERS);
 
   const { data: pendingErrors = [], isLoading, refetch } = useQuery({
     queryKey: ['pending-errors'],
@@ -21,6 +24,8 @@ export function ErrorNotebookPage() {
     staleTime: 0,
     refetchOnMount: 'always',
   });
+
+  const visibleErrors = filterErrors(pendingErrors, filters);
 
   const markLearned = useMutation({
     mutationFn: (targetId: string) => errorNotebookService.markAsLearned(targetId),
@@ -146,7 +151,7 @@ export function ErrorNotebookPage() {
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
               <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
-                Erros e Dúvidas Pendentes ({pendingErrors.length})
+                Erros e Dúvidas Pendentes ({visibleErrors.length === pendingErrors.length ? pendingErrors.length : `${visibleErrors.length} de ${pendingErrors.length}`})
               </h3>
               <button
                 type="button"
@@ -162,8 +167,16 @@ export function ErrorNotebookPage() {
             </span>
           </div>
 
+          <ErrorFilterBar errors={pendingErrors} filters={filters} onChange={setFilters} />
+
+          {visibleErrors.length === 0 && (
+            <p className="rounded-xl border border-dashed border-amber-300 p-6 text-center text-sm text-gray-500 dark:border-amber-900/60 dark:text-gray-400">
+              Nenhum erro com esses filtros.
+            </p>
+          )}
+
           <div className="grid gap-3 max-h-[380px] overflow-y-auto pr-1">
-            {pendingErrors.map((err) => {
+            {visibleErrors.map((err) => {
               const isDoubt = err.userAnswer?.toLowerCase().includes('dúvida');
               const isFlashcard = err.originType === 'FLASHCARD';
 

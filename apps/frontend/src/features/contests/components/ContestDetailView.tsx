@@ -1,3 +1,4 @@
+import { studyScheduleService } from '@/features/study-schedule/services/study-schedule.service';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,6 +28,9 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
     queryKey: ['contest', contestId],
     queryFn: () => contestService.getById(contestId),
   });
+
+  const { data: schedules = [] } = useQuery({ queryKey: ['study-schedules'], queryFn: studyScheduleService.listSchedules });
+  const linkedSchedules = schedules.filter((s) => s.contestId === contestId);
 
   const deleteMutation = useMutation({
     mutationFn: () => contestService.delete(contestId),
@@ -149,6 +153,17 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
         >
           <CalendarDays className="h-4 w-4" />
           Faça o seu cronograma para este edital
+        </button>
+      )}
+
+      {linkedSchedules.length > 0 && (
+        <button
+          type="button"
+          onClick={() => navigate(`/cronograma?edital=${contest.id}`)}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary-300 px-5 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50 dark:border-primary-800 dark:text-primary-300 dark:hover:bg-primary-950"
+        >
+          <CalendarDays className="h-4 w-4" />
+          Ver cronogramas deste edital ({linkedSchedules.length})
         </button>
       )}
 

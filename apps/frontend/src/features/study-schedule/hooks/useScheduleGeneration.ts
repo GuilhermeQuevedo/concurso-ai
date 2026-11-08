@@ -8,10 +8,10 @@ import type { StudySchedule } from '../types';
 import { setCreatingNew } from '../utils/schedule-draft';
 import type { WizardSubmitPayload } from '../wizard/useScheduleWizard';
 
-// Mantém o nome da prova de referência no cronograma, para que ele seja salvo junto.
-function withContestName(result: StudySchedule, contestName: string | null): StudySchedule {
-  if (!contestName) return result;
-  return { ...result, schedule: { ...result.schedule, title: contestName } };
+// Mantém o edital de referência (nome e vínculo) no cronograma, para que sejam salvos junto.
+function withContest(result: StudySchedule, payload: WizardSubmitPayload): StudySchedule {
+  if (!payload.contestName) return result;
+  return { ...result, contestId: payload.contestId, schedule: { ...result.schedule, title: payload.contestName } };
 }
 
 export function useScheduleGeneration(setSchedule: Dispatch<SetStateAction<StudySchedule | null>>) {
@@ -28,7 +28,7 @@ export function useScheduleGeneration(setSchedule: Dispatch<SetStateAction<Study
         forceRefresh: true,
         saveToDb: false,
       });
-      setSchedule(withContestName(result, payload.contestName));
+      setSchedule(withContest(result, payload));
       setCreatingNew(false);
       toast.success('Cronograma gerado! Clique em Salvar para mantê-lo.');
       return true;

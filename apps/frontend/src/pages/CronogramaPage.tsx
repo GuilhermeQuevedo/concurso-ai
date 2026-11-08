@@ -17,10 +17,12 @@ export function CronogramaPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   // Atalho "Faça o seu cronograma para esta prova": abre o assistente na hora, ignorando o cronograma aberto.
   const startFromContest = Boolean(searchParams.get('prova'));
+  // Atalho "Ver cronogramas" de Meus Editais: abre a lista já filtrada pelo edital.
+  const editalFilter = searchParams.get('edital') ?? undefined;
 
   const studies = useStudySchedules(startFromContest);
   const { schedule, savedSchedules, loading } = studies;
-  const [showSaved, setShowSaved] = useState(false);
+  const [showSaved, setShowSaved] = useState(Boolean(editalFilter));
 
   const handleGenerate = async (payload: WizardSubmitPayload) => {
     const generated = await studies.generate(payload);
@@ -104,10 +106,14 @@ export function CronogramaPage() {
         {showSaved && (
           <SavedSchedulesModal
             schedules={savedSchedules}
+            initialContestId={editalFilter}
             onSelect={studies.select}
             onRename={studies.rename}
             onDelete={(id) => void studies.remove(id)}
-            onClose={() => setShowSaved(false)}
+            onClose={() => {
+              setShowSaved(false);
+              if (editalFilter) setSearchParams({}, { replace: true });
+            }}
           />
         )}
       </div>
