@@ -11,6 +11,7 @@ import {
   updateSyllabusItemSchema,
   setImportanceSchema,
   completeReviewSchema,
+  deleteContestSchema,
 } from '../validators/contest.validators.js';
 import { createAIProvider } from '../providers/ai.factory.js';
 
@@ -34,7 +35,7 @@ router.post(
 router.get('/:id', authMiddleware, controller.getById);
 router.patch('/:id', authMiddleware, validateRequest(updateContestSchema), controller.update);
 router.patch('/:id/importance', authMiddleware, validateRequest(setImportanceSchema), controller.setImportance);
-router.delete('/:id', authMiddleware, controller.delete);
+router.delete('/:id', authMiddleware, validateRequest(deleteContestSchema), controller.delete);
 router.patch(
   '/syllabus/:itemId',
   authMiddleware,

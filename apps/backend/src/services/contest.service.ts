@@ -14,6 +14,11 @@ interface UploadedFile {
   path: string;
 }
 
+export interface DeleteContestOptions {
+  deleteEdital: boolean;
+  documentIds: string[];
+}
+
 export class ContestService {
   constructor(private readonly aiProvider: IAIProvider) {}
 
@@ -218,9 +223,24 @@ export class ContestService {
     });
   }
 
-  async delete(userId: string, contestId: string) {
-    await this.getById(userId, contestId);
-    await prisma.contest.delete({ where: { id: contestId } });
+  // Apaga a prova e, se o usuário escolheu, o documento do edital e outros documentos dele (tudo ou nada).
+  async delete(userId: string, contestId: string, options: DeleteContestOptions = { deleteEdital: false, documentIds: [] }) {
+    const contest = await prisma.contest.findFirst({
+      where: { id: contestId, userId },
+      select: { editalDocumentId: true },
+    });
+    if (!contest) {
+      throw new AppError(404, 'CONTEST_NOT_FOUND', 'Concurso não encontrado');
+    }
+
+    const documentIds = new Set(options.documentIds);
+    if (options.deleteEdital && contest.editalDocumentId) documentIds.add(contest.editalDocumentId);
+
+    const [, removed] = await prisma.$transaction([
+      prisma.contest.delete({ where: { id: contestId } }),
+      prisma.document.deleteMany({ where: { id: { in: [...documentIds] }, userId } }),
+    ]);
+    return { deletedDocuments: removed.count };
   }
 
   async updateSyllabusItem(userId: string, itemId: string, studied: boolean) {
