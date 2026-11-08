@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { NICKNAME_MAX, NICKNAME_MIN, NICKNAME_PATTERN } from '../utils/nickname.js';
+
 export const registerSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),
@@ -19,6 +21,13 @@ export const refreshSchema = z.object({
 export const updateProfileSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   dailyGoal: z.coerce.number().int().min(5).max(500).optional(),
+  nickname: z
+    .string()
+    .trim()
+    .min(NICKNAME_MIN, `O nickname precisa ter pelo menos ${NICKNAME_MIN} caracteres.`)
+    .max(NICKNAME_MAX, `O nickname pode ter no máximo ${NICKNAME_MAX} caracteres.`)
+    .regex(NICKNAME_PATTERN, 'Use apenas letras, números e _, começando por uma letra.')
+    .optional(),
 });
 
 export const changePasswordSchema = z.object({

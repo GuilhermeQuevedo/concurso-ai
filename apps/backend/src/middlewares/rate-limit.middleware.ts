@@ -137,3 +137,16 @@ export const heavyRateLimiter = rateLimit({
     return `heavy_${req.ip || 'unknown'}`;
   },
 });
+
+/**
+ * Convites por nickname: poucos por hora por usuário, para impedir varredura de nicknames.
+ */
+export const inviteRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: env.NODE_ENV === 'development' ? 200 : 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRateLimitStore('invite'),
+  handler: standard429Handler,
+  keyGenerator: (req: Request) => `invite_${req.userId ?? req.ip ?? 'unknown'}`,
+});
