@@ -279,13 +279,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </div>
             );
           })}
+
+          <SidebarReminders />
         </nav>
 
         <div className="shrink-0 px-2.5 pb-2">
           <AccountMenu items={bottomItems} onNavigate={() => setSidebarOpen(false)} onOpenBilling={() => setBillingModalOpen(true)} />
         </div>
 
-        <SidebarReminders />
 
         {/* Rodapé da Barra Lateral com Perfil */}
         <div className="shrink-0 border-t border-white/8 bg-black/15 p-3 overflow-hidden">
