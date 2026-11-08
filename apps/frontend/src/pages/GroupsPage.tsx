@@ -438,6 +438,9 @@ function FeedView({ feed }: { feed: FeedEntry[] }) {
     FLASHCARD_REVIEW: 'Flashcard',
     STREAK_DAY: 'Streak',
     ESSAY_SUBMITTED: 'Redação',
+    GAME: 'Jogo',
+    ROOM_FINISHED: 'Sala de questões',
+    DOUBT_CLEARED: 'Dúvida esclarecida',
   };
 
   const typeColors: Record<string, string> = {
@@ -446,6 +449,9 @@ function FeedView({ feed }: { feed: FeedEntry[] }) {
     FLASHCARD_REVIEW: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
     STREAK_DAY: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
     ESSAY_SUBMITTED: 'bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300',
+    GAME: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
+    ROOM_FINISHED: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300',
+    DOUBT_CLEARED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
   };
 
   if (feed.length === 0) {
@@ -473,7 +479,7 @@ function FeedView({ feed }: { feed: FeedEntry[] }) {
             </p>
             <div className="mt-0.5 flex items-center gap-2">
               <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${typeColors[entry.type] ?? 'bg-gray-100 text-gray-700'}`}>
-                {typeLabels[entry.type] ?? entry.type}
+                {typeLabels[entry.type] ?? 'Atividade'}
               </span>
               <span className="text-xs font-medium text-primary-600">+{entry.points} pts</span>
               <span className="flex items-center gap-0.5 text-xs text-gray-400">
