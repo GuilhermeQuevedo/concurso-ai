@@ -5,6 +5,7 @@ import {
   Plus,
   LogIn,
   Copy,
+  Share2,
   Crown,
   Medal,
   Loader2,
@@ -21,6 +22,7 @@ import {
   type RankingEntry,
   type FeedEntry,
 } from '@/features/groups/services/group.service';
+import { SharedItems } from '@/features/groups/components/SharedItems';
 import { InviteMembers } from '@/features/groups/components/InviteMembers';
 
 type View = 'list' | 'create' | 'join' | 'detail';
@@ -230,7 +232,7 @@ function JoinGroup({ onBack }: { onBack: () => void }) {
 function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'ranking' | 'feed'>('ranking');
+  const [tab, setTab] = useState<'ranking' | 'feed' | 'shared'>('ranking');
   const [copied, setCopied] = useState(false);
 
   const { data: group } = useQuery({
@@ -327,13 +329,22 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
           <Flame className="mr-1.5 inline h-4 w-4" />
           Atividades
         </button>
+        <button
+          onClick={() => setTab('shared')}
+          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            tab === 'shared'
+              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+          }`}
+        >
+          <Share2 className="mr-1.5 inline h-4 w-4" />
+          Compartilhados
+        </button>
       </div>
 
-      {tab === 'ranking' ? (
-        <RankingView ranking={ranking} currentUserId={user?.id ?? ''} />
-      ) : (
-        <FeedView feed={feed} />
-      )}
+      {tab === 'ranking' && <RankingView ranking={ranking} currentUserId={user?.id ?? ''} />}
+      {tab === 'feed' && <FeedView feed={feed} />}
+      {tab === 'shared' && <SharedItems groupId={group.id} />}
     </div>
   );
 }

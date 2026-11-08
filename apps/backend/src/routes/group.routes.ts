@@ -7,12 +7,18 @@ import { validateRequest } from '../middlewares/validate.js';
 import { GroupInviteService } from '../services/group-invite.service.js';
 import { InviteController } from '../controllers/invite.controller.js';
 import { inviteByNicknameSchema } from '../validators/invite.validators.js';
+import { GroupShareService } from '../services/group-share.service.js';
+import { GroupShareContentService } from '../services/group-share-content.service.js';
+import { GroupShareController } from '../controllers/group-share.controller.js';
+import { createShareSchema } from '../validators/group-share.validators.js';
 
 const router: RouterType = Router();
 
 const service = new GroupService();
 const controller = new GroupController(service);
 const inviteController = new InviteController(new GroupInviteService());
+const shareService = new GroupShareService();
+const shareController = new GroupShareController(shareService, new GroupShareContentService(shareService));
 
 router.post('/', authMiddleware, controller.create);
 router.post('/join', authMiddleware, controller.join);
@@ -21,6 +27,11 @@ router.get('/:id', authMiddleware, controller.getById);
 router.get('/:id/ranking', authMiddleware, controller.getRanking);
 router.get('/:id/feed', authMiddleware, controller.getFeed);
 router.post('/:id/invites', authMiddleware, inviteRateLimiter, validateRequest(inviteByNicknameSchema), inviteController.invite);
+router.get('/:id/shares', authMiddleware, shareController.list);
+router.post('/:id/shares', authMiddleware, validateRequest(createShareSchema), shareController.create);
+router.get('/:id/shares/:shareId', authMiddleware, shareController.detail);
+router.post('/:id/shares/:shareId/copy', authMiddleware, shareController.copy);
+router.delete('/:id/shares/:shareId', authMiddleware, shareController.remove);
 router.delete('/:id/leave', authMiddleware, controller.leave);
 
 export { router as groupRouter };

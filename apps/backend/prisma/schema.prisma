@@ -57,6 +57,7 @@ model User {
   receivedInvites       GroupInvite[]     @relation("InvitedUser")
   sentInvites           GroupInvite[]     @relation("InvitedBy")
   notifications         Notification[]
+  groupShares           GroupShare[]
 }
 
 model Session {
@@ -385,6 +386,12 @@ enum InviteStatus {
   DECLINED
 }
 
+enum ShareType {
+  DECK
+  SCHEDULE
+  CONTEST
+}
+
 enum GroupRole {
   ADMIN
   MEMBER
@@ -402,6 +409,7 @@ model StudyGroup {
   members    GroupMember[]
   activities GroupActivity[]
   invites    GroupInvite[]
+  shares     GroupShare[]
 }
 
 model GroupMember {
@@ -807,4 +815,20 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([userId, createdAt])
+}
+
+model GroupShare {
+  id         String    @id @default(cuid())
+  groupId    String
+  sharedById String
+  type       ShareType
+  refId      String
+  title      String    @db.VarChar(200)
+  createdAt  DateTime  @default(now())
+
+  group    StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sharedBy User       @relation(fields: [sharedById], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, type, refId])
+  @@index([groupId, createdAt])
 }
