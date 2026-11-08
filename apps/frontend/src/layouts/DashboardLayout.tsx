@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { AccountMenu } from './AccountMenu';
+import { SidebarReminders } from '@/features/reminders/components/SidebarReminders';
 import { PomodoroMini } from '@/features/pomodoro/PomodoroMini';
 import {
   ChevronDown,
@@ -27,7 +29,6 @@ import {
   SettingsIcon,
   HelpCircleIcon,
   BeakerIcon,
-  CreditCardIcon,
   ContactIcon,
   GamepadIcon,
 } from '@/components/icons/EngramaIcons';
@@ -278,25 +279,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </div>
             );
           })}
-
-          {/* Links de Suporte e Conta */}
-          <div className="mt-4 border-t border-white/8 pt-3">
-            <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/40 truncate">
-              Conta & Ajustes
-            </div>
-            {bottomItems.map((item) => renderItem(item))}
-            <button
-              onClick={() => {
-                setSidebarOpen(false);
-                setBillingModalOpen(true);
-              }}
-              className="group relative flex w-full max-w-full box-border items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-white/65 transition-all hover:bg-white/6 hover:text-white overflow-hidden"
-            >
-              <CreditCardIcon size={18} className="shrink-0 text-white/50 group-hover:text-white/80" />
-              <span className="min-w-0 flex-1 truncate text-left">Assinatura & Planos</span>
-            </button>
-          </div>
         </nav>
+
+        <div className="shrink-0 px-2.5 pb-2">
+          <AccountMenu items={bottomItems} onNavigate={() => setSidebarOpen(false)} onOpenBilling={() => setBillingModalOpen(true)} />
+        </div>
+
+        <SidebarReminders />
 
         {/* Rodapé da Barra Lateral com Perfil */}
         <div className="shrink-0 border-t border-white/8 bg-black/15 p-3 overflow-hidden">

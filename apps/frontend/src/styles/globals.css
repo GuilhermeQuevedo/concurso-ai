@@ -29,6 +29,10 @@
   --color-amber-600: #D98F22;
   --color-amber-700: #B4711A;
 
+  /* Tons intermediários usados no modo escuro (não existem no Tailwind por padrão) */
+  --color-gray-750: #2b3544;
+  --color-gray-850: #18202e;
+
   /* Tinta e Papel */
   --color-ink: #121A33;
   --color-paper: #F5F6F8;
