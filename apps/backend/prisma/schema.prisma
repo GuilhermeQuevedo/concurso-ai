@@ -52,6 +52,7 @@ model User {
   editalMaps            EditalMap[]
   studySchedules        StudySchedule[]
   reminders             Reminder[]
+  streakShieldUses      StreakShieldUse[]
 }
 
 model Session {
@@ -295,8 +296,20 @@ model Streak {
   current   Int      @default(0)
   longest   Int      @default(0)
   lastDate  DateTime @default(now())
+  shields   Int      @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StreakShieldUse {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String   @db.VarChar(10)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }
 
 model Essay {
