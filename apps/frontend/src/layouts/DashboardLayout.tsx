@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { PomodoroMini } from '@/features/pomodoro/PomodoroMini';
 import {
   ChevronDown,
   Menu,
@@ -361,6 +362,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         {/* Conteúdo da Tela */}
         <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+
+        <PomodoroMini />
 
         {/* Botão Flutuante de Ajuda */}
         {location.pathname !== '/help' && location.pathname !== '/study' && (
