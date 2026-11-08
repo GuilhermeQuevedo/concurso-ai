@@ -11,7 +11,7 @@ import { ShareDetailDialog } from './ShareDetailDialog';
 import { SharePickerDialog } from './SharePickerDialog';
 
 // Aba "Compartilhados": tudo que os membros publicaram para o grupo, em modo leitura.
-export function SharedItems({ groupId }: { groupId: string }) {
+export function SharedItems({ groupId, canModerate }: { groupId: string; canModerate: boolean }) {
   const queryClient = useQueryClient();
   const [picking, setPicking] = useState(false);
   const [openShare, setOpenShare] = useState<ShareDTO | null>(null);
@@ -60,7 +60,7 @@ export function SharedItems({ groupId }: { groupId: string }) {
       )}
 
       {picking && <SharePickerDialog groupId={groupId} onClose={() => setPicking(false)} />}
-      {openShare && <ShareDetailDialog groupId={groupId} share={openShare} onClose={() => setOpenShare(null)} />}
+      {openShare && <ShareDetailDialog groupId={groupId} share={openShare} canModerate={canModerate} onClose={() => setOpenShare(null)} />}
     </div>
   );
 }

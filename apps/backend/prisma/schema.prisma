@@ -58,6 +58,7 @@ model User {
   sentInvites           GroupInvite[]     @relation("InvitedBy")
   notifications         Notification[]
   groupShares           GroupShare[]
+  groupComments         GroupComment[]
 }
 
 model Session {
@@ -392,6 +393,18 @@ enum ShareType {
   CONTEST
 }
 
+enum CommentTarget {
+  QUESTION
+  FLASHCARD
+  DECK
+  GENERAL
+}
+
+enum CommentKind {
+  COMMENT
+  HELP
+}
+
 enum GroupRole {
   ADMIN
   MEMBER
@@ -410,6 +423,7 @@ model StudyGroup {
   activities GroupActivity[]
   invites    GroupInvite[]
   shares     GroupShare[]
+  comments   GroupComment[]
 }
 
 model GroupMember {
@@ -827,4 +841,28 @@ model GroupShare {
 
   @@unique([groupId, type, refId])
   @@index([groupId, createdAt])
+}
+
+model GroupComment {
+  id         String        @id @default(cuid())
+  groupId    String
+  userId     String
+  targetType CommentTarget @default(GENERAL)
+  targetId   String?       @db.VarChar(60)
+  context    String?       @db.Text
+  parentId   String?
+  body       String        @db.VarChar(500)
+  kind       CommentKind   @default(COMMENT)
+  resolved   Boolean       @default(false)
+  helpful    Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+
+  group   StudyGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  GroupComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies GroupComment[] @relation("CommentReplies")
+
+  @@index([groupId, parentId, createdAt])
+  @@index([groupId, targetType, targetId])
+  @@index([groupId, kind, resolved])
 }

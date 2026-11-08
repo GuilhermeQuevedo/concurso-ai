@@ -2,6 +2,7 @@ import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface GroupMemberDTO {
+  id: string;
   userId: string;
   name: string;
   avatar: string | null;

@@ -4,12 +4,13 @@ import { Copy, Loader2, X } from 'lucide-react';
 import { toast } from '@/components/ui/toast-store';
 import { getErrorMessage } from '@/utils/error-message';
 
+import { GroupHelp } from './GroupHelp';
 import { shareService, type ShareDTO, type ShareDetailDTO } from '../services/share.service';
 
 const COPIED_QUERY: Record<ShareDTO['type'], string> = { DECK: 'decks', CONTEST: 'contests', SCHEDULE: 'study-schedules' };
 
 // Visualização somente leitura do item compartilhado, com opção de copiar para o próprio perfil.
-export function ShareDetailDialog({ groupId, share, onClose }: { groupId: string; share: ShareDTO; onClose: () => void }) {
+export function ShareDetailDialog({ groupId, share, canModerate, onClose }: { groupId: string; share: ShareDTO; canModerate: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ['group-share', groupId, share.id],
@@ -60,6 +61,17 @@ export function ShareDetailDialog({ groupId, share, onClose }: { groupId: string
           )}
           {error && <p className="text-sm text-red-500">{getErrorMessage(error, 'Não foi possível abrir este item.')}</p>}
           {data && <DetailBody detail={data} />}
+          {share.type === 'DECK' && (
+            <section className="mt-6 border-t border-gray-100 pt-4 dark:border-gray-800">
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">Comentários e ajuda sobre este deck</h3>
+              <GroupHelp
+                groupId={groupId}
+                target={{ type: 'DECK', id: share.refId }}
+                canModerate={canModerate}
+                emptyText="Nenhum comentário sobre este deck ainda."
+              />
+            </section>
+          )}
         </div>
       </div>
     </div>

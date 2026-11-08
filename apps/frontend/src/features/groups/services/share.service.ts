@@ -6,6 +6,7 @@ export type ShareType = 'DECK' | 'SCHEDULE' | 'CONTEST';
 export interface ShareDTO {
   id: string;
   type: ShareType;
+  refId: string;
   title: string;
   summary: string;
   sharedBy: { id: string; name: string; nickname: string | null };
