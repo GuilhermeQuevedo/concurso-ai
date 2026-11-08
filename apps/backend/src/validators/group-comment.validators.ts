@@ -7,7 +7,7 @@ const targetType = z.enum(['QUESTION', 'FLASHCARD', 'DECK', 'GENERAL']);
 export const createCommentSchema = z.object({
   body: z.object({
     body: z.string().trim().min(1, 'Escreva uma mensagem.').max(MAX_BODY, `Use até ${MAX_BODY} caracteres.`),
-    kind: z.enum(['COMMENT', 'HELP']).default('COMMENT'),
+    kind: z.enum(['COMMENT', 'DOUBT']).default('COMMENT'),
     targetType: targetType.default('GENERAL'),
     targetId: z.string().min(1).max(60).optional(),
     context: z.string().trim().max(MAX_CONTEXT).optional(),

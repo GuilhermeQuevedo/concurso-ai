@@ -6,7 +6,7 @@ import {
   LogIn,
   Copy,
   Share2,
-  LifeBuoy,
+  MessageCircleQuestion,
   Crown,
   Medal,
   Loader2,
@@ -313,47 +313,47 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
       <div className="mb-4 flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
         <button
           onClick={() => setTab('ranking')}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+          className={`min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'ranking'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
           }`}
         >
-          <Trophy className="mr-1.5 inline h-4 w-4" />
+          <Trophy className="mr-1.5 hidden h-4 w-4 sm:inline" />
           Ranking
         </button>
         <button
           onClick={() => setTab('feed')}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+          className={`min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'feed'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
           }`}
         >
-          <Flame className="mr-1.5 inline h-4 w-4" />
+          <Flame className="mr-1.5 hidden h-4 w-4 sm:inline" />
           Atividades
         </button>
         <button
           onClick={() => setTab('shared')}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+          className={`min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'shared'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
           }`}
         >
-          <Share2 className="mr-1.5 inline h-4 w-4" />
+          <Share2 className="mr-1.5 hidden h-4 w-4 sm:inline" />
           Compartilhados
         </button>
         <button
           onClick={() => setTab('help')}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+          className={`min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'help'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
           }`}
         >
-          <LifeBuoy className="mr-1.5 inline h-4 w-4" />
-          Ajuda
+          <MessageCircleQuestion className="mr-1.5 hidden h-4 w-4 sm:inline" />
+          Dúvidas
         </button>
       </div>
 

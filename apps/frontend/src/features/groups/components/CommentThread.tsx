@@ -51,20 +51,20 @@ export function CommentThread({ groupId, thread, queryKey, canModerate }: Commen
   const helpful = useMutation({
     mutationFn: (id: string) => commentService.markHelpful(groupId, id),
     onSuccess: () => {
-      toast.success('Resposta marcada como útil.');
+      toast.success('Resposta marcada como esclarecedora.');
       refresh();
     },
     onError,
   });
 
-  const isHelp = thread.kind === 'HELP';
+  const isDoubt = thread.kind === 'DOUBT';
 
   return (
     <article className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
       <header className="mb-2 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
         <span className="font-semibold text-gray-800 dark:text-gray-200">{authorName(thread.author)}</span>
         <span>· {TARGET_LABEL[thread.targetType]}</span>
-        {isHelp && (
+        {isDoubt && (
           <span
             className={`flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
               thread.resolved
@@ -73,7 +73,7 @@ export function CommentThread({ groupId, thread, queryKey, canModerate }: Commen
             }`}
           >
             {thread.resolved ? <CheckCircle2 className="h-3 w-3" /> : <HelpCircle className="h-3 w-3" />}
-            {thread.resolved ? 'Resolvido' : 'Precisa de ajuda'}
+            {thread.resolved ? 'Dúvida resolvida' : 'Dúvida em aberto'}
           </span>
         )}
         <span className="ml-auto">{new Date(thread.createdAt).toLocaleDateString('pt-BR')}</span>
@@ -94,17 +94,17 @@ export function CommentThread({ groupId, thread, queryKey, canModerate }: Commen
                 <span className="font-semibold text-gray-800 dark:text-gray-200">{authorName(r.author)}</span>
                 {r.helpful && (
                   <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 font-medium text-green-700 dark:bg-green-950 dark:text-green-400">
-                    <ThumbsUp className="h-3 w-3" /> Resposta útil
+                    <ThumbsUp className="h-3 w-3" /> Esclareceu
                   </span>
                 )}
-                {thread.isMine && isHelp && !r.helpful && !r.isMine && (
+                {thread.isMine && isDoubt && !r.helpful && !r.isMine && (
                   <button
                     type="button"
                     onClick={() => helpful.mutate(r.id)}
                     disabled={helpful.isPending}
                     className="font-medium text-primary-600 hover:underline disabled:opacity-50"
                   >
-                    Marcar como útil
+                    Esclareceu minha dúvida
                   </button>
                 )}
                 {(r.isMine || canModerate) && (
@@ -123,9 +123,9 @@ export function CommentThread({ groupId, thread, queryKey, canModerate }: Commen
         <button type="button" onClick={() => setReplying((v) => !v)} className="flex items-center gap-1 font-medium text-primary-600 hover:underline">
           <MessageSquare className="h-3.5 w-3.5" /> Responder
         </button>
-        {isHelp && thread.isMine && (
+        {isDoubt && thread.isMine && (
           <button type="button" onClick={() => resolve.mutate(!thread.resolved)} className="font-medium text-gray-500 hover:underline dark:text-gray-400">
-            {thread.resolved ? 'Reabrir' : 'Marcar como resolvido'}
+            {thread.resolved ? 'Reabrir dúvida' : 'Marcar como resolvida'}
           </button>
         )}
         {(thread.isMine || canModerate) && (

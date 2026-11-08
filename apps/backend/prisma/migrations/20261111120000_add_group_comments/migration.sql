@@ -1,3 +1,6 @@
+-- AlterTable
+ALTER TABLE `GroupShare` MODIFY `type` ENUM('DECK', 'SCHEDULE', 'CONTEST', 'QUESTION') NOT NULL;
+
 -- CreateTable
 CREATE TABLE `GroupComment` (
     `id` VARCHAR(191) NOT NULL,
@@ -8,7 +11,7 @@ CREATE TABLE `GroupComment` (
     `context` TEXT NULL,
     `parentId` VARCHAR(191) NULL,
     `body` VARCHAR(500) NOT NULL,
-    `kind` ENUM('COMMENT', 'HELP') NOT NULL DEFAULT 'COMMENT',
+    `kind` ENUM('COMMENT', 'DOUBT') NOT NULL DEFAULT 'COMMENT',
     `resolved` BOOLEAN NOT NULL DEFAULT false,
     `helpful` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

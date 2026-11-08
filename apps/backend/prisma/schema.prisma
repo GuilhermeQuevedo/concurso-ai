@@ -391,6 +391,7 @@ enum ShareType {
   DECK
   SCHEDULE
   CONTEST
+  QUESTION
 }
 
 enum CommentTarget {
@@ -402,7 +403,7 @@ enum CommentTarget {
 
 enum CommentKind {
   COMMENT
-  HELP
+  DOUBT
 }
 
 enum GroupRole {
