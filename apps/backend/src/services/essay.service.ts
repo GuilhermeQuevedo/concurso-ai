@@ -1,3 +1,5 @@
+import { xpService } from './xp.service.js';
+import { essayXp } from '@concurso-ai/shared';
 import type { Prisma } from '@prisma/client';
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { extractPdfText } from '../utils/pdf.js';
@@ -7,7 +9,6 @@ import { AppError } from '../middlewares/error-handler.js';
 import { env } from '../config/env.js';
 import { GroupService } from './group.service.js';
 
-const ESSAY_SUBMISSION_POINTS = 1;
 
 function startOfWeek(): Date {
   const now = new Date();
@@ -81,15 +82,16 @@ export class EssayService {
         },
       });
 
-      const totalPoints = ESSAY_SUBMISSION_POINTS + Math.round((score / maxScore) * 10);
+      // Redação pontua uma vez por semana; as demais continuam corrigidas, só sem XP.
+      const xp = await xpService.award(userId, 'ESSAY', essay.id, essayXp(score, maxScore));
       await this.groupService.recordActivity(
         userId,
         'ESSAY_SUBMITTED',
         `Enviou ${isCaseStudy ? 'estudo de caso' : 'redação'} "${dto.title}" — Nota: ${score}/${maxScore}`,
-        totalPoints,
+        xp.granted,
       );
 
-      return { ...graded, competitionPoints: totalPoints };
+      return { ...graded, competitionPoints: xp.granted, xp };
     } catch (error) {
       await prisma.essay.update({
         where: { id: essay.id },

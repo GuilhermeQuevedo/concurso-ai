@@ -15,6 +15,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { studyService, type StudySessionDTO } from '@/features/study/services/study.service';
 import { contentService } from '@/features/content/services/content.service';
 import { dashboardService } from '@/features/dashboard/services/dashboard.service';
+import { XpCard } from '@/features/xp/components/XpCard';
 import { ConstanciaHeatmap } from '@/features/dashboard/components/ConstanciaHeatmap';
 import { MetasCard } from '@/features/dashboard/components/MetasCard';
 import { DueReviewsPanel } from '@/features/dashboard/components/DueReviewsPanel';
@@ -153,6 +154,7 @@ export function DashboardPage() {
               </div>
             </div>
             <div className="flex flex-col gap-4">
+              <XpCard />
               <div data-tour="constancia">
                 <ConstanciaHeatmap heatmap={summary.heatmap} streak={summary.streak} />
               </div>

@@ -1,6 +1,8 @@
 import axios from 'axios';
 import type { ApiResponse } from '@concurso-ai/types';
 
+import { announceXp } from '@/features/xp/announce-xp';
+
 export const api = axios.create({
   baseURL: '/api',
 });
@@ -39,7 +41,10 @@ function isPublicRoute(pathname: string): boolean {
 }
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    announceXp(response.data?.data);
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 

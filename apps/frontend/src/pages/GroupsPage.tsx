@@ -24,6 +24,7 @@ import {
   type RankingEntry,
   type FeedEntry,
 } from '@/features/groups/services/group.service';
+import { TierBadge } from '@/features/xp/components/TierBadge';
 import { RoomsTab } from '@/features/groups/components/RoomsTab';
 import { GroupHelp } from '@/features/groups/components/GroupHelp';
 import { SharedItems } from '@/features/groups/components/SharedItems';
@@ -414,15 +415,16 @@ function RankingView({ ranking, currentUserId }: { ranking: RankingEntry[]; curr
             </div>
             <div className="flex-1">
               <p className={`text-sm font-semibold ${isMe ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white'}`}>
-                {entry.name} {isMe && '(você)'}
+                {entry.name} {isMe && '(você)'}{' '}
+                <TierBadge level={entry.level} tier={entry.tier} />
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Total: {entry.totalPoints} pts
+                Total: {entry.totalPoints} XP
               </p>
             </div>
             <div className="text-right">
               <p className="text-lg font-bold text-gray-900 dark:text-white">{entry.weekPoints}</p>
-              <p className="text-xs text-gray-500">pts/semana</p>
+              <p className="text-xs text-gray-500">XP/semana</p>
             </div>
           </div>
         );
@@ -481,7 +483,7 @@ function FeedView({ feed }: { feed: FeedEntry[] }) {
               <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${typeColors[entry.type] ?? 'bg-gray-100 text-gray-700'}`}>
                 {typeLabels[entry.type] ?? 'Atividade'}
               </span>
-              <span className="text-xs font-medium text-primary-600">+{entry.points} pts</span>
+              <span className="text-xs font-medium text-primary-600">+{entry.points} XP</span>
               <span className="flex items-center gap-0.5 text-xs text-gray-400">
                 <Clock className="h-3 w-3" />
                 {timeAgo(entry.createdAt)}

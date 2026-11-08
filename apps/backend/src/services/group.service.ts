@@ -1,3 +1,5 @@
+import { levelFromXp } from '@concurso-ai/shared';
+import { startOfWeekSP } from '../utils/time-sp.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import type { CreateGroupDTO } from '../validators/group.validators.js';
@@ -137,45 +139,31 @@ export class GroupService {
 
     const members = await prisma.groupMember.findMany({
       where: { groupId },
-      include: { user: { select: { id: true, name: true, avatar: true } } },
+      include: { user: { select: { id: true, name: true, avatar: true, totalXp: true } } },
     });
 
-    const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay());
-    weekStart.setHours(0, 0, 0, 0);
-
-    const activities = await prisma.groupActivity.groupBy({
+    // Ranking do grupo = XP da semana (segunda a domingo, fuso de São Paulo); o nível vem do XP total.
+    const weekly = await prisma.xpEvent.groupBy({
       by: ['userId'],
-      where: { groupId, createdAt: { gte: weekStart } },
-      _sum: { points: true },
+      where: { userId: { in: members.map((m) => m.user.id) }, createdAt: { gte: startOfWeekSP() } },
+      _sum: { xp: true },
     });
-
-    const pointsMap: Record<string, number> = {};
-    for (const a of activities) {
-      pointsMap[a.userId] = a._sum.points ?? 0;
-    }
-
-    const allTimeActivities = await prisma.groupActivity.groupBy({
-      by: ['userId'],
-      where: { groupId },
-      _sum: { points: true },
-    });
-
-    const allTimeMap: Record<string, number> = {};
-    for (const a of allTimeActivities) {
-      allTimeMap[a.userId] = a._sum.points ?? 0;
-    }
+    const weekMap = new Map(weekly.map((w) => [w.userId, w._sum.xp ?? 0]));
 
     return members
-      .map((m) => ({
-        userId: m.user.id,
-        name: m.user.name,
-        avatar: m.user.avatar,
-        weekPoints: pointsMap[m.user.id] ?? 0,
-        totalPoints: allTimeMap[m.user.id] ?? 0,
-      }))
-      .sort((a, b) => b.weekPoints - a.weekPoints);
+      .map((m) => {
+        const level = levelFromXp(m.user.totalXp);
+        return {
+          userId: m.user.id,
+          name: m.user.name,
+          avatar: m.user.avatar,
+          weekPoints: weekMap.get(m.user.id) ?? 0,
+          totalPoints: m.user.totalXp,
+          level: level.level,
+          tier: level.tier.name,
+        };
+      })
+      .sort((x, y) => y.weekPoints - x.weekPoints);
   }
 
   async getFeed(userId: string, groupId: string) {
