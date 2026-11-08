@@ -117,8 +117,11 @@ export const contestService = {
     return unwrapData(response);
   },
 
-  async delete(id: string): Promise<void> {
-    await api.delete(`/contests/${id}`);
+  async delete(id: string, options: { deleteEdital: boolean; documentIds: string[] } = { deleteEdital: false, documentIds: [] }): Promise<{ deletedDocuments: number }> {
+    const response = await api.delete<ApiResponse<{ deletedDocuments: number }>>(`/contests/${id}`, {
+      params: { deleteEdital: String(options.deleteEdital), documentIds: options.documentIds.join(',') || undefined },
+    });
+    return unwrapData(response);
   },
 
   async setTopicStudied(itemId: string, studied: boolean): Promise<SyllabusItem> {

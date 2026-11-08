@@ -14,8 +14,11 @@ import {
   Target,
   Trash2,
 } from 'lucide-react';
+import { toast } from '@/components/ui/toast-store';
+import { getErrorMessage } from '@/utils/error-message';
 import { contestService, type SyllabusItem, type DisciplineStat } from '../services/contest.service';
 import { daysUntil, formatExamDate } from './ContestCard';
+import { DeleteContestDialog, type DeleteContestOptions } from './DeleteContestDialog';
 import { TopicContent } from './TopicContent';
 import { TopicReviews } from './TopicReviews';
 import { PriorityBadge, ImportanceSelect } from './DisciplineHeaderMeta';
@@ -31,13 +34,18 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
 
   const { data: schedules = [] } = useQuery({ queryKey: ['study-schedules'], queryFn: studyScheduleService.listSchedules });
   const linkedSchedules = schedules.filter((s) => s.contestId === contestId);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const deleteMutation = useMutation({
-    mutationFn: () => contestService.delete(contestId),
-    onSuccess: () => {
+    mutationFn: (options: DeleteContestOptions) => contestService.delete(contestId, options),
+    onSuccess: ({ deletedDocuments }) => {
       queryClient.invalidateQueries({ queryKey: ['contests'] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['due-reviews'] });
+      toast.success(deletedDocuments > 0 ? `Prova apagada, junto com ${deletedDocuments} documento(s).` : 'Prova apagada.');
       onBack();
     },
+    onError: (error) => toast.error(getErrorMessage(error, 'Não foi possível apagar a prova. Tente novamente.')),
   });
 
   const invalidate = () => {
@@ -99,7 +107,7 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
           Voltar
         </button>
         <button
-          onClick={() => deleteMutation.mutate()}
+          onClick={() => setConfirmingDelete(true)}
           className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -200,6 +208,15 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
             />
           ))}
         </div>
+      )}
+      {confirmingDelete && (
+        <DeleteContestDialog
+          contestName={contest.name}
+          editalDocumentId={contest.editalDocumentId}
+          isDeleting={deleteMutation.isPending}
+          onCancel={() => setConfirmingDelete(false)}
+          onConfirm={(options) => deleteMutation.mutate(options)}
+        />
       )}
     </div>
   );
