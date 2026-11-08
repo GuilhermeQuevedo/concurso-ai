@@ -59,6 +59,9 @@ model User {
   notifications         Notification[]
   groupShares           GroupShare[]
   groupComments         GroupComment[]
+  roomsHosted           GroupRoom[]       @relation("RoomHost")
+  roomPlayers           GroupRoomPlayer[]
+  roomAnswers           GroupRoomAnswer[]
 }
 
 model Session {
@@ -406,6 +409,17 @@ enum CommentKind {
   DOUBT
 }
 
+enum RoomMode {
+  LIVE
+  OWN_PACE
+}
+
+enum RoomStatus {
+  LOBBY
+  RUNNING
+  FINISHED
+}
+
 enum GroupRole {
   ADMIN
   MEMBER
@@ -425,6 +439,7 @@ model StudyGroup {
   invites    GroupInvite[]
   shares     GroupShare[]
   comments   GroupComment[]
+  rooms      GroupRoom[]
 }
 
 model GroupMember {
@@ -870,4 +885,57 @@ model GroupComment {
   @@index([groupId, parentId, createdAt])
   @@index([groupId, targetType, targetId])
   @@index([groupId, kind, resolved])
+}
+
+model GroupRoom {
+  id                 String     @id @default(cuid())
+  groupId            String
+  hostId             String
+  title              String     @db.VarChar(80)
+  mode               RoomMode
+  status             RoomStatus @default(LOBBY)
+  questionIds        Json
+  secondsPerQuestion Int        @default(30)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  rewarded           Boolean    @default(false)
+  createdAt          DateTime   @default(now())
+
+  group   StudyGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  host    User              @relation("RoomHost", fields: [hostId], references: [id], onDelete: Cascade)
+  players GroupRoomPlayer[]
+  answers GroupRoomAnswer[]
+
+  @@index([groupId, createdAt])
+}
+
+model GroupRoomPlayer {
+  id       String   @id @default(cuid())
+  roomId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  room GroupRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([userId])
+}
+
+model GroupRoomAnswer {
+  id         String   @id @default(cuid())
+  roomId     String
+  userId     String
+  questionId String   @db.VarChar(60)
+  choice     String   @db.VarChar(10)
+  isCorrect  Boolean
+  points     Int      @default(0)
+  ms         Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  room GroupRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId, questionId])
+  @@index([roomId])
 }
