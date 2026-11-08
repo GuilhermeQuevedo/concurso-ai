@@ -8,6 +8,7 @@ export interface NotificationDTO {
   read: boolean;
   createdAt: string;
   invite?: { id: string; status: 'PENDING' | 'ACCEPTED' | 'DECLINED' };
+  friendRequest?: { id: string; status: 'PENDING' | 'ACCEPTED' | 'GONE' };
 }
 
 export interface NotificationList {
