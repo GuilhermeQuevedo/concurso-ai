@@ -62,9 +62,9 @@ Todos usam o sino que já existe (`Notification`), sem e-mail nem push.
 ## 8. Fora de escopo (por enquanto)
 Bate-papo entre amigos, desafios 1×1, ranking só de amigos, e-mail ou push, grupos de ofensiva com mais de duas pessoas.
 
-## 9. Decisões para você
-1. **Escudo cobre a falta do amigo?** Proposta: sim, com o escudo de quem faltou. Alternativa: dupla não aceita escudo (mais rígido).
-2. **Horários dos avisos:** 18h para avisar o parceiro e 20h para avisar você. Está bom?
-3. **Limite de 3 ofensivas em dupla por pessoa.** Está bom?
-4. **Privacidade padrão:** estatísticas visíveis para amigos já ligado, e 🔥 no ranking só para quem ativar. Está bom?
-5. **Código pessoal de 8 caracteres.** Está bom (o de grupo tem 6)?
+## 9. Decisões
+1. **Escudo:** cobre a falta de quem faltou (consome 1 escudo dessa pessoa), como proposto. *(sem objeção do produto)*
+2. **Horários dos avisos:** 18h para avisar o parceiro e 20h para avisar a própria pessoa. *(aprovado)*
+3. **Limite de 3 ofensivas em dupla por pessoa.** *(aprovado)*
+4. **Privacidade padrão:** estatísticas visíveis para amigos ligado; 🔥 no ranking só para quem ativar. *(aprovado)*
+5. **Código pessoal de 8 caracteres.** *(aprovado)*
