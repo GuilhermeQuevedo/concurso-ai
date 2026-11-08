@@ -38,6 +38,7 @@ export function DocumentUploadCard({ subjects }: DocumentUploadCardProps) {
       documentService.upload(file, { subjectId: subjectId || undefined, kind: kind || undefined, name }),
     onSuccess: (uploaded) => {
       setLastUpload(uploaded);
+      toast.success('Documento enviado.');
       setName('');
       setNameMissing(false);
       queryClient.invalidateQueries({ queryKey: ['documents'] });

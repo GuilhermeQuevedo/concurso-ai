@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
 
 import { toast } from '@/components/ui/toast-store';
 import { rankingService } from '@/features/rankings/services/ranking.service';
@@ -7,13 +7,20 @@ import { getErrorMessage } from '@/utils/error-message';
 
 import { documentService, type DocumentDTO, type DocumentKind, type ProcessResult } from '../services/document.service';
 
+const PROCESS_KEY = ['documents', 'process'];
+
+function describeResult(result: ProcessResult): string {
+  if (result.pipeline === 'objetivo') return `Edital "${result.title}" criado com o conteúdo programático.`;
+  if (result.pipeline === 'questoes') return `${result.imported} questões importadas da lista.`;
+  return 'Documento processado.';
+}
+
 // Ações sobre os documentos da lista: apagar, trocar o tipo, sugerir ranking e processar. Erros viram toast.
 export function useDocumentActions() {
   const queryClient = useQueryClient();
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['documents'] });
 
   const [suggestedIds, setSuggestedIds] = useState<Set<string>>(new Set());
-  const [processingId, setProcessingId] = useState<string | null>(null);
   const [processResult, setProcessResult] = useState<ProcessResult | null>(null);
 
   const remove = useMutation({
@@ -41,19 +48,25 @@ export function useDocumentActions() {
   });
 
   const process = useMutation({
+    mutationKey: PROCESS_KEY,
     mutationFn: (doc: DocumentDTO) => documentService.process(doc.id),
-    onMutate: (doc) => {
-      setProcessingId(doc.id);
-      setProcessResult(null);
-    },
+    onMutate: () => setProcessResult(null),
+    // O toast aparece mesmo se a pessoa já saiu da tela: a IA pode demorar e a navegação não fica presa.
     onSuccess: (result) => {
       setProcessResult(result);
       refresh();
+      queryClient.invalidateQueries({ queryKey: ['contests'] });
+      toast.success(describeResult(result));
     },
     onError: (error) =>
       toast.error(getErrorMessage(error, 'Não foi possível processar o documento. Verifique se ele tem texto suficiente e tente de novo.')),
-    onSettled: () => setProcessingId(null),
   });
+
+  const processing = useMutationState({
+    filters: { mutationKey: PROCESS_KEY, status: 'pending' },
+    select: (mutation) => (mutation.state.variables as DocumentDTO).id,
+  });
+  const processingId = processing[0] ?? null;
 
   return {
     remove,
