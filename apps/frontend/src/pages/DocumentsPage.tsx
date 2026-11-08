@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { FileSearch, FileUp, Loader2 } from 'lucide-react';
+import { Link } from 'react-router';
+import { Building2, FileSearch, FileUp, Layers, Loader2 } from 'lucide-react';
 
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { contentService } from '@/features/content/services/content.service';
@@ -86,9 +87,15 @@ export function DocumentsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Documentos</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Importe materiais de estudo para gerar questões contextualizadas</p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Documentos</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Importe materiais de estudo para gerar questões contextualizadas</p>
+        </div>
+        <div className="flex gap-2">
+          <ShortcutLink to="/subjects" icon={Layers} label="Disciplinas" />
+          <ShortcutLink to="/exam-boards" icon={Building2} label="Bancas" />
+        </div>
       </div>
 
       <DocumentUploadCard subjects={subjects} />
@@ -155,5 +162,17 @@ export function DocumentsPage() {
         />
       )}
     </div>
+  );
+}
+
+function ShortcutLink({ to, icon: Icon, label }: { to: string; icon: typeof Layers; label: string }) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:border-primary-400 hover:text-primary-600 dark:border-gray-700 dark:text-gray-300"
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </Link>
   );
 }

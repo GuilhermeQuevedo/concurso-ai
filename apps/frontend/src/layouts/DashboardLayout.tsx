@@ -23,7 +23,6 @@ import {
   FlashcardsIcon,
   FlameIcon,
   BookOpenIcon,
-  BuildingIcon,
   UserIcon,
   SettingsIcon,
   HelpCircleIcon,
@@ -80,15 +79,6 @@ const navGroups: NavGroup[] = [
       { path: '/flashcards', label: 'Flashcards', icon: FlashcardsIcon },
       { path: '/games', label: 'Jogos', icon: GamepadIcon },
       { path: '/documents', label: 'Documentos', icon: LayersIcon },
-    ],
-  },
-  {
-    key: 'library',
-    label: 'Biblioteca',
-    icon: LayersIcon,
-    items: [
-      { path: '/subjects', label: 'Disciplinas', icon: BookOpenIcon },
-      { path: '/exam-boards', label: 'Bancas', icon: BuildingIcon },
     ],
   },
   {
