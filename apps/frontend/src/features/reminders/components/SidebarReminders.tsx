@@ -51,7 +51,7 @@ export function SidebarReminders() {
   const visible = [...pending, ...reminders.filter((r) => r.done)].slice(0, MAX_VISIBLE);
 
   return (
-    <section aria-label="Lembretes" className="shrink-0 border-t border-white/8 px-3 py-3">
+    <section aria-label="Lembretes" className="mt-3 border-t border-white/8 px-1 pt-3">
       <div className="mb-1.5 flex items-center justify-between">
         <h2 className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white/50">
           <Bell size={12} /> Lembretes
