@@ -6,6 +6,7 @@ import {
   LogIn,
   Copy,
   Share2,
+  Radio,
   MessageCircleQuestion,
   Crown,
   Medal,
@@ -23,6 +24,7 @@ import {
   type RankingEntry,
   type FeedEntry,
 } from '@/features/groups/services/group.service';
+import { RoomsTab } from '@/features/groups/components/RoomsTab';
 import { GroupHelp } from '@/features/groups/components/GroupHelp';
 import { SharedItems } from '@/features/groups/components/SharedItems';
 import { InviteMembers } from '@/features/groups/components/InviteMembers';
@@ -234,7 +236,7 @@ function JoinGroup({ onBack }: { onBack: () => void }) {
 function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'ranking' | 'feed' | 'shared' | 'help'>('ranking');
+  const [tab, setTab] = useState<'ranking' | 'feed' | 'shared' | 'help' | 'rooms'>('ranking');
   const [copied, setCopied] = useState(false);
 
   const { data: group } = useQuery({
@@ -310,10 +312,10 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
 
       <InviteMembers groupId={group.id} groupName={group.name} code={group.code} />
 
-      <div className="mb-4 flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+      <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
         <button
           onClick={() => setTab('ranking')}
-          className={`min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'ranking'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
@@ -324,7 +326,7 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
         </button>
         <button
           onClick={() => setTab('feed')}
-          className={`min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'feed'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
@@ -335,7 +337,7 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
         </button>
         <button
           onClick={() => setTab('shared')}
-          className={`min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'shared'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
@@ -346,7 +348,7 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
         </button>
         <button
           onClick={() => setTab('help')}
-          className={`min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'help'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
@@ -355,11 +357,23 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
           <MessageCircleQuestion className="mr-1.5 hidden h-4 w-4 sm:inline" />
           Dúvidas
         </button>
+        <button
+          onClick={() => setTab('rooms')}
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+            tab === 'rooms'
+              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+          }`}
+        >
+          <Radio className="mr-1.5 hidden h-4 w-4 sm:inline" />
+          Salas
+        </button>
       </div>
 
       {tab === 'ranking' && <RankingView ranking={ranking} currentUserId={user?.id ?? ''} />}
       {tab === 'feed' && <FeedView feed={feed} />}
       {tab === 'shared' && <SharedItems groupId={group.id} canModerate={canModerate} />}
+      {tab === 'rooms' && <RoomsTab groupId={group.id} currentUserId={user?.id ?? ''} />}
       {tab === 'help' && <GroupHelp groupId={group.id} canModerate={canModerate} />}
     </div>
   );

@@ -163,3 +163,16 @@ export const commentRateLimiter = rateLimit({
   handler: standard429Handler,
   keyGenerator: (req: Request) => `comment_${req.userId ?? req.ip ?? 'unknown'}`,
 });
+
+/**
+ * Criação de salas de questões: poucas por hora por usuário, já que notifica o grupo todo.
+ */
+export const roomCreateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: env.NODE_ENV === 'development' ? 100 : 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRateLimitStore('room'),
+  handler: standard429Handler,
+  keyGenerator: (req: Request) => `room_${req.userId ?? req.ip ?? 'unknown'}`,
+});
