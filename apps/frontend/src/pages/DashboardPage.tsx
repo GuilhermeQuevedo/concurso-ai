@@ -15,6 +15,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { studyService, type StudySessionDTO } from '@/features/study/services/study.service';
 import { contentService } from '@/features/content/services/content.service';
 import { dashboardService } from '@/features/dashboard/services/dashboard.service';
+import { ActiveStudyBanner } from '@/features/active-study/ActiveStudyBanner';
 import { XpCard } from '@/features/xp/components/XpCard';
 import { ConstanciaHeatmap } from '@/features/dashboard/components/ConstanciaHeatmap';
 import { MetasCard } from '@/features/dashboard/components/MetasCard';
@@ -110,6 +111,8 @@ export function DashboardPage() {
           Acompanhe seu progresso e continue evoluindo.
         </p>
       </div>
+
+      <ActiveStudyBanner />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (

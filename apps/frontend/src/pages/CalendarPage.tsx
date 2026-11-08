@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+
+import { useActiveStudy } from '@/features/active-study/active-study-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarClock, Clock, Loader2, Sparkles } from 'lucide-react';
 import { studyTaskService, type StudyTask } from '@/features/calendar/services/study-task.service';
@@ -22,10 +24,12 @@ export function CalendarPage() {
   const lastDay = new Date(year, month + 1, 0).getDate();
   const to = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { activeContestId } = useActiveStudy();
+  const { data: allTasks = [], isLoading } = useQuery({
     queryKey: ['study-tasks', from, to],
     queryFn: () => studyTaskService.list(from, to),
   });
+  const tasks = useMemo(() => (activeContestId ? allTasks.filter((t) => t.contestId === activeContestId) : allTasks), [allTasks, activeContestId]);
 
   const { data: contests = [] } = useQuery({
     queryKey: ['contests'],

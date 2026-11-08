@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, CalendarClock } from 'lucide-react';
+import { useActiveStudy } from '@/features/active-study/active-study-context';
 import { studyTaskService, type StudyTask } from '../services/study-task.service';
 import { TaskList } from './TaskList';
 
@@ -8,10 +9,12 @@ export function TodayPanel() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: tasks = [] } = useQuery({
+  const { activeContestId } = useActiveStudy();
+  const { data: allTasks = [] } = useQuery({
     queryKey: ['study-tasks-today'],
     queryFn: studyTaskService.today,
   });
+  const tasks = activeContestId ? allTasks.filter((t) => t.contestId === activeContestId) : allTasks;
 
   const toggleMutation = useMutation({
     mutationFn: (task: StudyTask) => studyTaskService.setCompleted(task.id, !task.completed),
