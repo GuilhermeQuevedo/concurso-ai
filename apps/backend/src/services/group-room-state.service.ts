@@ -1,3 +1,5 @@
+import { xpService } from './xp.service.js';
+import { ROOM_CORRECT_XP } from '@concurso-ai/shared';
 import type { GroupRoom, RoomMode, RoomStatus } from '@prisma/client';
 
 import { prisma } from '../database/prisma.js';
@@ -6,7 +8,6 @@ import { liveTiming, type RoomPhase } from '../utils/room-timing.js';
 
 import { assertGroupMember } from './group-share.service.js';
 
-const GROUP_POINTS_PER_CORRECT = 2;
 
 export interface RoomPlayerView {
   userId: string;
@@ -65,14 +66,19 @@ async function rewardPlayers(room: GroupRoom): Promise<void> {
     where: { roomId: room.id, isCorrect: true },
     _count: { _all: true },
   });
-  const data = answers.map((a) => ({
-    groupId: room.groupId,
-    userId: a.userId,
-    type: 'ROOM_FINISHED',
-    points: a._count._all * GROUP_POINTS_PER_CORRECT,
-    description: `Sala "${room.title}": ${a._count._all} acerto${a._count._all === 1 ? '' : 's'}`,
-  }));
-  if (data.length > 0) await prisma.groupActivity.createMany({ data });
+  for (const a of answers) {
+    const xp = await xpService.award(a.userId, 'ROOM', `${room.id}:${a.userId}`, a._count._all * ROOM_CORRECT_XP);
+    if (xp.granted <= 0) continue;
+    await prisma.groupActivity.create({
+      data: {
+        groupId: room.groupId,
+        userId: a.userId,
+        type: 'ROOM_FINISHED',
+        points: xp.granted,
+        description: `Sala "${room.title}": ${a._count._all} acerto${a._count._all === 1 ? '' : 's'}`,
+      },
+    });
+  }
 }
 
 export class GroupRoomStateService {

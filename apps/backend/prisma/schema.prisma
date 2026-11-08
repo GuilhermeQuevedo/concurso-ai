@@ -14,6 +14,8 @@ model User {
   googleId      String?  @unique
   name          String
   nickname      String?  @unique @db.VarChar(15)
+  totalXp       Int      @default(0)
+  tierRewarded  Int      @default(0)
   phone         String?
   avatar        String?
   role          Role     @default(USER)
@@ -62,6 +64,7 @@ model User {
   roomsHosted           GroupRoom[]       @relation("RoomHost")
   roomPlayers           GroupRoomPlayer[]
   roomAnswers           GroupRoomAnswer[]
+  xpEvents              XpEvent[]
 }
 
 model Session {
@@ -934,4 +937,18 @@ model GroupRoomAnswer {
 
   @@unique([roomId, userId, questionId])
   @@index([roomId])
+}
+
+model XpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String   @db.VarChar(20)
+  refId     String   @db.VarChar(100)
+  xp        Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, source, refId])
+  @@index([userId, createdAt])
 }

@@ -51,6 +51,11 @@ const ACHIEVEMENT_DEFS: Record<string, { name: string; description: string; chec
     description: '30 dias seguidos estudando',
     check: (s) => s.currentStreak >= 30,
   },
+  TIER_1: { name: 'Faixa Aplicado', description: 'Chegou ao nível 5', check: () => false },
+  TIER_2: { name: 'Faixa Dedicado', description: 'Chegou ao nível 10', check: () => false },
+  TIER_3: { name: 'Faixa Veterano', description: 'Chegou ao nível 15', check: () => false },
+  TIER_4: { name: 'Faixa Mestre', description: 'Chegou ao nível 20', check: () => false },
+  TIER_5: { name: 'Faixa Lenda', description: 'Chegou ao nível 25', check: () => false },
   FIRST_FLASHCARD: {
     name: 'Memorizador',
     description: 'Criou seu primeiro flashcard',

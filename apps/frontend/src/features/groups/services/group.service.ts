@@ -26,6 +26,8 @@ export interface RankingEntry {
   avatar: string | null;
   weekPoints: number;
   totalPoints: number;
+  level: number;
+  tier: string;
 }
 
 export interface FeedEntry {
