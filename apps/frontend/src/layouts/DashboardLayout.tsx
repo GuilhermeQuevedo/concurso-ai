@@ -95,6 +95,7 @@ const navGroups: NavGroup[] = [
       { path: '/achievements', label: 'Conquistas', icon: AwardIcon },
       { path: '/rankings', label: 'Ranking Global', icon: MedalIcon },
       { path: '/groups', label: 'Competição', icon: FlameIcon },
+      { path: '/friends', label: 'Amigos', icon: ContactIcon },
     ],
   },
 ];

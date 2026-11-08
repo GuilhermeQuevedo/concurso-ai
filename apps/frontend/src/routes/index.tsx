@@ -16,6 +16,7 @@ import { AchievementsPage } from '@/pages/AchievementsPage';
 import { StatsPage } from '@/pages/StatsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { FriendsPage } from '@/pages/FriendsPage';
 import { GroupsPage } from '@/pages/GroupsPage';
 import { EssayPage } from '@/pages/EssayPage';
 import { ContestsPage } from '@/pages/ContestsPage';
@@ -73,6 +74,7 @@ export function AppRoutes() {
       <Route path="/calendar" element={<ProtectedLayout><CalendarPage /></ProtectedLayout>} />
       <Route path="/essays" element={<ProtectedLayout><EssayPage /></ProtectedLayout>} />
       <Route path="/groups" element={<ProtectedLayout><GroupsPage /></ProtectedLayout>} />
+      <Route path="/friends" element={<ProtectedLayout><FriendsPage /></ProtectedLayout>} />
       <Route path="/stats" element={<ProtectedLayout><StatsPage /></ProtectedLayout>} />
       <Route path="/memory-simulator" element={<ProtectedLayout><MemorySimulatorPage /></ProtectedLayout>} />
       <Route path="/games" element={<ProtectedLayout><GamesPage /></ProtectedLayout>} />

@@ -5,6 +5,7 @@ import { Bell } from 'lucide-react';
 import { toast } from '@/components/ui/toast-store';
 import { getErrorMessage } from '@/utils/error-message';
 
+import { friendService } from '@/features/friends/services/friend.service';
 import { notificationService, type NotificationDTO } from '../services/notification.service';
 
 const QUERY_KEY = ['notifications'];
@@ -41,15 +42,26 @@ export function NotificationBell() {
   };
   const onError = (error: unknown) => toast.error(getErrorMessage(error, 'Não foi possível responder ao convite.'));
 
+  // Convite de grupo e pedido de amizade têm a mesma ação no sino: aceitar ou recusar.
   const accept = useMutation({
-    mutationFn: notificationService.acceptInvite,
-    onSuccess: () => {
-      toast.success('Você entrou no grupo.');
+    mutationFn: (item: NotificationDTO) =>
+      item.friendRequest ? friendService.accept(item.friendRequest.id) : notificationService.acceptInvite(item.invite?.id ?? '').then(() => undefined),
+    onSuccess: (_data, item) => {
+      toast.success(item.friendRequest ? 'Amizade aceita.' : 'Você entrou no grupo.');
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
       refresh();
     },
     onError,
   });
-  const decline = useMutation({ mutationFn: notificationService.declineInvite, onSuccess: refresh, onError });
+  const decline = useMutation({
+    mutationFn: (item: NotificationDTO) =>
+      item.friendRequest ? friendService.decline(item.friendRequest.id) : notificationService.declineInvite(item.invite?.id ?? ''),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      refresh();
+    },
+    onError,
+  });
   const markAll = useMutation({ mutationFn: notificationService.markAllRead, onSuccess: refresh });
 
   const toggle = () => {
@@ -90,8 +102,8 @@ export function NotificationBell() {
                   key={item.id}
                   item={item}
                   busy={accept.isPending || decline.isPending}
-                  onAccept={(id) => accept.mutate(id)}
-                  onDecline={(id) => decline.mutate(id)}
+                  onAccept={(target) => accept.mutate(target)}
+                  onDecline={(target) => decline.mutate(target)}
                 />
               ))}
             </ul>
@@ -110,10 +122,11 @@ function NotificationItem({
 }: {
   item: NotificationDTO;
   busy: boolean;
-  onAccept: (inviteId: string) => void;
-  onDecline: (inviteId: string) => void;
+  onAccept: (item: NotificationDTO) => void;
+  onDecline: (item: NotificationDTO) => void;
 }) {
-  const pendingInvite = item.invite?.status === 'PENDING' ? item.invite : null;
+  const pendingInvite = item.invite?.status === 'PENDING' || item.friendRequest?.status === 'PENDING';
+  const answered = item.invite && item.invite.status !== 'PENDING' ? (item.invite.status === 'ACCEPTED' ? 'Convite aceito' : 'Convite recusado') : null;
   return (
     <li className="rounded-lg px-3 py-2 text-xs text-white/80 hover:bg-white/5">
       <p>{item.message}</p>
@@ -122,7 +135,7 @@ function NotificationItem({
           <button
             type="button"
             disabled={busy}
-            onClick={() => onAccept(pendingInvite.id)}
+            onClick={() => onAccept(item)}
             className="rounded-md bg-teal-600 px-2.5 py-1 font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
           >
             Aceitar
@@ -130,16 +143,14 @@ function NotificationItem({
           <button
             type="button"
             disabled={busy}
-            onClick={() => onDecline(pendingInvite.id)}
+            onClick={() => onDecline(item)}
             className="rounded-md border border-white/20 px-2.5 py-1 font-medium text-white/80 hover:bg-white/10 disabled:opacity-50"
           >
             Recusar
           </button>
         </div>
       )}
-      {item.invite && !pendingInvite && (
-        <p className="mt-1 text-[10px] text-white/40">{item.invite.status === 'ACCEPTED' ? 'Convite aceito' : 'Convite recusado'}</p>
-      )}
+      {answered && <p className="mt-1 text-[10px] text-white/40">{answered}</p>}
     </li>
   );
 }
