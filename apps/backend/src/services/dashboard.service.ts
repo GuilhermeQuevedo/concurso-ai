@@ -1,7 +1,9 @@
 import { prisma } from '../database/prisma.js';
 import { startOfDay, addDays } from '../utils/spaced-repetition.js';
+import { displayedStreak } from '../utils/streak-shield.js';
 
 const HEATMAP_DAYS = 182;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 function dateKey(date: Date): string {
   const d = startOfDay(date);
@@ -32,8 +34,21 @@ export class DashboardService {
   }
 
   private async getStreak(userId: string) {
-    const streak = await prisma.streak.findUnique({ where: { userId } });
-    return { current: streak?.current ?? 0, longest: streak?.longest ?? 0 };
+    const since = dateKey(addDays(startOfDay(new Date()), -HEATMAP_DAYS));
+    const [streak, shieldUses] = await Promise.all([
+      prisma.streak.findUnique({ where: { userId } }),
+      prisma.streakShieldUse.findMany({ where: { userId, date: { gte: since } }, select: { date: true } }),
+    ]);
+    const shielded = shieldUses.map((use) => use.date);
+    if (!streak) return { current: 0, longest: 0, shields: 0, shieldedDates: shielded };
+
+    const daysSinceLast = Math.round((startOfDay(new Date()).getTime() - startOfDay(streak.lastDate).getTime()) / MS_PER_DAY);
+    return {
+      current: displayedStreak(streak, daysSinceLast),
+      longest: streak.longest,
+      shields: streak.shields,
+      shieldedDates: shielded,
+    };
   }
 
   private async buildHeatmap(userId: string) {
