@@ -84,8 +84,8 @@ Decisões técnicas:
 
 Chat livre, vídeo/voz, edição colaborativa em tempo real, amigos fora de grupo, ofensiva compartilhada e notificações por e-mail ou push.
 
-## 9. Perguntas em aberto
+## 9. Decisões
 
-1. Quem pode compartilhar: qualquer membro (proposto) ou só o admin do grupo?
-2. Janela padrão da sala no próprio ritmo: 24 h?
-3. Pontos de "ajuda" entram agora ou só depois da revisão de pontuação?
+1. Qualquer membro do grupo pode compartilhar conteúdo.
+2. A sala no próprio ritmo fica aberta por 24 h.
+3. Os pontos de ajuda entram já; as regras de pontuação serão organizadas depois, na revisão de pontuação.
