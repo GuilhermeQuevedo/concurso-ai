@@ -53,7 +53,7 @@ export function ConstanciaHeatmap({ heatmap, streak }: { heatmap: HeatmapDay[]; 
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[minmax(0,26rem)_1fr]">
+      <div className="space-y-5">
         <div>
           <ConstanciaMonth
             year={shown.getFullYear()}
@@ -87,25 +87,11 @@ export function ConstanciaHeatmap({ heatmap, streak }: { heatmap: HeatmapDay[]; 
           </div>
         </div>
 
-        <div className="flex flex-col justify-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-          <p className="flex items-start gap-2">
-            <Flame className="mt-0.5 h-4 w-4 shrink-0 fill-orange-400 text-orange-500" />
-            Estude todo dia para manter a sequência. Cada dia de estudo ganha um foguinho.
-          </p>
-          <p className="flex items-start gap-2">
-            <Shield className="mt-0.5 h-4 w-4 shrink-0 fill-sky-400 text-sky-500" />
-            <span>
-              A cada {SHIELD_EVERY_DAYS} dias seguidos você ganha um escudo (até {MAX_SHIELDS}). Se faltar um dia, o escudo é usado
-              automaticamente e a sequência não zera.
-              {untilShield !== null && (
-                <strong className="mt-1 block text-gray-800 dark:text-gray-100">
-                  Faltam {untilShield} dia{untilShield === 1 ? '' : 's'} para o próximo escudo.
-                </strong>
-              )}
-              {untilShield === null && <strong className="mt-1 block text-gray-800 dark:text-gray-100">Você está com o máximo de escudos.</strong>}
-            </span>
-          </p>
-        </div>
+        <p className="border-t border-gray-100 pt-3 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          {untilShield !== null
+            ? `Faltam ${untilShield} dia${untilShield === 1 ? '' : 's'} para o próximo escudo`
+            : 'Você está com o máximo de escudos'}
+        </p>
       </div>
 
       {expanded && (
