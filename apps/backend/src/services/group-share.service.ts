@@ -6,6 +6,7 @@ import { AppError } from '../middlewares/error-handler.js';
 export interface ShareView {
   id: string;
   type: ShareType;
+  refId: string;
   title: string;
   summary: string;
   sharedBy: { id: string; name: string; nickname: string | null };
@@ -49,6 +50,7 @@ export class GroupShareService {
       .map((s) => ({
         id: s.id,
         type: s.type,
+        refId: s.refId,
         title: s.title,
         summary: sources.get(`${s.type}:${s.refId}`)?.summary ?? '',
         sharedBy: s.sharedBy,

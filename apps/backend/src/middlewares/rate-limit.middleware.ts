@@ -150,3 +150,16 @@ export const inviteRateLimiter = rateLimit({
   handler: standard429Handler,
   keyGenerator: (req: Request) => `invite_${req.userId ?? req.ip ?? 'unknown'}`,
 });
+
+/**
+ * Comentários e pedidos de ajuda nos grupos: limite por hora por usuário contra spam.
+ */
+export const commentRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: env.NODE_ENV === 'development' ? 300 : 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRateLimitStore('comment'),
+  handler: standard429Handler,
+  keyGenerator: (req: Request) => `comment_${req.userId ?? req.ip ?? 'unknown'}`,
+});

@@ -6,6 +6,7 @@ import {
   LogIn,
   Copy,
   Share2,
+  LifeBuoy,
   Crown,
   Medal,
   Loader2,
@@ -22,6 +23,7 @@ import {
   type RankingEntry,
   type FeedEntry,
 } from '@/features/groups/services/group.service';
+import { GroupHelp } from '@/features/groups/components/GroupHelp';
 import { SharedItems } from '@/features/groups/components/SharedItems';
 import { InviteMembers } from '@/features/groups/components/InviteMembers';
 
@@ -232,7 +234,7 @@ function JoinGroup({ onBack }: { onBack: () => void }) {
 function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'ranking' | 'feed' | 'shared'>('ranking');
+  const [tab, setTab] = useState<'ranking' | 'feed' | 'shared' | 'help'>('ranking');
   const [copied, setCopied] = useState(false);
 
   const { data: group } = useQuery({
@@ -267,6 +269,8 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  const canModerate = group?.members.some((m) => m.user.id === user?.id && m.role === 'ADMIN') ?? false;
 
   if (!group) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-400" /></div>;
@@ -340,11 +344,23 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
           <Share2 className="mr-1.5 inline h-4 w-4" />
           Compartilhados
         </button>
+        <button
+          onClick={() => setTab('help')}
+          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            tab === 'help'
+              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+          }`}
+        >
+          <LifeBuoy className="mr-1.5 inline h-4 w-4" />
+          Ajuda
+        </button>
       </div>
 
       {tab === 'ranking' && <RankingView ranking={ranking} currentUserId={user?.id ?? ''} />}
       {tab === 'feed' && <FeedView feed={feed} />}
-      {tab === 'shared' && <SharedItems groupId={group.id} />}
+      {tab === 'shared' && <SharedItems groupId={group.id} canModerate={canModerate} />}
+      {tab === 'help' && <GroupHelp groupId={group.id} canModerate={canModerate} />}
     </div>
   );
 }
