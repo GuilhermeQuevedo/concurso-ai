@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AskGroupHelp } from '@/features/groups/components/AskGroupHelp';
+import { GroupDoubtButton } from '@/features/groups/components/GroupDoubtButton';
 import { RotateCw, Check, X, ArrowLeft, ArrowRight, Lightbulb, Sparkles } from 'lucide-react';
 
 export interface ViewerCard {
@@ -208,7 +208,7 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
 
           {flipped && (
             <div className="flex justify-center pt-3">
-              <AskGroupHelp targetType="FLASHCARD" targetId={currentCard.id} context={['Frente: ' + currentCard.front, 'Verso: ' + currentCard.back].join('\n')} />
+              <GroupDoubtButton targetType="FLASHCARD" targetId={currentCard.id} context={['Frente: ' + currentCard.front, 'Verso: ' + currentCard.back].join('\n')} />
             </div>
           )}
 

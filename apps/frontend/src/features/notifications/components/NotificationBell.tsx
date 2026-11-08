@@ -59,7 +59,7 @@ export function NotificationBell() {
   };
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef}>
       <button
         type="button"
         onClick={toggle}
@@ -79,7 +79,7 @@ export function NotificationBell() {
         <div
           role="dialog"
           aria-label="Notificações"
-          className="absolute right-0 top-full z-50 mt-2 w-60 rounded-xl border border-white/10 bg-[#1B2547] p-2 shadow-2xl"
+          className="absolute inset-x-3 top-full z-50 mt-1 rounded-xl border border-white/10 bg-[#1B2547] p-2 shadow-2xl"
         >
           {!data || data.items.length === 0 ? (
             <p className="px-3 py-4 text-center text-xs text-white/50">Nenhuma notificação por enquanto.</p>

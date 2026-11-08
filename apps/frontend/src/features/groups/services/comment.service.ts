@@ -2,7 +2,7 @@ import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export type CommentTarget = 'QUESTION' | 'FLASHCARD' | 'DECK' | 'GENERAL';
-export type CommentKind = 'COMMENT' | 'HELP';
+export type CommentKind = 'COMMENT' | 'DOUBT';
 
 export interface CommentDTO {
   id: string;

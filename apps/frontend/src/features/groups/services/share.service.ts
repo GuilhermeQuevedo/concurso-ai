@@ -1,7 +1,7 @@
 import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
-export type ShareType = 'DECK' | 'SCHEDULE' | 'CONTEST';
+export type ShareType = 'DECK' | 'SCHEDULE' | 'CONTEST' | 'QUESTION';
 
 export interface ShareDTO {
   id: string;
@@ -15,7 +15,16 @@ export interface ShareDTO {
 }
 
 export type ShareDetailDTO =
-  | { type: 'DECK'; title: string; cards: { front: string; back: string }[] }
+  | { type: 'DECK'; title: string; cards: { id: string; front: string; back: string }[] }
+  | {
+      type: 'QUESTION';
+      title: string;
+      statement: string;
+      alternatives: { letter: string; text: string }[];
+      correctAnswer: string;
+      explanation: string;
+      subject: string;
+    }
   | {
       type: 'CONTEST';
       title: string;

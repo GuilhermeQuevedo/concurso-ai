@@ -30,10 +30,10 @@ export function GroupHelp({ groupId, target, canModerate, emptyText }: GroupHelp
   });
 
   const create = useMutation({
-    mutationFn: (value: { body: string; help: boolean }) =>
+    mutationFn: (value: { body: string; doubt: boolean }) =>
       commentService.create(groupId, {
         body: value.body,
-        kind: value.help ? 'HELP' : 'COMMENT',
+        kind: value.doubt ? 'DOUBT' : 'COMMENT',
         targetType: target?.type ?? 'GENERAL',
         targetId: target?.id,
         context: !target && context.trim() ? context.trim() : undefined,
@@ -60,10 +60,10 @@ export function GroupHelp({ groupId, target, canModerate, emptyText }: GroupHelp
           />
         )}
         <CommentForm
-          placeholder={target ? 'Comente ou peça ajuda aos colegas' : 'Qual é a sua dúvida?'}
+          placeholder={target ? 'Comente ou tire uma dúvida' : 'Qual é a sua dúvida?'}
           submitLabel="Publicar"
-          allowHelp
-          defaultHelp={!target}
+          allowDoubt
+          defaultDoubt={!target}
           pending={create.isPending}
           onSubmit={(value) => create.mutate(value)}
         />
@@ -71,7 +71,7 @@ export function GroupHelp({ groupId, target, canModerate, emptyText }: GroupHelp
 
       <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
         <input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} className="rounded" />
-        Mostrar só os pedidos de ajuda em aberto
+        Mostrar só as dúvidas em aberto
       </label>
 
       {isLoading ? (
@@ -80,7 +80,7 @@ export function GroupHelp({ groupId, target, canModerate, emptyText }: GroupHelp
         </div>
       ) : threads.length === 0 ? (
         <p className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-          {emptyText ?? (onlyOpen ? 'Nenhum pedido de ajuda em aberto. 🎉' : 'Nenhuma conversa ainda. Faça a primeira pergunta!')}
+          {emptyText ?? (onlyOpen ? 'Nenhuma dúvida em aberto. 🎉' : 'Nenhuma conversa ainda. Tire a primeira dúvida!')}
         </p>
       ) : (
         <div className="space-y-3">

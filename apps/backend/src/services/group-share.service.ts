@@ -26,6 +26,11 @@ export async function assertGroupMember(groupId: string, userId: string): Promis
   if (!membership) throw new AppError(403, 'NOT_GROUP_MEMBER', 'Você não faz parte deste grupo.');
 }
 
+function questionTitle(statement: string): string {
+  const plain = statement.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return plain.length > 90 ? `${plain.slice(0, 87)}...` : plain;
+}
+
 function scheduleTitle(schedule: unknown, examDate: string): string {
   const title = (schedule as { title?: unknown } | null)?.title;
   return typeof title === 'string' && title.trim() ? title.trim() : `Cronograma até ${examDate}`;
@@ -94,6 +99,12 @@ export class GroupShareService {
       if (!contest) throw notFound;
       return contest.name.slice(0, MAX_TITLE);
     }
+    if (type === 'QUESTION') {
+      // Questões são do banco comum: basta existir.
+      const question = await prisma.question.findUnique({ where: { id: refId }, select: { statement: true } });
+      if (!question) throw notFound;
+      return questionTitle(question.statement);
+    }
     const schedule = await prisma.studySchedule.findFirst({
       where: { id: refId, userId },
       select: { schedule: true, examDate: true },
@@ -104,7 +115,7 @@ export class GroupShareService {
 
   private async loadSources(refs: { type: ShareType; refId: string }[]): Promise<Map<string, SourceInfo>> {
     const idsOf = (type: ShareType) => refs.filter((r) => r.type === type).map((r) => r.refId);
-    const [decks, cardCounts, contests, topicCounts, schedules] = await Promise.all([
+    const [decks, cardCounts, contests, topicCounts, schedules, questions] = await Promise.all([
       prisma.flashcardDeck.findMany({ where: { id: { in: idsOf('DECK') } }, select: { id: true, name: true } }),
       prisma.flashcard.groupBy({ by: ['deckId'], where: { deckId: { in: idsOf('DECK') } }, _count: { _all: true } }),
       prisma.contest.findMany({ where: { id: { in: idsOf('CONTEST') } }, select: { id: true, name: true } }),
@@ -116,6 +127,10 @@ export class GroupShareService {
       prisma.studySchedule.findMany({
         where: { id: { in: idsOf('SCHEDULE') } },
         select: { id: true, examDate: true, dailyHours: true, schedule: true },
+      }),
+      prisma.question.findMany({
+        where: { id: { in: idsOf('QUESTION') } },
+        select: { id: true, statement: true, subject: { select: { name: true } } },
       }),
     ]);
 
@@ -129,6 +144,9 @@ export class GroupShareService {
         title: scheduleTitle(s.schedule, s.examDate),
         summary: `Prova em ${s.examDate} · ${s.dailyHours}h por dia`,
       });
+    }
+    for (const q of questions) {
+      map.set(`QUESTION:${q.id}`, { title: questionTitle(q.statement), summary: q.subject.name });
     }
     return map;
   }

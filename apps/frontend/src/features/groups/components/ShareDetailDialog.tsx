@@ -1,13 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy, Loader2, X } from 'lucide-react';
+import { useState } from 'react';
+import { Copy, Loader2, MessageCircleQuestion, X } from 'lucide-react';
 
 import { toast } from '@/components/ui/toast-store';
 import { getErrorMessage } from '@/utils/error-message';
 
 import { GroupHelp } from './GroupHelp';
+import { htmlToPlainText } from '@/lib/html';
+
+import { commentService } from '../services/comment.service';
+import { CommentForm } from './CommentForm';
 import { shareService, type ShareDTO, type ShareDetailDTO } from '../services/share.service';
 
-const COPIED_QUERY: Record<ShareDTO['type'], string> = { DECK: 'decks', CONTEST: 'contests', SCHEDULE: 'study-schedules' };
+const COPIED_QUERY: Record<ShareDTO['type'], string> = { DECK: 'decks', CONTEST: 'contests', SCHEDULE: 'study-schedules', QUESTION: 'questions' };
 
 // Visualização somente leitura do item compartilhado, com opção de copiar para o próprio perfil.
 export function ShareDetailDialog({ groupId, share, canModerate, onClose }: { groupId: string; share: ShareDTO; canModerate: boolean; onClose: () => void }) {
@@ -39,6 +44,7 @@ export function ShareDetailDialog({ groupId, share, canModerate, onClose }: { gr
         <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-800">
           <h2 className="truncate font-semibold text-gray-900 dark:text-white">{share.title}</h2>
           <div className="flex items-center gap-2">
+            {share.type !== 'QUESTION' && (
             <button
               type="button"
               onClick={() => copy.mutate()}
@@ -48,6 +54,7 @@ export function ShareDetailDialog({ groupId, share, canModerate, onClose }: { gr
               {copy.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
               Copiar para o meu perfil
             </button>
+            )}
             <button type="button" onClick={onClose} aria-label="Fechar" className="rounded p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
               <X className="h-5 w-5" />
             </button>
@@ -60,15 +67,15 @@ export function ShareDetailDialog({ groupId, share, canModerate, onClose }: { gr
             </div>
           )}
           {error && <p className="text-sm text-red-500">{getErrorMessage(error, 'Não foi possível abrir este item.')}</p>}
-          {data && <DetailBody detail={data} />}
-          {share.type === 'DECK' && (
+          {data && <DetailBody detail={data} groupId={groupId} />}
+          {(share.type === 'DECK' || share.type === 'QUESTION') && (
             <section className="mt-6 border-t border-gray-100 pt-4 dark:border-gray-800">
-              <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">Comentários e ajuda sobre este deck</h3>
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">{share.type === 'DECK' ? 'Dúvidas e comentários sobre este deck' : 'Dúvidas e comentários sobre esta questão'}</h3>
               <GroupHelp
                 groupId={groupId}
-                target={{ type: 'DECK', id: share.refId }}
+                target={{ type: share.type === 'DECK' ? 'DECK' : 'QUESTION', id: share.refId }}
                 canModerate={canModerate}
-                emptyText="Nenhum comentário sobre este deck ainda."
+                emptyText="Nenhuma dúvida ou comentário ainda."
               />
             </section>
           )}
@@ -78,14 +85,37 @@ export function ShareDetailDialog({ groupId, share, canModerate, onClose }: { gr
   );
 }
 
-function DetailBody({ detail }: { detail: ShareDetailDTO }) {
+function DetailBody({ detail, groupId }: { detail: ShareDetailDTO; groupId: string }) {
+  if (detail.type === 'QUESTION') {
+    return (
+      <div className="space-y-3 text-sm">
+        <p className="text-xs text-gray-500 dark:text-gray-400">{detail.subject}</p>
+        <p className="whitespace-pre-line text-gray-900 dark:text-white">{htmlToPlainText(detail.statement)}</p>
+        <ul className="space-y-1">
+          {detail.alternatives.map((alt) => (
+            <li key={alt.letter} className="rounded-lg border border-gray-200 px-3 py-2 text-gray-700 dark:border-gray-700 dark:text-gray-300">
+              <strong>{alt.letter})</strong> {alt.text}
+            </li>
+          ))}
+        </ul>
+        <details className="rounded-lg bg-gray-50 p-3 text-xs text-gray-600 dark:bg-gray-800/60 dark:text-gray-300">
+          <summary className="cursor-pointer font-medium">Ver gabarito e comentário</summary>
+          <p className="mt-2">
+            Gabarito: <strong>{detail.correctAnswer}</strong>
+          </p>
+          <p className="mt-1 whitespace-pre-line">{htmlToPlainText(detail.explanation)}</p>
+        </details>
+      </div>
+    );
+  }
   if (detail.type === 'DECK') {
     return (
       <ul className="space-y-2">
-        {detail.cards.map((card, i) => (
-          <li key={i} className="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700">
+        {detail.cards.map((card) => (
+          <li key={card.id} className="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700">
             <p className="font-medium text-gray-900 dark:text-white">{card.front}</p>
             <p className="mt-1 text-gray-600 dark:text-gray-300">{card.back}</p>
+            <CardDoubt groupId={groupId} card={card} />
           </li>
         ))}
       </ul>
@@ -124,6 +154,42 @@ function DetailBody({ detail }: { detail: ShareDetailDTO }) {
         </p>
       )}
       <p className="text-xs text-gray-500">Ao copiar, o cronograma vem sem nenhum dia marcado como concluído.</p>
+    </div>
+  );
+}
+
+const CARD_CONTEXT_SEPARATOR = '\n';
+
+// Dúvida sobre um flashcard específico do deck compartilhado.
+function CardDoubt({ groupId, card }: { groupId: string; card: { id: string; front: string; back: string } }) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const send = useMutation({
+    mutationFn: (body: string) =>
+      commentService.create(groupId, {
+        body,
+        kind: 'DOUBT',
+        targetType: 'FLASHCARD',
+        targetId: card.id,
+        context: `Frente: ${card.front}${CARD_CONTEXT_SEPARATOR}Verso: ${card.back}`,
+      }),
+    onSuccess: () => {
+      toast.success('Dúvida enviada. Ela aparece na aba Dúvidas do grupo.');
+      queryClient.invalidateQueries({ queryKey: ['group-comments', groupId] });
+      setOpen(false);
+    },
+    onError: (err) => toast.error(getErrorMessage(err, 'Não foi possível enviar a dúvida.')),
+  });
+
+  return (
+    <div className="mt-2">
+      {open ? (
+        <CommentForm placeholder="Qual é a sua dúvida sobre este cartão?" submitLabel="Enviar dúvida" pending={send.isPending} onSubmit={({ body }) => send.mutate(body)} />
+      ) : (
+        <button type="button" onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs font-medium text-primary-600 hover:underline">
+          <MessageCircleQuestion className="h-3.5 w-3.5" /> Tirar dúvida sobre este cartão
+        </button>
+      )}
     </div>
   );
 }

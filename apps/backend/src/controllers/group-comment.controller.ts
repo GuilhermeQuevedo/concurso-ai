@@ -13,7 +13,7 @@ export class GroupCommentController {
       const filter: ListFilter = {
         targetType: query.targetType as ListFilter['targetType'],
         targetId: query.targetId,
-        onlyOpenHelp: query.open === 'true',
+        onlyOpenDoubts: query.open === 'true',
       };
       const data = await this.service.list(getUserId(req), req.params.id as string, filter);
       const response: ApiResponse<typeof data> = { success: true, data };

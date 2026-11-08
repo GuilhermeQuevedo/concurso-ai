@@ -31,7 +31,7 @@ export interface CommentView {
 export interface ListFilter {
   targetType?: CommentTarget;
   targetId?: string;
-  onlyOpenHelp?: boolean;
+  onlyOpenDoubts?: boolean;
 }
 
 export interface NewComment {
@@ -66,7 +66,7 @@ function toView(row: CommentRow, viewerId: string, replies: CommentRow[] = []): 
   };
 }
 
-// Conversa dentro do grupo: comentários em questões, flashcards e decks, com pedidos de ajuda que podem ser resolvidos.
+// Conversa dentro do grupo: comentários em questões, flashcards e decks, com dúvidas que podem ser resolvidas.
 export class GroupCommentService {
   constructor(private readonly notifications = new NotificationRepository()) {}
 
@@ -78,7 +78,7 @@ export class GroupCommentService {
         parentId: null,
         ...(filter.targetType ? { targetType: filter.targetType } : {}),
         ...(filter.targetId ? { targetId: filter.targetId } : {}),
-        ...(filter.onlyOpenHelp ? { kind: 'HELP' as const, resolved: false } : {}),
+        ...(filter.onlyOpenDoubts ? { kind: 'DOUBT' as const, resolved: false } : {}),
       },
       orderBy: { createdAt: 'desc' },
       take: MAX_THREADS,
@@ -144,17 +144,17 @@ export class GroupCommentService {
   async setResolved(userId: string, groupId: string, commentId: string, resolved: boolean): Promise<void> {
     await assertGroupMember(groupId, userId);
     const root = await this.findRoot(groupId, commentId);
-    if (root.userId !== userId) throw new AppError(403, 'FORBIDDEN', 'Só quem pediu ajuda marca como resolvido.');
+    if (root.userId !== userId) throw new AppError(403, 'FORBIDDEN', 'Só quem postou a dúvida marca como resolvida.');
     await prisma.groupComment.update({ where: { id: root.id }, data: { resolved } });
   }
 
-  // Quem pediu ajuda marca a resposta que ajudou; o ajudante ganha pontos no grupo (uma vez por resposta).
+  // Quem postou a dúvida marca a resposta que esclareceu; quem respondeu ganha pontos no grupo (uma vez por resposta).
   async markHelpful(userId: string, groupId: string, replyId: string): Promise<void> {
     await assertGroupMember(groupId, userId);
     const reply = await prisma.groupComment.findFirst({ where: { id: replyId, groupId, parentId: { not: null } } });
     if (!reply?.parentId) throw new AppError(404, 'COMMENT_NOT_FOUND', 'Resposta não encontrada.');
     const root = await this.findRoot(groupId, reply.parentId);
-    if (root.userId !== userId) throw new AppError(403, 'FORBIDDEN', 'Só quem pediu ajuda marca a resposta como útil.');
+    if (root.userId !== userId) throw new AppError(403, 'FORBIDDEN', 'Só quem postou a dúvida marca a resposta que esclareceu.');
     if (reply.userId === userId) throw new AppError(400, 'SELF_HELPFUL', 'Você não pode marcar a própria resposta.');
     if (reply.helpful) return;
 
@@ -165,9 +165,9 @@ export class GroupCommentService {
         data: {
           groupId,
           userId: reply.userId,
-          type: 'HELP_USEFUL',
+          type: 'DOUBT_CLEARED',
           points: HELPFUL_POINTS,
-          description: 'Ajudou um colega: resposta marcada como útil',
+          description: 'Esclareceu a dúvida de um colega',
         },
       }),
     ]);

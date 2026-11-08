@@ -9,7 +9,16 @@ const MAX_CARDS = 1000;
 const COPY_SUFFIX = ' (do grupo)';
 
 export type ShareDetail =
-  | { type: 'DECK'; title: string; cards: { front: string; back: string }[] }
+  | { type: 'DECK'; title: string; cards: { id: string; front: string; back: string }[] }
+  | {
+      type: 'QUESTION';
+      title: string;
+      statement: string;
+      alternatives: unknown;
+      correctAnswer: string;
+      explanation: string;
+      subject: string;
+    }
   | {
       type: 'CONTEST';
       title: string;
@@ -42,10 +51,24 @@ export class GroupShareContentService {
     if (share.type === 'DECK') {
       const deck = await prisma.flashcardDeck.findUnique({
         where: { id: share.refId },
-        select: { name: true, cards: { select: { front: true, back: true }, orderBy: { createdAt: 'asc' }, take: MAX_CARDS } },
+        select: { name: true, cards: { select: { id: true, front: true, back: true }, orderBy: { createdAt: 'asc' }, take: MAX_CARDS } },
       });
       if (!deck) throw gone;
       return { type: 'DECK', title: deck.name, cards: deck.cards };
+    }
+    if (share.type === 'QUESTION') {
+      const question = await prisma.question.findUnique({
+        where: { id: share.refId },
+        select: {
+          statement: true,
+          alternatives: true,
+          correctAnswer: true,
+          explanation: true,
+          subject: { select: { name: true } },
+        },
+      });
+      if (!question) throw gone;
+      return { type: 'QUESTION', title: share.title, ...question, subject: question.subject.name };
     }
     if (share.type === 'CONTEST') {
       const contest = await prisma.contest.findUnique({
@@ -78,6 +101,9 @@ export class GroupShareContentService {
 
   async copy(userId: string, groupId: string, shareId: string): Promise<{ type: string; id: string }> {
     const share = await this.shares.findForMember(userId, groupId, shareId);
+    if (share.type === 'QUESTION') {
+      throw new AppError(400, 'NOTHING_TO_COPY', 'Questões não precisam ser copiadas: já estão no banco de questões.');
+    }
     if (share.type === 'DECK') return { type: 'DECK', id: await this.copyDeck(userId, share.refId) };
     if (share.type === 'CONTEST') return { type: 'CONTEST', id: await this.copyContest(userId, share.refId) };
     return { type: 'SCHEDULE', id: await this.copySchedule(userId, share.refId) };

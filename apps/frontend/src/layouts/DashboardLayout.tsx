@@ -211,7 +211,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         }`}
       >
         {/* Topo / Logo */}
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/8 px-5">
+        <div className="relative flex h-16 shrink-0 items-center justify-between border-b border-white/8 px-5">
           <Link to="/dashboard" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2">
             <EngramaWordmark logoClass="h-7 w-7" textClass="text-xl font-display font-extrabold text-white" />
           </Link>
