@@ -139,23 +139,27 @@ export function DashboardPage() {
             <EnergyCheckIn dailyGoal={summary.goal.dailyQuestions} />
           </div>
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div data-tour="metas">
-              <MetasCard
-                goal={summary.goal}
-                averages={summary.averages}
-                onSetGoal={(value) => goalMutation.mutate(value)}
-                saving={goalMutation.isPending}
-              />
+            <div className="flex flex-col gap-4 lg:col-span-2">
+              <div data-tour="metas">
+                <MetasCard
+                  goal={summary.goal}
+                  averages={summary.averages}
+                  onSetGoal={(value) => goalMutation.mutate(value)}
+                  saving={goalMutation.isPending}
+                />
+              </div>
+              <div className="flex-1 [&>*]:h-full" data-tour="revisoes">
+                <DueReviewsPanel />
+              </div>
             </div>
-            <div data-tour="revisoes">
-              <DueReviewsPanel />
+            <div className="flex flex-col gap-4">
+              <div data-tour="constancia">
+                <ConstanciaHeatmap heatmap={summary.heatmap} streak={summary.streak} />
+              </div>
+              <div data-tour="pomodoro">
+                <PomodoroTimer />
+              </div>
             </div>
-            <div data-tour="pomodoro">
-              <PomodoroTimer />
-            </div>
-          </div>
-          <div className="mt-4" data-tour="constancia">
-            <ConstanciaHeatmap heatmap={summary.heatmap} streak={summary.streak} />
           </div>
         </>
       )}

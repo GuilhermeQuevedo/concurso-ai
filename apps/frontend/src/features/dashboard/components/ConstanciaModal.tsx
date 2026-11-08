@@ -82,6 +82,9 @@ export function ConstanciaModal({ counts, shielded, today, streak, onClose }: Co
           <span className="flex items-center gap-1.5">
             <Shield className="h-3.5 w-3.5 fill-sky-400 text-sky-500" /> dia protegido por escudo
           </span>
+          <span className="basis-full">
+            A cada 7 dias seguidos você ganha um escudo (até 2). Se faltar um dia, o escudo é usado automaticamente e a sequência não zera.
+          </span>
         </p>
       </div>
     </div>
