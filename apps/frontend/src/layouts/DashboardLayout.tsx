@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { AccountMenu } from './AccountMenu';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { SidebarReminders } from '@/features/reminders/components/SidebarReminders';
 import { PomodoroMini } from '@/features/pomodoro/PomodoroMini';
 import {
@@ -214,14 +215,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <Link to="/dashboard" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2">
             <EngramaWordmark logoClass="h-7 w-7" textClass="text-xl font-display font-extrabold text-white" />
           </Link>
-          {sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="p-1 text-white/60 hover:text-white lg:hidden"
-            >
-              <X size={20} />
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            {sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 text-white/60 hover:text-white lg:hidden"
+              >
+                <X size={20} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Navegação com Mecanismo de Sub-Abas Expansíveis e Scroll Limpo */}

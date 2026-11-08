@@ -67,6 +67,10 @@ export const groupService = {
     return unwrapData(response);
   },
 
+  async invite(id: string, nickname: string): Promise<void> {
+    await api.post(`/groups/${id}/invites`, { nickname });
+  },
+
   async leave(id: string): Promise<void> {
     await api.delete(`/groups/${id}/leave`);
   },

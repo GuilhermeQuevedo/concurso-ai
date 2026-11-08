@@ -21,6 +21,7 @@ import {
   type RankingEntry,
   type FeedEntry,
 } from '@/features/groups/services/group.service';
+import { InviteMembers } from '@/features/groups/components/InviteMembers';
 
 type View = 'list' | 'create' | 'join' | 'detail';
 
@@ -300,6 +301,8 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
           Sair
         </button>
       </div>
+
+      <InviteMembers groupId={group.id} groupName={group.name} code={group.code} />
 
       <div className="mb-4 flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
         <button

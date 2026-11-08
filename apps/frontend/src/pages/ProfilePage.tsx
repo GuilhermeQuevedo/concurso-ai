@@ -18,6 +18,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { authService } from '@/features/auth/services/auth.service';
 import { subscriptionService } from '@/features/subscription/services/subscription.service';
 import { NotificationsCard } from '@/features/notifications/NotificationsCard';
+import { NicknameCard } from '@/features/profile/components/NicknameCard';
 import { AccountSecurity } from '@/features/profile/components/AccountSecurity';
 import { DangerZone } from '@/features/profile/components/DangerZone';
 import { StripeBillingModal } from '@/features/subscription/components/StripeBillingModal';
@@ -103,6 +104,7 @@ export function ProfilePage() {
         </div>
 
         <div className="space-y-4">
+          <NicknameCard />
           <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
             <div className="mb-3 flex items-center gap-2">
               <Target className="h-4 w-4 text-primary-600" />

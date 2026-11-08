@@ -78,7 +78,7 @@ export const authService = {
     return unwrapData(response);
   },
 
-  async updateProfile(data: { name?: string; dailyGoal?: number }): Promise<User> {
+  async updateProfile(data: { name?: string; dailyGoal?: number; nickname?: string }): Promise<User> {
     const response = await api.patch<ApiResponse<User>>('/auth/profile', data);
     return unwrapData(response);
   },

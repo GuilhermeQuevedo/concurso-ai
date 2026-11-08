@@ -9,6 +9,7 @@ import { EmailService } from './email.service.js';
 import { GoogleAuthClient, type GoogleUserProfile } from '../providers/google-auth.client.js';
 import { BruteForceGuard, isPermanentAdminEmail, dummyPasswordCheck } from '../utils/security.js';
 import { prisma } from '../database/prisma.js';
+import { isOffensiveNickname } from '../utils/nickname.js';
 import type {
   RegisterDTO,
   LoginDTO,
@@ -316,13 +317,30 @@ export class AuthService {
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDTO) {
-    const data: { name?: string; dailyGoal?: number } = {};
+    const data: { name?: string; dailyGoal?: number; nickname?: string } = {};
     if (dto.name !== undefined) data.name = dto.name;
     if (dto.dailyGoal !== undefined) data.dailyGoal = dto.dailyGoal;
-    const user = await this.authRepository.updateUser(userId, data);
+    if (dto.nickname !== undefined) {
+      if (isOffensiveNickname(dto.nickname)) {
+        throw new AppError(400, 'NICKNAME_NOT_ALLOWED', 'Esse nickname não é permitido. Escolha outro.');
+      }
+      data.nickname = dto.nickname;
+    }
+    const user = await this.updateUserOrConflict(userId, data);
     const { password, ...profile } = user;
     void password;
     return profile;
+  }
+
+  private async updateUserOrConflict(userId: string, data: Parameters<IAuthRepository['updateUser']>[1]) {
+    try {
+      return await this.authRepository.updateUser(userId, data);
+    } catch (error) {
+      if ((error as { code?: string }).code === 'P2002') {
+        throw new AppError(409, 'NICKNAME_TAKEN', 'Esse nickname já está em uso.');
+      }
+      throw error;
+    }
   }
 
   async changePassword(userId: string, dto: ChangePasswordDTO): Promise<void> {
