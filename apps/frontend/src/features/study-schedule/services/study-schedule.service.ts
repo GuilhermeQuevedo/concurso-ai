@@ -54,6 +54,7 @@ export const studyScheduleService = {
       subjects: schedule.subjects,
       schedule: schedule.schedule,
       hasPerformanceData: schedule.hasPerformanceData || schedule.has_performance_data || false,
+      contestId: schedule.contestId ?? undefined,
     });
     return unwrapData(res);
   },

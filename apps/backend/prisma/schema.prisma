@@ -501,6 +501,7 @@ model Contest {
   user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   syllabus   ContestSyllabusItem[]
   studyTasks StudyTask[]
+  schedules  StudySchedule[]
 
   @@index([userId])
   @@index([userId, createdAt])
@@ -801,12 +802,15 @@ model StudySchedule {
   subjects           Json
   schedule           Json
   hasPerformanceData Boolean  @default(false)
+  contestId          String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contest Contest? @relation(fields: [contestId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([userId, contestId])
 }
 
 model Reminder {

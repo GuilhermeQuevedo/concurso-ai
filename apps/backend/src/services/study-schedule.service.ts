@@ -14,6 +14,7 @@ export interface GenerateScheduleDTO {
   availability?: ScheduleAvailability;
   forceRefresh?: boolean;
   saveToDb?: boolean;
+  contestId?: string | null;
 }
 
 export interface SaveScheduleDTO {
@@ -25,6 +26,7 @@ export interface SaveScheduleDTO {
   schedule: Prisma.InputJsonValue;
   hasPerformanceData?: boolean;
   has_performance_data?: boolean;
+  contestId?: string | null;
 }
 
 interface ParsedScheduleJSON {
@@ -325,8 +327,9 @@ export class StudyScheduleService {
       return scheduleData;
     }
 
+    const contestId = await this.resolveContestId(userId, dto.contestId);
     const saved = await prisma.studySchedule.create({
-      data: scheduleData,
+      data: { ...scheduleData, contestId },
     });
 
     return saved;
@@ -336,7 +339,16 @@ export class StudyScheduleService {
     return prisma.studySchedule.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      include: { contest: { select: { id: true, name: true } } },
     });
+  }
+
+  // O vínculo com o edital só vale para editais da própria pessoa.
+  private async resolveContestId(userId: string, contestId?: string | null): Promise<string | null> {
+    if (!contestId) return null;
+    const contest = await prisma.contest.findFirst({ where: { id: contestId, userId }, select: { id: true } });
+    if (!contest) throw new AppError(404, 'CONTEST_NOT_FOUND', 'Edital não encontrado');
+    return contest.id;
   }
 
   async getSchedule(id: string, userId: string) {
@@ -350,9 +362,12 @@ export class StudyScheduleService {
   }
 
   async saveSchedule(userId: string, data: SaveScheduleDTO) {
+    const contestId = await this.resolveContestId(userId, data.contestId);
     return prisma.studySchedule.create({
+      include: { contest: { select: { id: true, name: true } } },
       data: {
         userId,
+        contestId,
         examDate: data.examDate || data.exam_date || '',
         dailyHours: Number(data.dailyHours || data.daily_hours || 3),
         subjects: data.subjects,

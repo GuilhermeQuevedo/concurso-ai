@@ -22,6 +22,7 @@ export interface WizardSubmitPayload {
   subjects: string[];
   availability: ScheduleAvailability;
   contestName: string | null;
+  contestId: string | null;
 }
 
 const clampLevel = (value: number) => Math.min(5, Math.max(1, Math.round(value) || 3));
@@ -84,6 +85,7 @@ export function useScheduleWizard() {
     subjects: subjects.map((s) => s.name),
     availability: buildAvailability(subjects, days, weeklyHours * 60, maxSubjects ?? undefined),
     contestName: detail.data?.name ?? null,
+    contestId: contestId || null,
   });
 
   return {

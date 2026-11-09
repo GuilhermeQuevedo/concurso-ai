@@ -43,6 +43,8 @@ export interface StudySchedule {
   };
   hasPerformanceData?: boolean;
   has_performance_data?: boolean;
+  contestId?: string | null;
+  contest?: { id: string; name: string } | null;
   createdAt?: string;
   created_at?: string;
 }
