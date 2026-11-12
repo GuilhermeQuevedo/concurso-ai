@@ -14,10 +14,19 @@ export interface AdminOverview {
   revenue: { receivedCents: number; paymentsCount: number };
 }
 
+export interface AdminPagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface AdminUser {
   id: string;
   name: string;
   email: string;
+  phone?: string | null;
+  isMasked?: boolean;
   role: 'USER' | 'ADMIN';
   createdAt: string;
   activeSubscriber: boolean;
@@ -27,6 +36,11 @@ export interface AdminUser {
   essays: number;
   flashcards: number;
   sessions: number;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  pagination: AdminPagination;
 }
 
 export interface AccessGrant {
@@ -45,7 +59,23 @@ export interface Contact {
   phone: string | null;
   email: string | null;
   source: string | null;
+  notes?: string | null;
+  isMasked?: boolean;
+  unsubscribed?: boolean;
   createdAt: string;
+}
+
+export interface AdminContactsResponse {
+  contacts: Contact[];
+  pagination: AdminPagination;
+}
+
+export interface ImportContactsPayload {
+  text: string;
+  source?: string;
+  legalBasis: 'CONSENT' | 'LEGITIMATE_INTEREST' | 'PRE_CONTRACTUAL';
+  consentProofNotes: string;
+  legitimateInterestAssessmentRef?: string;
 }
 
 export const adminService = {
@@ -54,18 +84,48 @@ export const adminService = {
     return unwrapData(response);
   },
 
-  async getUsers(): Promise<AdminUser[]> {
-    const response = await api.get<ApiResponse<AdminUser[]>>('/admin/users');
+  async getUsers(page = 1, limit = 50): Promise<AdminUsersResponse> {
+    const response = await api.get<ApiResponse<AdminUsersResponse>>('/admin/users', {
+      params: { page, limit },
+    });
     return unwrapData(response);
   },
 
-  async getContacts(): Promise<{ total: number; contacts: Contact[] }> {
-    const response = await api.get<ApiResponse<{ total: number; contacts: Contact[] }>>('/admin/contacts');
+  async revealUser(userId: string, justification: string): Promise<AdminUser> {
+    const response = await api.post<ApiResponse<AdminUser>>(`/admin/users/${userId}/reveal`, { justification });
     return unwrapData(response);
   },
 
-  async importContacts(text: string, source?: string): Promise<{ parsed: number; imported: number }> {
-    const response = await api.post<ApiResponse<{ parsed: number; imported: number }>>('/admin/contacts/import', { text, source });
+  async getContacts(page = 1, limit = 50): Promise<AdminContactsResponse> {
+    const response = await api.get<ApiResponse<AdminContactsResponse>>('/admin/contacts', {
+      params: { page, limit },
+    });
+    return unwrapData(response);
+  },
+
+  async revealContact(contactId: string, justification: string): Promise<Contact> {
+    const response = await api.post<ApiResponse<Contact>>(`/admin/contacts/${contactId}/reveal`, { justification });
+    return unwrapData(response);
+  },
+
+  async importContacts(
+    payload: ImportContactsPayload | string,
+    source?: string,
+  ): Promise<{ parsed: number; imported: number; skippedSuppressed?: number }> {
+    const body: ImportContactsPayload =
+      typeof payload === 'string'
+        ? {
+            text: payload,
+            source,
+            legalBasis: 'CONSENT',
+            consentProofNotes: 'Importação manual via painel de administração',
+          }
+        : payload;
+
+    const response = await api.post<ApiResponse<{ parsed: number; imported: number; skippedSuppressed?: number }>>(
+      '/admin/contacts/import',
+      body,
+    );
     return unwrapData(response);
   },
 
