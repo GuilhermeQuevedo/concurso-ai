@@ -1,3 +1,5 @@
+import { levelFromXp } from '@concurso-ai/shared';
+import { startOfWeekSP } from '../utils/time-sp.js';
 import { prisma } from '../database/prisma.js';
 import { LRUCache } from 'lru-cache';
 import { AppError } from '../middlewares/error-handler.js';
@@ -11,6 +13,8 @@ interface LeaderboardEntryBase {
   streak: number;
   games: number;
   score: number;
+  level: number;
+  tier: string;
   position: number;
 }
 
@@ -160,7 +164,7 @@ export class RankingService {
           ? { userId: { in: userIds }, question: { subjectId: board.subjectId } }
           : { userId: { in: userIds } };
 
-        const [totals, corrects, streaks, users, gamePoints] = await Promise.all([
+        const [totals, corrects, streaks, users, gamePoints, weeklyXp] = await Promise.all([
           prisma.questionAttempt.groupBy({
             by: ['userId'],
             where: attemptWhere,
@@ -177,14 +181,20 @@ export class RankingService {
           }),
           prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, name: true, avatar: true },
+            select: { id: true, name: true, avatar: true, totalXp: true },
           }),
           prisma.gameSession.groupBy({
             by: ['userId'],
             where: { userId: { in: userIds }, createdAt: { gte: new Date(Date.now() - GAME_WINDOW_MS) } },
             _sum: { points: true },
           }),
+          prisma.xpEvent.groupBy({
+            by: ['userId'],
+            where: { userId: { in: userIds }, createdAt: { gte: startOfWeekSP() } },
+            _sum: { xp: true },
+          }),
         ]);
+        const xpMap = new Map(weeklyXp.map((w) => [w.userId, w._sum.xp ?? 0]));
 
         const totalMap = new Map(totals.map((t) => [t.userId, t._count._all]));
         const correctMap = new Map(corrects.map((c) => [c.userId, c._count._all]));
@@ -199,6 +209,7 @@ export class RankingService {
             const streak = streakMap.get(uid) ?? 0;
             const games = gameMap.get(uid) ?? 0;
             const user = userMap.get(uid);
+            const level = levelFromXp(user?.totalXp ?? 0);
             return {
               userId: uid,
               name: user?.name ?? 'Aluno',
@@ -207,7 +218,10 @@ export class RankingService {
               total,
               streak,
               games,
-              score: correct * CORRECT_WEIGHT + streak * STREAK_WEIGHT + Math.round(games * GAME_WEIGHT),
+              // Ranking geral usa o XP da semana; ranking de uma disciplina só tem o desempenho nela.
+              score: board.subjectId ? correct * CORRECT_WEIGHT + streak * STREAK_WEIGHT + Math.round(games * GAME_WEIGHT) : (xpMap.get(uid) ?? 0),
+              level: level.level,
+              tier: level.tier.name,
               position: 0,
             };
           })

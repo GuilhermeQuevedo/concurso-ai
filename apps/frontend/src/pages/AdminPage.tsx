@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Users, CreditCard, DollarSign, BookOpen, PenLine, Layers, Target, Loader2 } from 'lucide-react';
+import { GrantAccessCard } from '@/features/admin/components/GrantAccessCard';
 import { adminService, type AdminUser } from '@/features/admin/services/admin.service';
 
 function formatBRL(cents: number): string {
@@ -42,6 +43,8 @@ export function AdminPage() {
       <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-400">
         Os valores exatos de faturamento, saques e taxas ficam no Stripe (Financeiro). Aqui mostramos o que chegou pelos webhooks.
       </div>
+
+      <GrantAccessCard />
 
       <div className="mt-6">
         <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">Usuários ({users.length})</h2>

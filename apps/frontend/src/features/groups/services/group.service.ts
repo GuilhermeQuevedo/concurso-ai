@@ -2,6 +2,7 @@ import { api, unwrapData } from '@/services/api';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export interface GroupMemberDTO {
+  id: string;
   userId: string;
   name: string;
   avatar: string | null;
@@ -25,6 +26,8 @@ export interface RankingEntry {
   avatar: string | null;
   weekPoints: number;
   totalPoints: number;
+  level: number;
+  tier: string;
 }
 
 export interface FeedEntry {
@@ -65,6 +68,10 @@ export const groupService = {
   async getFeed(id: string): Promise<FeedEntry[]> {
     const response = await api.get<ApiResponse<FeedEntry[]>>(`/groups/${id}/feed`);
     return unwrapData(response);
+  },
+
+  async invite(id: string, nickname: string): Promise<void> {
+    await api.post(`/groups/${id}/invites`, { nickname });
   },
 
   async leave(id: string): Promise<void> {

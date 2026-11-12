@@ -20,6 +20,7 @@ export interface IAuthRepository {
       email?: string;
       password?: string;
       dailyGoal?: number;
+      nickname?: string;
       pausedUntil?: Date | null;
       googleId?: string;
       avatar?: string;

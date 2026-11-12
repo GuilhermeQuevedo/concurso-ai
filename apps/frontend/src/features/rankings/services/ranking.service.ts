@@ -29,6 +29,8 @@ export interface LeaderboardEntry {
   total: number;
   streak: number;
   score: number;
+  level: number;
+  tier: string;
   isCurrentUser: boolean;
   position: number;
 }

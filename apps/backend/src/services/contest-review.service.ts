@@ -1,3 +1,5 @@
+import { xpService } from './xp.service.js';
+import { REVIEW_XP } from '@concurso-ai/shared';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { startOfDay, addDays } from '../utils/spaced-repetition.js';
@@ -13,10 +15,12 @@ export class ContestReviewService {
       throw new AppError(404, 'REVIEW_NOT_FOUND', 'Revisão não encontrada');
     }
 
-    return prisma.topicReview.update({
+    const updated = await prisma.topicReview.update({
       where: { id: reviewId },
       data: { completedAt: completed ? new Date() : null },
     });
+    const xp = completed ? await xpService.award(userId, 'REVIEW', reviewId, REVIEW_XP) : null;
+    return { ...updated, xp };
   }
 
   async listDue(userId: string) {

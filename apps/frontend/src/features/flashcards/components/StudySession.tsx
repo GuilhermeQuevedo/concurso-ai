@@ -2,7 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { X, Lightbulb, BookMarked, Check, AlertTriangle, BookOpen } from 'lucide-react';
+import { GroupDoubtButton } from '@/features/groups/components/GroupDoubtButton';
+
 import { flashcardService, type DeckDTO, type FlashcardDTO } from '../services/flashcard.service';
+
+const CARD_CONTEXT_SEPARATOR = '\n';
 
 const RATINGS = [
   { quality: 0, key: '1', label: 'Errei', color: '#ef4444' },
@@ -203,6 +207,12 @@ export function StudySession({ deck, cards, onExit }: { deck: DeckDTO; cards: Fl
             </p>
           )}
           {!flipped && <p className="mt-5 text-xs text-gray-400">Toque no card ou aperte Espaço para ver a resposta</p>}
+          {flipped && (
+            // O clique no cartão não deve virar/avançar enquanto a pessoa escreve a dúvida.
+            <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+              <GroupDoubtButton targetType="FLASHCARD" targetId={card.id} context={`Frente: ${card.front}${CARD_CONTEXT_SEPARATOR}Verso: ${card.back}`} />
+            </div>
+          )}
         </div>
 
         {!flipped ? (

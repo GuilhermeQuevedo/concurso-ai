@@ -21,11 +21,22 @@ export interface AdminUser {
   role: 'USER' | 'ADMIN';
   createdAt: string;
   activeSubscriber: boolean;
+  access: { provider: string; expiresAt: string | null } | null;
   streak: number;
   questionsAnswered: number;
   essays: number;
   flashcards: number;
   sessions: number;
+}
+
+export interface AccessGrant {
+  email: string;
+  provider: string;
+  expiresAt: string | null;
+}
+
+export interface ManualAccessEntry extends AccessGrant {
+  hasAccount: boolean;
 }
 
 export interface Contact {
@@ -60,5 +71,19 @@ export const adminService = {
 
   async deleteContact(id: string): Promise<void> {
     await api.delete(`/admin/contacts/${id}`);
+  },
+
+  async listAccess(): Promise<ManualAccessEntry[]> {
+    const response = await api.get<ApiResponse<ManualAccessEntry[]>>('/admin/access');
+    return unwrapData(response);
+  },
+
+  async grantAccess(email: string, days?: number): Promise<AccessGrant> {
+    const response = await api.post<ApiResponse<AccessGrant>>('/admin/access', { email, days });
+    return unwrapData(response);
+  },
+
+  async revokeAccess(email: string): Promise<void> {
+    await api.post('/admin/access/revoke', { email });
   },
 };

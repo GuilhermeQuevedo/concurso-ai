@@ -1,68 +1,50 @@
-import { useMemo } from 'react';
-import { Flame } from 'lucide-react';
-import type { HeatmapDay } from '../services/dashboard.service';
+import { useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, Flame, Maximize2, Shield } from 'lucide-react';
 
-const WEEKS = 26;
-const WEEKDAY_LABELS = ['', 'S', '', 'Q', '', 'S', ''];
+import type { HeatmapDay, StreakSummary } from '../services/dashboard.service';
+import { ConstanciaModal } from './ConstanciaModal';
+import { ConstanciaMonth, monthTitle } from './ConstanciaMonth';
 
-function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
+// O backend envia cerca de 6 meses de histórico, então não adianta navegar mais para trás.
+const MAX_MONTHS_BACK = 6;
+const SHIELD_EVERY_DAYS = 7;
+const MAX_SHIELDS = 2;
+
+function daysToNextShield(streak: StreakSummary): number | null {
+  if (streak.shields >= MAX_SHIELDS) return null;
+  return SHIELD_EVERY_DAYS - (streak.current % SHIELD_EVERY_DAYS);
 }
 
-function addDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-}
+export function ConstanciaHeatmap({ heatmap, streak }: { heatmap: HeatmapDay[]; streak: StreakSummary }) {
+  const [monthsBack, setMonthsBack] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+  const today = useMemo(() => new Date(), []);
+  const counts = useMemo(() => new Map(heatmap.map((h) => [h.date, h.count])), [heatmap]);
+  const shielded = useMemo(() => new Set(streak.shieldedDates), [streak.shieldedDates]);
 
-function dateKey(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
-
-function levelClass(count: number, isFuture: boolean): string {
-  if (isFuture) return 'bg-transparent';
-  if (count === 0) return 'bg-gray-100 dark:bg-gray-800';
-  if (count <= 2) return 'bg-primary-200 dark:bg-primary-900';
-  if (count <= 5) return 'bg-primary-400 dark:bg-primary-700';
-  if (count <= 10) return 'bg-primary-500 dark:bg-primary-500';
-  return 'bg-primary-600 dark:bg-primary-400';
-}
-
-export function ConstanciaHeatmap({
-  heatmap,
-  streak,
-}: {
-  heatmap: HeatmapDay[];
-  streak: { current: number; longest: number };
-}) {
-  const columns = useMemo(() => {
-    const counts = new Map(heatmap.map((h) => [h.date, h.count]));
-    const today = startOfDay(new Date());
-    const gridEnd = addDays(today, 6 - today.getDay());
-    const gridStart = addDays(gridEnd, -(WEEKS * 7 - 1));
-
-    const weeks: { key: string; count: number; isFuture: boolean }[][] = [];
-    for (let w = 0; w < WEEKS; w++) {
-      const col: { key: string; count: number; isFuture: boolean }[] = [];
-      for (let d = 0; d < 7; d++) {
-        const date = addDays(gridStart, w * 7 + d);
-        const key = dateKey(date);
-        col.push({ key, count: counts.get(key) ?? 0, isFuture: date > today });
-      }
-      weeks.push(col);
-    }
-    return weeks;
-  }, [heatmap]);
+  const shown = new Date(today.getFullYear(), today.getMonth() - monthsBack, 1);
+  const untilShield = daysToNextShield(streak);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Constância</h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+          Constância
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-label="Ampliar constância"
+            title="Ver todos os meses"
+            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+        </h2>
         <div className="flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1 font-medium text-sky-600 dark:text-sky-400" title="Escudos protegem a sequência quando você falta um dia">
+            <Shield className="h-4 w-4" />
+            {streak.shields}
+          </span>
           <span className="flex items-center gap-1 font-medium text-orange-600 dark:text-orange-400">
             <Flame className="h-4 w-4" />
             {streak.current} dia{streak.current === 1 ? '' : 's'}
@@ -71,38 +53,50 @@ export function ConstanciaHeatmap({
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <div className="flex flex-col gap-[3px] pt-[1px] text-[9px] text-gray-400">
-          {WEEKDAY_LABELS.map((label, i) => (
-            <span key={i} className="flex h-[11px] items-center leading-none">
-              {label}
+      <div className="space-y-5">
+        <div>
+          <ConstanciaMonth
+            year={shown.getFullYear()}
+            month={shown.getMonth()}
+            counts={counts}
+            shielded={shielded}
+            today={today}
+          />
+          <div className="mt-3 flex items-center justify-center gap-4 text-sm">
+            <button
+              type="button"
+              onClick={() => setMonthsBack((m) => Math.min(MAX_MONTHS_BACK, m + 1))}
+              disabled={monthsBack >= MAX_MONTHS_BACK}
+              aria-label="Mês anterior"
+              className="rounded p-1 text-gray-500 hover:bg-gray-100 disabled:opacity-30 dark:hover:bg-gray-800"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="min-w-36 text-center font-medium text-gray-800 dark:text-gray-200">
+              {monthTitle(shown.getFullYear(), shown.getMonth())}
             </span>
-          ))}
+            <button
+              type="button"
+              onClick={() => setMonthsBack((m) => Math.max(0, m - 1))}
+              disabled={monthsBack === 0}
+              aria-label="Próximo mês"
+              className="rounded p-1 text-gray-500 hover:bg-gray-100 disabled:opacity-30 dark:hover:bg-gray-800"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-        <div className="flex gap-[3px] overflow-x-auto">
-          {columns.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
-              {week.map((cell) => (
-                <div
-                  key={cell.key}
-                  title={cell.isFuture ? '' : `${cell.key}: ${cell.count} atividade${cell.count === 1 ? '' : 's'}`}
-                  className={`h-[11px] w-[11px] rounded-[2px] ${levelClass(cell.count, cell.isFuture)}`}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
+
+        <p className="border-t border-gray-100 pt-3 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          {untilShield !== null
+            ? `Faltam ${untilShield} dia${untilShield === 1 ? '' : 's'} para o próximo escudo`
+            : 'Você está com o máximo de escudos'}
+        </p>
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1 text-[10px] text-gray-400">
-        <span>menos</span>
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-gray-100 dark:bg-gray-800" />
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-primary-200 dark:bg-primary-900" />
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-primary-400 dark:bg-primary-700" />
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-primary-500" />
-        <span className="h-[10px] w-[10px] rounded-[2px] bg-primary-600 dark:bg-primary-400" />
-        <span>mais</span>
-      </div>
+      {expanded && (
+        <ConstanciaModal counts={counts} shielded={shielded} today={today} streak={streak} onClose={() => setExpanded(false)} />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { GamificationService } from '../services/gamification.service.js';
+import { xpService } from '../services/xp.service.js';
 import type { ApiResponse } from '@concurso-ai/types';
 import { getUserId } from '../utils/request.js';
 
@@ -20,6 +21,16 @@ export class GamificationController {
     try {
       const newAchievements = await this.service.checkAchievements(getUserId(req));
       const response: ApiResponse<typeof newAchievements> = { success: true, data: newAchievements };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getXp = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await xpService.summary(getUserId(req));
+      const response: ApiResponse<typeof data> = { success: true, data };
       res.json(response);
     } catch (error) {
       next(error);

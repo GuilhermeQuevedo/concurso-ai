@@ -137,3 +137,42 @@ export const heavyRateLimiter = rateLimit({
     return `heavy_${req.ip || 'unknown'}`;
   },
 });
+
+/**
+ * Convites por nickname: poucos por hora por usuário, para impedir varredura de nicknames.
+ */
+export const inviteRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: env.NODE_ENV === 'development' ? 200 : 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRateLimitStore('invite'),
+  handler: standard429Handler,
+  keyGenerator: (req: Request) => `invite_${req.userId ?? req.ip ?? 'unknown'}`,
+});
+
+/**
+ * Comentários e pedidos de ajuda nos grupos: limite por hora por usuário contra spam.
+ */
+export const commentRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: env.NODE_ENV === 'development' ? 300 : 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRateLimitStore('comment'),
+  handler: standard429Handler,
+  keyGenerator: (req: Request) => `comment_${req.userId ?? req.ip ?? 'unknown'}`,
+});
+
+/**
+ * Criação de salas de questões: poucas por hora por usuário, já que notifica o grupo todo.
+ */
+export const roomCreateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: env.NODE_ENV === 'development' ? 100 : 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRateLimitStore('room'),
+  handler: standard429Handler,
+  keyGenerator: (req: Request) => `room_${req.userId ?? req.ip ?? 'unknown'}`,
+});

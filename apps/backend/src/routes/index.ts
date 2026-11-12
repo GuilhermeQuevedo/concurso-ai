@@ -23,6 +23,10 @@ import { calendarIntegrationRouter } from './calendar-integration.routes.js';
 import { errorNotebookRouter } from './error-notebook.routes.js';
 import { createEditalMapRouter } from './edital-map.routes.js';
 import { createStudyScheduleRouter } from './study-schedule.routes.js';
+import { reminderRouter } from './reminder.routes.js';
+import { friendRouter } from './friend.routes.js';
+import { inviteRouter } from './invite.routes.js';
+import { notificationRouter } from './notification.routes.js';
 import { healthRouter } from './health.routes.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { requireSubscription } from '../middlewares/subscription.middleware.js';
@@ -59,6 +63,11 @@ router.use('/games', gate, gameRouter);
 router.use('/error-notebook', gate, errorNotebookRouter);
 router.use('/edital-maps', gate, createEditalMapRouter());
 router.use('/study-schedules', gate, createStudyScheduleRouter());
+
+router.use('/reminders', gate, reminderRouter);
+router.use('/invites', gate, inviteRouter);
+router.use('/friends', gate, friendRouter);
+router.use('/notifications', gate, notificationRouter);
 
 router.use('/health', healthRouter);
 

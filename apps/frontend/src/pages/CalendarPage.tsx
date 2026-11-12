@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+
+import { useActiveStudy } from '@/features/active-study/active-study-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarClock, Clock, Loader2, Sparkles } from 'lucide-react';
 import { studyTaskService, type StudyTask } from '@/features/calendar/services/study-task.service';
@@ -7,6 +9,8 @@ import { GeneratePlanForm } from '@/features/calendar/components/GeneratePlanFor
 import { GoogleCalendarPluginModal } from '@/features/calendar/components/GoogleCalendarPluginModal';
 import { MonthGrid, dayKey } from '@/features/calendar/components/MonthGrid';
 import { TaskList } from '@/features/calendar/components/TaskList';
+import { DayReminders } from '@/features/reminders/components/DayReminders';
+import { reminderService } from '@/features/reminders/services/reminder.service';
 import { daysUntil } from '@/features/contests/components/ContestCard';
 
 export function CalendarPage() {
@@ -22,10 +26,12 @@ export function CalendarPage() {
   const lastDay = new Date(year, month + 1, 0).getDate();
   const to = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { activeContestId } = useActiveStudy();
+  const { data: allTasks = [], isLoading } = useQuery({
     queryKey: ['study-tasks', from, to],
     queryFn: () => studyTaskService.list(from, to),
   });
+  const tasks = useMemo(() => (activeContestId ? allTasks.filter((t) => t.contestId === activeContestId) : allTasks), [allTasks, activeContestId]);
 
   const { data: contests = [] } = useQuery({
     queryKey: ['contests'],
@@ -39,6 +45,22 @@ export function CalendarPage() {
       queryClient.invalidateQueries({ queryKey: ['contests'] });
     },
   });
+
+  const { data: reminders = [] } = useQuery({ queryKey: ['reminders'], queryFn: reminderService.list });
+  const remindersByDay = useMemo(() => {
+    const map = new Map<string, typeof reminders>();
+    for (const reminder of reminders) {
+      if (!reminder.dueDate) continue;
+      const key = reminder.dueDate.slice(0, 10);
+      map.set(key, [...(map.get(key) ?? []), reminder]);
+    }
+    return map;
+  }, [reminders]);
+  const reminderDays = useMemo(
+    () => new Set([...remindersByDay.entries()].filter(([, list]) => list.some((r) => !r.done)).map(([key]) => key)),
+    [remindersByDay],
+  );
+  const monthHasReminders = [...remindersByDay.keys()].some((key) => key >= from && key <= to);
 
   const tasksByDay = useMemo(() => {
     const map = new Map<string, StudyTask[]>();
@@ -132,7 +154,7 @@ export function CalendarPage() {
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
-      ) : tasks.length === 0 && !showGenerate ? (
+      ) : tasks.length === 0 && !monthHasReminders && !showGenerate ? (
         <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
           <CalendarClock className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
           <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -150,6 +172,7 @@ export function CalendarPage() {
             tasksByDay={tasksByDay}
             selectedDay={selectedDay}
             examDays={examDays}
+            reminderDays={reminderDays}
             onSelectDay={setSelectedDay}
             onNavigate={navigate}
           />
@@ -161,6 +184,7 @@ export function CalendarPage() {
               emptyMessage="Nenhuma tarefa neste dia."
               onToggle={(task) => toggleMutation.mutate(task)}
             />
+            <DayReminders day={selectedDay} reminders={remindersByDay.get(selectedDay) ?? []} />
           </div>
         </div>
       )}

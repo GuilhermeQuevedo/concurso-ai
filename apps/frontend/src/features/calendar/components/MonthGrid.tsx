@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { StudyTask } from '../services/study-task.service';
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -20,11 +20,13 @@ interface MonthGridProps {
   tasksByDay: Map<string, StudyTask[]>;
   selectedDay: string;
   examDays: Map<string, string>;
+  // Dias com algum lembrete pendente.
+  reminderDays?: Set<string>;
   onSelectDay: (key: string) => void;
   onNavigate: (delta: number) => void;
 }
 
-export function MonthGrid({ year, month, tasksByDay, selectedDay, examDays, onSelectDay, onNavigate }: MonthGridProps) {
+export function MonthGrid({ year, month, tasksByDay, selectedDay, examDays, reminderDays, onSelectDay, onNavigate }: MonthGridProps) {
   const firstDay = new Date(year, month, 1);
   const startOffset = firstDay.getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -65,6 +67,7 @@ export function MonthGrid({ year, month, tasksByDay, selectedDay, examDays, onSe
           const isToday = key === todayKey;
           const isSelected = key === selectedDay;
           const isExamDay = examDays.has(key);
+          const hasReminder = reminderDays?.has(key) ?? false;
 
           return (
             <button
@@ -86,6 +89,7 @@ export function MonthGrid({ year, month, tasksByDay, selectedDay, examDays, onSe
                 {date.getDate()}
               </span>
               {isExamDay && <span className="mt-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">PROVA</span>}
+              {hasReminder && <Bell aria-label="Tem lembrete" className="mt-0.5 h-3 w-3 text-amber-500" />}
               {tasks.length > 0 && (
                 <span
                   className={`mt-0.5 rounded-full px-1.5 text-[10px] font-medium ${

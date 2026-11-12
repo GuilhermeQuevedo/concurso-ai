@@ -1,3 +1,7 @@
+import { xpService } from './xp.service.js';
+import { GamificationService } from './gamification.service.js';
+import { dayKeySP } from '../utils/time-sp.js';
+import { DAY_QUALIFIES, flashcardXp } from '@concurso-ai/shared';
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -126,7 +130,7 @@ export class FlashcardService {
     });
   }
 
-  async review(userId: string, cardId: string, dto: ReviewDTO) {
+  async review(userId: string, cardId: string, dto: ReviewDTO, options: { awardXp?: boolean } = {}) {
     const card = await prisma.flashcard.findUnique({
       where: { id: cardId },
       include: { deck: true },
@@ -164,7 +168,13 @@ export class FlashcardService {
       },
     });
 
-    return updatedCard;
+    if (options.awardXp === false) return updatedCard;
+    // Um cartão pontua uma vez por dia; 15 cartões revisados fecham o dia de estudo da ofensiva.
+    const xp = await xpService.award(userId, 'FLASHCARD', `${cardId}:${dayKeySP()}`, flashcardXp(dto.quality));
+    if ((await xpService.countToday(userId, 'FLASHCARD')) >= DAY_QUALIFIES.FLASHCARDS) {
+      await new GamificationService().updateStreak(userId);
+    }
+    return { ...updatedCard, xp };
   }
 
   async list(userId: string, subjectId?: string) {

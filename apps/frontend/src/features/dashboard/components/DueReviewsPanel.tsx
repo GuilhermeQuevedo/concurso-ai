@@ -1,14 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarClock, Check } from 'lucide-react';
+import { useActiveStudy } from '@/features/active-study/active-study-context';
 import { contestService } from '@/features/contests/services/contest.service';
 
 export function DueReviewsPanel() {
   const queryClient = useQueryClient();
 
-  const { data: reviews = [] } = useQuery({
+  const { activeContestId } = useActiveStudy();
+  const { data: allReviews = [] } = useQuery({
     queryKey: ['due-reviews'],
     queryFn: contestService.listDueReviews,
   });
+  const reviews = activeContestId ? allReviews.filter((r) => r.contestId === activeContestId) : allReviews;
 
   const completeMutation = useMutation({
     mutationFn: (reviewId: string) => contestService.completeReview(reviewId, true),

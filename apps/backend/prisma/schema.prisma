@@ -13,6 +13,10 @@ model User {
   password      String?
   googleId      String?  @unique
   name          String
+  nickname      String?  @unique @db.VarChar(15)
+  totalXp       Int      @default(0)
+  tierRewarded  Int      @default(0)
+  friendCode    String?  @unique @db.VarChar(8)
   phone         String?
   avatar        String?
   role          Role     @default(USER)
@@ -51,6 +55,20 @@ model User {
   calendarIntegration   UserCalendarIntegration?
   editalMaps            EditalMap[]
   studySchedules        StudySchedule[]
+  reminders             Reminder[]
+  streakShieldUses      StreakShieldUse[]
+  receivedInvites       GroupInvite[]     @relation("InvitedUser")
+  sentInvites           GroupInvite[]     @relation("InvitedBy")
+  notifications         Notification[]
+  groupShares           GroupShare[]
+  groupComments         GroupComment[]
+  roomsHosted           GroupRoom[]       @relation("RoomHost")
+  roomPlayers           GroupRoomPlayer[]
+  roomAnswers           GroupRoomAnswer[]
+  xpEvents              XpEvent[]
+  friendshipsLow        Friendship[]      @relation("FriendLow")
+  friendshipsHigh       Friendship[]      @relation("FriendHigh")
+  friendRequestsSent    Friendship[]      @relation("FriendRequester")
 }
 
 model Session {
@@ -294,8 +312,20 @@ model Streak {
   current   Int      @default(0)
   longest   Int      @default(0)
   lastDate  DateTime @default(now())
+  shields   Int      @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StreakShieldUse {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String   @db.VarChar(10)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }
 
 model Essay {
@@ -361,6 +391,47 @@ enum RankingStatus {
   REJECTED
 }
 
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum ShareType {
+  DECK
+  SCHEDULE
+  CONTEST
+  QUESTION
+}
+
+enum CommentTarget {
+  QUESTION
+  FLASHCARD
+  DECK
+  GENERAL
+}
+
+enum CommentKind {
+  COMMENT
+  DOUBT
+}
+
+enum RoomMode {
+  LIVE
+  OWN_PACE
+}
+
+enum RoomStatus {
+  LOBBY
+  RUNNING
+  FINISHED
+}
+
 enum GroupRole {
   ADMIN
   MEMBER
@@ -377,6 +448,10 @@ model StudyGroup {
 
   members    GroupMember[]
   activities GroupActivity[]
+  invites    GroupInvite[]
+  shares     GroupShare[]
+  comments   GroupComment[]
+  rooms      GroupRoom[]
 }
 
 model GroupMember {
@@ -736,4 +811,176 @@ model StudySchedule {
 
   @@index([userId])
   @@index([userId, contestId])
+}
+
+model Reminder {
+  id        String    @id @default(cuid())
+  userId    String
+  text      String    @db.VarChar(200)
+  dueDate   DateTime?
+  done      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, done])
+}
+
+model GroupInvite {
+  id            String       @id @default(cuid())
+  groupId       String
+  invitedUserId String
+  invitedById   String
+  status        InviteStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  group       StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  invitedUser User       @relation("InvitedUser", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedBy   User       @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, invitedUserId])
+  @@index([invitedUserId, status])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    @db.VarChar(40)
+  message   String    @db.VarChar(300)
+  payload   Json?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+model GroupShare {
+  id         String    @id @default(cuid())
+  groupId    String
+  sharedById String
+  type       ShareType
+  refId      String
+  title      String    @db.VarChar(200)
+  createdAt  DateTime  @default(now())
+
+  group    StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sharedBy User       @relation(fields: [sharedById], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, type, refId])
+  @@index([groupId, createdAt])
+}
+
+model GroupComment {
+  id         String        @id @default(cuid())
+  groupId    String
+  userId     String
+  targetType CommentTarget @default(GENERAL)
+  targetId   String?       @db.VarChar(60)
+  context    String?       @db.Text
+  parentId   String?
+  body       String        @db.VarChar(500)
+  kind       CommentKind   @default(COMMENT)
+  resolved   Boolean       @default(false)
+  helpful    Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+
+  group   StudyGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  GroupComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies GroupComment[] @relation("CommentReplies")
+
+  @@index([groupId, parentId, createdAt])
+  @@index([groupId, targetType, targetId])
+  @@index([groupId, kind, resolved])
+}
+
+model GroupRoom {
+  id                 String     @id @default(cuid())
+  groupId            String
+  hostId             String
+  title              String     @db.VarChar(80)
+  mode               RoomMode
+  status             RoomStatus @default(LOBBY)
+  questionIds        Json
+  secondsPerQuestion Int        @default(30)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  rewarded           Boolean    @default(false)
+  createdAt          DateTime   @default(now())
+
+  group   StudyGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  host    User              @relation("RoomHost", fields: [hostId], references: [id], onDelete: Cascade)
+  players GroupRoomPlayer[]
+  answers GroupRoomAnswer[]
+
+  @@index([groupId, createdAt])
+}
+
+model GroupRoomPlayer {
+  id       String   @id @default(cuid())
+  roomId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  room GroupRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([userId])
+}
+
+model GroupRoomAnswer {
+  id         String   @id @default(cuid())
+  roomId     String
+  userId     String
+  questionId String   @db.VarChar(60)
+  choice     String   @db.VarChar(10)
+  isCorrect  Boolean
+  points     Int      @default(0)
+  ms         Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  room GroupRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId, questionId])
+  @@index([roomId])
+}
+
+model XpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String   @db.VarChar(20)
+  refId     String   @db.VarChar(100)
+  xp        Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, source, refId])
+  @@index([userId, createdAt])
+}
+
+model Friendship {
+  id            String       @id @default(cuid())
+  // O par é guardado em ordem (menor id primeiro): uma única linha por dupla.
+  userLowId     String
+  userHighId    String
+  requestedById String
+  status        FriendStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  userLow     User @relation("FriendLow", fields: [userLowId], references: [id], onDelete: Cascade)
+  userHigh    User @relation("FriendHigh", fields: [userHighId], references: [id], onDelete: Cascade)
+  requestedBy User @relation("FriendRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@unique([userLowId, userHighId])
+  @@index([userHighId, status])
+  @@index([userLowId, status])
 }

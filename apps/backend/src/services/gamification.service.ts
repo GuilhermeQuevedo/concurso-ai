@@ -1,4 +1,9 @@
 import { prisma } from '../database/prisma.js';
+import { addDays } from '../utils/spaced-repetition.js';
+import { advanceStreak } from '../utils/streak-shield.js';
+import { dayKeySP, startOfDaySP } from '../utils/time-sp.js';
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const ACHIEVEMENT_DEFS: Record<string, { name: string; description: string; check: (stats: UserGameStats) => boolean }> = {
   FIRST_QUESTION: {
@@ -41,6 +46,11 @@ const ACHIEVEMENT_DEFS: Record<string, { name: string; description: string; chec
     description: '30 dias seguidos estudando',
     check: (s) => s.currentStreak >= 30,
   },
+  TIER_1: { name: 'Faixa Aplicado', description: 'Chegou ao nível 5', check: () => false },
+  TIER_2: { name: 'Faixa Dedicado', description: 'Chegou ao nível 10', check: () => false },
+  TIER_3: { name: 'Faixa Veterano', description: 'Chegou ao nível 15', check: () => false },
+  TIER_4: { name: 'Faixa Mestre', description: 'Chegou ao nível 20', check: () => false },
+  TIER_5: { name: 'Faixa Lenda', description: 'Chegou ao nível 25', check: () => false },
   FIRST_FLASHCARD: {
     name: 'Memorizador',
     description: 'Criou seu primeiro flashcard',
@@ -57,40 +67,32 @@ interface UserGameStats {
 
 export class GamificationService {
   async updateStreak(userId: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let streak = await prisma.streak.findUnique({ where: { userId } });
+    const today = startOfDaySP();
+    const streak = await prisma.streak.findUnique({ where: { userId } });
 
     if (!streak) {
-      streak = await prisma.streak.create({
-        data: { userId, current: 1, longest: 1, lastDate: today },
-      });
-      return streak;
+      return prisma.streak.create({ data: { userId, current: 1, longest: 1, lastDate: today } });
     }
 
-    const lastDate = new Date(streak.lastDate);
-    lastDate.setHours(0, 0, 0, 0);
-    const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round((today.getTime() - startOfDaySP(streak.lastDate).getTime()) / MS_PER_DAY);
+    if (diffDays <= 0) return streak;
 
-    if (diffDays === 0) return streak;
+    const step = advanceStreak(streak, diffDays - 1);
+    const shieldedDates = Array.from({ length: step.coveredDays }, (_, i) =>
+      dayKeySP(addDays(startOfDaySP(streak.lastDate), i + 1)),
+    );
 
-    if (diffDays === 1) {
-      const newCurrent = streak.current + 1;
-      return prisma.streak.update({
+    const [updated] = await prisma.$transaction([
+      prisma.streak.update({
         where: { userId },
-        data: {
-          current: newCurrent,
-          longest: Math.max(streak.longest, newCurrent),
-          lastDate: today,
-        },
-      });
-    }
-
-    return prisma.streak.update({
-      where: { userId },
-      data: { current: 1, lastDate: today },
-    });
+        data: { current: step.current, longest: step.longest, shields: step.shields, lastDate: today },
+      }),
+      prisma.streakShieldUse.createMany({
+        data: shieldedDates.map((date) => ({ userId, date })),
+        skipDuplicates: true,
+      }),
+    ]);
+    return updated;
   }
 
   async checkAchievements(userId: string) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { GroupDoubtButton } from '@/features/groups/components/GroupDoubtButton';
 import { RotateCw, Check, X, ArrowLeft, ArrowRight, Lightbulb, Sparkles } from 'lucide-react';
 
 export interface ViewerCard {
@@ -204,6 +205,12 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
               </div>
             )}
           </div>
+
+          {flipped && (
+            <div className="flex justify-center pt-3">
+              <GroupDoubtButton targetType="FLASHCARD" targetId={currentCard.id} context={['Frente: ' + currentCard.front, 'Verso: ' + currentCard.back].join('\n')} />
+            </div>
+          )}
 
           {/* Card Footer Hint */}
           <div className="text-center text-xs text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-800/60">

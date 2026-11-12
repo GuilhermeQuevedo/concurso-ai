@@ -1,3 +1,4 @@
+import { TierBadge } from '@/features/xp/components/TierBadge';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Medal, Trophy, Users, Loader2, Check, X, Flame, Target, Trash2 } from 'lucide-react';
@@ -223,6 +224,9 @@ function LeaderboardPanel({ rankingId }: { rankingId: string }) {
               <span className="flex-1 truncate text-sm font-medium text-gray-900 dark:text-white">
                 {e.name}
                 {e.isCurrentUser && <span className="ml-1 text-xs text-primary-600">(você)</span>}
+                <span className="ml-2 align-middle">
+                  <TierBadge level={e.level} tier={e.tier} />
+                </span>
               </span>
               <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                 <Target className="h-3.5 w-3.5" /> {e.correct}/{e.total}

@@ -1,9 +1,13 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { AdminService } from '../services/admin.service.js';
+import type { AdminAccessService } from '../services/admin-access.service.js';
 import type { ApiResponse } from '@concurso-ai/types';
 
 export class AdminController {
-  constructor(private readonly service: AdminService) {}
+  constructor(
+    private readonly service: AdminService,
+    private readonly access: AdminAccessService,
+  ) {}
 
   overview = async (_req: Request, res: Response, next: NextFunction) => {
     try {
@@ -50,6 +54,36 @@ export class AdminController {
   deleteContact = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.service.deleteContact(req.params.id as string);
+      const response: ApiResponse<null> = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listAccess = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await this.access.listManual();
+      const response: ApiResponse<typeof data> = { success: true, data };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  grantAccess = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await this.access.grant(req.body.email, req.body.days);
+      const response: ApiResponse<typeof data> = { success: true, data };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  revokeAccess = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.access.revoke(req.body.email);
       const response: ApiResponse<null> = { success: true, data: null };
       res.json(response);
     } catch (error) {

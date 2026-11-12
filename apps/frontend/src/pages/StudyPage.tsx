@@ -15,6 +15,7 @@ import {
   Loader2,
   Flag,
 } from 'lucide-react';
+import { GroupDoubtButton } from '@/features/groups/components/GroupDoubtButton';
 import type { QuestionDTO } from '@/features/questions/services/question.service';
 import { studyService } from '@/features/study/services/study.service';
 import { errorNotebookService } from '@/features/error-notebook/services/error-notebook.service';
@@ -424,6 +425,14 @@ export default function StudyPage() {
                   {showExplanation ? 'Ocultar Explicação' : 'Ver Explicação'}
                   <ChevronDown className={`h-4 w-4 transition-transform ${showExplanation ? 'rotate-180' : ''}`} />
                 </button>
+              </div>
+
+              <div className="flex justify-end">
+                <GroupDoubtButton
+                  targetType="QUESTION"
+                  targetId={question.id}
+                  context={[htmlToPlainText(question.statement), ...question.alternatives.map((a) => `${a.letter}) ${a.text}`)].join('\n')}
+                />
               </div>
 
               {/* Explicação Pedagógica da Banca */}

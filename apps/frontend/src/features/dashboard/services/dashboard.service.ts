@@ -6,8 +6,15 @@ export interface HeatmapDay {
   count: number;
 }
 
+export interface StreakSummary {
+  current: number;
+  longest: number;
+  shields: number;
+  shieldedDates: string[];
+}
+
 export interface DashboardSummary {
-  streak: { current: number; longest: number };
+  streak: StreakSummary;
   heatmap: HeatmapDay[];
   goal: { dailyQuestions: number; todayQuestions: number; todayStudyMinutes: number };
   averages: {

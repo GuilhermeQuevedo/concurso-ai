@@ -5,6 +5,9 @@ import {
   Plus,
   LogIn,
   Copy,
+  Share2,
+  Radio,
+  MessageCircleQuestion,
   Crown,
   Medal,
   Loader2,
@@ -21,6 +24,11 @@ import {
   type RankingEntry,
   type FeedEntry,
 } from '@/features/groups/services/group.service';
+import { TierBadge } from '@/features/xp/components/TierBadge';
+import { RoomsTab } from '@/features/groups/components/RoomsTab';
+import { GroupHelp } from '@/features/groups/components/GroupHelp';
+import { SharedItems } from '@/features/groups/components/SharedItems';
+import { InviteMembers } from '@/features/groups/components/InviteMembers';
 
 type View = 'list' | 'create' | 'join' | 'detail';
 
@@ -229,7 +237,7 @@ function JoinGroup({ onBack }: { onBack: () => void }) {
 function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'ranking' | 'feed'>('ranking');
+  const [tab, setTab] = useState<'ranking' | 'feed' | 'shared' | 'help' | 'rooms'>('ranking');
   const [copied, setCopied] = useState(false);
 
   const { data: group } = useQuery({
@@ -264,6 +272,8 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  const canModerate = group?.members.some((m) => m.user.id === user?.id && m.role === 'ADMIN') ?? false;
 
   if (!group) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-400" /></div>;
@@ -301,36 +311,71 @@ function GroupDetail({ groupId, onBack }: { groupId: string; onBack: () => void 
         </button>
       </div>
 
-      <div className="mb-4 flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+      <InviteMembers groupId={group.id} groupName={group.name} code={group.code} />
+
+      <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
         <button
           onClick={() => setTab('ranking')}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'ranking'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
           }`}
         >
-          <Trophy className="mr-1.5 inline h-4 w-4" />
+          <Trophy className="mr-1.5 hidden h-4 w-4 sm:inline" />
           Ranking
         </button>
         <button
           onClick={() => setTab('feed')}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
             tab === 'feed'
               ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
           }`}
         >
-          <Flame className="mr-1.5 inline h-4 w-4" />
+          <Flame className="mr-1.5 hidden h-4 w-4 sm:inline" />
           Atividades
+        </button>
+        <button
+          onClick={() => setTab('shared')}
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+            tab === 'shared'
+              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+          }`}
+        >
+          <Share2 className="mr-1.5 hidden h-4 w-4 sm:inline" />
+          Compartilhados
+        </button>
+        <button
+          onClick={() => setTab('help')}
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+            tab === 'help'
+              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+          }`}
+        >
+          <MessageCircleQuestion className="mr-1.5 hidden h-4 w-4 sm:inline" />
+          Dúvidas
+        </button>
+        <button
+          onClick={() => setTab('rooms')}
+          className={`shrink-0 flex-1 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+            tab === 'rooms'
+              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+          }`}
+        >
+          <Radio className="mr-1.5 hidden h-4 w-4 sm:inline" />
+          Salas
         </button>
       </div>
 
-      {tab === 'ranking' ? (
-        <RankingView ranking={ranking} currentUserId={user?.id ?? ''} />
-      ) : (
-        <FeedView feed={feed} />
-      )}
+      {tab === 'ranking' && <RankingView ranking={ranking} currentUserId={user?.id ?? ''} />}
+      {tab === 'feed' && <FeedView feed={feed} />}
+      {tab === 'shared' && <SharedItems groupId={group.id} canModerate={canModerate} />}
+      {tab === 'rooms' && <RoomsTab groupId={group.id} currentUserId={user?.id ?? ''} />}
+      {tab === 'help' && <GroupHelp groupId={group.id} canModerate={canModerate} />}
     </div>
   );
 }
@@ -370,15 +415,16 @@ function RankingView({ ranking, currentUserId }: { ranking: RankingEntry[]; curr
             </div>
             <div className="flex-1">
               <p className={`text-sm font-semibold ${isMe ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white'}`}>
-                {entry.name} {isMe && '(você)'}
+                {entry.name} {isMe && '(você)'}{' '}
+                <TierBadge level={entry.level} tier={entry.tier} />
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Total: {entry.totalPoints} pts
+                Total: {entry.totalPoints} XP
               </p>
             </div>
             <div className="text-right">
               <p className="text-lg font-bold text-gray-900 dark:text-white">{entry.weekPoints}</p>
-              <p className="text-xs text-gray-500">pts/semana</p>
+              <p className="text-xs text-gray-500">XP/semana</p>
             </div>
           </div>
         );
@@ -394,6 +440,9 @@ function FeedView({ feed }: { feed: FeedEntry[] }) {
     FLASHCARD_REVIEW: 'Flashcard',
     STREAK_DAY: 'Streak',
     ESSAY_SUBMITTED: 'Redação',
+    GAME: 'Jogo',
+    ROOM_FINISHED: 'Sala de questões',
+    DOUBT_CLEARED: 'Dúvida esclarecida',
   };
 
   const typeColors: Record<string, string> = {
@@ -402,6 +451,9 @@ function FeedView({ feed }: { feed: FeedEntry[] }) {
     FLASHCARD_REVIEW: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
     STREAK_DAY: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
     ESSAY_SUBMITTED: 'bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300',
+    GAME: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
+    ROOM_FINISHED: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300',
+    DOUBT_CLEARED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
   };
 
   if (feed.length === 0) {
@@ -429,9 +481,9 @@ function FeedView({ feed }: { feed: FeedEntry[] }) {
             </p>
             <div className="mt-0.5 flex items-center gap-2">
               <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${typeColors[entry.type] ?? 'bg-gray-100 text-gray-700'}`}>
-                {typeLabels[entry.type] ?? entry.type}
+                {typeLabels[entry.type] ?? 'Atividade'}
               </span>
-              <span className="text-xs font-medium text-primary-600">+{entry.points} pts</span>
+              <span className="text-xs font-medium text-primary-600">+{entry.points} XP</span>
               <span className="flex items-center gap-0.5 text-xs text-gray-400">
                 <Clock className="h-3 w-3" />
                 {timeAgo(entry.createdAt)}

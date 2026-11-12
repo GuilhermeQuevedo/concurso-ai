@@ -9,6 +9,7 @@ const service = new GamificationService();
 const controller = new GamificationController(service);
 
 router.get('/profile', authMiddleware, controller.getProfile);
+router.get('/xp', authMiddleware, controller.getXp);
 router.post('/check', authMiddleware, controller.checkAchievements);
 
 export { router as gamificationRouter };

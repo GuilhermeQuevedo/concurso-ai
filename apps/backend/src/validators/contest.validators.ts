@@ -45,3 +45,18 @@ export type UpdateContestDTO = z.infer<typeof updateContestSchema>['body'];
 export type UpdateSyllabusItemDTO = z.infer<typeof updateSyllabusItemSchema>['body'];
 export type SetImportanceDTO = z.infer<typeof setImportanceSchema>['body'];
 export type CompleteReviewDTO = z.infer<typeof completeReviewSchema>['body'];
+
+const MAX_DOCUMENTS_PER_DELETE = 50;
+
+export const deleteContestSchema = z.object({
+  query: z.object({
+    deleteEdital: z.enum(['true', 'false']).optional(),
+    documentIds: z
+      .string()
+      .max(MAX_DOCUMENTS_PER_DELETE * 40)
+      .optional()
+      .refine((value) => !value || value.split(',').filter(Boolean).length <= MAX_DOCUMENTS_PER_DELETE, {
+        message: `No máximo ${MAX_DOCUMENTS_PER_DELETE} documentos por exclusão.`,
+      }),
+  }),
+});

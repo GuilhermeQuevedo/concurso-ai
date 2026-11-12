@@ -86,8 +86,12 @@ export class ContestController {
 
   delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.service.delete(getUserId(req), req.params.id as string);
-      const response: ApiResponse<null> = { success: true, data: null };
+      const documentIds = String(req.query.documentIds ?? '').split(',').filter(Boolean);
+      const result = await this.service.delete(getUserId(req), req.params.id as string, {
+        deleteEdital: req.query.deleteEdital === 'true',
+        documentIds,
+      });
+      const response: ApiResponse<typeof result> = { success: true, data: result };
       res.json(response);
     } catch (error) {
       next(error);

@@ -15,6 +15,8 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { studyService, type StudySessionDTO } from '@/features/study/services/study.service';
 import { contentService } from '@/features/content/services/content.service';
 import { dashboardService } from '@/features/dashboard/services/dashboard.service';
+import { ActiveStudyBanner } from '@/features/active-study/ActiveStudyBanner';
+import { XpCard } from '@/features/xp/components/XpCard';
 import { ConstanciaHeatmap } from '@/features/dashboard/components/ConstanciaHeatmap';
 import { MetasCard } from '@/features/dashboard/components/MetasCard';
 import { DueReviewsPanel } from '@/features/dashboard/components/DueReviewsPanel';
@@ -110,6 +112,8 @@ export function DashboardPage() {
         </p>
       </div>
 
+      <ActiveStudyBanner />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (
           <div
@@ -139,23 +143,28 @@ export function DashboardPage() {
             <EnergyCheckIn dailyGoal={summary.goal.dailyQuestions} />
           </div>
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div data-tour="metas">
-              <MetasCard
-                goal={summary.goal}
-                averages={summary.averages}
-                onSetGoal={(value) => goalMutation.mutate(value)}
-                saving={goalMutation.isPending}
-              />
+            <div className="flex flex-col gap-4 lg:col-span-2">
+              <div data-tour="metas">
+                <MetasCard
+                  goal={summary.goal}
+                  averages={summary.averages}
+                  onSetGoal={(value) => goalMutation.mutate(value)}
+                  saving={goalMutation.isPending}
+                />
+              </div>
+              <div className="flex-1 [&>*]:h-full" data-tour="revisoes">
+                <DueReviewsPanel />
+              </div>
             </div>
-            <div data-tour="revisoes">
-              <DueReviewsPanel />
+            <div className="flex flex-col gap-4">
+              <XpCard />
+              <div data-tour="constancia">
+                <ConstanciaHeatmap heatmap={summary.heatmap} streak={summary.streak} />
+              </div>
+              <div data-tour="pomodoro">
+                <PomodoroTimer />
+              </div>
             </div>
-            <div data-tour="pomodoro">
-              <PomodoroTimer />
-            </div>
-          </div>
-          <div className="mt-4" data-tour="constancia">
-            <ConstanciaHeatmap heatmap={summary.heatmap} streak={summary.streak} />
           </div>
         </>
       )}
