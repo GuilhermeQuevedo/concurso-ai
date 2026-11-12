@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
 
+import { useActiveStudy } from '@/features/active-study/active-study-context';
 import { contestService } from '@/features/contests/services/contest.service';
 
 import {
@@ -28,7 +29,9 @@ const clampLevel = (value: number) => Math.min(5, Math.max(1, Math.round(value) 
 
 export function useScheduleWizard() {
   const [searchParams] = useSearchParams();
-  const [contestId, setContestId] = useState(searchParams.get('prova') ?? '');
+  const { activeContestId } = useActiveStudy();
+  // Sem atalho na URL, o assistente já vem com o estudo ativo escolhido.
+  const [contestId, setContestId] = useState(searchParams.get('prova') ?? activeContestId ?? '');
   const [examDate, setExamDate] = useState('');
   const [subjects, setSubjects] = useState<WizardSubject[]>([]);
   const [days, setDays] = useState<DayLimit[]>(DEFAULT_DAY_LIMITS);

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { ActiveStudyProvider } from '@/features/active-study/ActiveStudyProvider';
+import { ActiveStudySelector } from '@/features/active-study/ActiveStudySelector';
 import { AccountMenu } from './AccountMenu';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { SidebarReminders } from '@/features/reminders/components/SidebarReminders';
@@ -93,6 +95,7 @@ const navGroups: NavGroup[] = [
       { path: '/achievements', label: 'Conquistas', icon: AwardIcon },
       { path: '/rankings', label: 'Ranking Global', icon: MedalIcon },
       { path: '/groups', label: 'Competição', icon: FlameIcon },
+      { path: '/friends', label: 'Amigos', icon: ContactIcon },
     ],
   },
 ];
@@ -116,7 +119,16 @@ function loadExpanded(pathname: string): string[] {
   }
 }
 
+// O estudo ativo precisa existir em volta de todo o layout e das páginas que ele mostra.
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ActiveStudyProvider>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+    </ActiveStudyProvider>
+  );
+}
+
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { active: tourActive } = useTour();
   useReviewNotifications();
@@ -227,6 +239,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </div>
+
+        <ActiveStudySelector />
 
         {/* Navegação com Mecanismo de Sub-Abas Expansíveis e Scroll Limpo */}
         <nav className="sidebar-nav flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-2.5 py-4">

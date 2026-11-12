@@ -1,3 +1,5 @@
+import { QUESTION_REPEAT_WINDOW_DAYS, questionXp, sessionBonusXp } from '@concurso-ai/shared';
+import { xpService, type XpAward } from './xp.service.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { GamificationService } from './gamification.service.js';
@@ -61,7 +63,11 @@ export class StudyService {
       },
     });
 
-    return { attempt, isCorrect, correctAnswer: question.correctAnswer, explanation: question.explanation };
+    // Acertar de novo a mesma questão em menos de 7 dias não pontua (evita ganhar repetindo).
+    const repeated = isCorrect && (await xpService.hasRecentCorrect(userId, question.id, attempt.id, QUESTION_REPEAT_WINDOW_DAYS));
+    const xp = await xpService.award(userId, 'QUESTION', attempt.id, repeated ? 0 : questionXp(question.difficulty, isCorrect));
+
+    return { attempt, isCorrect, correctAnswer: question.correctAnswer, explanation: question.explanation, xp };
   }
 
   async finishSession(userId: string, sessionId: string) {
@@ -95,17 +101,28 @@ export class StudyService {
 
     const isFirstFinalizer = updateResult.count > 0;
     let newAchievements: string[] = [];
+    let sessionBonus: XpAward | null = null;
 
     if (isFirstFinalizer) {
       await this.gamification.updateStreak(userId);
       newAchievements = await this.gamification.checkAchievements(userId);
 
       const isPerfect = correctCount === session.questionsCount && session.questionsCount > 0;
-      await this.groups.recordActivity(
-        userId,
-        isPerfect ? 'PERFECT_SESSION' : 'SESSION_COMPLETED',
-        `Completou sessão: ${correctCount}/${session.questionsCount} acertos`,
-      );
+      const bonus = await xpService.award(userId, 'SESSION', sessionId, sessionBonusXp(session.questionsCount, correctCount));
+      const answeredXp = await prisma.xpEvent.aggregate({
+        where: { userId, source: 'QUESTION', refId: { in: attempts.map((a) => a.id) } },
+        _sum: { xp: true },
+      });
+      const sessionXp = (answeredXp._sum.xp ?? 0) + bonus.granted;
+      if (sessionXp > 0) {
+        await this.groups.recordActivity(
+          userId,
+          isPerfect ? 'PERFECT_SESSION' : 'SESSION_COMPLETED',
+          `Completou sessão: ${correctCount}/${session.questionsCount} acertos`,
+          sessionXp,
+        );
+      }
+      sessionBonus = bonus;
     }
 
     const currentSession = await prisma.studySession.findUnique({ where: { id: sessionId } });
@@ -121,6 +138,7 @@ export class StudyService {
         totalTime: currentSession?.totalTime ?? totalTime,
       },
       newAchievements,
+      xp: sessionBonus,
     };
   }
 

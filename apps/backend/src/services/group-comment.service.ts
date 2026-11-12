@@ -1,3 +1,5 @@
+import { xpService } from './xp.service.js';
+import { DOUBT_CLEARED_XP } from '@concurso-ai/shared';
 import type { CommentKind, CommentTarget, GroupComment } from '@prisma/client';
 
 import { prisma } from '../database/prisma.js';
@@ -44,7 +46,6 @@ export interface NewComment {
 }
 
 const MAX_THREADS = 50;
-const HELPFUL_POINTS = 5;
 const authorSelect = { id: true, name: true, nickname: true } as const;
 
 type CommentRow = GroupComment & { user: CommentAuthor };
@@ -165,16 +166,13 @@ export class GroupCommentService {
 
     await prisma.$transaction([
       prisma.groupComment.update({ where: { id: root.id }, data: { resolved: true } }),
-      prisma.groupActivity.create({
-        data: {
-          groupId,
-          userId: reply.userId,
-          type: 'DOUBT_CLEARED',
-          points: HELPFUL_POINTS,
-          description: 'Esclareceu a dúvida de um colega',
-        },
-      }),
     ]);
+    const xp = await xpService.award(reply.userId, 'DOUBT', reply.id, DOUBT_CLEARED_XP);
+    if (xp.granted > 0) {
+      await prisma.groupActivity.create({
+        data: { groupId, userId: reply.userId, type: 'DOUBT_CLEARED', points: xp.granted, description: 'Esclareceu a dúvida de um colega' },
+      });
+    }
   }
 
   private async findRoot(groupId: string, id: string): Promise<GroupComment> {

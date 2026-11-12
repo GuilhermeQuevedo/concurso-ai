@@ -14,6 +14,9 @@ model User {
   googleId      String?  @unique
   name          String
   nickname      String?  @unique @db.VarChar(15)
+  totalXp       Int      @default(0)
+  tierRewarded  Int      @default(0)
+  friendCode    String?  @unique @db.VarChar(8)
   phone         String?
   avatar        String?
   role          Role     @default(USER)
@@ -62,6 +65,10 @@ model User {
   roomsHosted           GroupRoom[]       @relation("RoomHost")
   roomPlayers           GroupRoomPlayer[]
   roomAnswers           GroupRoomAnswer[]
+  xpEvents              XpEvent[]
+  friendshipsLow        Friendship[]      @relation("FriendLow")
+  friendshipsHigh       Friendship[]      @relation("FriendHigh")
+  friendRequestsSent    Friendship[]      @relation("FriendRequester")
 }
 
 model Session {
@@ -382,6 +389,11 @@ enum RankingStatus {
   SUGGESTED
   APPROVED
   REJECTED
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
 }
 
 enum InviteStatus {
@@ -938,4 +950,37 @@ model GroupRoomAnswer {
 
   @@unique([roomId, userId, questionId])
   @@index([roomId])
+}
+
+model XpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String   @db.VarChar(20)
+  refId     String   @db.VarChar(100)
+  xp        Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, source, refId])
+  @@index([userId, createdAt])
+}
+
+model Friendship {
+  id            String       @id @default(cuid())
+  // O par é guardado em ordem (menor id primeiro): uma única linha por dupla.
+  userLowId     String
+  userHighId    String
+  requestedById String
+  status        FriendStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  userLow     User @relation("FriendLow", fields: [userLowId], references: [id], onDelete: Cascade)
+  userHigh    User @relation("FriendHigh", fields: [userHighId], references: [id], onDelete: Cascade)
+  requestedBy User @relation("FriendRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@unique([userLowId, userHighId])
+  @@index([userHighId, status])
+  @@index([userLowId, status])
 }

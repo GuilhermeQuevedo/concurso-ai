@@ -24,6 +24,7 @@ import { errorNotebookRouter } from './error-notebook.routes.js';
 import { createEditalMapRouter } from './edital-map.routes.js';
 import { createStudyScheduleRouter } from './study-schedule.routes.js';
 import { reminderRouter } from './reminder.routes.js';
+import { friendRouter } from './friend.routes.js';
 import { inviteRouter } from './invite.routes.js';
 import { notificationRouter } from './notification.routes.js';
 import { healthRouter } from './health.routes.js';
@@ -65,6 +66,7 @@ router.use('/study-schedules', gate, createStudyScheduleRouter());
 
 router.use('/reminders', gate, reminderRouter);
 router.use('/invites', gate, inviteRouter);
+router.use('/friends', gate, friendRouter);
 router.use('/notifications', gate, notificationRouter);
 
 router.use('/health', healthRouter);

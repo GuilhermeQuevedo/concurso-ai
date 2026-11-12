@@ -1,3 +1,5 @@
+import { xpService, type XpAward } from './xp.service.js';
+import { gameXp } from '@concurso-ai/shared';
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -106,10 +108,11 @@ export class GameService {
       }),
     ]);
 
-    await this.afterPlay(userId, game, points, payload, answers);
+    const xp = await this.afterPlay(userId, game, points, payload, answers, roundId);
     return {
       ...result,
       points,
+      xp,
       earnedToday: earnedToday + points,
       dailyCap: DAILY_POINT_CAP,
       capReached: points < result.score,
@@ -172,12 +175,15 @@ export class GameService {
     points: number,
     payload: RoundPayload,
     answers: GameAnswer[],
-  ) {
+    roundId: string,
+  ): Promise<XpAward> {
     await this.gamification.updateStreak(userId);
-    if (points > 0) {
-      await this.groups.recordActivity(userId, 'GAME', `${GAME_LABELS[game]}: +${points} pts`, points);
+    const xp = await xpService.award(userId, 'GAME', roundId, gameXp(points));
+    if (xp.granted > 0) {
+      await this.groups.recordActivity(userId, 'GAME', `${GAME_LABELS[game]}: +${xp.granted} XP`, xp.granted);
     }
     if (game === 'RESGATE') await this.scheduleReviews(userId, payload.items, answers);
+    return xp;
   }
 
   // O resgate vira revisão espaçada de verdade: acertar reforça o cartão, errar o traz de volta
@@ -186,7 +192,7 @@ export class GameService {
     for (const ans of answers) {
       if (!ans.itemId || !answerOf.has(ans.itemId)) continue;
       const quality = ans.choice === answerOf.get(ans.itemId) ? RESCUED_QUALITY : MISSED_QUALITY;
-      await this.flashcards.review(userId, ans.itemId, { quality }).catch(() => undefined);
+      await this.flashcards.review(userId, ans.itemId, { quality }, { awardXp: false }).catch(() => undefined);
     }
   }
 
