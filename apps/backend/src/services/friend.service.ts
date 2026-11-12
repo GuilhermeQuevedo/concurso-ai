@@ -95,15 +95,30 @@ export class FriendService {
       return { accepted: true };
     }
 
-    const created = await prisma.friendship.create({ data: { ...where, requestedById: userId } });
-    const me = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
-    await this.notifications.create({
-      userId: target.id,
-      type: FRIEND_REQUEST_NOTIFICATION,
-      message: `${this.label(me)} quer ser seu amigo na plataforma.`,
-      payload: { friendshipId: created.id },
-    });
-    return { accepted: false };
+    try {
+      const created = await prisma.friendship.create({ data: { ...where, requestedById: userId } });
+      const me = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
+      await this.notifications.create({
+        userId: target.id,
+        type: FRIEND_REQUEST_NOTIFICATION,
+        message: `${this.label(me)} quer ser seu amigo na plataforma.`,
+        payload: { friendshipId: created.id },
+      });
+      return { accepted: false };
+    } catch (error) {
+      if ((error as { code?: string }).code === 'P2002') {
+        const concurrent = await prisma.friendship.findUnique({ where: { userLowId_userHighId: where } });
+        if (concurrent?.status === 'ACCEPTED') throw new AppError(409, 'ALREADY_FRIENDS', 'Vocês já são amigos.');
+        if (concurrent && concurrent.requestedById === userId) {
+          throw new AppError(409, 'REQUEST_PENDING', 'Você já enviou um pedido para essa pessoa.');
+        }
+        if (concurrent) {
+          await this.accept(userId, concurrent.id);
+          return { accepted: true };
+        }
+      }
+      throw error;
+    }
   }
 
   async accept(userId: string, friendshipId: string): Promise<void> {

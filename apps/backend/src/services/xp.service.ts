@@ -149,8 +149,11 @@ export class XpService {
 
   // Entrar em uma faixa nova: +1 escudo (respeitando o máximo), aviso no sino e conquista da faixa.
   private async rewardTier(userId: string, tierIndex: number, tierName: string): Promise<void> {
-    await prisma.user.update({ where: { id: userId }, data: { tierRewarded: tierIndex } });
-    if (tierIndex <= 0) return;
+    const { count } = await prisma.user.updateMany({
+      where: { id: userId, tierRewarded: { lt: tierIndex } },
+      data: { tierRewarded: tierIndex },
+    });
+    if (count === 0 || tierIndex <= 0) return;
     const streak = await prisma.streak.findUnique({ where: { userId } });
     const gaveShield = !!streak && streak.shields < MAX_SHIELDS;
     if (gaveShield) await prisma.streak.update({ where: { userId }, data: { shields: { increment: 1 } } });
