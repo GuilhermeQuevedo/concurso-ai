@@ -188,7 +188,7 @@ export class AuthController {
   exportData = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = getUserId(req);
-      const confirmPassword = (req.query.password as string | undefined) || (req.headers['x-confirm-password'] as string | undefined);
+      const confirmPassword = req.headers['x-confirm-password'] as string | undefined;
       const data = await this.authService.exportUserData(userId, confirmPassword);
 
       logger.info('[DSAR] Exportação de dados pessoais solicitada pelo titular', { userId });

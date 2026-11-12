@@ -101,8 +101,9 @@ export const authService = {
     await api.post('/auth/reset-account', { password });
   },
 
-  async exportData(): Promise<Blob> {
+  async exportData(password?: string): Promise<Blob> {
     const response = await api.get('/auth/me/export', {
+      headers: password ? { 'x-confirm-password': password } : {},
       responseType: 'blob',
     });
     return response.data as Blob;

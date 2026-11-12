@@ -19,7 +19,6 @@ privacyRouter.get('/dpo', (_req, res) => {
         dsarResponseDays: 15,
         securityIncidentHours: 72,
       },
-      legalNotice: 'RASCUNHO — PENDENTE DE REVISÃO JURÍDICA',
     },
   });
 });

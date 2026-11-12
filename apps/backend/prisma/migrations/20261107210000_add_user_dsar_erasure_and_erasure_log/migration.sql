@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `erasureCompletedAt` DATETIME(3) NULL,
+ALTER TABLE `User` ADD COLUMN `erasureCompletedAt` DATETIME(3) NULL,
     ADD COLUMN `erasureRequestedAt` DATETIME(3) NULL,
     ADD COLUMN `erasureStatus` VARCHAR(191) NULL,
     ADD COLUMN `tokenVersion` INTEGER NOT NULL DEFAULT 0;

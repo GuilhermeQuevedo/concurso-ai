@@ -130,7 +130,7 @@ describe('DSAR - Direitos do Titular LGPD (Exportação e Eliminação de Conta)
 
   describe('GET /me/export (Exportação de Dados Pessoais)', () => {
     it('deve exportar apenas os campos da allowlist estrita sem vazar dados sensíveis', async () => {
-      const exported = await authService.exportUserData(userWithoutPaymentsId);
+      const exported = await authService.exportUserData(userWithoutPaymentsId, testUserPassword);
 
       // Metadados
       assert.ok(exported.exportMetadata);
@@ -157,6 +157,18 @@ describe('DSAR - Direitos do Titular LGPD (Exportação e Eliminação de Conta)
       assert.ok(Array.isArray(exported.flashcards));
       assert.ok(Array.isArray(exported.essays));
       assert.ok(Array.isArray(exported.payments));
+    });
+
+    it('deve exigir senha ao tentar exportar dados de conta com senha definida', async () => {
+      await assert.rejects(
+        async () => {
+          await authService.exportUserData(userWithoutPaymentsId);
+        },
+        (err: unknown) => {
+          assert.strictEqual((err as { code: string }).code, 'PASSWORD_REQUIRED');
+          return true;
+        },
+      );
     });
 
     it('deve validar a senha se fornecida para exportação', async () => {

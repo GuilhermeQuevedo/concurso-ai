@@ -6,7 +6,7 @@ export interface UseDsarResult {
   isExporting: boolean;
   isErasing: boolean;
   error: string | null;
-  exportData: () => Promise<void>;
+  exportData: (password?: string) => Promise<void>;
   eraseAccount: (password?: string, reason?: string) => Promise<boolean>;
   clearError: () => void;
 }
@@ -21,11 +21,11 @@ export function useDsar(): UseDsarResult {
     setError(null);
   }, []);
 
-  const exportData = useCallback(async () => {
+  const exportData = useCallback(async (password?: string) => {
     setIsExporting(true);
     setError(null);
     try {
-      const blob = await authService.exportData();
+      const blob = await authService.exportData(password);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

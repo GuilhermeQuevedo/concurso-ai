@@ -5,16 +5,20 @@ import { useDsar } from '../hooks/useDsar';
 export function PrivacySettingsCard() {
   const { isExporting, isErasing, error, exportData, eraseAccount, clearError } = useDsar();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [password, setPassword] = useState('');
+  const [exportPassword, setExportPassword] = useState('');
   const [reason, setReason] = useState('');
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  const handleExport = async () => {
+  const handleConfirmExport = async () => {
     setActionSuccess(null);
     clearError();
     try {
-      await exportData();
+      await exportData(exportPassword || undefined);
       setActionSuccess('Dados exportados com sucesso!');
+      setIsExportModalOpen(false);
+      setExportPassword('');
     } catch {
       // erro gerenciado pelo hook useDsar
     }
@@ -63,7 +67,10 @@ export function PrivacySettingsCard() {
           </div>
           <button
             type="button"
-            onClick={handleExport}
+            onClick={() => {
+              clearError();
+              setIsExportModalOpen(true);
+            }}
             disabled={isExporting}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-750"
           >
@@ -97,6 +104,67 @@ export function PrivacySettingsCard() {
           </button>
         </div>
       </div>
+
+      {/* Modal de Confirmação de Exportação */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+            <div className="mb-4 flex items-center gap-3 text-primary-600 dark:text-primary-400">
+              <Download className="h-6 w-6" />
+              <h3 className="text-lg font-bold">Exportação de Dados Pessoais</h3>
+            </div>
+
+            <p className="mb-4 text-xs text-gray-600 dark:text-gray-300">
+              Por segurança, confirme sua senha para realizar o download dos seus dados cadastrais e de estudo (Art. 18 da LGPD).
+            </p>
+
+            <div className="mb-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                  Senha da sua conta (deixe em branco se seu cadastro foi via Google)
+                </label>
+                <input
+                  type="password"
+                  value={exportPassword}
+                  onChange={(e) => setExportPassword(e.target.value)}
+                  placeholder="Sua senha atual"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="mb-4 rounded-lg bg-red-50 p-3 text-xs text-red-700 dark:bg-red-950/50 dark:text-red-400">
+                {error}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExportModalOpen(false);
+                  setExportPassword('');
+                  clearError();
+                }}
+                disabled={isExporting}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmExport}
+                disabled={isExporting}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+              >
+                {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                <span>{isExporting ? 'Exportando...' : 'Confirmar e Baixar'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Confirmação de Exclusão */}
       {isModalOpen && (

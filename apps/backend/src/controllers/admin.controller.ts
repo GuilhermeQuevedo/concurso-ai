@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { AdminService } from '../services/admin.service.js';
 import type { AdminAccessService } from '../services/admin-access.service.js';
+import { AdminAuditService } from '../services/admin-audit.service.js';
 import type { ApiResponse } from '@concurso-ai/types';
+import type { AdminAuditAction, AuditResourceType } from '@prisma/client';
 import {
   adminPaginationSchema,
   revealPiiSchema,
@@ -14,6 +16,7 @@ export class AdminController {
   constructor(
     private readonly service: AdminService,
     private readonly access: AdminAccessService,
+    private readonly auditService = new AdminAuditService(),
   ) {}
 
   overview = async (_req: Request, res: Response, next: NextFunction) => {
@@ -134,6 +137,23 @@ export class AdminController {
     try {
       await this.access.revoke(req.body.email);
       const response: ApiResponse<null> = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listAuditLogs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = adminPaginationSchema.parse(req.query);
+      const data = await this.auditService.listAuditLogs({
+        page: query.page,
+        limit: query.limit,
+        adminId: typeof req.query.adminId === 'string' ? req.query.adminId : undefined,
+        action: typeof req.query.action === 'string' ? (req.query.action as AdminAuditAction) : undefined,
+        resourceType: typeof req.query.resourceType === 'string' ? (req.query.resourceType as AuditResourceType) : undefined,
+      });
+      const response: ApiResponse<typeof data> = { success: true, data };
       res.json(response);
     } catch (error) {
       next(error);

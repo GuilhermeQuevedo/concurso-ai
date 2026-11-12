@@ -27,5 +27,6 @@ router.delete('/contacts/:id', controller.deleteContact);
 router.get('/access', controller.listAccess);
 router.post('/access', validateRequest(grantAccessSchema), controller.grantAccess);
 router.post('/access/revoke', validateRequest(revokeAccessSchema), controller.revokeAccess);
+router.get('/audit-logs', controller.listAuditLogs);
 
 export { router as adminRouter };

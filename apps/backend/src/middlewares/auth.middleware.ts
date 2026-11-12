@@ -1,7 +1,24 @@
 import type { Request, Response, NextFunction } from 'express';
+import { LRUCache } from 'lru-cache';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { AppError } from './error-handler.js';
 import { prisma } from '../database/prisma.js';
+
+interface CachedUserAuth {
+  id: string;
+  tokenVersion: number;
+  erasureStatus: string | null;
+  email: string;
+}
+
+const userAuthCache = new LRUCache<string, CachedUserAuth>({
+  max: 2000,
+  ttl: 15 * 1000, // 15 segundos de cache para otimizar polling sem retardar revogações
+});
+
+export function invalidateUserAuthCache(userId: string): void {
+  userAuthCache.delete(userId);
+}
 
 export async function authMiddleware(
   req: Request,
@@ -17,11 +34,18 @@ export async function authMiddleware(
     const token = header.slice(7);
     const payload = await verifyAccessToken(token);
 
-    // Validação de integridade: usuário existe, tokenVersion confere e não está em erasure
-    const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
-      select: { id: true, tokenVersion: true, erasureStatus: true, email: true },
-    });
+    // Validação de integridade com cache em memória (otimiza polling de salas/ranking)
+    let user = userAuthCache.get(payload.userId);
+    if (!user) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: payload.userId },
+        select: { id: true, tokenVersion: true, erasureStatus: true, email: true },
+      });
+      if (dbUser) {
+        user = dbUser;
+        userAuthCache.set(payload.userId, user);
+      }
+    }
 
     if (!user) {
       throw new AppError(401, 'INVALID_TOKEN', 'Usuário não encontrado ou conta removida');

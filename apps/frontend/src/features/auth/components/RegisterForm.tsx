@@ -245,7 +245,7 @@ export function RegisterForm() {
             <p className="text-xs text-red-500">{errors.acceptPrivacy.message}</p>
           )}
 
-          {/* Declaração de Maioridade / ECA Digital (Opção A — PENDENTE DE REVISÃO JURÍDICA) */}
+          {/* Declaração de Maioridade / ECA Digital */}
           <div className="flex items-start gap-2">
             <input
               id="acceptAgeOrGuardian"
@@ -254,10 +254,7 @@ export function RegisterForm() {
               className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800"
             />
             <label htmlFor="acceptAgeOrGuardian" className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
-              Declaro que sou maior de 18 anos ou possuo autorização expressa do meu responsável legal para utilizar a plataforma.{' '}
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
-                (PENDENTE DE REVISÃO JURÍDICA)
-              </span>
+              Declaro que sou maior de 18 anos ou possuo autorização expressa do meu responsável legal para utilizar a plataforma.
             </label>
           </div>
           {errors.acceptAgeOrGuardian && (

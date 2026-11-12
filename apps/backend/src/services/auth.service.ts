@@ -290,6 +290,32 @@ export class AuthService {
           role: isPermanentAdmin ? 'ADMIN' : 'USER',
         });
         await this.authRepository.updateUser(user.id, { emailVerified: true });
+
+        // Grava consentimento inicial de Termos e Privacidade (v1.0) para novo usuário Google OAuth
+        try {
+          const ipHashed = hashIp('127.0.0.1');
+          await prisma.consentRecord.createMany({
+            data: [
+              {
+                userId: user.id,
+                documentType: 'TERMS',
+                version: '1.0',
+                ipHash: ipHashed,
+                userAgent: 'Google OAuth Signup',
+              },
+              {
+                userId: user.id,
+                documentType: 'PRIVACY',
+                version: '1.0',
+                ipHash: ipHashed,
+                userAgent: 'Google OAuth Signup',
+              },
+            ],
+            skipDuplicates: true,
+          });
+        } catch (consentErr) {
+          console.warn('[Consent] Aviso ao registrar consentimento inicial Google OAuth:', consentErr);
+        }
       }
     }
 
@@ -490,10 +516,13 @@ export class AuthService {
       throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
     }
 
-    if (user.password && confirmPassword) {
+    if (user.password) {
+      if (!confirmPassword) {
+        throw new AppError(400, 'PASSWORD_REQUIRED', 'Senha de confirmação obrigatória para exportação de dados.');
+      }
       const valid = await safeBcryptCompare(confirmPassword, user.password);
       if (!valid) {
-        throw new AppError(400, 'INVALID_PASSWORD', 'Senha incorreta para exportação');
+        throw new AppError(400, 'INVALID_PASSWORD', 'Senha incorreta para exportação.');
       }
     }
 

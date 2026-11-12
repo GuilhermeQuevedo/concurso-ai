@@ -82,6 +82,15 @@ export class AnonymizationService {
       await tx.studyPlan.deleteMany({ where: { userId } });
       await tx.userCalendarIntegration.deleteMany({ where: { userId } });
       await tx.consentRecord.deleteMany({ where: { userId } });
+      await tx.friendship.deleteMany({ where: { OR: [{ userLowId: userId }, { userHighId: userId }] } });
+      await tx.reminder.deleteMany({ where: { userId } });
+      await tx.xpEvent.deleteMany({ where: { userId } });
+      await tx.streakShieldUse.deleteMany({ where: { userId } });
+      await tx.groupInvite.deleteMany({ where: { OR: [{ invitedUserId: userId }, { invitedById: userId }] } });
+      await tx.groupShare.deleteMany({ where: { sharedById: userId } });
+      await tx.groupRoomPlayer.deleteMany({ where: { userId } });
+      await tx.groupRoomAnswer.deleteMany({ where: { userId } });
+      await tx.notification.deleteMany({ where: { userId } });
 
       // 4. Anonimiza irreversivelmente os dados cadastrais do User
       await tx.user.update({
