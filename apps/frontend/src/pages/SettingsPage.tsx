@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Settings, User, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { NotificationsCard } from '@/features/notifications/NotificationsCard';
+import { PrivacySettingsCard } from '@/features/auth/components/PrivacySettingsCard';
 
 export function SettingsPage() {
   const { user } = useAuth();
@@ -90,6 +91,8 @@ export function SettingsPage() {
         </div>
 
         <NotificationsCard />
+
+        <PrivacySettingsCard />
 
         <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
           <div className="mb-4 flex items-center gap-2">

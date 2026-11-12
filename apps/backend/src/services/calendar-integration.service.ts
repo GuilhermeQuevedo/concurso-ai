@@ -3,6 +3,7 @@ import { env } from '../config/env.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { ICalGenerator } from '../utils/ical-generator.js';
 import { GoogleCalendarClient } from '../providers/google-calendar.client.js';
+import { encryptData, decryptData, isEncrypted } from '../utils/crypto.js';
 import type { UpdateCalendarIntegrationDTO } from '../validators/calendar-integration.validators.js';
 
 export interface CalendarIntegrationResponse {
@@ -92,11 +93,16 @@ export class CalendarIntegrationService {
     const tokens = await this.googleClient.exchangeCodeForTokens(code);
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
+    const encryptedAccessToken = encryptData(tokens.access_token, userId);
+    const encryptedRefreshToken = tokens.refresh_token
+      ? encryptData(tokens.refresh_token, userId)
+      : undefined;
+
     const integration = await prisma.userCalendarIntegration.update({
       where: { userId },
       data: {
-        googleAccessToken: tokens.access_token,
-        ...(tokens.refresh_token ? { googleRefreshToken: tokens.refresh_token } : {}),
+        googleAccessToken: encryptedAccessToken,
+        ...(encryptedRefreshToken ? { googleRefreshToken: encryptedRefreshToken } : {}),
         googleTokenExpiry: expiresAt,
       },
     });
@@ -281,20 +287,27 @@ export class CalendarIntegrationService {
     const isExpired = integration.googleTokenExpiry && integration.googleTokenExpiry.getTime() <= Date.now() + 60000;
 
     if (!isExpired && integration.googleAccessToken) {
-      return integration.googleAccessToken;
+      return isEncrypted(integration.googleAccessToken)
+        ? decryptData(integration.googleAccessToken, integration.userId)
+        : integration.googleAccessToken;
     }
 
     if (!integration.googleRefreshToken) {
       throw new AppError(401, 'GOOGLE_REAUTH_REQUIRED', 'Sessão com Google expirada. Reconecte sua conta.');
     }
 
-    const refreshed = await this.googleClient.refreshAccessToken(integration.googleRefreshToken);
+    const plainRefreshToken = isEncrypted(integration.googleRefreshToken)
+      ? decryptData(integration.googleRefreshToken, integration.userId)
+      : integration.googleRefreshToken;
+
+    const refreshed = await this.googleClient.refreshAccessToken(plainRefreshToken);
     const newExpiresAt = new Date(Date.now() + refreshed.expires_in * 1000);
+    const encryptedRefreshedToken = encryptData(refreshed.access_token, integration.userId);
 
     await prisma.userCalendarIntegration.update({
       where: { userId: integration.userId },
       data: {
-        googleAccessToken: refreshed.access_token,
+        googleAccessToken: encryptedRefreshedToken,
         googleTokenExpiry: newExpiresAt,
       },
     });

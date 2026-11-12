@@ -151,4 +151,15 @@ export class GoogleCalendarClient {
       console.warn('Erro ao inserir evento no Google Calendar:', errorMsg);
     }
   }
+
+  async revokeToken(token: string): Promise<void> {
+    try {
+      await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+    } catch (error) {
+      console.warn('[GoogleCalendarClient] Falha ao revogar token OAuth:', error);
+    }
+  }
 }

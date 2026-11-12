@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { AuthService } from '../services/auth.service.js';
 import { env } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 import type {
   RegisterDTO,
   LoginDTO,
@@ -13,6 +14,8 @@ import type {
   ForgotPasswordDTO,
   ResetPasswordDTO,
   GoogleCredentialDTO,
+  ErasureAccountDTO,
+  RecordConsentDTO,
 } from '../validators/auth.validators.js';
 import type { ApiResponse, AuthTokens } from '@concurso-ai/types';
 import { getUserId } from '../utils/request.js';
@@ -23,7 +26,11 @@ export class AuthController {
   register = async (req: Request, res: Response<ApiResponse<AuthTokens>>, next: NextFunction) => {
     try {
       const dto = req.body as RegisterDTO;
-      const tokens = await this.authService.register(dto);
+      const context = {
+        ip: req.ip || (req.headers['x-forwarded-for'] as string) || '127.0.0.1',
+        userAgent: req.headers['user-agent'],
+      };
+      const tokens = await this.authService.register(dto, context);
       res.status(201).json({ success: true, data: tokens });
     } catch (error) {
       next(error);
@@ -173,6 +180,53 @@ export class AuthController {
     try {
       await this.authService.resetAccount(getUserId(req), req.body as ResetAccountDTO);
       res.json({ success: true, data: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  exportData = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = getUserId(req);
+      const confirmPassword = req.headers['x-confirm-password'] as string | undefined;
+      const data = await this.authService.exportUserData(userId, confirmPassword);
+
+      logger.info('[DSAR] Exportação de dados pessoais solicitada pelo titular', { userId });
+
+      res.setHeader('Content-Disposition', 'attachment; filename="engrama-meus-dados.json"');
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Content-Type', 'application/json');
+
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  eraseAccount = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = getUserId(req);
+      const dto = req.body as ErasureAccountDTO;
+      const result = await this.authService.eraseAccount(userId, dto);
+
+      logger.info('[DSAR] Solicitação de eliminação de conta executada', { userId });
+
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  recordConsent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = getUserId(req);
+      const dto = req.body as RecordConsentDTO;
+      const context = {
+        ip: req.ip || (req.headers['x-forwarded-for'] as string) || '127.0.0.1',
+        userAgent: req.headers['user-agent'],
+      };
+      const record = await this.authService.recordConsent(userId, dto, context);
+      res.status(200).json({ success: true, data: record });
     } catch (error) {
       next(error);
     }

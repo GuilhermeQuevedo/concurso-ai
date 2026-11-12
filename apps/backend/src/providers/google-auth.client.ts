@@ -135,4 +135,15 @@ export class GoogleAuthClient {
       emailVerified: Boolean(info.email_verified),
     };
   }
+
+  async revokeToken(token: string): Promise<void> {
+    try {
+      await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+    } catch (error) {
+      console.warn('[GoogleAuthClient] Falha ao revogar token OAuth:', error);
+    }
+  }
 }

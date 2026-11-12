@@ -31,6 +31,9 @@ import { MethodologyPage } from '@/pages/MethodologyPage';
 import { GettingStartedPage } from '@/pages/GettingStartedPage';
 import { ErrorNotebookPage } from '@/pages/ErrorNotebookPage';
 import { ExamSlicerPage } from '@/pages/ExamSlicerPage';
+import { CookiePolicyPage } from '@/pages/CookiePolicyPage';
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
+import { TermsOfUsePage } from '@/pages/TermsOfUsePage';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { SubscriptionGate } from '@/features/subscription/components/SubscriptionGate';
@@ -55,6 +58,9 @@ export function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/politica-de-cookies" element={<CookiePolicyPage />} />
+      <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
+      <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
 
       <Route path="/dashboard" element={<ProtectedLayout><DashboardPage /></ProtectedLayout>} />
       <Route path="/subjects" element={<ProtectedLayout><SubjectsPage /></ProtectedLayout>} />

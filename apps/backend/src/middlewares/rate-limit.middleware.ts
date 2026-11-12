@@ -139,6 +139,7 @@ export const heavyRateLimiter = rateLimit({
 });
 
 /**
+/**
  * Convites por nickname: poucos por hora por usuário, para impedir varredura de nicknames.
  */
 export const inviteRateLimiter = rateLimit({
@@ -175,4 +176,23 @@ export const roomCreateLimiter = rateLimit({
   store: createRateLimitStore('room'),
   handler: standard429Handler,
   keyGenerator: (req: Request) => `room_${req.userId ?? req.ip ?? 'unknown'}`,
+});
+
+/**
+ * Rate Limiter para DSAR (Exportação de dados pessoais).
+ * Limite de 1 exportação por hora por usuário.
+ */
+export const dsarExportRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: env.NODE_ENV === 'test' ? 100 : 1,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRateLimitStore('dsar_export'),
+  handler: standard429Handler,
+  keyGenerator: (req: Request) => {
+    if (req.userId) {
+      return `dsar_export_${req.userId}`;
+    }
+    return `dsar_export_${req.ip || 'unknown'}`;
+  },
 });
