@@ -156,10 +156,14 @@ export class GroupCommentService {
     const root = await this.findRoot(groupId, reply.parentId);
     if (root.userId !== userId) throw new AppError(403, 'FORBIDDEN', 'Só quem postou a dúvida marca a resposta que esclareceu.');
     if (reply.userId === userId) throw new AppError(400, 'SELF_HELPFUL', 'Você não pode marcar a própria resposta.');
-    if (reply.helpful) return;
+
+    const { count } = await prisma.groupComment.updateMany({
+      where: { id: reply.id, parentId: { not: null }, helpful: false },
+      data: { helpful: true },
+    });
+    if (count === 0) return;
 
     await prisma.$transaction([
-      prisma.groupComment.update({ where: { id: reply.id }, data: { helpful: true } }),
       prisma.groupComment.update({ where: { id: root.id }, data: { resolved: true } }),
       prisma.groupActivity.create({
         data: {

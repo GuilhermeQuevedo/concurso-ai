@@ -5,7 +5,6 @@ import { AppError } from '../middlewares/error-handler.js';
 import { NotificationRepository } from '../repositories/notification.repository.js';
 import {
   COUNTDOWN_MS,
-  MIN_QUESTIONS,
   OWN_PACE_WINDOW_MS,
   liveEndsAt,
   liveTiming,
@@ -57,8 +56,12 @@ export class GroupRoomService {
       select: { id: true },
       take: 500,
     });
-    if (pool.length < MIN_QUESTIONS) {
-      throw new AppError(400, 'NOT_ENOUGH_QUESTIONS', 'Não há questões suficientes com esses filtros. Gere mais questões ou mude a disciplina.');
+    if (pool.length < input.count) {
+      throw new AppError(
+        400,
+        'NOT_ENOUGH_QUESTIONS',
+        `Não há questões suficientes com esses filtros (disponíveis: ${pool.length}, solicitadas: ${input.count}). Gere mais questões ou mude a disciplina.`,
+      );
     }
     const questionIds = shuffle(pool).slice(0, input.count).map((q) => q.id);
 
