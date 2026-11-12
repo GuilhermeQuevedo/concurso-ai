@@ -141,7 +141,7 @@ describe('Governança na Importação de Contatos e Supressão (Gap G10)', () =>
       assert.ok(suppression);
       assert.strictEqual(suppression.emailHash, expectedHash);
       // Garantir que a tabela não tem o e-mail em texto claro
-      assert.strictEqual((suppression as any).email, undefined);
+      assert.strictEqual('email' in suppression, false);
     });
 
     it('deve marcar unsubscribed = true em contatos existentes ao realizar opt-out', async () => {
