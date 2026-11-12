@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router';
 import { Toaster } from './components/ui/Toaster';
 import { AuthProvider } from './features/auth/contexts/AuthContext';
 import { TourProvider } from './features/tour/TourProvider';
+import { CookieBanner } from './features/privacy/components/CookieBanner';
 import { AppRoutes } from './routes';
 
 const queryClient = new QueryClient({
@@ -22,6 +23,7 @@ export function App() {
         <AuthProvider>
           <TourProvider>
             <AppRoutes />
+            <CookieBanner />
             <Toaster />
           </TourProvider>
         </AuthProvider>

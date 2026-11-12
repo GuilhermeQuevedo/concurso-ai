@@ -121,9 +121,52 @@ export class StripeService {
     return env.STRIPE_PRICE_ID_MONTHLY ?? undefined;
   }
 
+  /**
+   * Verifica se o titular associado ao evento já foi eliminado ou anonimizado (Art. 18 LGPD).
+   * Impede que webhooks tardios da Stripe reativem contas, recriem entitlements
+   * ou persistam dados de titulares já expurgados.
+   */
+  async isUserErased(email?: string | null, customerId?: string | null): Promise<boolean> {
+    if (email && email.toLowerCase().startsWith('deleted_')) {
+      return true;
+    }
+
+    if (customerId) {
+      const userByCustomer = await prisma.user.findFirst({
+        where: { stripeCustomerId: customerId },
+        select: { erasureStatus: true, email: true },
+      });
+      if (
+        userByCustomer &&
+        (userByCustomer.erasureStatus === 'COMPLETED' || userByCustomer.email.startsWith('deleted_'))
+      ) {
+        return true;
+      }
+    }
+
+    if (email) {
+      const cleanEmail = email.toLowerCase().trim();
+      const userByEmail = await prisma.user.findFirst({
+        where: { email: cleanEmail },
+        select: { erasureStatus: true },
+      });
+      if (userByEmail && userByEmail.erasureStatus === 'COMPLETED') {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
     const email = session.customer_details?.email?.toLowerCase().trim() ?? session.customer_email?.toLowerCase().trim();
+    const customerId = typeof session.customer === 'string' ? session.customer : (session.customer?.id ?? null);
     if (!email) return;
+
+    if (await this.isUserErased(email, customerId)) {
+      console.log('[StripeWebhook] Ignorando checkout.session.completed: usuário já eliminado/anonimizado.');
+      return;
+    }
 
     const externalRef = (typeof session.subscription === 'string' ? session.subscription : session.id) ?? null;
 
@@ -158,12 +201,18 @@ export class StripeService {
 
   private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
     const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
+
+    if (await this.isUserErased(null, customerId)) {
+      console.log(`[StripeWebhook] Ignorando customer.subscription.updated para customer ${customerId}: usuário já eliminado/anonimizado.`);
+      return;
+    }
+
     const user = await prisma.user.findFirst({
       where: { stripeCustomerId: customerId },
-      select: { email: true },
+      select: { email: true, erasureStatus: true },
     });
 
-    if (!user?.email) return;
+    if (!user?.email || user.erasureStatus === 'COMPLETED' || user.email.startsWith('deleted_')) return;
 
     const email = user.email.toLowerCase().trim();
     const status = subscription.status === 'active' || subscription.status === 'trialing'
@@ -200,12 +249,18 @@ export class StripeService {
 
   private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
     const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
+
+    if (await this.isUserErased(null, customerId)) {
+      console.log(`[StripeWebhook] Ignorando customer.subscription.deleted para customer ${customerId}: usuário já eliminado/anonimizado.`);
+      return;
+    }
+
     const user = await prisma.user.findFirst({
       where: { stripeCustomerId: customerId },
-      select: { email: true },
+      select: { email: true, erasureStatus: true },
     });
 
-    if (!user?.email) return;
+    if (!user?.email || user.erasureStatus === 'COMPLETED' || user.email.startsWith('deleted_')) return;
 
     await prisma.entitlement.updateMany({
       where: { email: user.email.toLowerCase().trim() },
@@ -216,7 +271,13 @@ export class StripeService {
 
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
     const email = invoice.customer_email?.toLowerCase().trim();
+    const customerId = typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? null);
     if (!email) return;
+
+    if (await this.isUserErased(email, customerId)) {
+      console.log('[StripeWebhook] Ignorando invoice.payment_succeeded: usuário já eliminado/anonimizado.');
+      return;
+    }
 
     await prisma.payment.create({
       data: {
@@ -233,7 +294,13 @@ export class StripeService {
 
   private async handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
     const email = invoice.customer_email?.toLowerCase().trim();
+    const customerId = typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? null);
     if (!email) return;
+
+    if (await this.isUserErased(email, customerId)) {
+      console.log('[StripeWebhook] Ignorando invoice.payment_failed: usuário já eliminado/anonimizado.');
+      return;
+    }
 
     await prisma.payment.create({
       data: {

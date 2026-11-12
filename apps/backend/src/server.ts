@@ -130,6 +130,22 @@ app.use(
     credentials: true,
   }),
 );
+
+// Middleware de Segurança LGPD (Gap G01): Garante SameSite=Lax, HttpOnly e Secure por padrão em cookies
+app.use((_req, res, next) => {
+  const originalCookie = res.cookie.bind(res);
+  res.cookie = (name: string, val: unknown, options?: express.CookieOptions) => {
+    const isProd = env.NODE_ENV === 'production';
+    const enhancedOptions: express.CookieOptions = {
+      sameSite: 'lax',
+      secure: isProd,
+      httpOnly: true,
+      ...options,
+    };
+    return originalCookie(name, val, enhancedOptions);
+  };
+  next();
+});
 app.use(
   express.json({
     limit: '10mb',

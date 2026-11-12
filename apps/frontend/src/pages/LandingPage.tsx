@@ -481,10 +481,16 @@ export function LandingPage() {
             Feito com <BookOpen className="h-3.5 w-3.5 text-teal-600" /> para concursandos que buscam o topo da lista.
           </p>
 
-          <div className="flex items-center gap-5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 dark:text-slate-400">
             <a href="#planos" className="hover:text-teal-600">Planos</a>
             <span>•</span>
             <button onClick={() => navigate('/login')} className="hover:text-teal-600">Login</button>
+            <span>•</span>
+            <button onClick={() => navigate('/termos-de-uso')} className="hover:text-teal-600">Termos de Uso</button>
+            <span>•</span>
+            <button onClick={() => navigate('/politica-de-privacidade')} className="hover:text-teal-600">Privacidade</button>
+            <span>•</span>
+            <button onClick={() => navigate('/politica-de-cookies')} className="hover:text-teal-600">Cookies</button>
             <span>•</span>
             <button onClick={() => navigate('/help')} className="hover:text-teal-600 flex items-center gap-1">
               <HelpCircle className="h-3.5 w-3.5" /> Ajuda

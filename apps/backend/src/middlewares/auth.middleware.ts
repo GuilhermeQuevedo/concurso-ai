@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { AppError } from './error-handler.js';
+import { prisma } from '../database/prisma.js';
 
 export async function authMiddleware(
   req: Request,
@@ -15,6 +16,24 @@ export async function authMiddleware(
 
     const token = header.slice(7);
     const payload = await verifyAccessToken(token);
+
+    // Validação de integridade: usuário existe, tokenVersion confere e não está em erasure
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, tokenVersion: true, erasureStatus: true, email: true },
+    });
+
+    if (!user) {
+      throw new AppError(401, 'INVALID_TOKEN', 'Usuário não encontrado ou conta removida');
+    }
+
+    if (user.erasureStatus || user.email.startsWith('deleted_')) {
+      throw new AppError(401, 'ACCOUNT_ERASED', 'Conta excluída ou em processo de exclusão');
+    }
+
+    if (payload.tokenVersion !== undefined && user.tokenVersion !== payload.tokenVersion) {
+      throw new AppError(401, 'TOKEN_REVOKED', 'Sessão encerrada ou token revogado');
+    }
 
     req.userId = payload.userId;
     req.userRole = payload.role;

@@ -11,9 +11,27 @@ const registerSchema = z
   .object({
     name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
     email: z.string().email('E-mail inválido'),
-    phone: z.string().min(10, 'Telefone deve ter pelo menos 10 dígitos'),
+    phone: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || val.trim() === '' || /^\+?[1-9]\d{9,14}$/.test(val.replace(/\D/g, '')),
+        'Telefone inválido (insira DDD e número válido)',
+      ),
     password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
     confirmPassword: z.string(),
+    acceptTerms: z.literal(true, {
+      errorMap: () => ({ message: 'Você deve aceitar os Termos de Uso para criar sua conta.' }),
+    }),
+    acceptPrivacy: z.literal(true, {
+      errorMap: () => ({ message: 'Você deve aceitar a Política de Privacidade para criar sua conta.' }),
+    }),
+    acceptAgeOrGuardian: z.literal(true, {
+      errorMap: () => ({
+        message:
+          'Você deve confirmar que é maior de 18 anos ou possui autorização expressa do responsável legal.',
+      }),
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Senhas não coincidem',
@@ -39,7 +57,11 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError('');
-      await registerUser(data.name, data.email, data.phone, data.password);
+      await registerUser(data.name, data.email, data.phone, data.password, {
+        acceptTerms: data.acceptTerms,
+        acceptPrivacy: data.acceptPrivacy,
+        acceptAgeOrGuardian: data.acceptAgeOrGuardian,
+      });
       const plan = new URLSearchParams(window.location.search).get('plan');
       navigate(plan ? `/dashboard?subscribe=${plan}` : '/dashboard', { replace: true });
     } catch {
@@ -115,8 +137,10 @@ export function RegisterForm() {
         </div>
 
         <div>
-          <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Telefone
+          <label htmlFor="phone" className="mb-1.5 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span>
+              Telefone <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(opcional)</span>
+            </span>
           </label>
           <input
             id="phone"
@@ -126,6 +150,9 @@ export function RegisterForm() {
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
             placeholder="(11) 99999-9999"
           />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Usado apenas para recuperação de conta e avisos críticos. Nunca enviamos marketing sem seu consentimento.
+          </p>
           {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone.message}</p>}
         </div>
 
@@ -167,6 +194,74 @@ export function RegisterForm() {
           />
           {errors.confirmPassword && (
             <p className="mt-1 text-sm text-red-500">{errors.confirmPassword.message}</p>
+          )}
+        </div>
+
+        {/* Consentimentos LGPD (v1.0) */}
+        <div className="space-y-2.5 pt-1">
+          <div className="flex items-start gap-2">
+            <input
+              id="acceptTerms"
+              type="checkbox"
+              {...register('acceptTerms')}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800"
+            />
+            <label htmlFor="acceptTerms" className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
+              Li e concordo com os{' '}
+              <Link
+                to="/termos-de-uso"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary-600 underline hover:text-primary-700 dark:text-primary-400"
+              >
+                Termos de Uso (v1.0)
+              </Link>
+            </label>
+          </div>
+          {errors.acceptTerms && (
+            <p className="text-xs text-red-500">{errors.acceptTerms.message}</p>
+          )}
+
+          <div className="flex items-start gap-2">
+            <input
+              id="acceptPrivacy"
+              type="checkbox"
+              {...register('acceptPrivacy')}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800"
+            />
+            <label htmlFor="acceptPrivacy" className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
+              Li e concordo com a{' '}
+              <Link
+                to="/politica-de-privacidade"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary-600 underline hover:text-primary-700 dark:text-primary-400"
+              >
+                Política de Privacidade (v1.0)
+              </Link>
+            </label>
+          </div>
+          {errors.acceptPrivacy && (
+            <p className="text-xs text-red-500">{errors.acceptPrivacy.message}</p>
+          )}
+
+          {/* Declaração de Maioridade / ECA Digital (Opção A — PENDENTE DE REVISÃO JURÍDICA) */}
+          <div className="flex items-start gap-2">
+            <input
+              id="acceptAgeOrGuardian"
+              type="checkbox"
+              {...register('acceptAgeOrGuardian')}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800"
+            />
+            <label htmlFor="acceptAgeOrGuardian" className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
+              Declaro que sou maior de 18 anos ou possuo autorização expressa do meu responsável legal para utilizar a plataforma.{' '}
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                (PENDENTE DE REVISÃO JURÍDICA)
+              </span>
+            </label>
+          </div>
+          {errors.acceptAgeOrGuardian && (
+            <p className="text-xs text-red-500">{errors.acceptAgeOrGuardian.message}</p>
           )}
         </div>
 

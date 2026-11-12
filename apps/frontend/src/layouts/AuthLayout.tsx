@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import { EngramaWordmark } from '@/components/EngramaWordmark';
 
 export function AuthLayout({ children, title, subtitle }: { children: React.ReactNode; title: string; subtitle: string }) {
@@ -14,7 +15,7 @@ export function AuthLayout({ children, title, subtitle }: { children: React.Reac
       </div>
 
       <div className="flex w-full items-center justify-center px-6 lg:w-1/2">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md py-8">
           <div className="mb-8 lg:hidden">
             <EngramaWordmark logoClass="h-8 w-8" textClass="text-xl text-gray-900 dark:text-white" />
           </div>
@@ -23,6 +24,16 @@ export function AuthLayout({ children, title, subtitle }: { children: React.Reac
           <p className="mb-8 text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>
 
           {children}
+
+          <div className="mt-8 pt-6 border-t border-gray-100 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link to="/termos-de-uso" className="hover:text-primary-600 underline">Termos de Uso</Link>
+              <span>•</span>
+              <Link to="/politica-de-privacidade" className="hover:text-primary-600 underline">Privacidade</Link>
+              <span>•</span>
+              <Link to="/politica-de-cookies" className="hover:text-primary-600 underline">Cookies</Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
