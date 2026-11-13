@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarDays, Clock, Download, FileText, Loader2, Save } from 'lucide-react';
+import { AlertCircle, CalendarDays, Clock, Download, FileText, Loader2, RefreshCw, Save } from 'lucide-react';
 
 import type { StudySchedule } from '../types';
 
@@ -10,6 +10,7 @@ interface ScheduleSummaryProps {
   onSave: () => void;
   onExportPdf: () => void;
   onExportCsv: () => void;
+  onReorganize: () => void;
 }
 
 export function ScheduleSummary({
@@ -20,6 +21,7 @@ export function ScheduleSummary({
   onSave,
   onExportPdf,
   onExportCsv,
+  onReorganize,
 }: ScheduleSummaryProps) {
   const hasPerformance = schedule.hasPerformanceData || schedule.has_performance_data;
   const rawExamDate = schedule.examDate || schedule.exam_date || null;
@@ -84,6 +86,16 @@ export function ScheduleSummary({
                 Salvar Cronograma
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={onReorganize}
+              disabled={busy}
+              title="Redistribui os dias pendentes a partir de hoje, até a data da prova"
+              className="flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/40 font-semibold hover:bg-amber-500/20 transition-colors disabled:opacity-50 text-xs cursor-pointer shadow-sm"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Reorganizar cronograma
+            </button>
 
             <div className="flex items-center gap-2">
               <button

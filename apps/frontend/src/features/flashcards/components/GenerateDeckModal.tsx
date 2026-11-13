@@ -10,8 +10,10 @@ import { PdfDropzone } from '@/components/ui/PdfDropzone';
 
 const MAX_CHARS = 80000;
 
-export function GenerateDeckModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState<DeckForm>(EMPTY_DECK_FORM);
+export function GenerateDeckModal({ onClose, onCreated, initialSubject }: { onClose: () => void; onCreated: () => void; initialSubject?: string }) {
+  const [form, setForm] = useState<DeckForm>(
+    initialSubject ? { ...EMPTY_DECK_FORM, name: initialSubject, subjectName: initialSubject } : EMPTY_DECK_FORM,
+  );
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [studyMode, setStudyMode] = useState<'standard' | 'cloze'>('standard');

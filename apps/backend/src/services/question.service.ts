@@ -108,7 +108,7 @@ export class QuestionService {
       }
       context = doc.content;
     } else {
-      context = await this.documentService.getContentBySubject(dto.subjectId);
+      context = await this.documentService.getContentBySubject(userId, dto.subjectId);
     }
 
     // Chunking inteligente (Padrão Zion): materiais extensos divididos em blocos sem truncamento

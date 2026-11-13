@@ -44,7 +44,6 @@ const PRICING_PLANS: PricingPlan[] = [
     features: [
       'Geração ilimitada de questões com IA',
       'Questões no padrão fiel da sua banca (Cebraspe, FGV, FCC)',
-      'Correção aprofundada de redações com critérios oficiais',
       'Flashcards inteligentes com repetição espaçada',
       'Cronograma e calendário de estudos com ciclos automáticos',
     ],

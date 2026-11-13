@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { useActiveStudy } from '@/features/active-study/active-study-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CalendarClock, Clock, Loader2, Sparkles } from 'lucide-react';
+import { Clock, Loader2, Sparkles } from 'lucide-react';
 import { studyTaskService, type StudyTask } from '@/features/calendar/services/study-task.service';
 import { contestService } from '@/features/contests/services/contest.service';
 import { GeneratePlanForm } from '@/features/calendar/components/GeneratePlanForm';
@@ -12,6 +12,9 @@ import { TaskList } from '@/features/calendar/components/TaskList';
 import { DayReminders } from '@/features/reminders/components/DayReminders';
 import { reminderService } from '@/features/reminders/services/reminder.service';
 import { daysUntil } from '@/features/contests/components/ContestCard';
+import { ScheduleDayPanel } from '@/features/calendar/components/ScheduleDayPanel';
+import { indexScheduleDays, type CalendarScheduleDay } from '@/features/calendar/utils-schedule-days';
+import { studyScheduleService } from '@/features/study-schedule/services/study-schedule.service';
 
 export function CalendarPage() {
   const queryClient = useQueryClient();
@@ -31,11 +34,27 @@ export function CalendarPage() {
     queryKey: ['study-tasks', from, to],
     queryFn: () => studyTaskService.list(from, to),
   });
-  const tasks = useMemo(() => (activeContestId ? allTasks.filter((t) => t.contestId === activeContestId) : allTasks), [allTasks, activeContestId]);
+  // Redação saiu da plataforma: tarefas antigas desse tipo ficam escondidas.
+  const tasks = useMemo(() => {
+    const visible = allTasks.filter((t) => t.type !== 'ESSAY');
+    return activeContestId ? visible.filter((t) => t.contestId === activeContestId) : visible;
+  }, [allTasks, activeContestId]);
 
   const { data: contests = [] } = useQuery({
     queryKey: ['contests'],
     queryFn: contestService.list,
+  });
+
+  const { data: schedules = [] } = useQuery({ queryKey: ['study-schedules'], queryFn: studyScheduleService.listSchedules });
+  const scheduleByDay = useMemo(() => {
+    const scoped = activeContestId ? schedules.filter((s) => s.contestId === activeContestId) : schedules;
+    return indexScheduleDays(scoped);
+  }, [schedules, activeContestId]);
+  const scheduleDays = useMemo(() => new Set(scheduleByDay.keys()), [scheduleByDay]);
+
+  const scheduleToggle = useMutation({
+    mutationFn: (entry: CalendarScheduleDay) => studyScheduleService.toggleDayCompletion(entry.scheduleId, entry.weekIndex, entry.dayIndex),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['study-schedules'] }),
   });
 
   const toggleMutation = useMutation({
@@ -60,7 +79,6 @@ export function CalendarPage() {
     () => new Set([...remindersByDay.entries()].filter(([, list]) => list.some((r) => !r.done)).map(([key]) => key)),
     [remindersByDay],
   );
-  const monthHasReminders = [...remindersByDay.keys()].some((key) => key >= from && key <= to);
 
   const tasksByDay = useMemo(() => {
     const map = new Map<string, StudyTask[]>();
@@ -154,17 +172,13 @@ export function CalendarPage() {
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
-      ) : tasks.length === 0 && !monthHasReminders && !showGenerate ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
-          <CalendarClock className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-          <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-            Nenhuma tarefa neste mês
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Clique em "Gerar Plano" para distribuir o conteúdo do edital até o dia da prova
-          </p>
-        </div>
       ) : (
+        <>
+          {tasks.length === 0 && scheduleDays.size === 0 && (
+            <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+              Ainda não há tarefas aqui. Use "Gerar Plano" ou crie um cronograma; você já pode escolher um dia e adicionar lembretes.
+            </p>
+          )}
         <div className="grid gap-4 lg:grid-cols-2">
           <MonthGrid
             year={year}
@@ -173,12 +187,14 @@ export function CalendarPage() {
             selectedDay={selectedDay}
             examDays={examDays}
             reminderDays={reminderDays}
+            scheduleDays={scheduleDays}
             onSelectDay={setSelectedDay}
             onNavigate={navigate}
           />
 
           <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
             <h3 className="mb-3 text-sm font-semibold capitalize text-gray-900 dark:text-white">{selectedLabel}</h3>
+            <ScheduleDayPanel entries={scheduleByDay.get(selectedDay) ?? []} onToggle={(entry) => scheduleToggle.mutate(entry)} />
             <TaskList
               tasks={selectedTasks}
               emptyMessage="Nenhuma tarefa neste dia."
@@ -187,6 +203,7 @@ export function CalendarPage() {
             <DayReminders day={selectedDay} reminders={remindersByDay.get(selectedDay) ?? []} />
           </div>
         </div>
+        </>
       )}
     </div>
   );

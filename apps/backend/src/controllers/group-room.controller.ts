@@ -61,6 +61,16 @@ export class GroupRoomController {
     }
   };
 
+  ready = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.rooms.setReady(getUserId(req), req.params.id as string, req.params.roomId as string, req.body.ready === true);
+      const response: ApiResponse<null> = { success: true, data: null };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   answer = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.rooms.answer(getUserId(req), req.params.id as string, req.params.roomId as string, req.body.questionId, req.body.choice);

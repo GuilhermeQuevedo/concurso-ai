@@ -27,6 +27,7 @@ export interface RoomPlayerView {
   userId: string;
   name: string;
   nickname: string | null;
+  ready: boolean;
   score: number;
   correct: number;
   answered: number;
@@ -164,7 +165,7 @@ export class GroupRoomStateService {
   }
 
   private leaderboard(
-    players: { userId: string; user: { name: string; nickname: string | null } }[],
+    players: { userId: string; ready: boolean; user: { name: string; nickname: string | null } }[],
     answers: { userId: string; isCorrect: boolean; points: number }[],
   ): RoomPlayerView[] {
     return players
@@ -174,6 +175,7 @@ export class GroupRoomStateService {
           userId: p.userId,
           name: p.user.name,
           nickname: p.user.nickname,
+          ready: p.ready,
           score: mine.reduce((sum, a) => sum + a.points, 0),
           correct: mine.filter((a) => a.isCorrect).length,
           answered: mine.length,

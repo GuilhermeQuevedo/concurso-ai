@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { Calendar } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 
 import { SavedSchedulesModal } from '@/features/study-schedule/components/SavedSchedulesModal';
 import { ScheduleSummary } from '@/features/study-schedule/components/ScheduleSummary';
 import { WeekCollapsible } from '@/features/study-schedule/components/WeekCollapsible';
+import { useOpenScheduleContent } from '@/features/study-schedule/hooks/useOpenScheduleContent';
 import { useStudySchedules } from '@/features/study-schedule/hooks/useStudySchedules';
-import type { ScheduleBlock, ScheduleDay } from '@/features/study-schedule/types';
 import { daysUntilExam, scheduleExamDate } from '@/features/study-schedule/utils/schedule-dates';
 import { exportScheduleToCsv, exportScheduleToPrint } from '@/features/study-schedule/utils/schedule-export';
 import { ScheduleWizard } from '@/features/study-schedule/wizard/ScheduleWizard';
 import type { WizardSubmitPayload } from '@/features/study-schedule/wizard/useScheduleWizard';
 
 export function CronogramaPage() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // Atalho "Faça o seu cronograma para esta prova": abre o assistente na hora, ignorando o cronograma aberto.
   const startFromContest = Boolean(searchParams.get('prova'));
@@ -29,11 +28,7 @@ export function CronogramaPage() {
     if (generated && startFromContest) setSearchParams({}, { replace: true });
   };
 
-  const openContentFor = (day: ScheduleDay, block?: ScheduleBlock) => {
-    const subject = block ? block.subject : day.subject;
-    const wantsQuestions = block?.type === 'questoes' || day.type === 'questoes';
-    void navigate(wantsQuestions ? '/generate' : '/flashcards', { state: { initialSubject: subject } });
-  };
+  const openContentFor = useOpenScheduleContent();
 
   const ready = startFromContest || studies.isInitialized;
 
@@ -76,6 +71,7 @@ export function CronogramaPage() {
               onSave={() => void studies.save()}
               onExportPdf={() => exportScheduleToPrint(schedule)}
               onExportCsv={() => exportScheduleToCsv(schedule)}
+              onReorganize={() => void studies.reorganize()}
             />
 
             <div className="space-y-4">
@@ -86,7 +82,7 @@ export function CronogramaPage() {
                   weekIndex={index}
                   defaultOpen={index === 0}
                   onToggleDay={(weekIndex, dayIndex) => void studies.toggleDay(weekIndex, dayIndex)}
-                  onGenerate={(_dayIndex, day, block) => openContentFor(day, block)}
+                  onGenerate={(_dayIndex, day, kind, block) => openContentFor(day, kind, block)}
                 />
               ))}
             </div>

@@ -13,6 +13,10 @@ export const createRoomSchema = z.object({
   }),
 });
 
+export const roomReadySchema = z.object({
+  body: z.object({ ready: z.boolean() }),
+});
+
 export const roomAnswerSchema = z.object({
   body: z.object({
     questionId: z.string().min(1).max(60),

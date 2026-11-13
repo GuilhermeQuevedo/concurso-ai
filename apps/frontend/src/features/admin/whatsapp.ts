@@ -11,7 +11,7 @@ export const DEFAULT_WA_TEMPLATE = [
   'Oi! Tô abrindo um grupo no WhatsApp pra quem quer passar em concurso. Lá dentro tem:',
   '',
   '📚 Dicas e materiais de estudo',
-  '📝 Questões e redações comentadas',
+  '📝 Questões comentadas',
   '📅 Avisos de editais e prazos importantes',
   '🤖 Acesso ao *Engrama* — plataforma com inteligência artificial pra estudar melhor',
   '',

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, FileText, Loader2, Sparkles, Upload, X } from 'lucide-react';
 import { DocumentNameInput } from '@/features/documents/components/DocumentNameInput';
+import { invalidateStudyData } from '@/lib/invalidate-study-data';
 import { getErrorMessage } from '@/utils/error-message';
 import { contestService } from '../services/contest.service';
 import {
@@ -90,7 +91,7 @@ function EditalUpload({ onCreated }: { onCreated: (id: string) => void }) {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['contests'] });
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      void invalidateStudyData(queryClient);
       if (result.pipeline === 'objetivo') {
         onCreated(result.contestId);
       } else {

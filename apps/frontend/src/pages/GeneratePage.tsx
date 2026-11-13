@@ -6,6 +6,7 @@ import {
   questionSetService,
   type QuestionSetSummary,
 } from '@/features/questions/services/question-set.service';
+import { useScheduleTarget } from '@/features/content/hooks/useScheduleTarget';
 import { QuestionSetCard } from '@/features/questions/components/QuestionSetCard';
 import { GenerateAIModal } from '@/features/questions/components/GenerateAIModal';
 import { CreateManualModal } from '@/features/questions/components/CreateManualModal';
@@ -32,6 +33,13 @@ export function GeneratePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAI, setShowAI] = useState(false);
+  const target = useScheduleTarget();
+  const autoOpened = useRef(false);
+  useEffect(() => {
+    if (!target.name || !target.ready || autoOpened.current) return;
+    autoOpened.current = true;
+    setShowAI(true);
+  }, [target.name, target.ready]);
   const [showManual, setShowManual] = useState(false);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>(loadView);
@@ -183,7 +191,7 @@ export function GeneratePage() {
         </div>
       )}
 
-      {showAI && <GenerateAIModal onClose={() => setShowAI(false)} onCreated={refresh} />}
+      {showAI && <GenerateAIModal onClose={() => setShowAI(false)} onCreated={refresh} initialSubjectId={target.subject?.id} />}
       {showManual && <CreateManualModal onClose={() => setShowManual(false)} onCreated={refresh} />}
     </div>
   );

@@ -22,11 +22,13 @@ interface MonthGridProps {
   examDays: Map<string, string>;
   // Dias com algum lembrete pendente.
   reminderDays?: Set<string>;
+  // Dias com algum bloco de cronograma salvo.
+  scheduleDays?: Set<string>;
   onSelectDay: (key: string) => void;
   onNavigate: (delta: number) => void;
 }
 
-export function MonthGrid({ year, month, tasksByDay, selectedDay, examDays, reminderDays, onSelectDay, onNavigate }: MonthGridProps) {
+export function MonthGrid({ year, month, tasksByDay, selectedDay, examDays, reminderDays, scheduleDays, onSelectDay, onNavigate }: MonthGridProps) {
   const firstDay = new Date(year, month, 1);
   const startOffset = firstDay.getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -68,6 +70,7 @@ export function MonthGrid({ year, month, tasksByDay, selectedDay, examDays, remi
           const isSelected = key === selectedDay;
           const isExamDay = examDays.has(key);
           const hasReminder = reminderDays?.has(key) ?? false;
+          const hasSchedule = scheduleDays?.has(key) ?? false;
 
           return (
             <button
@@ -89,6 +92,7 @@ export function MonthGrid({ year, month, tasksByDay, selectedDay, examDays, remi
                 {date.getDate()}
               </span>
               {isExamDay && <span className="mt-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">PROVA</span>}
+              {hasSchedule && <span aria-label="Tem cronograma" className="mt-0.5 h-1.5 w-1.5 rounded-full bg-teal-500" />}
               {hasReminder && <Bell aria-label="Tem lembrete" className="mt-0.5 h-3 w-3 text-amber-500" />}
               {tasks.length > 0 && (
                 <span

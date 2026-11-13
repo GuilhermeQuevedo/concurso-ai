@@ -48,3 +48,5 @@ export interface StudySchedule {
   createdAt?: string;
   created_at?: string;
 }
+
+export type ContentKind = 'JOGOS' | 'QUESTOES' | 'FLASHCARDS';
