@@ -23,6 +23,7 @@ import { StatusFilter, STATUS_ORDER, statusOf, type DisciplineStatus } from './D
 export function ContestDetailView({ contestId, onBack }: { contestId: string; onBack: () => void }) {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<DisciplineStatus | 'todas'>('todas');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const navigate = useNavigate();
 
   const { data: contest, isLoading } = useQuery({
