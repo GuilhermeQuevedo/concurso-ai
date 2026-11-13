@@ -14,7 +14,8 @@ interface GoogleCalendarItem {
   summary: string;
 }
 
-interface GoogleEventPayload {
+export interface GoogleEventPayload {
+  id?: string;
   summary: string;
   description?: string;
   start: { dateTime?: string; date?: string; timeZone?: string };
@@ -136,20 +137,23 @@ export class GoogleCalendarClient {
     return createdData.id;
   }
 
-  async insertEvent(accessToken: string, calendarId: string, event: GoogleEventPayload): Promise<void> {
-    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(event),
-    });
+  // Cria o evento; se o id já existe (sincronizações anteriores), atualiza em vez de duplicar.
+  async upsertEvent(accessToken: string, calendarId: string, event: GoogleEventPayload): Promise<boolean> {
+    const base = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+    const headers = { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' };
 
-    if (!response.ok && response.status !== 409) {
-      const errorMsg = await response.text();
-      console.warn('Erro ao inserir evento no Google Calendar:', errorMsg);
+    const created = await fetch(base, { method: 'POST', headers, body: JSON.stringify(event) });
+    if (created.ok) return true;
+
+    if (created.status === 409 && event.id) {
+      const updated = await fetch(`${base}/${event.id}`, { method: 'PATCH', headers, body: JSON.stringify({ ...event, status: 'confirmed' }) });
+      if (updated.ok) return true;
+      console.warn('Erro ao atualizar evento no Google Calendar:', updated.status);
+      return false;
     }
+
+    console.warn('Erro ao inserir evento no Google Calendar:', created.status);
+    return false;
   }
 
   async revokeToken(token: string): Promise<void> {
