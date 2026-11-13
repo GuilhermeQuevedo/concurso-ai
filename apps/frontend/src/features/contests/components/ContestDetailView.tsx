@@ -15,6 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { toast } from '@/components/ui/toast-store';
+import { invalidateStudyData } from '@/lib/invalidate-study-data';
 import { getErrorMessage } from '@/utils/error-message';
 import { contestService, type SyllabusItem, type DisciplineStat } from '../services/contest.service';
 import { daysUntil, formatExamDate } from './ContestCard';
@@ -35,13 +36,12 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { data: schedules = [] } = useQuery({ queryKey: ['study-schedules'], queryFn: studyScheduleService.listSchedules });
   const linkedSchedules = schedules.filter((s) => s.contestId === contestId);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: (options: DeleteContestOptions) => contestService.delete(contestId, options),
     onSuccess: ({ deletedDocuments }) => {
       queryClient.invalidateQueries({ queryKey: ['contests'] });
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      void invalidateStudyData(queryClient);
       queryClient.invalidateQueries({ queryKey: ['due-reviews'] });
       toast.success(deletedDocuments > 0 ? `Prova apagada, junto com ${deletedDocuments} documento(s).` : 'Prova apagada.');
       onBack();

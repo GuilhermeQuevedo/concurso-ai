@@ -56,7 +56,7 @@ export function GeneratePlanForm({ onClose }: { onClose: () => void }) {
 
       <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
         O plano distribui todos os tópicos pendentes do edital pelos dias até a prova, com revisões
-        espaçadas (+3 e +7 dias), redação semanal e revisão geral na reta final.
+        espaçadas (+3 e +7 dias) e revisão geral na reta final.
       </p>
 
       {eligible.length === 0 ? (

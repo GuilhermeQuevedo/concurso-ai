@@ -94,9 +94,9 @@ export class DocumentService {
     await prisma.document.delete({ where: { id } });
   }
 
-  async getContentBySubject(subjectId: string, maxChars = 8000): Promise<string> {
+  async getContentBySubject(userId: string, subjectId: string, maxChars = 8000): Promise<string> {
     const docs = await prisma.document.findMany({
-      where: { subjectId },
+      where: { userId, subjectId },
       orderBy: { createdAt: 'desc' },
       select: { content: true, name: true },
       take: 5,

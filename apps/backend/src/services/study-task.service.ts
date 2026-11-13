@@ -4,7 +4,6 @@ import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 
 const REVIEW_DURATION = 15;
-const ESSAY_DURATION = 90;
 const FINAL_REVIEW_RATIO = 0.15;
 const SPACED_REVIEW_OFFSETS = [3, 7];
 const WEAK_REVIEW_OFFSETS = [3, 7, 14];
@@ -212,12 +211,6 @@ function buildTasks(
         const prefix = isWeak ? 'Reforçar' : 'Revisar';
         tasks.push(makeTask(contestId, 'REVIEW', reviewDate, `${prefix}: ${topic.topic}`, topic.discipline, REVIEW_DURATION, topic.id));
       }
-    }
-  });
-
-  learningDates.forEach((date, index) => {
-    if ((index + 1) % 6 === 0) {
-      tasks.push(makeTask(contestId, 'ESSAY', date, 'Escrever redação da semana', null, ESSAY_DURATION, null));
     }
   });
 

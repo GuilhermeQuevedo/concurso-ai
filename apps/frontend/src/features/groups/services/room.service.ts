@@ -20,6 +20,7 @@ export interface RoomPlayer {
   userId: string;
   name: string;
   nickname: string | null;
+  ready: boolean;
   score: number;
   correct: number;
   answered: number;
@@ -78,6 +79,10 @@ export const roomService = {
 
   async join(groupId: string, roomId: string): Promise<void> {
     await api.post(`/groups/${groupId}/rooms/${roomId}/join`);
+  },
+
+  async setReady(groupId: string, roomId: string, ready: boolean): Promise<void> {
+    await api.post(`/groups/${groupId}/rooms/${roomId}/ready`, { ready });
   },
 
   async start(groupId: string, roomId: string): Promise<void> {

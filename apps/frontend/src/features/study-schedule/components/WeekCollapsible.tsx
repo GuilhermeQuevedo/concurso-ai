@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-import type { ScheduleBlock, ScheduleDay, ScheduleWeek } from '../types';
+import type { ContentKind, ScheduleBlock, ScheduleDay, ScheduleWeek } from '../types';
 import { ScheduleDayRow } from './ScheduleDayRow';
 
 export interface WeekCollapsibleProps {
@@ -11,7 +11,7 @@ export interface WeekCollapsibleProps {
   weekIndex: number;
   defaultOpen: boolean;
   onToggleDay: (weekIndex: number, dayIndex: number) => void;
-  onGenerate: (dayIndex: number, day: ScheduleDay, block?: ScheduleBlock) => void;
+  onGenerate: (dayIndex: number, day: ScheduleDay, kind: ContentKind, block?: ScheduleBlock) => void;
 }
 
 const PHASE_LABEL: Record<ScheduleWeek['phase'], string> = {
@@ -65,7 +65,7 @@ export function WeekCollapsible({ week, weekIndex, defaultOpen, onToggleDay, onG
               key={dayIndex}
               day={day}
               onToggleCompletion={() => onToggleDay(weekIndex, dayIndex)}
-              onGenerate={(block?: ScheduleBlock) => onGenerate(dayIndex, day, block)}
+              onGenerate={(kind: ContentKind, block?: ScheduleBlock) => onGenerate(dayIndex, day, kind, block)}
             />
           ))}
         </div>

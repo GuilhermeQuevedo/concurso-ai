@@ -6,7 +6,14 @@ import { getErrorMessage } from '@/utils/error-message';
 import { studyScheduleService } from '../services/study-schedule.service';
 import type { StudySchedule } from '../types';
 import { setCreatingNew } from '../utils/schedule-draft';
+import { reorganizeSchedule } from '../utils/schedule-reorganize';
 import type { ScheduleSession } from './useScheduleSession';
+
+function localDayKey(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `${now.getFullYear()}-${month}-${String(now.getDate()).padStart(2, '0')}`;
+}
 
 function toggleDayAt(schedule: StudySchedule, weekIndex: number, dayIndex: number): StudySchedule {
   const weeks = schedule.schedule.weeks.map((week, w) =>
@@ -50,6 +57,25 @@ export function useScheduleActions({ schedule, setSchedule, setSavedSchedules, c
     }
   };
 
+  const reorganize = async () => {
+    if (!schedule) return;
+    const result = reorganizeSchedule(schedule, localDayKey());
+    if (!result) return toast.error('Não há dias pendentes para reorganizar, ou a data da prova já passou.');
+    if (!window.confirm('Redistribuir os dias pendentes a partir de hoje até a prova? Os dias concluídos não mudam.')) return;
+    const previous = schedule;
+    setSchedule(result.schedule);
+    if (schedule.id) {
+      try {
+        await studyScheduleService.replaceWeeks(schedule.id, result.schedule.schedule.weeks);
+      } catch (error: unknown) {
+        setSchedule(previous);
+        return toast.error(getErrorMessage(error, 'Não foi possível salvar a reorganização.'));
+      }
+    }
+    const merged = result.merged > 0 ? ` ${result.merged} dia(s) foram juntados por falta de datas até a prova.` : '';
+    toast.success(`Cronograma reorganizado: ${result.moved} dia(s) redistribuídos.${merged}`);
+  };
+
   const remove = async (id: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este cronograma?')) return;
     try {
@@ -91,5 +117,5 @@ export function useScheduleActions({ schedule, setSchedule, setSavedSchedules, c
     setSchedule(null);
   };
 
-  return { isSaving, save, toggleDay, remove, rename, select, createAnother };
+  return { isSaving, save, toggleDay, reorganize, remove, rename, select, createAnother };
 }

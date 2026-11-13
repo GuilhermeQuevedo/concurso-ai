@@ -20,8 +20,6 @@ export const phoneValidator = z.preprocess(
 
 import { NICKNAME_MAX, NICKNAME_MIN, NICKNAME_PATTERN } from '../utils/nickname.js';
 
-import { NICKNAME_MAX, NICKNAME_MIN, NICKNAME_PATTERN } from '../utils/nickname.js';
-
 export const registerSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),

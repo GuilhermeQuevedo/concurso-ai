@@ -948,6 +948,7 @@ model GroupRoomPlayer {
   id       String   @id @default(cuid())
   roomId   String
   userId   String
+  ready    Boolean  @default(false)
   joinedAt DateTime @default(now())
 
   room GroupRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)

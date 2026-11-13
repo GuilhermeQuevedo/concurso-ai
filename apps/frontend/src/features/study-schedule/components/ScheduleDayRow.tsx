@@ -1,12 +1,13 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import type { ScheduleDay, ScheduleBlock } from '../types';
-import { Clock, Star, CheckCircle2, Circle, Target, BookOpen, Sparkles } from 'lucide-react';
+import type { ScheduleDay, ScheduleBlock, ContentKind } from '../types';
+import { GenerateContentMenu } from './GenerateContentMenu';
+import { Clock, Star, CheckCircle2, Circle, Target, BookOpen } from 'lucide-react';
 
 interface Props {
   day: ScheduleDay;
   onToggleCompletion?: () => void;
-  onGenerate?: (block?: ScheduleBlock) => void;
+  onGenerate?: (kind: ContentKind, block?: ScheduleBlock) => void;
   isGenerating?: boolean;
 }
 
@@ -84,7 +85,7 @@ export const ScheduleDayRow: React.FC<Props> = ({
           {!hasBlocks && isSimulado && onGenerate && (
             <button
               type="button"
-              onClick={() => onGenerate()}
+              onClick={() => onGenerate('QUESTOES')}
               disabled={isGenerating}
               className="text-xs font-semibold px-3 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-50 ml-2 cursor-pointer shadow-sm"
             >
@@ -144,19 +145,7 @@ export const ScheduleDayRow: React.FC<Props> = ({
                 )}
 
                 {onGenerate && block.type !== 'descanso' && (
-                  <button
-                    type="button"
-                    onClick={() => onGenerate(block)}
-                    disabled={isGenerating}
-                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-500/40 text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 hover:border-teal-500/60 transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    {isGenerating
-                      ? '...'
-                      : block.type === 'questoes'
-                      ? 'Gerar Questões'
-                      : 'Gerar Flashcards'}
-                  </button>
+                  <GenerateContentMenu disabled={isGenerating} onPick={(kind) => onGenerate(kind, block)} />
                 )}
               </div>
             </div>
@@ -175,15 +164,9 @@ export const ScheduleDayRow: React.FC<Props> = ({
                 {day.subject}
               </span>
               {onGenerate && (
-                <button
-                  type="button"
-                  onClick={() => onGenerate()}
-                  disabled={isGenerating}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-500/40 text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 transition-colors disabled:opacity-50 ml-auto cursor-pointer shadow-sm"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {isGenerating ? 'Gerando...' : 'Gerar Flashcards'}
-                </button>
+                <div className="ml-auto">
+                  <GenerateContentMenu disabled={isGenerating} onPick={(kind) => onGenerate(kind)} />
+                </div>
               )}
             </div>
           )

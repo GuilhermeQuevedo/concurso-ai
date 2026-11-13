@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
 
 import { toast } from '@/components/ui/toast-store';
+import { invalidateStudyData } from '@/lib/invalidate-study-data';
 import { rankingService } from '@/features/rankings/services/ranking.service';
 import { getErrorMessage } from '@/utils/error-message';
 
@@ -18,7 +19,7 @@ function describeResult(result: ProcessResult): string {
 // Ações sobre os documentos da lista: apagar, trocar o tipo, sugerir ranking e processar. Erros viram toast.
 export function useDocumentActions() {
   const queryClient = useQueryClient();
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['documents'] });
+  const refresh = () => invalidateStudyData(queryClient);
 
   const [suggestedIds, setSuggestedIds] = useState<Set<string>>(new Set());
   const [processResult, setProcessResult] = useState<ProcessResult | null>(null);
@@ -55,7 +56,6 @@ export function useDocumentActions() {
     onSuccess: (result) => {
       setProcessResult(result);
       refresh();
-      queryClient.invalidateQueries({ queryKey: ['contests'] });
       toast.success(describeResult(result));
     },
     onError: (error) =>

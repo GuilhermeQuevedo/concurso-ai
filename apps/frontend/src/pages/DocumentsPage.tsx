@@ -57,7 +57,8 @@ export function DocumentsPage() {
 
   const visible = useMemo(() => sortDocuments(filterDocuments(documents, filters), sortBy), [documents, filters, sortBy]);
   const groups = useMemo(() => groupDocuments(visible, groupBy, (id) => subjectNames.get(id) ?? 'Disciplina removida'), [visible, groupBy, subjectNames]);
-  const counts = useMemo(() => countByKind(documents), [documents]);
+  // Os contadores das abas seguem a disciplina e a busca escolhidas; só o filtro de tipo fica de fora.
+  const counts = useMemo(() => countByKind(filterDocuments(documents, { ...filters, kind: 'TODOS' })), [documents, filters]);
   const filtering = filters.query !== '' || filters.kind !== 'TODOS' || filters.subjectId !== '';
 
   const changeGroupBy = (next: GroupBy) => {
@@ -101,7 +102,7 @@ export function DocumentsPage() {
       <DocumentUploadCard subjects={subjects} />
       {actions.processResult && <ProcessResultBanner result={actions.processResult} onDismiss={actions.dismissResult} />}
 
-      <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">Seus documentos ({documents.length})</h2>
+      <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">Seus documentos ({filtering ? `${visible.length} de ${documents.length}` : documents.length})</h2>
 
       {isLoading ? (
         <div className="flex justify-center py-12">

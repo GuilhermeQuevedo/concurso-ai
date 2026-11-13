@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router';
-import { Pause, Play, Timer } from 'lucide-react';
+import { Pause, Play, Timer, X } from 'lucide-react';
 
+import { setPomodoroFloating, usePomodoroFloating } from './floating-preference';
 import { isInProgress, POMODORO_MODES } from './pomodoro-store';
 import { formatClock, usePomodoro } from './usePomodoro';
 
@@ -8,7 +9,8 @@ import { formatClock, usePomodoro } from './usePomodoro';
 export function PomodoroMini() {
   const { pathname } = useLocation();
   const pomo = usePomodoro();
-  if (pathname === '/dashboard' || !isInProgress(pomo)) return null;
+  const floating = usePomodoroFloating();
+  if (!floating || pathname === '/dashboard' || !isInProgress(pomo)) return null;
 
   return (
     <div
@@ -28,6 +30,15 @@ export function PomodoroMini() {
         className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 text-white hover:bg-primary-700"
       >
         {pomo.running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+      </button>
+      <button
+        type="button"
+        onClick={() => setPomodoroFloating(false)}
+        aria-label="Esconder o Pomodoro flutuante"
+        title="Esconder (o cronômetro continua no Painel; dá para reativar lá)"
+        className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
+      >
+        <X className="h-3.5 w-3.5" />
       </button>
     </div>
   );

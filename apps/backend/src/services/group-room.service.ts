@@ -1,4 +1,4 @@
-import type { Difficulty, RoomMode } from '@prisma/client';
+import type { Difficulty, GroupRoom, RoomMode } from '@prisma/client';
 
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -13,6 +13,8 @@ import {
 
 import { questionIdsOf, syncRoom } from './group-room-state.service.js';
 import { assertGroupMember } from './group-share.service.js';
+
+const MIN_PLAYERS_TO_START = 2;
 
 export interface NewRoom {
   title: string;
@@ -126,10 +128,26 @@ export class GroupRoomService {
     const room = await this.find(groupId, roomId);
     if (room.hostId !== userId) throw new AppError(403, 'FORBIDDEN', 'Só quem criou a sala pode iniciá-la.');
     if (room.mode !== 'LIVE' || room.status !== 'LOBBY') throw new AppError(409, 'ROOM_NOT_STARTABLE', 'Esta sala não pode ser iniciada.');
+    await this.beginLive(room);
+  }
+
+  // Cada jogador avisa que está pronto; quando todos (pelo menos dois) estão, a contagem de 5 segundos começa sozinha.
+  async setReady(userId: string, groupId: string, roomId: string, ready: boolean): Promise<void> {
+    await assertGroupMember(groupId, userId);
+    const room = await this.find(groupId, roomId);
+    if (room.mode !== 'LIVE' || room.status !== 'LOBBY') throw new AppError(409, 'ROOM_NOT_IN_LOBBY', 'A sala não está aguardando jogadores.');
+    const { count } = await prisma.groupRoomPlayer.updateMany({ where: { roomId, userId }, data: { ready } });
+    if (count === 0) throw new AppError(409, 'NOT_IN_ROOM', 'Entre na sala antes de marcar pronto.');
+
+    const players = await prisma.groupRoomPlayer.findMany({ where: { roomId }, select: { ready: true } });
+    if (players.length >= MIN_PLAYERS_TO_START && players.every((p) => p.ready)) await this.beginLive(room);
+  }
+
+  private async beginLive(room: GroupRoom): Promise<void> {
     const startsAt = Date.now() + COUNTDOWN_MS;
     const total = questionIdsOf(room).length;
-    await prisma.groupRoom.update({
-      where: { id: roomId },
+    await prisma.groupRoom.updateMany({
+      where: { id: room.id, status: 'LOBBY' },
       data: {
         status: 'RUNNING',
         startsAt: new Date(startsAt),

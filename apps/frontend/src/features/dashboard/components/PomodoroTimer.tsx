@@ -1,11 +1,13 @@
 import { Play, Pause, RotateCcw, Timer } from 'lucide-react';
 
 import { POMODORO_MODES as MODES, type PomodoroMode } from '@/features/pomodoro/pomodoro-store';
+import { setPomodoroFloating, usePomodoroFloating } from '@/features/pomodoro/floating-preference';
 import { formatClock, usePomodoro } from '@/features/pomodoro/usePomodoro';
 
 // O estado vive em features/pomodoro (fora do componente) para o cronômetro sobreviver à troca de página.
 export function PomodoroTimer() {
   const { mode, running, secondsLeft, cycles, actions } = usePomodoro();
+  const floating = usePomodoroFloating();
 
   const total = MODES[mode].minutes * 60;
   const progress = ((total - secondsLeft) / total) * 100;
@@ -59,7 +61,17 @@ export function PomodoroTimer() {
         </button>
       </div>
 
-      <p className="mt-3 text-center text-[11px] text-gray-400">
+      <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+        <input
+          type="checkbox"
+          checked={floating}
+          onChange={(e) => setPomodoroFloating(e.target.checked)}
+          className="h-3.5 w-3.5 rounded border-gray-300 text-primary-600"
+        />
+        Manter o cronômetro flutuando nas outras telas
+      </label>
+
+      <p className="mt-2 text-center text-[11px] text-gray-400">
         {cycles} ciclo{cycles === 1 ? '' : 's'} de foco hoje
       </p>
     </div>
