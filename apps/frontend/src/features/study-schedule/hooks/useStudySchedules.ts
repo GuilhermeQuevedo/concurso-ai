@@ -5,7 +5,7 @@ import { useScheduleSession } from './useScheduleSession';
 // Fachada da tela de cronograma: junta sessão (o que está aberto), geração e ações sobre o cronograma.
 export function useStudySchedules(startFromContest: boolean) {
   const session = useScheduleSession(startFromContest);
-  const generation = useScheduleGeneration(session.setSchedule);
+  const generation = useScheduleGeneration(session.setSchedule, session.setSavedSchedules, session.clearDraft);
   const actions = useScheduleActions(session);
 
   return {
