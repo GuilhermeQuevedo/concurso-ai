@@ -6,6 +6,7 @@ import { reminderService } from '@/features/reminders/services/reminder.service'
 import { studyScheduleService } from '@/features/study-schedule/services/study-schedule.service';
 import { getErrorMessage } from '@/utils/error-message';
 
+import { latestPerStudy } from '../latest-schedules';
 import { reminderItems, scheduleItems, taskItems, type CalendarItem } from '../calendar-items';
 import type { NewItemInput } from '../components/NewItemDialog';
 import { studyTaskService } from '../services/study-task.service';
@@ -26,8 +27,11 @@ export function useCalendarData(range: DateRange, activeContestId: string | null
   const reminders = useQuery({ queryKey: ['reminders'], queryFn: reminderService.list });
 
   const items = useMemo<CalendarItem[]>(() => {
-    // Cronograma sem edital vinculado vale para qualquer estudo ativo; senão ele sumiria do calendário.
-    const scopedSchedules = (schedules.data ?? []).filter((s) => !activeContestId || !s.contestId || s.contestId === activeContestId);
+    // Um cronograma por edital (o mais recente), para os dias não aparecerem duplicados.
+    // Sem edital vinculado vale para qualquer estudo ativo; senão ele sumiria do calendário.
+    const latest = latestPerStudy(schedules.data ?? []);
+    const own = latest.filter((s) => s.contestId === activeContestId);
+    const scopedSchedules = !activeContestId ? latest : own.length > 0 ? own : latest.filter((s) => !s.contestId);
     const scopedTasks = (tasks.data ?? []).filter((t) => !activeContestId || !t.contestId || t.contestId === activeContestId);
     return [
       ...taskItems(scopedTasks),
