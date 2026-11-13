@@ -35,6 +35,7 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { data: schedules = [] } = useQuery({ queryKey: ['study-schedules'], queryFn: studyScheduleService.listSchedules });
   const linkedSchedules = schedules.filter((s) => s.contestId === contestId);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: (options: DeleteContestOptions) => contestService.delete(contestId, options),

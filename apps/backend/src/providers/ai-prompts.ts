@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { redactPII } from '../utils/ai-pii-redactor.js';
 import type {
   GenerateQuestionsParams,
   QuestionType,
@@ -570,17 +571,21 @@ Responda APENAS com JSON válido no formato abaixo, sem markdown ou texto adicio
 }
 
 export function buildErrorRemediationPrompt(params: GenerateErrorRemediationParams): string {
-  const userAnswerBlock = params.userAnswer ? `\nRESPOSTA QUE O ALUNO MARCOU INCORRETAMENTE: "${params.userAnswer}"` : '';
+  const sanitizedQuestion = redactPII(params.question);
+  const sanitizedUserAnswer = params.userAnswer ? redactPII(params.userAnswer) : undefined;
+  const sanitizedExplanation = redactPII(params.explanation);
+
+  const userAnswerBlock = sanitizedUserAnswer ? `\nRESPOSTA QUE O ALUNO MARCOU INCORRETAMENTE: "${sanitizedUserAnswer}"` : '';
 
   return `Você é um mentor sênior especialista em preparação de candidatos para concursos públicos brasileiros.
 O aluno errou a seguinte questão e necessita de um ciclo corretivo imediato:
 
 QUESTÃO DO ERRO:
-"${params.question}"
+"${sanitizedQuestion}"
 ${userAnswerBlock}
 
 GABARITO E EXPLICAÇÃO CORRETA:
-"${params.correctAnswer} - ${params.explanation}"
+"${params.correctAnswer} - ${sanitizedExplanation}"
 
 SUA TAREFA:
 Crie EXATAMENTE 3 flashcards estratégicos para fixar e sanar essa falha:
@@ -642,10 +647,11 @@ Responda APENAS com JSON válido no seguinte formato:
 }
 
 export function buildExtractQuestionsPrompt(content: string, subject?: string): string {
+  const sanitizedContent = redactPII(content);
   return `Você é um especialista em bancas de concursos. O texto abaixo é uma LISTA DE QUESTÕES já existente${subject ? ` sobre "${subject}"` : ''}. Sua tarefa é EXTRAIR fielmente as questões de múltipla escolha presentes no texto — NÃO invente questões novas.
 
 TEXTO (lista de questões):
-${sampleContent(content, QUESTIONS_MAX_CONTEXT)}
+${sampleContent(sanitizedContent, QUESTIONS_MAX_CONTEXT)}
 
 REGRAS OBRIGATÓRIAS:
 1. Extraia cada questão como aparece, com seu enunciado e suas alternativas
@@ -677,11 +683,13 @@ Responda APENAS com JSON válido neste formato, sem markdown:
 }
 
 export function buildEssayPrompt(params: GradeEssayParams): string {
-  const contentBlock = params.content
-    ? `\nREDAÇÃO DO CANDIDATO:\n${params.content}`
+  const sanitizedContent = params.content ? redactPII(params.content) : undefined;
+  const contentBlock = sanitizedContent
+    ? `\nREDAÇÃO DO CANDIDATO:\n${sanitizedContent}`
     : '\nA redação do candidato está na imagem anexada. Extraia o texto manuscrito/digitado e corrija.';
 
   return `Você é um corretor experiente de redações para concursos públicos brasileiros (estilo CESPE/CEBRASPE). Corrija a redação abaixo com rigor técnico.
+PRIVACIDADE E LGPD: Se o texto ou imagem contiver dados pessoais identificáveis (como nome, assinatura, CPF, telefone ou e-mail), desconsidere-os integralmente e NUNCA reproduza esses dados no parecer de correção.
 
 TEMA: "${params.theme}"
 ${contentBlock}
@@ -709,19 +717,24 @@ Responda APENAS com JSON válido no seguinte formato, sem markdown ou texto adic
 }
 
 export function buildCaseStudyPrompt(params: GradeCaseStudyParams): string {
-  const contentBlock = params.content
-    ? params.content
+  const sanitizedContent = params.content ? redactPII(params.content) : undefined;
+  const sanitizedAnswerKey = params.answerKey ? redactPII(params.answerKey) : undefined;
+  const sanitizedCaseStatement = redactPII(params.caseStatement);
+
+  const contentBlock = sanitizedContent
+    ? sanitizedContent
     : '(A resposta do candidato está na imagem anexada. Extraia o texto manuscrito/digitado e corrija.)';
-  const answerKeyBlock = params.answerKey?.trim()
-    ? params.answerKey
+  const answerKeyBlock = sanitizedAnswerKey?.trim()
+    ? sanitizedAnswerKey
     : 'Não foi fornecido espelho oficial. Monte um espelho de referência a partir do comando da questão e sinalize no enquadramento que a pontuação é uma referência estimada.';
 
   return `Você é um avaliador de provas discursivas do tipo "estudo de caso" para concurso público, atuando como uma banca examinadora. Sua tarefa é corrigir a resposta do candidato com rigor, imparcialidade e consistência, seguindo o espelho de correção fornecido.
+PRIVACIDADE E LGPD: Se o texto ou imagem contiver dados pessoais de identificação do candidato, desconsidere-os integralmente e NUNCA mencione nem reproduza tais dados na justificativa ou no feedback.
 
 ## Contexto da correção
 - Cargo/área: ${params.role?.trim() || 'genérico'}
 - Banca/estilo: ${params.examBoard?.trim() || 'genérico'}
-- Enunciado do caso: ${params.caseStatement}
+- Enunciado do caso: ${sanitizedCaseStatement}
 - Limite de linhas: ${params.lineLimit ? `${params.lineLimit} linhas` : 'não especificado'}
 - Espelho de correção (aspectos esperados e pontuação): ${answerKeyBlock}
 - Resposta do candidato: ${contentBlock}
@@ -810,7 +823,8 @@ export const flashcardsResponseSchema = z.object({
 });
 
 export function buildFlashcardsPrompt(params: GenerateFlashcardsParams): string {
-  const content = sampleContent(params.content, FLASHCARD_MAX_CONTENT);
+  const sanitizedContent = redactPII(params.content);
+  const content = sampleContent(sanitizedContent, FLASHCARD_MAX_CONTENT);
   const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : '';
 
   return `Você é um especialista em técnicas de memorização para concursos públicos. A partir do CONTEÚDO DE ESTUDO abaixo${subjectBlock} (trechos ao longo de todo o material), crie ${params.count} flashcards de pergunta e resposta para revisão espaçada.
@@ -853,7 +867,8 @@ Seja direto e didático. Use listas e negrito para destacar o essencial. Não in
 const SUMMARY_MAX_CONTENT = 16000;
 
 export function buildSummaryPrompt(params: GenerateSummaryParams): string {
-  const content = sampleContent(params.content, SUMMARY_MAX_CONTENT);
+  const sanitizedContent = redactPII(params.content);
+  const content = sampleContent(sanitizedContent, SUMMARY_MAX_CONTENT);
   const subjectBlock = params.subject ? ` da disciplina "${params.subject}"` : '';
 
   return `Você é um professor experiente que prepara candidatos para concursos públicos brasileiros. Resuma o CONTEÚDO DE ESTUDO abaixo${subjectBlock} (trechos ao longo de todo o material) de forma objetiva e didática, para revisão rápida.

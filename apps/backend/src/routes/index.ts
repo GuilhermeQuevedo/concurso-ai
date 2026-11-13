@@ -28,6 +28,8 @@ import { friendRouter } from './friend.routes.js';
 import { inviteRouter } from './invite.routes.js';
 import { notificationRouter } from './notification.routes.js';
 import { healthRouter } from './health.routes.js';
+import { contactRouter } from './contact.routes.js';
+import { privacyRouter } from './privacy.routes.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { requireSubscription } from '../middlewares/subscription.middleware.js';
 import {
@@ -41,6 +43,8 @@ const gate = [authMiddleware, requireSubscription, authenticatedRateLimiter];
 
 router.use('/auth', authRouter);
 router.use('/payments', paymentRouter);
+router.use('/contacts', contactRouter);
+router.use('/privacy', publicRateLimiter, privacyRouter);
 router.use('/admin', adminRouter);
 router.use('/subjects', publicRateLimiter, subjectRouter);
 router.use('/exam-boards', publicRateLimiter, examBoardRouter);

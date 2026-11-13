@@ -20,13 +20,14 @@ export interface ManualAccessEntry extends AccessGrant {
 // até para quem ainda não criou conta (o acesso já está esperando no primeiro login).
 export class AdminAccessService {
   async grant(email: string, days?: number): Promise<AccessGrant> {
+    const cleanEmail = email.trim().toLowerCase();
     const expiresAt = days ? new Date(Date.now() + days * DAY_MS) : NO_EXPIRY;
     const entitlement = await prisma.entitlement.upsert({
-      where: { email },
-      create: { email, status: 'ACTIVE', provider: MANUAL_PROVIDER, expiresAt },
+      where: { email: cleanEmail },
+      create: { email: cleanEmail, status: 'ACTIVE', provider: MANUAL_PROVIDER, expiresAt },
       update: { status: 'ACTIVE', provider: MANUAL_PROVIDER, expiresAt },
     });
-    invalidateSubscriptionCache(email);
+    invalidateSubscriptionCache(cleanEmail);
     return this.toGrant(entitlement);
   }
 
@@ -41,16 +42,17 @@ export class AdminAccessService {
       select: { email: true },
     });
     const registered = new Set(users.map((u) => u.email.toLowerCase()));
-    return entitlements.map((e) => ({ ...this.toGrant(e), hasAccount: registered.has(e.email) }));
+    return entitlements.map((e) => ({ ...this.toGrant(e), hasAccount: registered.has(e.email.toLowerCase()) }));
   }
 
   async revoke(email: string): Promise<void> {
-    const existing = await prisma.entitlement.findUnique({ where: { email } });
+    const cleanEmail = email.trim().toLowerCase();
+    const existing = await prisma.entitlement.findUnique({ where: { email: cleanEmail } });
     if (!existing) {
       throw new AppError(404, 'ACCESS_NOT_FOUND', 'Essa pessoa não tem acesso liberado.');
     }
-    await prisma.entitlement.update({ where: { email }, data: { status: 'CANCELED' } });
-    invalidateSubscriptionCache(email);
+    await prisma.entitlement.update({ where: { email: cleanEmail }, data: { status: 'CANCELED' } });
+    invalidateSubscriptionCache(cleanEmail);
   }
 
   private toGrant(entitlement: { email: string; provider: string; expiresAt: Date | null }): AccessGrant {

@@ -26,7 +26,10 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
-  phone: string;
+  phone?: string;
+  acceptTerms?: boolean;
+  acceptPrivacy?: boolean;
+  acceptAgeOrGuardian?: boolean;
 }
 
 export interface AuthTokens {

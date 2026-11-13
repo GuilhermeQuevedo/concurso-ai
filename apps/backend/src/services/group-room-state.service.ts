@@ -1,6 +1,7 @@
 import { xpService } from './xp.service.js';
 import { ROOM_CORRECT_XP } from '@concurso-ai/shared';
 import type { GroupRoom, RoomMode, RoomStatus } from '@prisma/client';
+import { LRUCache } from 'lru-cache';
 
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
@@ -8,6 +9,19 @@ import { liveTiming, type RoomPhase } from '../utils/room-timing.js';
 
 import { assertGroupMember } from './group-share.service.js';
 
+
+interface CachedQuestion {
+  id: string;
+  statement: string;
+  alternatives: unknown;
+  correctAnswer: string;
+  explanation: string;
+}
+
+const questionsByRoomCache = new LRUCache<string, CachedQuestion[]>({
+  max: 200,
+  ttl: 30 * 60 * 1000,
+});
 
 export interface RoomPlayerView {
   userId: string;
@@ -99,7 +113,7 @@ export class GroupRoomStateService {
     const [players, answers, questions] = await Promise.all([
       prisma.groupRoomPlayer.findMany({ where: { roomId }, include: { user: { select: { id: true, name: true, nickname: true } } } }),
       prisma.groupRoomAnswer.findMany({ where: { roomId } }),
-      prisma.question.findMany({ where: { id: { in: ids } } }),
+      this.loadQuestions(roomId, ids),
     ]);
 
     const byId = new Map(questions.map((q) => [q.id, q]));
@@ -166,5 +180,17 @@ export class GroupRoomStateService {
         };
       })
       .sort((a, b) => b.score - a.score || b.correct - a.correct);
+  }
+
+  private async loadQuestions(roomId: string, ids: string[]): Promise<CachedQuestion[]> {
+    if (ids.length === 0) return [];
+    const cached = questionsByRoomCache.get(roomId);
+    if (cached) return cached;
+    const questions = await prisma.question.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, statement: true, alternatives: true, correctAnswer: true, explanation: true },
+    });
+    questionsByRoomCache.set(roomId, questions);
+    return questions;
   }
 }

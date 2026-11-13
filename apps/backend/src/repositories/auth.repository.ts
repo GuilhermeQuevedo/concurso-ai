@@ -32,6 +32,7 @@ export class AuthRepository implements IAuthRepository {
     data: {
       name?: string;
       email?: string;
+      phone?: string | null;
       password?: string;
       dailyGoal?: number;
       nickname?: string;

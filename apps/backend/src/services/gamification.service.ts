@@ -1,14 +1,9 @@
 import { prisma } from '../database/prisma.js';
-import { addDays, startOfDay } from '../utils/spaced-repetition.js';
+import { addDays } from '../utils/spaced-repetition.js';
 import { advanceStreak } from '../utils/streak-shield.js';
+import { dayKeySP, startOfDaySP } from '../utils/time-sp.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-function dateKey(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
 
 const ACHIEVEMENT_DEFS: Record<string, { name: string; description: string; check: (stats: UserGameStats) => boolean }> = {
   FIRST_QUESTION: {
@@ -72,19 +67,19 @@ interface UserGameStats {
 
 export class GamificationService {
   async updateStreak(userId: string) {
-    const today = startOfDay(new Date());
+    const today = startOfDaySP();
     const streak = await prisma.streak.findUnique({ where: { userId } });
 
     if (!streak) {
       return prisma.streak.create({ data: { userId, current: 1, longest: 1, lastDate: today } });
     }
 
-    const diffDays = Math.round((today.getTime() - startOfDay(streak.lastDate).getTime()) / MS_PER_DAY);
+    const diffDays = Math.round((today.getTime() - startOfDaySP(streak.lastDate).getTime()) / MS_PER_DAY);
     if (diffDays <= 0) return streak;
 
     const step = advanceStreak(streak, diffDays - 1);
     const shieldedDates = Array.from({ length: step.coveredDays }, (_, i) =>
-      dateKey(addDays(startOfDay(streak.lastDate), i + 1)),
+      dayKeySP(addDays(startOfDaySP(streak.lastDate), i + 1)),
     );
 
     const [updated] = await prisma.$transaction([

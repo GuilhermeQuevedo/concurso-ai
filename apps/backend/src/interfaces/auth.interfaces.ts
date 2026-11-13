@@ -18,6 +18,7 @@ export interface IAuthRepository {
     data: {
       name?: string;
       email?: string;
+      phone?: string | null;
       password?: string;
       dailyGoal?: number;
       nickname?: string;
@@ -41,6 +42,7 @@ export interface IAuthRepository {
 export interface TokenPayload {
   userId: string;
   role: string;
+  tokenVersion?: number;
 }
 
 export interface AuthTokens {

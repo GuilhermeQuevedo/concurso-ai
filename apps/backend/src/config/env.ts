@@ -39,6 +39,8 @@ const envSchema = z.object({
   STRIPE_PRICE_ID_YEARLY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('Engrama <nao-responda@engrama.app>'),
+  DPO_EMAIL: z.string().default('dpo@engrama.com.br'),
+  DPO_NAME: z.string().default('Comitê de Privacidade e Proteção de Dados'),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
@@ -49,6 +51,11 @@ const envSchema = z.object({
   RATE_LIMIT_API_MAX: z.coerce.number().int().positive().default(300),
   RATE_LIMIT_PUBLIC_MAX: z.coerce.number().int().positive().default(60),
   RATE_LIMIT_HEAVY_MAX: z.coerce.number().int().positive().default(5),
+  ENCRYPTION_KEY: z
+    .string({
+      required_error: 'ENCRYPTION_KEY is required for AES-256-GCM data encryption in rest',
+    })
+    .regex(/^[0-9a-fA-F]{64}$/, 'ENCRYPTION_KEY must be a 64-character hexadecimal string (32 bytes)'),
 });
 
 function normalizeTruncatedEnv(rawEnv: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
@@ -76,6 +83,7 @@ function normalizeTruncatedEnv(rawEnv: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
     TRIPE_PRICE_ID_MONTHLY: 'STRIPE_PRICE_ID_MONTHLY',
     TRIPE_PRICE_ID_SEMESTRAL: 'STRIPE_PRICE_ID_SEMESTRAL',
     TRIPE_PRICE_ID_YEARLY: 'STRIPE_PRICE_ID_YEARLY',
+    NCRYPTION_KEY: 'ENCRYPTION_KEY',
   };
 
   for (const [truncated, proper] of Object.entries(aliases)) {

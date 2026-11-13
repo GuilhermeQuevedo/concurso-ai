@@ -7,9 +7,15 @@ import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '..
 import { env } from '../config/env.js';
 import { EmailService } from './email.service.js';
 import { GoogleAuthClient, type GoogleUserProfile } from '../providers/google-auth.client.js';
+import { StripeClient } from '../providers/stripe.client.js';
+import { GoogleCalendarClient } from '../providers/google-calendar.client.js';
+import { isEncrypted, decryptData } from '../utils/crypto.js';
+import { sanitizePhone } from '../utils/phone.js';
+import { hashIp } from '../utils/mask.js';
 import { BruteForceGuard, isPermanentAdminEmail, dummyPasswordCheck } from '../utils/security.js';
 import { prisma } from '../database/prisma.js';
 import { isOffensiveNickname } from '../utils/nickname.js';
+import { AnonymizationService } from './anonymization.service.js';
 import type {
   RegisterDTO,
   LoginDTO,
@@ -20,6 +26,8 @@ import type {
   PauseDTO,
   ForgotPasswordDTO,
   ResetPasswordDTO,
+  ErasureAccountDTO,
+  RecordConsentDTO,
 } from '../validators/auth.validators.js';
 
 export interface UserSummary {
@@ -35,9 +43,15 @@ export class AuthService {
     private readonly authRepository: IAuthRepository,
     private readonly emailService = new EmailService(),
     private readonly googleAuthClient = new GoogleAuthClient(),
+    private readonly stripeClient = new StripeClient(),
+    private readonly googleCalendarClient = new GoogleCalendarClient(),
+    private readonly anonymizationService = new AnonymizationService(),
   ) {}
 
-  async register(dto: RegisterDTO): Promise<AuthTokens> {
+  async register(
+    dto: RegisterDTO,
+    context?: { ip?: string; userAgent?: string },
+  ): Promise<AuthTokens> {
     const email = dto.email.toLowerCase().trim();
     const existing = await this.authRepository.findUserByEmail(email);
     if (existing) {
@@ -52,7 +66,7 @@ export class AuthService {
       user = await this.authRepository.createUser({
         name: dto.name,
         email,
-        phone: dto.phone,
+        phone: sanitizePhone(dto.phone) ?? undefined,
         password: hashedPassword,
         role: isPermanentAdmin ? 'ADMIN' : 'USER',
       });
@@ -66,6 +80,35 @@ export class AuthService {
 
     if (isPermanentAdmin) {
       await this.ensureAdminEntitlement(email);
+    }
+
+    // Registro inicial de consentimento dos Termos e Privacidade (v1.0) conforme LGPD Art. 7º, I e Art. 8º
+    try {
+      const ip = context?.ip || '127.0.0.1';
+      const ipHashed = hashIp(ip);
+      const userAgent = context?.userAgent ?? null;
+
+      await prisma.consentRecord.createMany({
+        data: [
+          {
+            userId: user.id,
+            documentType: 'TERMS',
+            version: '1.0',
+            ipHash: ipHashed,
+            userAgent,
+          },
+          {
+            userId: user.id,
+            documentType: 'PRIVACY',
+            version: '1.0',
+            ipHash: ipHashed,
+            userAgent,
+          },
+        ],
+        skipDuplicates: true,
+      });
+    } catch (consentErr) {
+      console.warn('[Consent] Aviso ao registrar consentimento inicial:', consentErr);
     }
 
     return this.createTokens(user.id, user.role);
@@ -92,6 +135,10 @@ export class AuthService {
       await dummyPasswordCheck(dto.password);
       BruteForceGuard.recordFailedAttempt(email);
       throw new AppError(401, 'INVALID_CREDENTIALS', 'E-mail ou senha inválidos');
+    }
+
+    if (user.erasureStatus || user.email.startsWith('deleted_')) {
+      throw new AppError(403, 'ACCOUNT_ERASED', 'Esta conta foi excluída ou está em processo de exclusão.');
     }
 
     if (!user.password) {
@@ -206,6 +253,10 @@ export class AuthService {
     let user = await this.authRepository.findUserByGoogleId(profile.id);
 
     if (user) {
+      if (user.erasureStatus || user.email.startsWith('deleted_')) {
+        throw new AppError(403, 'ACCOUNT_ERASED', 'Esta conta foi excluída ou está em processo de exclusão.');
+      }
+
       const updates: { avatar?: string; role?: 'ADMIN' | 'USER' } = {};
       if (!user.avatar && profile.picture) {
         updates.avatar = profile.picture;
@@ -220,6 +271,10 @@ export class AuthService {
       user = await this.authRepository.findUserByEmail(email);
 
       if (user) {
+        if (user.erasureStatus || user.email.startsWith('deleted_')) {
+          throw new AppError(403, 'ACCOUNT_ERASED', 'Esta conta foi excluída ou está em processo de exclusão.');
+        }
+
         user = await this.authRepository.updateUser(user.id, {
           googleId: profile.id,
           emailVerified: true,
@@ -235,6 +290,32 @@ export class AuthService {
           role: isPermanentAdmin ? 'ADMIN' : 'USER',
         });
         await this.authRepository.updateUser(user.id, { emailVerified: true });
+
+        // Grava consentimento inicial de Termos e Privacidade (v1.0) para novo usuário Google OAuth
+        try {
+          const ipHashed = hashIp('127.0.0.1');
+          await prisma.consentRecord.createMany({
+            data: [
+              {
+                userId: user.id,
+                documentType: 'TERMS',
+                version: '1.0',
+                ipHash: ipHashed,
+                userAgent: 'Google OAuth Signup',
+              },
+              {
+                userId: user.id,
+                documentType: 'PRIVACY',
+                version: '1.0',
+                ipHash: ipHashed,
+                userAgent: 'Google OAuth Signup',
+              },
+            ],
+            skipDuplicates: true,
+          });
+        } catch (consentErr) {
+          console.warn('[Consent] Aviso ao registrar consentimento inicial Google OAuth:', consentErr);
+        }
       }
     }
 
@@ -295,6 +376,10 @@ export class AuthService {
       throw new AppError(401, 'USER_NOT_FOUND', 'Usuário não encontrado');
     }
 
+    if (user.erasureStatus || user.email.startsWith('deleted_')) {
+      throw new AppError(403, 'ACCOUNT_ERASED', 'Esta conta foi excluída ou está em processo de exclusão.');
+    }
+
     return this.createTokens(user.id, user.role);
   }
 
@@ -317,9 +402,10 @@ export class AuthService {
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDTO) {
-    const data: { name?: string; dailyGoal?: number; nickname?: string } = {};
+    const data: { name?: string; dailyGoal?: number; nickname?: string; phone?: string | null } = {};
     if (dto.name !== undefined) data.name = dto.name;
     if (dto.dailyGoal !== undefined) data.dailyGoal = dto.dailyGoal;
+    if (dto.phone !== undefined) data.phone = sanitizePhone(dto.phone);
     if (dto.nickname !== undefined) {
       if (isOffensiveNickname(dto.nickname)) {
         throw new AppError(400, 'NICKNAME_NOT_ALLOWED', 'Esse nickname não é permitido. Escolha outro.');
@@ -407,8 +493,400 @@ export class AuthService {
     return verifyAccessToken(token);
   }
 
-  private async createTokens(userId: string, role: string): Promise<AuthTokens> {
-    const accessToken = await generateAccessToken({ userId, role });
+  async exportUserData(userId: string, confirmPassword?: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        role: true,
+        targetExam: true,
+        targetRole: true,
+        dailyGoal: true,
+        createdAt: true,
+        updatedAt: true,
+        password: true,
+      },
+    });
+
+    if (!user) {
+      throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
+    }
+
+    if (user.password) {
+      if (!confirmPassword) {
+        throw new AppError(400, 'PASSWORD_REQUIRED', 'Senha de confirmação obrigatória para exportação de dados.');
+      }
+      const valid = await safeBcryptCompare(confirmPassword, user.password);
+      if (!valid) {
+        throw new AppError(400, 'INVALID_PASSWORD', 'Senha incorreta para exportação.');
+      }
+    }
+
+    const [
+      consents,
+      sessions,
+      attempts,
+      notes,
+      favorites,
+      flashcardDecks,
+      flashcards,
+      essays,
+      studyPlans,
+      studyTasks,
+      payments,
+    ] = await Promise.all([
+      prisma.consentRecord.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          documentType: true,
+          version: true,
+          acceptedAt: true,
+        },
+      }),
+      prisma.studySession.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          subjectId: true,
+          mode: true,
+          totalTime: true,
+          questionsCount: true,
+          correctCount: true,
+          difficulty: true,
+          createdAt: true,
+          finishedAt: true,
+        },
+      }),
+      prisma.questionAttempt.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          questionId: true,
+          answer: true,
+          isCorrect: true,
+          timeSpent: true,
+          createdAt: true,
+        },
+      }),
+      prisma.note.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          questionId: true,
+          subjectId: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.favorite.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          questionId: true,
+          createdAt: true,
+        },
+      }),
+      prisma.flashcardDeck.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          name: true,
+          topic: true,
+          color: true,
+          createdAt: true,
+        },
+      }),
+      prisma.flashcard.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          deckId: true,
+          subjectId: true,
+          front: true,
+          back: true,
+          easeFactor: true,
+          interval: true,
+          repetition: true,
+          nextReview: true,
+          createdAt: true,
+        },
+      }),
+      prisma.essay.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          title: true,
+          theme: true,
+          content: true,
+          feedback: true,
+          score: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.studyPlan.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          name: true,
+          startDate: true,
+          endDate: true,
+          active: true,
+          createdAt: true,
+        },
+      }),
+      prisma.studyTask.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          title: true,
+          discipline: true,
+          type: true,
+          date: true,
+          duration: true,
+          completed: true,
+          createdAt: true,
+        },
+      }),
+      prisma.payment.findMany({
+        where: { email: user.email },
+        select: {
+          id: true,
+          event: true,
+          amountCents: true,
+          currency: true,
+          status: true,
+          provider: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    return {
+      exportMetadata: {
+        requestedAt: new Date().toISOString(),
+        legalNotice:
+          'Exportação de dados pessoais em formato interoperável estruturado (JSON), em conformidade com o Art. 18, II e V da Lei Geral de Proteção de Dados (Lei 13.709/2018 - LGPD).',
+      },
+      profile: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        role: user.role,
+        targetExam: user.targetExam,
+        targetRole: user.targetRole,
+        dailyGoal: user.dailyGoal,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      consents,
+      studySessions: sessions,
+      questionAttempts: attempts,
+      notes,
+      favorites,
+      flashcardDecks,
+      flashcards,
+      essays,
+      studyPlans,
+      studyTasks,
+      payments,
+    };
+  }
+
+  async eraseAccount(
+    userId: string,
+    dto: ErasureAccountDTO,
+  ): Promise<{ success: boolean; message: string }> {
+    const userHash = crypto.createHash('sha256').update(userId).digest('hex');
+
+    // 0. Idempotência: verifica se a conta já foi eliminada anteriormente
+    const existingLog = await prisma.erasureLog.findUnique({
+      where: { userHash },
+    });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      if (existingLog) {
+        return {
+          success: true,
+          message: 'Solicitação de eliminação concluída conforme o Art. 18 da LGPD.',
+        };
+      }
+      throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
+    }
+
+    if (user.erasureStatus === 'COMPLETED') {
+      return {
+        success: true,
+        message: 'Solicitação de eliminação concluída conforme o Art. 18 da LGPD.',
+      };
+    }
+
+    // Validação de senha para contas com senha definida
+    if (user.password) {
+      if (!dto.password) {
+        throw new AppError(400, 'PASSWORD_REQUIRED', 'Senha obrigatória para confirmar a exclusão da conta.');
+      }
+      const valid = await safeBcryptCompare(dto.password, user.password);
+      if (!valid) {
+        throw new AppError(400, 'INVALID_PASSWORD', 'Senha incorreta');
+      }
+    }
+
+    // PASSO 1: Persistir erasureRequestedAt e erasureStatus = 'STARTED'
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          erasureRequestedAt: user.erasureRequestedAt ?? new Date(),
+          erasureStatus: 'STARTED',
+        },
+      });
+    } catch {
+      // Ignora erro eventual de persistência inicial
+    }
+
+    // PASSO 2: Cancelar assinatura no Stripe com chave de idempotência e anonimizar no operador
+    const anonymizedEmail = `deleted_${crypto.randomUUID()}@engrama.internal`;
+
+    if (user.stripeCustomerId) {
+      try {
+        await this.stripeClient.cancelCustomerSubscriptions(user.stripeCustomerId, `erasure:${userId}`);
+        await this.stripeClient.anonymizeCustomer(user.stripeCustomerId, anonymizedEmail);
+      } catch (stripeErr) {
+        console.error('[DSAR Erasure] Erro ao cancelar assinatura ou anonimizar no Stripe:', stripeErr);
+        await prisma.user.update({
+          where: { id: userId },
+          data: { erasureStatus: 'FAILED_AT_STEP_2' },
+        }).catch(() => {});
+        throw new AppError(500, 'ERASURE_STRIPE_FAILED', 'Falha ao cancelar assinatura ou anonimizar no operador externo. Tente novamente.');
+      }
+    }
+
+    // PASSO 3: Revogar tokens OAuth do Google e apagar integração de calendário
+    try {
+      const calendar = await prisma.userCalendarIntegration.findUnique({
+        where: { userId },
+      });
+      if (calendar?.googleRefreshToken) {
+        let refreshToken = calendar.googleRefreshToken;
+        if (isEncrypted(refreshToken)) {
+          try {
+            refreshToken = decryptData(refreshToken, userId);
+          } catch {
+            // Decrypt falhou; ignora para prosseguir
+          }
+        }
+        await this.googleCalendarClient.revokeToken(refreshToken);
+      }
+      if (calendar) {
+        await prisma.userCalendarIntegration.delete({
+          where: { userId },
+        });
+      }
+    } catch (googleErr) {
+      console.warn('[DSAR Erasure] Falha não impeditiva ao revogar Google OAuth:', googleErr);
+    }
+
+    // PASSO 4: Transação de banco via AnonymizationService unificado (Art. 16, I da LGPD)
+    let hadPayments = false;
+    try {
+      const erasureResult = await this.anonymizationService.executeUserErasure(userId, user.email, anonymizedEmail);
+      hadPayments = erasureResult.hadPayments;
+    } catch (dbErr) {
+      console.error('[DSAR Erasure] Erro ao executar transação de banco:', dbErr);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { erasureStatus: 'FAILED_AT_STEP_4' },
+      }).catch(() => {});
+      throw new AppError(500, 'ERASURE_DB_FAILED', 'Falha ao excluir dados no banco de dados. Tente novamente.');
+    }
+
+    // PASSO 5 & 6: Invalidação de sessões e registro em ErasureLog
+    try {
+      await prisma.session.deleteMany({ where: { userId } });
+      await prisma.erasureLog.upsert({
+        where: { userHash },
+        create: {
+          userHash,
+          erasedAt: new Date(),
+          hadPayments,
+          reason: dto.reason ?? null,
+        },
+        update: {
+          erasedAt: new Date(),
+          hadPayments,
+          reason: dto.reason ?? null,
+        },
+      });
+    } catch (logErr) {
+      console.error('[DSAR Erasure] Aviso ao registrar log de erasure:', logErr);
+    }
+
+    return {
+      success: true,
+      message: 'Solicitação de eliminação concluída conforme o Art. 18 da LGPD.',
+    };
+  }
+
+  async recordConsent(
+    userId: string,
+    dto: RecordConsentDTO,
+    context?: { ip?: string; userAgent?: string },
+  ) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new AppError(404, 'USER_NOT_FOUND', 'Usuário não encontrado');
+    }
+
+    const ip = context?.ip || '127.0.0.1';
+    const ipHashed = hashIp(ip);
+    const userAgent = context?.userAgent ?? null;
+
+    return prisma.consentRecord.upsert({
+      where: {
+        userId_documentType_version: {
+          userId,
+          documentType: dto.documentType,
+          version: dto.version,
+        },
+      },
+      create: {
+        userId,
+        documentType: dto.documentType,
+        version: dto.version,
+        acceptedAt: new Date(),
+        ipHash: ipHashed,
+        userAgent,
+      },
+      update: {
+        acceptedAt: new Date(),
+        ipHash: ipHashed,
+        userAgent,
+      },
+    });
+  }
+
+  private async createTokens(userId: string, role: string, tokenVersion?: number): Promise<AuthTokens> {
+    if (tokenVersion === undefined) {
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { tokenVersion: true } });
+      tokenVersion = u?.tokenVersion ?? 0;
+    }
+    const accessToken = await generateAccessToken({ userId, role, tokenVersion });
     const refreshTokenValue = generateRefreshToken();
 
     const expiresAt = new Date();

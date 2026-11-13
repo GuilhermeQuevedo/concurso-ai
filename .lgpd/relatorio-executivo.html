@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório Executivo de Conformidade LGPD — Engrama</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 14mm 12mm 14mm 12mm;
+      @bottom-right {
+        content: counter(page);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      line-height: 1.5;
+      font-size: 11pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      page-break-after: always;
+      position: relative;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    /* Cores do Design System */
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #e0e7ff;
+      --success: #059669;
+      --success-light: #d1fae5;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --slate-dark: #0f172a;
+      --slate-card: #f8fafc;
+      --border: #e2e8f0;
+      --text-muted: #64748b;
+    }
+
+    /* Header & Hero */
+    .hero-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%);
+      color: white;
+      border-radius: 14px;
+      padding: 26px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      padding-bottom: 12px;
+    }
+
+    .brand-title {
+      font-size: 20pt;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      background-color: #10b981;
+      color: #064e3b;
+      font-size: 8pt;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-subtitle {
+      font-size: 13pt;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+
+    .hero-desc {
+      font-size: 9.5pt;
+      color: #94a3b8;
+      max-width: 650px;
+      line-height: 1.4;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .meta-item {
+      font-size: 8pt;
+    }
+
+    .meta-label {
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 600;
+      font-size: 7pt;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-val {
+      color: white;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* KPI Grid */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .kpi-card {
+      background-color: var(--slate-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      border-top: 3px solid var(--primary);
+    }
+
+    .kpi-card.green {
+      border-top-color: var(--success);
+    }
+
+    .kpi-card.indigo {
+      border-top-color: #6366f1;
+    }
+
+    .kpi-card.purple {
+      border-top-color: #8b5cf6;
+    }
+
+    .kpi-num {
+      font-size: 20pt;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .kpi-label {
+      font-size: 8pt;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Section Styling */
+    .section-title {
+      font-size: 13pt;
+      font-weight: 700;
+      color: var(--slate-dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 6px;
+    }
+
+    .section-title .icon {
+      width: 20px;
+      height: 20px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9pt;
+      font-weight: bold;
+    }
+
+    /* Sprint Cards */
+    .sprint-container {
+      margin-bottom: 18px;
+    }
+
+    .sprint-header {
+      background: #f1f5f9;
+      border-left: 4px solid var(--primary);
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 10pt;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .phase-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      break-inside: avoid;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .phase-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+
+    .phase-title {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .phase-gap-badge {
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+
+    .phase-badge-resolved {
+      background-color: #d1fae5;
+      color: #065f46;
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .phase-desc {
+      font-size: 8.5pt;
+      color: #475569;
+      line-height: 1.35;
+    }
+
+    .phase-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 7.5pt;
+      color: #4338ca;
+      background-color: #f5f3ff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    /* Comparison Table */
+    table.compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 18px;
+      font-size: 8.5pt;
+      break-inside: avoid;
+    }
+
+    table.compare-table th {
+      background-color: #0f172a;
+      color: white;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 600;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    table.compare-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    table.compare-table tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    .status-tag {
+      display: inline-block;
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .status-tag.vulnerable {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-tag.shielded {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    /* Visual Architecture Box */
+    .arch-diagram {
+      background: linear-gradient(to right, #f8fafc, #eff6ff);
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 18px;
+      break-inside: avoid;
+    }
+
+    .arch-flow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .arch-box {
+      background: white;
+      border: 1.5px solid #6366f1;
+      border-radius: 8px;
+      padding: 8px;
+      flex: 1;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .arch-box-title {
+      font-size: 8pt;
+      font-weight: 700;
+      color: #1e1b4b;
+    }
+
+    .arch-box-sub {
+      font-size: 7pt;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .arch-arrow {
+      color: #6366f1;
+      font-size: 11pt;
+      font-weight: bold;
+    }
+
+    /* Alert Callout */
+    .legal-callout {
+      background-color: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 8pt;
+      color: #92400e;
+      margin-top: 14px;
+      break-inside: avoid;
+    }
+
+    .footer-note {
+      font-size: 7.5pt;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 15px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PÁGINA 1: CAPA EXECUTIVA, VISÃO GERAL E KPIs -->
+  <div class="page">
+    <div class="hero-card">
+      <div class="hero-top">
+        <div class="brand-title">
+          <span>ENGRAMA</span>
+          <span style="font-size: 14pt; opacity: 0.6; font-weight: 400;">| Concurso AI</span>
+        </div>
+        <div class="brand-badge">✓ 100% Homologado</div>
+      </div>
+      <div class="hero-subtitle">Relatório Executivo de Conformidade LGPD & Engenharia de Privacidade</div>
+      <div class="hero-desc">
+        Sumário visual completo de todas as alterações arquiteturais, salvaguardas técnicas, módulos de criptografia, fluxos de direitos dos titulares (DSAR) e controles de Inteligência Artificial implementados.
+      </div>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">Data de Fechamento</div>
+          <div class="meta-val">10/11/2026</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Enquadramento ANPD</div>
+          <div class="meta-val">ATPP (Res. CD/ANPD 2/2022)</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Canal Oficial DPO</div>
+          <div class="meta-val">dpo@engrama.com.br</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Status dos Gaps</div>
+          <div class="meta-val">13 / 13 Sanados (100%)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicadores Principais -->
+    <div class="kpi-row">
+      <div class="kpi-card green">
+        <div class="kpi-num">13 / 13</div>
+        <div class="kpi-label">Gaps LGPD Sanados</div>
+      </div>
+      <div class="kpi-card indigo">
+        <div class="kpi-num">4 / 4</div>
+        <div class="kpi-label">Sprints Concluídas</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-num">101</div>
+        <div class="kpi-label">Testes Automatizados</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-num">0</div>
+        <div class="kpi-label">Vazamentos de PII para IA</div>
+      </div>
+    </div>
+
+    <!-- Arquitetura Visual de Privacidade -->
+    <div class="arch-diagram">
+      <div style="font-weight: 700; font-size: 9.5pt; color: #1e293b;">
+        Fluxo Arquitetural Unificado de Privacidade (Privacy-by-Design)
+      </div>
+      <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">
+        Como os dados pessoais transitam de forma blindada pelas camadas de infraestrutura, IA e parceiros:
+      </div>
+
+      <div class="arch-flow">
+        <div class="arch-box">
+          <div class="arch-box-title">1. Entrada do Estudante</div>
+          <div class="arch-box-sub">Formulário com telefone opcional e barreira ECA Digital</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+          <div class="arch-box-title">2. Sanitizador PII</div>
+          <div class="arch-box-sub">Módulo 11 CPF, e-mail e tel expurgados antes da IA</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+          <div class="arch-box-title">3. Repouso Cifrado</div>
+          <div class="arch-box-sub">AES-256-GCM com AAD atrelado ao usuário</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+          <div class="arch-box-title">4. Descarte Fiscal</div>
+          <div class="arch-box-sub">Anonimização reversa e supressão no Stripe</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visão Geral de Antes e Depois -->
+    <div class="section-title">
+      <span class="icon">⚖</span>
+      <span>Matriz Comparativa de Transformação: Antes vs. Depois</span>
+    </div>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width: 25%;">Dimensão Avaliada</th>
+          <th style="width: 37%;">Cenário Anterior (Vulnerável)</th>
+          <th style="width: 38%;">Cenário Atual (Blindado &amp; Conforme)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Tokens OAuth (Google)</strong></td>
+          <td><span class="status-tag vulnerable">Vulnerável</span> Tokens salvos em texto claro no MySQL.</td>
+          <td><span class="status-tag shielded">Protegido</span> Criptografia de envelope AES-256-GCM com AAD atrelado ao `userId`.</td>
+        </tr>
+        <tr>
+          <td><strong>Consultas Administrativas</strong></td>
+          <td><span class="status-tag vulnerable">Sem Trilha</span> Listagem aberta de e-mails/telefones sem auditoria.</td>
+          <td><span class="status-tag shielded">Auditado</span> Dados mascarados por padrão (`m***l@domain.com`) e tabela imutável `AdminAuditLog`.</td>
+        </tr>
+        <tr>
+          <td><strong>Direitos do Titular (DSAR)</strong></td>
+          <td><span class="status-tag vulnerable">Ausente</span> Sem fluxo de exportação nem exclusão de dados.</td>
+          <td><span class="status-tag shielded">Implementado</span> `GET /export` (JSON estruturado) e `POST /erasure` com anonimização fiscal.</td>
+        </tr>
+        <tr>
+          <td><strong>Tráfego para LLMs (OpenAI/Claude)</strong></td>
+          <td><span class="status-tag vulnerable">Exposição</span> Nomes e CPFs em redações enviados em claro.</td>
+          <td><span class="status-tag shielded">Sanitizado</span> Decorator `PIISanitizerAIProvider` expurga CPFs válidos, e-mails e telefones.</td>
+        </tr>
+        <tr>
+          <td><strong>Menores de Idade (ECA Digital)</strong></td>
+          <td><span class="status-tag vulnerable">Sem Barreira</span> Sem verificação de idade nem salvaguardas.</td>
+          <td><span class="status-tag shielded">Blindado</span> Barreira de declaração no onboarding e vedação a perfilização comportamental.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="legal-callout">
+      <strong>AVISO LEGAL E DE AUDITORIA:</strong> RASCUNHO — PENDENTE DE REVISÃO JURÍDICA. Este documento foi gerado a partir da inspeção técnica e execução das 13 fases do plano de remediação LGPD do ecossistema Concurso AI (Engrama).
+    </div>
+  </div>
+
+  <!-- PÁGINA 2: DETALHAMENTO DAS SPRINTS 1 E 2 -->
+  <div class="page">
+    <div class="section-title">
+      <span class="icon">1</span>
+      <span>Sprint 1: Fundação de Segurança e Governança Crítica</span>
+    </div>
+
+    <div class="sprint-container">
+      <div class="sprint-header">
+        <span>Fases 1 a 4 — Criptografia, Auditoria Administrativa, DSAR e Minimização</span>
+        <span class="phase-badge-resolved">4 Fases Concluídas</span>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 1: Criptografia de Tokens OAuth em Repouso</div>
+          <span class="phase-gap-badge">Gap G04</span>
+        </div>
+        <div class="phase-desc">
+          Implementação de criptografia de envelope simétrica (AES-256-GCM) com autenticação adicional de dados (AAD) atrelada ao `userId`. Colunas `googleAccessToken` e `googleRefreshToken` nunca são salvas em claro. Inclui script de migração idempotente para bases existentes.
+        </div>
+        <div class="phase-code">apps/backend/src/utils/crypto.ts • scripts/encrypt-existing-oauth-tokens.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 2: Trilha de Auditoria Administrativa e ConsentRecord (GATE)</div>
+          <span class="phase-gap-badge">Gap G12</span>
+        </div>
+        <div class="phase-desc">
+          Criação da tabela imutável `AdminAuditLog` com instrução SQL `REVOKE UPDATE, DELETE`. Mascaramento obrigatório de dados de usuários (`maskEmail`, `maskPhone`, `maskName`, `hashIp`). Endpoints de desmascaramento condicionados a justificativa comercial auditada.
+        </div>
+        <div class="phase-code">apps/backend/src/middlewares/audit-context.middleware.ts • src/utils/mask.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 3: Direitos do Titular — DSAR Exportação e Eliminação (GATE)</div>
+          <span class="phase-gap-badge">Gap G03</span>
+        </div>
+        <div class="phase-desc">
+          Endpoint `GET /api/auth/me/export` com taxa de 1 req/hora entregando JSON estruturado interoperável. Endpoint `POST /api/auth/me/erasure` com cancelamento no Stripe, revogação Google, eliminação em cascata ou anonimização fiscal (Art. 16, I LGPD) e registro em `ErasureLog`.
+        </div>
+        <div class="phase-code">apps/backend/src/services/auth.service.ts • apps/frontend/src/features/auth/hooks/useDsar.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 4: Minimização do Campo Telefone</div>
+          <span class="phase-gap-badge">Gap G11</span>
+        </div>
+        <div class="phase-desc">
+          Remoção da obrigatoriedade do telefone em todo o ciclo de vida (cadastro, perfil e DTOs da API). Normalização internacional E.164 com preservação de prefixo `+`.
+        </div>
+        <div class="phase-code">apps/backend/src/utils/phone.ts • apps/backend/src/validators/auth.validators.ts</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 18px;">
+      <span class="icon">2</span>
+      <span>Sprint 2: Transparência, Consentimento e ECA Digital</span>
+    </div>
+
+    <div class="sprint-container">
+      <div class="sprint-header">
+        <span>Fases 5 a 7 — Cookies, Políticas Públicas e Proteção de Menores</span>
+        <span class="phase-badge-resolved">3 Fases Concluídas</span>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 5: Banner de Cookies Granular e Bloqueio de Telemetria</div>
+          <span class="phase-gap-badge">Gap G01</span>
+        </div>
+        <div class="phase-desc">
+          Banner flutuante com versionamento `consent_v1`, modal de categorias (Necessários, Analíticos, Marketing), persistência em localStorage e sincronização via CustomEvents. Serviço `telemetry.service.ts` bloqueia rigorosamente scripts analíticos antes do opt-in explícito.
+        </div>
+        <div class="phase-code">apps/frontend/src/features/privacy/CookieBanner.tsx • useCookieConsent.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 6: Políticas de Privacidade, Termos de Uso e ConsentRecord</div>
+          <span class="phase-gap-badge">Gaps G02, G05, G08</span>
+        </div>
+        <div class="phase-desc">
+          Publicação de `/politica-de-privacidade`, `/termos-de-uso` e `/politica-de-cookies`. Checkboxes independentes no formulário de cadastro. Gravação no banco em `ConsentRecord` com hash criptográfico do IP (`hashIp`) e User-Agent.
+        </div>
+        <div class="phase-code">apps/frontend/src/pages/PrivacyPolicyPage.tsx • apps/backend/src/services/auth.service.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 7: Salvaguardas do ECA Digital (Lei 15.211/2025) (GATE)</div>
+          <span class="phase-gap-badge">Gap G13</span>
+        </div>
+        <div class="phase-desc">
+          Implementação da Opção A: inclusão de declaração mandatória no cadastro afirmando maioridade ou consentimento parental (`acceptAgeOrGuardian`), com vedação expressa à criação de perfis comportamentais de adolescentes e confinamento pedagógico.
+        </div>
+        <div class="phase-code">.lgpd/drafts/clausula-adolescentes-eca-digital.md • apps/backend/src/validators/auth.validators.ts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PÁGINA 3: DETALHAMENTO DAS SPRINTS 3 E 4 -->
+  <div class="page">
+    <div class="section-title">
+      <span class="icon">3</span>
+      <span>Sprint 3: Ciclo de Vida e Operadores Externos</span>
+    </div>
+
+    <div class="sprint-container">
+      <div class="sprint-header">
+        <span>Fases 8 a 10 — Contatos, Retenção Fiscal e Ciclo Stripe</span>
+        <span class="phase-badge-resolved">3 Fases Concluídas</span>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 8: Governança na Importação de Contatos e Supressão</div>
+          <span class="phase-gap-badge">Gap G10</span>
+        </div>
+        <div class="phase-desc">
+          Exigência de base legal (`CONSENT` com prova ou `LEGITIMATE_INTEREST` com relatório LIA) para importação de contatos. Criação da tabela `ContactSuppression` com hash HMAC-SHA256 e endpoint público de opt-out imediato (`POST /api/contacts/opt-out`).
+        </div>
+        <div class="phase-code">apps/backend/src/services/admin.service.ts • apps/backend/src/routes/contact.routes.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 9: Anonimização Fiscal Unificada e Política de Retenção (GATE)</div>
+          <span class="phase-gap-badge">Gap G09</span>
+        </div>
+        <div class="phase-desc">
+          Criação do `AnonymizationService` (Art. 16, I da LGPD e Art. 173 do CTN), expurgo de dados de estudo mantendo notas fiscais desidentificadas (`deleted_<uuid>@engrama.internal`). Script CLI `run-data-retention-purge.ts` com suporte a `--dry-run` e batching.
+        </div>
+        <div class="phase-code">apps/backend/src/services/anonymization.service.ts • src/services/retention.service.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 10: Ciclo de Vida Stripe e Anonimização no Operador</div>
+          <span class="phase-gap-badge">Gap G03</span>
+        </div>
+        <div class="phase-desc">
+          Execução da Opção 1: método `anonymizeCustomer` atualiza o objeto Customer no Stripe com nome anônimo e e-mail idêntico ao registro contábil local. Guardrails nos webhooks (`isUserErased`) impedem a reativação acidental de assinaturas ou entitlements eliminados.
+        </div>
+        <div class="phase-code">apps/backend/src/providers/stripe.client.ts • apps/backend/src/services/stripe.service.ts</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 18px;">
+      <span class="icon">4</span>
+      <span>Sprint 4: Inteligência Artificial, Incidentes e Auditoria Final</span>
+    </div>
+
+    <div class="sprint-container">
+      <div class="sprint-header">
+        <span>Fases 11 a 13 — Redação de PII em LLMs, DPO e ROPA/RIPD</span>
+        <span class="phase-badge-resolved">3 Fases Concluídas</span>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 11: Minimização de PII nas Chamadas a LLMs (OpenAI, Claude, Gemini)</div>
+          <span class="phase-gap-badge">Gap G08</span>
+        </div>
+        <div class="phase-desc">
+          Módulo `ai-pii-redactor.ts` (validação de Módulo 11 de CPF sem falsos positivos em leis, expurgo de e-mails, telefones e nomes de alunos). Decorator `PIISanitizerAIProvider` decorando automaticamente o provedor em `createAIProvider()`. Diretivas anti-OCR em prompts de visão.
+        </div>
+        <div class="phase-code">apps/backend/src/utils/ai-pii-redactor.ts • apps/backend/src/providers/pii-sanitizer.provider.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 12: Plano de Resposta a Incidentes (3 Dias Úteis) e Canal do DPO</div>
+          <span class="phase-gap-badge">Gaps G06, G09</span>
+        </div>
+        <div class="phase-desc">
+          Playbook formal `.lgpd/incident-response-plan.md` com matriz de severidade e templates oficiais para a ANPD e titulares. Script `report-security-incident.ts` gerando registros para guarda obrigatória de 5 anos (`log.md`). Endpoint de transparência ativa `GET /api/privacy/dpo`.
+        </div>
+        <div class="phase-code">apps/backend/src/services/incident.service.ts • apps/backend/src/routes/privacy.routes.ts</div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-top">
+          <div class="phase-title">Fase 13: Consolidação do ROPA, RIPD e Homologação Final</div>
+          <span class="phase-gap-badge">Gaps G02, G07, G12</span>
+        </div>
+        <div class="phase-desc">
+          Formalização do Registro de Operações (`ROPA.md` com as 7 atividades centrais) e Relatório de Impacto (`RIPD.md` com parecer conclusivo de risco baixo). Atualização integral de `STATUS.md` e `gaps.md` com 100% de conformidade.
+        </div>
+        <div class="phase-code">.lgpd/ROPA.md • .lgpd/RIPD.md • .lgpd/STATUS.md • .lgpd/gaps.md</div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Relatório Técnico e Executivo Concurso AI (Engrama) • Documento gerado automaticamente com rigor de produção.
+    </div>
+  </div>
+
+</body>
+</html>

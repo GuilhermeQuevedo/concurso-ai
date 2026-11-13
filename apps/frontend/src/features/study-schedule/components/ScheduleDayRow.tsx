@@ -34,8 +34,8 @@ export const ScheduleDayRow: React.FC<Props> = ({
   return (
     <div
       className={cn(
-        'group flex flex-col p-4 border-b border-border/40 last:border-0 hover:bg-secondary/20 transition-colors bg-card/40',
-        isToday && 'bg-primary/5 border-l-4 border-l-primary border-b-border/40',
+        'group flex flex-col p-4 sm:p-5 transition-colors bg-slate-900/30 hover:bg-slate-900/60',
+        isToday && 'bg-teal-500/5 border-l-4 border-l-teal-500',
         isCompleted && 'opacity-60'
       )}
     >
@@ -44,11 +44,11 @@ export const ScheduleDayRow: React.FC<Props> = ({
           <button
             type="button"
             onClick={onToggleCompletion}
-            className="text-muted-foreground hover:text-primary transition-colors focus:outline-none cursor-pointer"
+            className="text-slate-400 hover:text-teal-400 transition-colors focus:outline-none cursor-pointer"
             title={isCompleted ? 'Desmarcar' : 'Marcar como concluído'}
           >
             {isCompleted ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             ) : (
               <Circle className="w-5 h-5" />
             )}
@@ -56,26 +56,28 @@ export const ScheduleDayRow: React.FC<Props> = ({
 
           <div
             className={cn(
-              'w-[110px] shrink-0 text-sm font-medium capitalize',
-              isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
+              'w-[110px] shrink-0 text-sm font-semibold capitalize',
+              isCompleted ? 'line-through text-slate-500' : 'text-slate-200'
             )}
           >
             {formattedDate}
           </div>
         </div>
 
-        {/* Header summary of the day */}
-        <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
-          {day.type === 'descanso' && (
-            <span className="text-emerald-500 uppercase tracking-wide font-semibold">Descanso</span>
+        {/* Resumo do Dia */}
+        <div className="flex items-center gap-3 text-xs font-medium text-slate-400">
+          {isDescanso && (
+            <span className="text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded text-[10px] uppercase tracking-wide font-semibold">
+              Descanso
+            </span>
           )}
-          {day.type === 'simulado' && (
-            <span className="text-accent uppercase tracking-wide border border-accent/20 px-2 py-0.5 rounded-md font-semibold">
+          {isSimulado && (
+            <span className="text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded text-[10px] uppercase tracking-wide font-semibold">
               Simulado
             </span>
           )}
-          <div className="flex items-center gap-1.5 bg-secondary/60 px-2.5 py-1 rounded border border-border/40">
-            <Clock className="w-3.5 h-3.5 text-primary" />
+          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700/60 text-slate-200">
+            <Clock className="w-3.5 h-3.5 text-teal-400" />
             <span>{day.totalHours || day.hours || 0}h Total</span>
           </div>
 
@@ -84,7 +86,7 @@ export const ScheduleDayRow: React.FC<Props> = ({
               type="button"
               onClick={() => onGenerate()}
               disabled={isGenerating}
-              className="text-xs font-medium px-3 py-1.5 rounded-md border border-accent/30 text-accent hover:bg-accent/10 transition-colors disabled:opacity-50 ml-2"
+              className="text-xs font-semibold px-3 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-50 ml-2 cursor-pointer shadow-sm"
             >
               {isGenerating ? 'Gerando...' : 'Gerar Simulado'}
             </button>
@@ -92,49 +94,49 @@ export const ScheduleDayRow: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* RENDER MULTIPLE BLOCKS OR LEGACY SINGLE SUBJECT */}
-      <div className="mt-3 pl-8 md:pl-28 flex flex-col gap-2">
+      {/* BLOCOS POMODORO / MATÉRIAS */}
+      <div className="mt-3 pl-8 md:pl-32 flex flex-col gap-2.5">
         {hasBlocks ? (
           day.blocks.map((block, i) => (
             <div
               key={i}
-              className="flex flex-col md:flex-row md:items-center justify-between p-3 rounded-lg border border-border/50 bg-background/80 hover:border-primary/40 hover:shadow-sm transition-all gap-3"
+              className="flex flex-col md:flex-row md:items-center justify-between p-3.5 rounded-xl border border-slate-800/80 bg-slate-950/60 hover:bg-slate-900/90 hover:border-teal-500/40 hover:shadow-md transition-all gap-3"
             >
-              <div className="flex items-center gap-2 flex-wrap flex-1">
+              <div className="flex items-center gap-2.5 flex-wrap flex-1">
                 <span
                   className={cn(
-                    'text-sm font-semibold text-foreground',
-                    isCompleted && 'line-through text-muted-foreground'
+                    'text-sm font-semibold text-white',
+                    isCompleted && 'line-through text-slate-500'
                   )}
                 >
                   {block.subject}
                 </span>
 
                 {block.priority === 'alta' && (
-                  <span className="inline-flex items-center gap-1 text-[9px] uppercase font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded-sm shrink-0 border border-red-500/20">
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 shrink-0">
                     <Star className="w-3 h-3" /> Foco
                   </span>
                 )}
                 {block.type === 'revisao' && (
-                  <span className="inline-flex items-center gap-1 text-[9px] uppercase font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-sm shrink-0 border border-primary/20">
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/30 shrink-0">
                     <BookOpen className="w-3 h-3" /> {block.revisionNumber || 'Revisão'}
                   </span>
                 )}
                 {block.type === 'questoes' && (
-                  <span className="inline-flex items-center gap-1 text-[9px] uppercase font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-sm shrink-0 border border-amber-500/20">
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 shrink-0">
                     <Target className="w-3 h-3" /> Questões
                   </span>
                 )}
               </div>
 
-              <div className="flex items-center gap-3 text-xs justify-between md:justify-end w-full md:w-auto mt-2 md:mt-0">
-                <span className="text-muted-foreground font-medium flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-muted-foreground" /> {block.hours}h
+              <div className="flex items-center gap-3 text-xs justify-between md:justify-end w-full md:w-auto mt-1 md:mt-0">
+                <span className="text-slate-200 font-medium flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-0.5 rounded border border-slate-700/60">
+                  <Clock className="w-3 h-3 text-teal-400" /> {block.hours}h
                 </span>
 
                 {block.notes && (
                   <span
-                    className="text-muted-foreground text-[10px] hidden lg:block italic max-w-[170px] truncate"
+                    className="text-slate-400 text-xs italic hidden lg:block max-w-[200px] truncate"
                     title={block.notes}
                   >
                     {block.notes}
@@ -146,9 +148,9 @@ export const ScheduleDayRow: React.FC<Props> = ({
                     type="button"
                     onClick={() => onGenerate(block)}
                     disabled={isGenerating}
-                    className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded border border-primary/30 text-primary bg-primary/5 hover:bg-primary/15 transition-colors disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-500/40 text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 hover:border-teal-500/60 transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
                   >
-                    <Sparkles className="w-3 h-3" />
+                    <Sparkles className="w-3.5 h-3.5" />
                     {isGenerating
                       ? '...'
                       : block.type === 'questoes'
@@ -163,11 +165,11 @@ export const ScheduleDayRow: React.FC<Props> = ({
           !isDescanso &&
           !isSimulado &&
           day.subject && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 p-3 rounded-lg border border-slate-800/80 bg-slate-950/60">
               <span
                 className={cn(
-                  'font-medium text-sm',
-                  isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
+                  'font-medium text-sm text-white',
+                  isCompleted ? 'line-through text-slate-500' : 'text-white'
                 )}
               >
                 {day.subject}
@@ -177,8 +179,9 @@ export const ScheduleDayRow: React.FC<Props> = ({
                   type="button"
                   onClick={() => onGenerate()}
                   disabled={isGenerating}
-                  className="text-xs font-medium px-3 py-1.5 rounded-md border border-primary/20 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50 ml-auto cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-500/40 text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 transition-colors disabled:opacity-50 ml-auto cursor-pointer shadow-sm"
                 >
+                  <Sparkles className="w-3.5 h-3.5" />
                   {isGenerating ? 'Gerando...' : 'Gerar Flashcards'}
                 </button>
               )}

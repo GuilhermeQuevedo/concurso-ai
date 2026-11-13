@@ -199,4 +199,61 @@ export class StripeClient {
       throw err;
     }
   }
+
+  async cancelCustomerSubscriptions(customerId: string, idempotencyKey?: string): Promise<void> {
+    if (!this.isConfigured()) return;
+    const stripe = this.getInstance();
+
+    try {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: 'active',
+      });
+
+      for (const sub of subscriptions.data) {
+        try {
+          await stripe.subscriptions.cancel(
+            sub.id,
+            {},
+            idempotencyKey ? { idempotencyKey: `${idempotencyKey}:${sub.id}` } : undefined,
+          );
+        } catch (err: unknown) {
+          const error = err as { code?: string; message?: string };
+          if (error.code === 'resource_missing' || error.message?.includes('No such subscription')) {
+            continue;
+          }
+          throw err;
+        }
+      }
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string };
+      if (error.code === 'resource_missing' || error.message?.includes('No such customer')) {
+        return;
+      }
+      throw err;
+    }
+  }
+
+  async anonymizeCustomer(customerId: string, anonymizedEmail: string): Promise<void> {
+    if (!this.isConfigured()) return;
+    const stripe = this.getInstance();
+
+    try {
+      await stripe.customers.update(customerId, {
+        name: 'Usuário Anonimizado',
+        email: anonymizedEmail,
+        phone: '',
+        metadata: {
+          anonymized: 'true',
+          anonymizedAt: new Date().toISOString(),
+        },
+      });
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string };
+      if (error.code === 'resource_missing' || error.message?.includes('No such customer')) {
+        return;
+      }
+      throw err;
+    }
+  }
 }

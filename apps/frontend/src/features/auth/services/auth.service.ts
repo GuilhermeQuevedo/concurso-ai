@@ -100,4 +100,17 @@ export const authService = {
   async resetAccount(password: string): Promise<void> {
     await api.post('/auth/reset-account', { password });
   },
+
+  async exportData(password?: string): Promise<Blob> {
+    const response = await api.get('/auth/me/export', {
+      headers: password ? { 'x-confirm-password': password } : {},
+      responseType: 'blob',
+    });
+    return response.data as Blob;
+  },
+
+  async eraseAccount(data: { password?: string; reason?: string }): Promise<{ success: boolean; message: string }> {
+    const response = await api.post<{ success: boolean; message: string }>('/auth/me/erasure', data);
+    return response.data;
+  },
 };

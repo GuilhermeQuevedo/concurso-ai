@@ -7,7 +7,13 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, phone: string, password: string) => Promise<void>;
+  register: (
+    name: string,
+    email: string,
+    phone: string | undefined,
+    password: string,
+    consents?: { acceptTerms?: boolean; acceptPrivacy?: boolean; acceptAgeOrGuardian?: boolean },
+  ) => Promise<void>;
   loginWithTokens: (accessToken: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -57,8 +63,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
   };
 
-  const register = async (name: string, email: string, phone: string, password: string) => {
-    const tokens = await authService.register({ name, email, phone, password });
+  const register = async (
+    name: string,
+    email: string,
+    phone: string | undefined,
+    password: string,
+    consents?: { acceptTerms?: boolean; acceptPrivacy?: boolean; acceptAgeOrGuardian?: boolean },
+  ) => {
+    const tokens = await authService.register({
+      name,
+      email,
+      phone: phone || undefined,
+      password,
+      acceptTerms: consents?.acceptTerms,
+      acceptPrivacy: consents?.acceptPrivacy,
+      acceptAgeOrGuardian: consents?.acceptAgeOrGuardian,
+    });
     saveTokens(tokens.accessToken, tokens.refreshToken);
     const profile = await authService.getProfile();
     setUser(profile);

@@ -4,7 +4,7 @@ import { AuthService } from '../services/auth.service.js';
 import { AuthRepository } from '../repositories/auth.repository.js';
 import { validate } from '../middlewares/validate.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import { authRateLimiter } from '../middlewares/rate-limit.middleware.js';
+import { authRateLimiter, dsarExportRateLimiter } from '../middlewares/rate-limit.middleware.js';
 import {
   registerSchema,
   loginSchema,
@@ -17,6 +17,8 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   googleCredentialSchema,
+  erasureAccountSchema,
+  recordConsentSchema,
 } from '../validators/auth.validators.js';
 
 const authRepository = new AuthRepository();
@@ -46,5 +48,12 @@ router.patch('/password', authMiddleware, authRateLimiter, validate(changePasswo
 router.patch('/email', authMiddleware, authRateLimiter, validate(changeEmailSchema), authController.changeEmail);
 router.patch('/pause', authMiddleware, validate(pauseSchema), authController.setPause);
 router.post('/reset-account', authMiddleware, authRateLimiter, validate(resetAccountSchema), authController.resetAccount);
+
+// DSAR - Direitos do Titular (LGPD Art. 18)
+router.get('/me/export', authMiddleware, dsarExportRateLimiter, authController.exportData);
+router.post('/me/erasure', authMiddleware, authRateLimiter, validate(erasureAccountSchema), authController.eraseAccount);
+
+// Consentimento de Documentos Legais (LGPD Art. 7º, I e Art. 8º)
+router.post('/consent', authMiddleware, validate(recordConsentSchema), authController.recordConsent);
 
 export { router as authRouter };

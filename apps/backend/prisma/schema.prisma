@@ -26,6 +26,10 @@ model User {
   emailVerified Boolean  @default(false)
   pausedUntil   DateTime?
   stripeCustomerId String? @unique
+  tokenVersion  Int      @default(0)
+  erasureStatus String?
+  erasureRequestedAt DateTime?
+  erasureCompletedAt DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -69,6 +73,8 @@ model User {
   friendshipsLow        Friendship[]      @relation("FriendLow")
   friendshipsHigh       Friendship[]      @relation("FriendHigh")
   friendRequestsSent    Friendship[]      @relation("FriendRequester")
+  adminAuditLogs        AdminAuditLog[]          @relation("AdminAuditActor")
+  consentRecords        ConsentRecord[]
 }
 
 model Session {
@@ -618,16 +624,31 @@ model Payment {
   @@index([createdAt])
 }
 
+enum ContactLegalBasis {
+  CONSENT
+  LEGITIMATE_INTEREST
+  PRE_CONTRACTUAL
+}
+
+/// @lgpd Contatos e leads administrativos com governança de base legal e supressão
 model Contact {
-  id        String   @id @default(cuid())
-  name      String?
-  phone     String?
-  email     String?
-  notes     String?  @db.Text
-  source    String?
-  createdAt DateTime @default(now())
+  id                              String            @id @default(cuid())
+  name                            String?
+  phone                           String?
+  email                           String?
+  notes                           String?           @db.Text
+  source                          String?
+  legalBasis                      ContactLegalBasis @default(CONSENT)
+  consentProofNotes               String?           @db.Text
+  legitimateInterestAssessmentRef String?
+  importedBy                      String?
+  importedAt                      DateTime          @default(now())
+  unsubscribed                    Boolean           @default(false)
+  createdAt                       DateTime          @default(now())
 
   @@index([createdAt])
+  @@index([email])
+  @@index([unsubscribed])
 }
 
 model RankingBoard {
@@ -751,7 +772,9 @@ model UserCalendarIntegration {
   syncExams          Boolean   @default(true)
   defaultTime        String    @default("09:00")
   googleCalendarId   String?
+  /// @lgpd:pii=high @lgpd:purpose="google_calendar_sync" @lgpd:encrypted=true @lgpd:algorithm="aes-256-gcm"
   googleAccessToken  String?   @db.Text
+  /// @lgpd:pii=high @lgpd:purpose="google_calendar_sync" @lgpd:encrypted=true @lgpd:algorithm="aes-256-gcm"
   googleRefreshToken String?   @db.Text
   googleTokenExpiry  DateTime?
   lastSyncedAt       DateTime?
@@ -983,4 +1006,78 @@ model Friendship {
   @@unique([userLowId, userHighId])
   @@index([userHighId, status])
   @@index([userLowId, status])
+}
+
+enum AdminAuditAction {
+  USER_LIST_VIEW
+  USER_PII_REVEAL
+  CONTACT_LIST_VIEW
+  CONTACT_PII_REVEAL
+  CONTACT_IMPORT
+  CONTACT_DELETE
+}
+
+enum AuditResourceType {
+  USER
+  CONTACT
+  PAYMENT
+}
+
+model AdminAuditLog {
+  id            String            @id @default(cuid())
+  createdAt     DateTime          @default(now())
+  adminId       String
+  action        AdminAuditAction
+  resourceType  AuditResourceType
+  resourceCount Int               @default(1)
+  resourceIds   Json?
+  justification String?           @db.Text
+  ip            String
+  userAgent     String?           @db.Text
+
+  admin         User              @relation("AdminAuditActor", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, createdAt])
+  @@index([action, createdAt])
+  @@index([resourceType, createdAt])
+}
+
+enum ConsentDocumentType {
+  TERMS
+  PRIVACY
+}
+
+model ConsentRecord {
+  id           String              @id @default(cuid())
+  userId       String
+  documentType ConsentDocumentType
+  version      String
+  acceptedAt   DateTime            @default(now())
+  ipHash       String
+  userAgent    String?             @db.Text
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentType, version])
+  @@index([userId, documentType])
+}
+
+model ErasureLog {
+  id          String   @id @default(cuid())
+  userHash    String   @unique
+  erasedAt    DateTime @default(now())
+  hadPayments Boolean  @default(false)
+  reason      String?  @db.Text
+
+  @@index([erasedAt])
+}
+
+/// @lgpd Lista de supressão de contatos com hash HMAC-SHA256 do e-mail normalizado
+model ContactSuppression {
+  id        String   @id @default(cuid())
+  emailHash String   @unique
+  reason    String?  @default("OPT_OUT")
+  createdAt DateTime @default(now())
+
+  @@index([emailHash])
 }

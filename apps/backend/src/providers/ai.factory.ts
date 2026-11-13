@@ -5,6 +5,7 @@ import { ClaudeProvider } from './claude.provider.js';
 import { OpenAIProvider } from './openai.provider.js';
 import { MockProvider } from './mock.provider.js';
 import { CompositeAIProvider } from './composite.provider.js';
+import { PIISanitizerAIProvider } from './pii-sanitizer.provider.js';
 import { env } from '../config/env.js';
 
 type ProviderKind = 'gemini' | 'ollama' | 'claude' | 'openai' | 'mock';
@@ -59,10 +60,8 @@ export function createAIProvider(): IAIProvider {
   const essayKind = resolveProviderKind(env.AI_ESSAY_PROVIDER ?? bulkKind);
 
   const bulk = buildProvider(bulkKind);
-  if (essayKind === bulkKind) {
-    return bulk;
-  }
+  const baseProvider = essayKind === bulkKind ? bulk : new CompositeAIProvider(bulk, buildProvider(essayKind));
 
-  const essay = buildProvider(essayKind);
-  return new CompositeAIProvider(bulk, essay);
+  // Decorador de minimização de PII (LGPD Art. 6º, III)
+  return new PIISanitizerAIProvider(baseProvider);
 }
