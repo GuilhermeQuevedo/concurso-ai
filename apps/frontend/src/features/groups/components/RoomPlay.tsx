@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Loader2, Play, Timer } from 'lucide-react';
+import { ArrowLeft, Loader2, Timer } from 'lucide-react';
 
 import { toast } from '@/components/ui/toast-store';
 import { getErrorMessage } from '@/utils/error-message';
 
 import { roomService, type RoomState } from '../services/room.service';
+import { RoomLobby } from './RoomLobby';
 import { RoomLeaderboard } from './RoomLeaderboard';
 import { RoomQuestionCard } from './RoomQuestionCard';
 
@@ -58,6 +59,7 @@ export function RoomPlay({ groupId, roomId, currentUserId, onBack }: RoomPlayPro
   };
   const join = useMutation({ mutationFn: () => roomService.join(groupId, roomId), onSuccess: refresh, onError });
   const start = useMutation({ mutationFn: () => roomService.start(groupId, roomId), onSuccess: refresh, onError });
+  const setReady = useMutation({ mutationFn: (ready: boolean) => roomService.setReady(groupId, roomId, ready), onSuccess: refresh, onError });
   const answer = useMutation({
     mutationFn: ({ questionId, choice }: { questionId: string; choice: string }) => roomService.answer(groupId, roomId, questionId, choice),
     onSuccess: refresh,
@@ -98,20 +100,23 @@ export function RoomPlay({ groupId, roomId, currentUserId, onBack }: RoomPlayPro
       )}
 
       {room.phase === 'LOBBY' && (
-        <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-gray-800 dark:bg-gray-900">
-          <p className="mb-3 text-gray-600 dark:text-gray-300">Aguardando o início. Quem entrar agora joga junto.</p>
-          {room.isHost && (
-            <button type="button" onClick={() => start.mutate()} disabled={start.isPending} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50">
-              {start.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />} Iniciar agora
-            </button>
-          )}
-        </div>
+        <RoomLobby
+          players={room.players}
+          currentUserId={currentUserId}
+          joined={room.joined}
+          isHost={room.isHost}
+          settingReady={setReady.isPending}
+          starting={start.isPending}
+          onToggleReady={(ready) => setReady.mutate(ready)}
+          onForceStart={() => start.mutate()}
+        />
       )}
 
       {room.phase === 'COUNTDOWN' && (
-        <p className="mb-4 rounded-xl bg-amber-50 p-6 text-center text-2xl font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
-          Começa em {formatRemaining(remaining, false)}
-        </p>
+        <div className="mb-4 rounded-xl bg-amber-50 p-8 text-center dark:bg-amber-950/30">
+          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Todos prontos! Começando em</p>
+          <p className="text-6xl font-extrabold text-amber-700 dark:text-amber-300">{Math.max(1, Math.ceil(remaining / 1000))}</p>
+        </div>
       )}
 
       <div className="mb-4 space-y-3">

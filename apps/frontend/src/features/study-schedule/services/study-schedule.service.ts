@@ -1,5 +1,5 @@
 import { api, unwrapData } from '@/services/api';
-import type { StudySchedule } from '../types';
+import type { ScheduleWeek, StudySchedule } from '../types';
 import type { ScheduleAvailability } from '../wizard/schedule-wizard.model';
 
 export interface GenerateScheduleParams {
@@ -66,6 +66,11 @@ export const studyScheduleService = {
 
   async toggleDayCompletion(id: string, weekIndex: number, dayIndex: number): Promise<StudySchedule> {
     const res = await api.patch(`/study-schedules/${id}/toggle-day`, { weekIndex, dayIndex });
+    return unwrapData(res);
+  },
+
+  async replaceWeeks(id: string, weeks: ScheduleWeek[]): Promise<StudySchedule> {
+    const res = await api.put(`/study-schedules/${id}/weeks`, { weeks });
     return unwrapData(res);
   },
 

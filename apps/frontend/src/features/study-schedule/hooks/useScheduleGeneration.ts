@@ -1,4 +1,5 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { toast } from '@/components/ui/toast-store';
 import { getErrorMessage } from '@/utils/error-message';
@@ -14,8 +15,13 @@ function withContest(result: StudySchedule, payload: WizardSubmitPayload): Study
   return { ...result, contestId: payload.contestId, schedule: { ...result.schedule, title: payload.contestName } };
 }
 
-export function useScheduleGeneration(setSchedule: Dispatch<SetStateAction<StudySchedule | null>>) {
+export function useScheduleGeneration(
+  setSchedule: Dispatch<SetStateAction<StudySchedule | null>>,
+  setSavedSchedules: Dispatch<SetStateAction<StudySchedule[]>>,
+  clearDraft: () => void,
+) {
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const generate = async (payload: WizardSubmitPayload): Promise<boolean> => {
     setLoading(true);
@@ -28,9 +34,20 @@ export function useScheduleGeneration(setSchedule: Dispatch<SetStateAction<Study
         forceRefresh: true,
         saveToDb: false,
       });
-      setSchedule(withContest(result, payload));
+      const generated = withContest(result, payload);
       setCreatingNew(false);
-      toast.success('Cronograma gerado! Clique em Salvar para mantê-lo.');
+      // Salva na hora: assim o que a pessoa marcar no cronograma já aparece no Calendário, sem passo extra.
+      try {
+        const saved = await studyScheduleService.saveSchedule(generated);
+        setSchedule(saved);
+        setSavedSchedules((prev) => [saved, ...prev]);
+        clearDraft();
+        void queryClient.invalidateQueries({ queryKey: ['study-schedules'] });
+        toast.success('Cronograma gerado e salvo! Ele já aparece no Calendário.');
+      } catch {
+        setSchedule(generated);
+        toast.error('Cronograma gerado, mas não foi possível salvar agora. Clique em Salvar para mantê-lo.');
+      }
       return true;
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Falha na geração do cronograma.'));

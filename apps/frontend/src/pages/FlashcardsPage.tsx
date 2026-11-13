@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Sparkles, PencilLine, Loader2, Layers, LayoutGrid, Folder, ArrowLeft } from 'lucide-react';
 import { deckService, type DeckDTO, type FlashcardDTO } from '@/features/flashcards/services/flashcard.service';
 import { DeckCard } from '@/features/flashcards/components/DeckCard';
 import { GenerateDeckModal } from '@/features/flashcards/components/GenerateDeckModal';
+import { useScheduleTarget } from '@/features/content/hooks/useScheduleTarget';
 import { ManualDeckModal } from '@/features/flashcards/components/ManualDeckModal';
 import { EditDeckModal } from '@/features/flashcards/components/EditDeckModal';
 import { StudySession } from '@/features/flashcards/components/StudySession';
@@ -26,6 +27,13 @@ export function FlashcardsPage() {
   const [view, setView] = useState<ViewMode>(loadView);
   const [folder, setFolder] = useState<string | null>(null);
   const [showAI, setShowAI] = useState(false);
+  const target = useScheduleTarget();
+  const autoOpened = useRef(false);
+  useEffect(() => {
+    if (!target.name || !target.ready || autoOpened.current) return;
+    autoOpened.current = true;
+    setShowAI(true);
+  }, [target.name, target.ready]);
   const [showManual, setShowManual] = useState(false);
   const [editing, setEditing] = useState<DeckDTO | null>(null);
   const [session, setSession] = useState<{ deck: DeckDTO; cards: FlashcardDTO[] } | null>(null);
@@ -187,7 +195,7 @@ export function FlashcardsPage() {
         </>
       )}
 
-      {showAI && <GenerateDeckModal onClose={() => setShowAI(false)} onCreated={refresh} />}
+      {showAI && <GenerateDeckModal onClose={() => setShowAI(false)} onCreated={refresh} initialSubject={target.name} />}
       {showManual && <ManualDeckModal onClose={() => setShowManual(false)} onCreated={refresh} />}
       {editing && <EditDeckModal deck={editing} onClose={() => setEditing(null)} onChanged={refresh} />}
     </div>

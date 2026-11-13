@@ -50,6 +50,15 @@ export const studyTaskService = {
     return unwrapData(response);
   },
 
+  async create(input: { title: string; date: string; discipline?: string; duration?: number }): Promise<StudyTask> {
+    const response = await api.post<ApiResponse<StudyTask>>('/study-tasks', input);
+    return unwrapData(response);
+  },
+
+  async remove(id: string): Promise<void> {
+    await api.delete(`/study-tasks/${id}`);
+  },
+
   async clearPlan(contestId: string): Promise<void> {
     await api.delete(`/study-tasks/contest/${contestId}`);
   },

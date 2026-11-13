@@ -3,6 +3,7 @@ import { levelFromXp } from '@concurso-ai/shared';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { NotificationRepository } from '../repositories/notification.repository.js';
+import { findUserIdByIdentifier } from '../repositories/user-lookup.repository.js';
 
 export const FRIEND_REQUEST_NOTIFICATION = 'FRIEND_REQUEST';
 export const FRIEND_CODE_LENGTH = 8;
@@ -81,7 +82,7 @@ export class FriendService {
   }
 
   async request(userId: string, identifier: string): Promise<{ accepted: boolean }> {
-    const target = await this.findTarget(identifier);
+    const target = await findUserIdByIdentifier(identifier);
     if (!target) throw new AppError(404, 'FRIEND_NOT_FOUND', 'Nenhuma pessoa encontrada com esse nickname ou código.');
     if (target.id === userId) throw new AppError(400, 'FRIEND_SELF', 'Você não pode adicionar a si mesmo.');
 
@@ -163,13 +164,6 @@ export class FriendService {
       }
     }
     throw new AppError(500, 'FRIEND_CODE_FAILED', 'Não foi possível gerar o código agora. Tente de novo.');
-  }
-
-  private async findTarget(identifier: string): Promise<{ id: string } | null> {
-    const clean = identifier.trim().replace(/^@/, '');
-    const byCode = await prisma.user.findUnique({ where: { friendCode: clean.toUpperCase() }, select: { id: true } });
-    if (byCode) return byCode;
-    return prisma.user.findUnique({ where: { nickname: clean }, select: { id: true } });
   }
 
   private async findPendingFor(userId: string, friendshipId: string) {

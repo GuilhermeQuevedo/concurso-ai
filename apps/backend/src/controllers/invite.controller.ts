@@ -9,7 +9,10 @@ export class InviteController {
 
   invite = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.service.invite(getUserId(req), req.params.id as string, req.body.nickname);
+      await this.service.invite(getUserId(req), req.params.id as string, {
+        nickname: req.body.nickname,
+        friendUserId: req.body.friendUserId,
+      });
       const response: ApiResponse<null> = { success: true, data: null };
       res.status(201).json(response);
     } catch (error) {

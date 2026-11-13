@@ -1,10 +1,9 @@
 import type { Prisma, StudyTaskType } from '@prisma/client';
-import type { GeneratePlanDTO } from '../validators/study-task.validators.js';
+import type { CreateTaskDTO, GeneratePlanDTO } from '../validators/study-task.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 
 const REVIEW_DURATION = 15;
-const ESSAY_DURATION = 90;
 const FINAL_REVIEW_RATIO = 0.15;
 const SPACED_REVIEW_OFFSETS = [3, 7];
 const WEAK_REVIEW_OFFSETS = [3, 7, 14];
@@ -51,6 +50,25 @@ export class StudyTaskService {
     });
 
     return { created: tasks.length, firstDay: studyDates[0], examDate: contest.examDate };
+  }
+
+  // Tarefa criada à mão pelo aluno no calendário; o plano automático não a apaga nem a recria.
+  async createManual(userId: string, dto: CreateTaskDTO) {
+    return prisma.studyTask.create({
+      data: {
+        userId,
+        type: 'STUDY',
+        title: dto.title,
+        discipline: dto.discipline || null,
+        duration: dto.duration,
+        date: new Date(`${dto.date}T12:00:00.000Z`),
+      },
+    });
+  }
+
+  async removeManual(userId: string, id: string): Promise<void> {
+    const { count } = await prisma.studyTask.deleteMany({ where: { id, userId, contestId: null } });
+    if (count === 0) throw new AppError(404, 'TASK_NOT_FOUND', 'Tarefa não encontrada ou criada pelo plano automático.');
   }
 
   async list(userId: string, from?: string, to?: string) {
@@ -212,12 +230,6 @@ function buildTasks(
         const prefix = isWeak ? 'Reforçar' : 'Revisar';
         tasks.push(makeTask(contestId, 'REVIEW', reviewDate, `${prefix}: ${topic.topic}`, topic.discipline, REVIEW_DURATION, topic.id));
       }
-    }
-  });
-
-  learningDates.forEach((date, index) => {
-    if ((index + 1) % 6 === 0) {
-      tasks.push(makeTask(contestId, 'ESSAY', date, 'Escrever redação da semana', null, ESSAY_DURATION, null));
     }
   });
 

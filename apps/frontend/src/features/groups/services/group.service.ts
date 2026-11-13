@@ -70,8 +70,8 @@ export const groupService = {
     return unwrapData(response);
   },
 
-  async invite(id: string, nickname: string): Promise<void> {
-    await api.post(`/groups/${id}/invites`, { nickname });
+  async invite(id: string, target: { nickname: string } | { friendUserId: string }): Promise<void> {
+    await api.post(`/groups/${id}/invites`, target);
   },
 
   async leave(id: string): Promise<void> {

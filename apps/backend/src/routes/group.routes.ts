@@ -14,7 +14,7 @@ import { createShareSchema } from '../validators/group-share.validators.js';
 import { GroupRoomService } from '../services/group-room.service.js';
 import { GroupRoomStateService } from '../services/group-room-state.service.js';
 import { GroupRoomController } from '../controllers/group-room.controller.js';
-import { createRoomSchema, roomAnswerSchema } from '../validators/group-room.validators.js';
+import { createRoomSchema, roomAnswerSchema, roomReadySchema } from '../validators/group-room.validators.js';
 import { GroupCommentService } from '../services/group-comment.service.js';
 import { GroupCommentController } from '../controllers/group-comment.controller.js';
 import { createCommentSchema, listCommentsSchema, resolveCommentSchema } from '../validators/group-comment.validators.js';
@@ -51,6 +51,7 @@ router.post('/:id/rooms', authMiddleware, roomCreateLimiter, validateRequest(cre
 router.get('/:id/rooms/:roomId', authMiddleware, roomController.get);
 router.post('/:id/rooms/:roomId/join', authMiddleware, roomController.join);
 router.post('/:id/rooms/:roomId/start', authMiddleware, roomController.start);
+router.post('/:id/rooms/:roomId/ready', authMiddleware, validateRequest(roomReadySchema), roomController.ready);
 router.post('/:id/rooms/:roomId/answer', authMiddleware, validateRequest(roomAnswerSchema), roomController.answer);
 router.delete('/:id/leave', authMiddleware, controller.leave);
 

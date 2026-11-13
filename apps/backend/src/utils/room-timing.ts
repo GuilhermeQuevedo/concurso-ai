@@ -3,7 +3,7 @@ export const MAX_QUESTIONS = 20;
 export const MIN_SECONDS = 10;
 export const MAX_SECONDS = 120;
 
-export const COUNTDOWN_MS = 3000;
+export const COUNTDOWN_MS = 5000;
 export const REVEAL_MS = 6000;
 export const OWN_PACE_WINDOW_MS = 24 * 60 * 60 * 1000;
 

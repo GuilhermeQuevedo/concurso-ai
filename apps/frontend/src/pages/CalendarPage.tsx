@@ -1,194 +1,201 @@
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight, Loader2, Plus, Bell, Sparkles } from 'lucide-react';
 
 import { useActiveStudy } from '@/features/active-study/active-study-context';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CalendarClock, Clock, Loader2, Sparkles } from 'lucide-react';
-import { studyTaskService, type StudyTask } from '@/features/calendar/services/study-task.service';
-import { contestService } from '@/features/contests/services/contest.service';
+import { addDays, dayKey, formatLongDate, startOfWeek, weekTitle, type CalendarView } from '@/features/calendar/calendar-dates';
+import { applyFilters, ALL_KINDS, groupByDay, type CalendarItem, type ItemFilters } from '@/features/calendar/calendar-items';
+import { CalendarFilters } from '@/features/calendar/components/CalendarFilters';
+import { CalendarMonthView, monthTitle } from '@/features/calendar/components/CalendarMonthView';
+import { CalendarWeekView } from '@/features/calendar/components/CalendarWeekView';
+import { ExamsPanel } from '@/features/calendar/components/ExamsPanel';
 import { GeneratePlanForm } from '@/features/calendar/components/GeneratePlanForm';
 import { GoogleCalendarPluginModal } from '@/features/calendar/components/GoogleCalendarPluginModal';
-import { MonthGrid, dayKey } from '@/features/calendar/components/MonthGrid';
-import { TaskList } from '@/features/calendar/components/TaskList';
-import { DayReminders } from '@/features/reminders/components/DayReminders';
-import { reminderService } from '@/features/reminders/services/reminder.service';
-import { daysUntil } from '@/features/contests/components/ContestCard';
+import { ItemDetailDialog } from '@/features/calendar/components/ItemDetailDialog';
+import { NewItemDialog, type NewItemInput, type NewItemKind } from '@/features/calendar/components/NewItemDialog';
+import { useCalendarData } from '@/features/calendar/hooks/useCalendarData';
+import { contestService } from '@/features/contests/services/contest.service';
+import { subjectColor } from '@/features/questions/subjectColor';
+
+const MONTH_MARGIN_DAYS = 7;
+const btn =
+  'flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800';
 
 export function CalendarPage() {
-  const queryClient = useQueryClient();
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth());
-  const [selectedDay, setSelectedDay] = useState(dayKey(now));
+  const today = dayKey(now);
+  const [view, setView] = useState<CalendarView>('month');
+  const [anchor, setAnchor] = useState(today);
+  const [selectedDay, setSelectedDay] = useState(today);
+  const [filters, setFilters] = useState<ItemFilters>({ kinds: new Set(ALL_KINDS), hiddenSubjects: new Set() });
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
+  const [newItem, setNewItem] = useState<{ date: string; kind: NewItemKind } | null>(null);
   const [showGenerate, setShowGenerate] = useState(false);
   const [showPlugin, setShowPlugin] = useState(false);
 
-  const from = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-  const lastDay = new Date(year, month + 1, 0).getDate();
-  const to = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+  const anchorDate = new Date(`${anchor}T12:00:00`);
+  const year = anchorDate.getFullYear();
+  const month = anchorDate.getMonth();
+  const range = useMemo(
+    () =>
+      view === 'month'
+        ? { from: addDays(dayKey(new Date(year, month, 1)), -MONTH_MARGIN_DAYS), to: addDays(dayKey(new Date(year, month + 1, 0)), MONTH_MARGIN_DAYS) }
+        : { from: startOfWeek(anchor), to: addDays(startOfWeek(anchor), 6) },
+    [view, anchor, year, month],
+  );
 
   const { activeContestId } = useActiveStudy();
-  const { data: allTasks = [], isLoading } = useQuery({
-    queryKey: ['study-tasks', from, to],
-    queryFn: () => studyTaskService.list(from, to),
-  });
-  const tasks = useMemo(() => (activeContestId ? allTasks.filter((t) => t.contestId === activeContestId) : allTasks), [allTasks, activeContestId]);
+  const data = useCalendarData(range, activeContestId);
+  const { data: contests = [] } = useQuery({ queryKey: ['contests'], queryFn: contestService.list });
 
-  const { data: contests = [] } = useQuery({
-    queryKey: ['contests'],
-    queryFn: contestService.list,
-  });
+  const subjects = useMemo(() => {
+    const names = [...new Set(data.items.map((i) => i.subject).filter((s): s is string => Boolean(s)))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    return names.map((name) => ({ name, color: subjectColor(name) }));
+  }, [data.items]);
 
-  const toggleMutation = useMutation({
-    mutationFn: (task: StudyTask) => studyTaskService.setCompleted(task.id, !task.completed),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['study-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['contests'] });
-    },
-  });
-
-  const { data: reminders = [] } = useQuery({ queryKey: ['reminders'], queryFn: reminderService.list });
-  const remindersByDay = useMemo(() => {
-    const map = new Map<string, typeof reminders>();
-    for (const reminder of reminders) {
-      if (!reminder.dueDate) continue;
-      const key = reminder.dueDate.slice(0, 10);
-      map.set(key, [...(map.get(key) ?? []), reminder]);
-    }
-    return map;
-  }, [reminders]);
-  const reminderDays = useMemo(
-    () => new Set([...remindersByDay.entries()].filter(([, list]) => list.some((r) => !r.done)).map(([key]) => key)),
-    [remindersByDay],
-  );
-  const monthHasReminders = [...remindersByDay.keys()].some((key) => key >= from && key <= to);
-
-  const tasksByDay = useMemo(() => {
-    const map = new Map<string, StudyTask[]>();
-    for (const task of tasks) {
-      const key = task.date.slice(0, 10);
-      const list = map.get(key) ?? [];
-      list.push(task);
-      map.set(key, list);
-    }
-    return map;
-  }, [tasks]);
-
+  const visible = useMemo(() => applyFilters(data.items, filters), [data.items, filters]);
+  const itemsByDay = useMemo(() => groupByDay(visible), [visible]);
   const examDays = useMemo(() => {
     const map = new Map<string, string>();
-    for (const contest of contests) {
-      if (contest.examDate) map.set(contest.examDate.slice(0, 10), contest.name);
-    }
+    for (const c of contests) if (c.examDate) map.set(c.examDate.slice(0, 10), c.name);
     return map;
   }, [contests]);
 
-  const upcomingExams = contests
-    .filter((c) => c.examDate && (daysUntil(c.examDate) ?? -1) >= 0)
-    .sort((a, b) => ((a.examDate ?? '') < (b.examDate ?? '') ? -1 : 1));
-
-  const navigate = (delta: number) => {
-    const next = new Date(year, month + delta, 1);
-    setYear(next.getFullYear());
-    setMonth(next.getMonth());
+  const openItem = data.items.find((i) => i.id === openItemId) ?? null;
+  const step = (delta: number) =>
+    setAnchor(view === 'month' ? dayKey(new Date(year, month + delta, 1)) : addDays(anchor, delta * 7));
+  const goToday = () => {
+    setAnchor(today);
+    setSelectedDay(today);
   };
-
-  const selectedTasks = tasksByDay.get(selectedDay) ?? [];
-  const todayKey = dayKey(new Date());
-  const selectedLabel =
-    selectedDay === todayKey
-      ? 'Hoje'
-      : new Date(`${selectedDay}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const submitNew = (input: NewItemInput) => data.create.mutate(input, { onSuccess: () => setNewItem(null) });
+  const selectedItems = itemsByDay.get(selectedDay) ?? [];
+  const title = view === 'month' ? monthTitle(year, month) : weekTitle(anchor);
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendário de Estudo</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Seu plano diário até o dia da prova
-          </p>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendário</h1>
+          <button type="button" onClick={goToday} className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            Hoje
+          </button>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowPlugin(true)}
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 shadow-2xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-850 dark:text-gray-200 dark:hover:bg-gray-800"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="4" width="18" height="18" rx="3" fill="#4285F4" />
-              <path d="M3 9H21" stroke="white" strokeWidth="2" />
-              <rect x="7" y="2" width="2" height="4" rx="1" fill="#EA4335" />
-              <rect x="15" y="2" width="2" height="4" rx="1" fill="#EA4335" />
-              <text x="12" y="17" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">31</text>
-            </svg>
-            <span>Google Calendar</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => setNewItem({ date: selectedDay, kind: 'tarefa' })} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700">
+            <Plus className="h-4 w-4" /> Nova tarefa
           </button>
-          <button
-            onClick={() => setShowGenerate(!showGenerate)}
-            className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-          >
-            <Sparkles className="h-4 w-4" />
-            Gerar Plano
+          <button type="button" onClick={() => setNewItem({ date: selectedDay, kind: 'lembrete' })} className={btn}>
+            <Bell className="h-4 w-4" /> Lembrete
           </button>
+          <button type="button" onClick={() => setShowGenerate(!showGenerate)} className={btn}>
+            <Sparkles className="h-4 w-4" /> Gerar plano
+          </button>
+          <button type="button" onClick={() => setShowPlugin(true)} className={btn}>
+            Google Calendar
+          </button>
+          <div role="group" aria-label="Visualização" className="flex overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700">
+            {(['month', 'week'] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={view === option}
+                onClick={() => setView(option)}
+                className={`px-3 py-1.5 text-sm font-medium ${view === option ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'}`}
+              >
+                {option === 'month' ? 'Mensal' : 'Semanal'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {upcomingExams.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-3">
-          {upcomingExams.map((contest) => {
-            const days = daysUntil(contest.examDate) ?? 0;
-            const color = days <= 14 ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300' : days <= 45 ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300';
-            return (
-              <div key={contest.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${color}`}>
-                <Clock className="h-4 w-4" />
-                <span className="font-bold">{days} dias</span>
-                <span className="max-w-56 truncate text-xs opacity-80">{contest.name}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {showPlugin && <GoogleCalendarPluginModal onClose={() => setShowPlugin(false)} />}
+      <ExamsPanel contests={contests} />
       {showGenerate && <GeneratePlanForm onClose={() => setShowGenerate(false)} />}
+      <CalendarFilters filters={filters} subjects={subjects} onChange={setFilters} />
 
-      {isLoading ? (
+      <div className="mb-3 flex items-center justify-center gap-4">
+        <button type="button" aria-label="Anterior" onClick={() => step(-1)} className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <h2 className="min-w-48 text-center text-sm font-semibold text-gray-900 dark:text-white">{title}</h2>
+        <button type="button" aria-label="Próximo" onClick={() => step(1)} className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      {data.loading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
-      ) : tasks.length === 0 && !monthHasReminders && !showGenerate ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
-          <CalendarClock className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-          <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-            Nenhuma tarefa neste mês
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Clique em "Gerar Plano" para distribuir o conteúdo do edital até o dia da prova
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          <MonthGrid
+      ) : view === 'month' ? (
+        <>
+          <CalendarMonthView
             year={year}
             month={month}
-            tasksByDay={tasksByDay}
-            selectedDay={selectedDay}
+            itemsByDay={itemsByDay}
             examDays={examDays}
-            reminderDays={reminderDays}
+            selectedDay={selectedDay}
             onSelectDay={setSelectedDay}
-            onNavigate={navigate}
+            onOpenItem={(item: CalendarItem) => setOpenItemId(item.id)}
+            onAdd={(date) => setNewItem({ date, kind: 'tarefa' })}
           />
-
-          <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-            <h3 className="mb-3 text-sm font-semibold capitalize text-gray-900 dark:text-white">{selectedLabel}</h3>
-            <TaskList
-              tasks={selectedTasks}
-              emptyMessage="Nenhuma tarefa neste dia."
-              onToggle={(task) => toggleMutation.mutate(task)}
-            />
-            <DayReminders day={selectedDay} reminders={remindersByDay.get(selectedDay) ?? []} />
-          </div>
-        </div>
+          <DaySummary day={selectedDay} items={selectedItems} onOpen={(item) => setOpenItemId(item.id)} />
+        </>
+      ) : (
+        <CalendarWeekView
+          anchorDay={anchor}
+          itemsByDay={itemsByDay}
+          examDays={examDays}
+          onOpenItem={(item) => setOpenItemId(item.id)}
+          onAdd={(date) => setNewItem({ date, kind: 'tarefa' })}
+        />
       )}
+
+      {openItem && (
+        <ItemDetailDialog
+          item={openItem}
+          busy={data.toggle.isPending || data.remove.isPending}
+          onToggle={(item) => data.toggle.mutate(item)}
+          onDelete={(item) => data.remove.mutate(item, { onSuccess: () => setOpenItemId(null) })}
+          onClose={() => setOpenItemId(null)}
+        />
+      )}
+      {newItem && (
+        <NewItemDialog
+          initialDate={newItem.date}
+          initialKind={newItem.kind}
+          subjects={subjects.map((s) => s.name)}
+          saving={data.create.isPending}
+          onSubmit={submitNew}
+          onClose={() => setNewItem(null)}
+        />
+      )}
+      {showPlugin && <GoogleCalendarPluginModal onClose={() => setShowPlugin(false)} />}
     </div>
+  );
+}
+
+function DaySummary({ day, items, onOpen }: { day: string; items: CalendarItem[]; onOpen: (item: CalendarItem) => void }) {
+  return (
+    <section aria-label="Itens do dia" className="mt-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">{formatLongDate(day)}</h3>
+      {items.length === 0 ? (
+        <p className="text-sm text-gray-400">Nada marcado para este dia.</p>
+      ) : (
+        <ul className="space-y-1.5">
+          {items.map((item) => (
+            <li key={item.id}>
+              <button type="button" onClick={() => onOpen(item)} className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${item.done ? 'opacity-50' : ''}`}>
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className={`min-w-0 flex-1 truncate text-gray-800 dark:text-gray-100 ${item.done ? 'line-through' : ''}`}>{item.title}</span>
+                {item.detail && <span className="hidden shrink-0 text-xs text-gray-500 sm:inline">{item.detail}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

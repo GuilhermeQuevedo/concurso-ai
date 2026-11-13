@@ -1,3 +1,4 @@
+import { SyncToggle } from './SyncToggle';
 import { useState } from 'react';
 import {
   Calendar as CalendarIcon,
@@ -187,31 +188,30 @@ export function GoogleCalendarPluginModal({ onClose }: GoogleCalendarPluginModal
               </div>
 
               <div className="space-y-3">
-                <label className="flex items-center justify-between rounded-lg bg-white p-3 border border-gray-200/80 cursor-pointer dark:bg-gray-800 dark:border-gray-700/80">
-                  <div>
-                    <span className="text-xs font-semibold text-gray-900 dark:text-white">Tarefas Diárias de Estudo</span>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400">Sincroniza tópicos, revisões espaçadas e redações do edital</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={integration.syncTasks}
-                    onChange={(e) => updateSettings({ syncTasks: e.target.checked })}
-                    className="h-4 w-4 rounded accent-primary-600 cursor-pointer"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between rounded-lg bg-white p-3 border border-gray-200/80 cursor-pointer dark:bg-gray-800 dark:border-gray-700/80">
-                  <div>
-                    <span className="text-xs font-semibold text-gray-900 dark:text-white">Datas das Provas</span>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400">Sincroniza o dia da prova dos seus concursos cadastrados</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={integration.syncExams}
-                    onChange={(e) => updateSettings({ syncExams: e.target.checked })}
-                    className="h-4 w-4 rounded accent-primary-600 cursor-pointer"
-                  />
-                </label>
+                <SyncToggle
+                  title="Cronograma de Estudos"
+                  description="Cada dia do seu cronograma vira um evento, com as matérias e o tempo previsto"
+                  checked={integration.syncSchedule}
+                  onChange={(checked) => updateSettings({ syncSchedule: checked })}
+                />
+                <SyncToggle
+                  title="Lembretes"
+                  description="Seus lembretes com data aparecem como eventos de dia inteiro"
+                  checked={integration.syncReminders}
+                  onChange={(checked) => updateSettings({ syncReminders: checked })}
+                />
+                <SyncToggle
+                  title="Tarefas do Plano de Estudo"
+                  description="Tópicos e revisões espaçadas gerados pelo plano do edital"
+                  checked={integration.syncTasks}
+                  onChange={(checked) => updateSettings({ syncTasks: checked })}
+                />
+                <SyncToggle
+                  title="Datas das Provas"
+                  description="Sincroniza o dia da prova dos seus concursos cadastrados"
+                  checked={integration.syncExams}
+                  onChange={(checked) => updateSettings({ syncExams: checked })}
+                />
 
                 <div className="flex items-center justify-between rounded-lg bg-white p-3 border border-gray-200/80 dark:bg-gray-800 dark:border-gray-700/80">
                   <div>
