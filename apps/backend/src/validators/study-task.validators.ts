@@ -21,5 +21,15 @@ export const updateTaskSchema = z.object({
   }),
 });
 
+export const createTaskSchema = z.object({
+  body: z.object({
+    title: z.string().trim().min(1, 'Informe um título').max(120),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    discipline: z.string().trim().max(80).optional(),
+    duration: z.number().int().min(5).max(720).default(60),
+  }),
+});
+
+export type CreateTaskDTO = z.infer<typeof createTaskSchema>['body'];
 export type GeneratePlanDTO = z.infer<typeof generatePlanSchema>['body'];
 export type UpdateTaskDTO = z.infer<typeof updateTaskSchema>['body'];

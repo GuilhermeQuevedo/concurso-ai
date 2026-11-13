@@ -1,5 +1,5 @@
 import type { Prisma, StudyTaskType } from '@prisma/client';
-import type { GeneratePlanDTO } from '../validators/study-task.validators.js';
+import type { CreateTaskDTO, GeneratePlanDTO } from '../validators/study-task.validators.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 
@@ -50,6 +50,25 @@ export class StudyTaskService {
     });
 
     return { created: tasks.length, firstDay: studyDates[0], examDate: contest.examDate };
+  }
+
+  // Tarefa criada à mão pelo aluno no calendário; o plano automático não a apaga nem a recria.
+  async createManual(userId: string, dto: CreateTaskDTO) {
+    return prisma.studyTask.create({
+      data: {
+        userId,
+        type: 'STUDY',
+        title: dto.title,
+        discipline: dto.discipline || null,
+        duration: dto.duration,
+        date: new Date(`${dto.date}T12:00:00.000Z`),
+      },
+    });
+  }
+
+  async removeManual(userId: string, id: string): Promise<void> {
+    const { count } = await prisma.studyTask.deleteMany({ where: { id, userId, contestId: null } });
+    if (count === 0) throw new AppError(404, 'TASK_NOT_FOUND', 'Tarefa não encontrada ou criada pelo plano automático.');
   }
 
   async list(userId: string, from?: string, to?: string) {

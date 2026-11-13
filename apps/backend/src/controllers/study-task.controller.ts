@@ -40,6 +40,26 @@ export class StudyTaskController {
     }
   };
 
+  create = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const task = await this.service.createManual(getUserId(req), req.body);
+      const response: ApiResponse<typeof task> = { success: true, data: task };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  remove = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.service.removeManual(getUserId(req), req.params.id as string);
+      const response: ApiResponse<{ deleted: boolean }> = { success: true, data: { deleted: true } };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const task = await this.service.setCompleted(
