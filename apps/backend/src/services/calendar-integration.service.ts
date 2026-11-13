@@ -2,6 +2,8 @@ import { prisma } from '../database/prisma.js';
 import { env } from '../config/env.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { ICalGenerator } from '../utils/ical-generator.js';
+import { createHash } from 'node:crypto';
+import { CalendarEventsService, type StudyCalendarEvent } from './calendar-events.service.js';
 import { GoogleCalendarClient } from '../providers/google-calendar.client.js';
 import { encryptData, decryptData, isEncrypted } from '../utils/crypto.js';
 import type { UpdateCalendarIntegrationDTO } from '../validators/calendar-integration.validators.js';
@@ -16,14 +18,44 @@ export interface CalendarIntegrationResponse {
   isGoogleConfigured: boolean;
   syncTasks: boolean;
   syncExams: boolean;
+  syncSchedule: boolean;
+  syncReminders: boolean;
   defaultTime: string;
   lastSyncedAt: Date | null;
+}
+
+// O Google exige id de evento só com 0-9 e a-v: o hash em hexadecimal serve e mantém o evento o mesmo a cada sincronização.
+function googleEventId(uid: string): string {
+  return `engrama${createHash('sha1').update(uid).digest('hex')}`;
+}
+
+function toIcalEvent(event: StudyCalendarEvent) {
+  const base = { uid: event.uid, summary: event.summary, description: event.description, status: event.completed ? ('CONFIRMED' as const) : ('TENTATIVE' as const) };
+  if (event.allDayDate) return { ...base, startDate: new Date(`${event.allDayDate}T12:00:00Z`), isAllDay: true };
+  return { ...base, startDate: event.start as Date, endDate: event.end };
+}
+
+function toGoogleEvent(event: StudyCalendarEvent) {
+  const base = { id: googleEventId(event.uid), summary: event.summary, description: event.description };
+  if (event.allDayDate) return { ...base, start: { date: event.allDayDate }, end: { date: nextDay(event.allDayDate) } };
+  return {
+    ...base,
+    start: { dateTime: (event.start as Date).toISOString(), timeZone: 'America/Sao_Paulo' },
+    end: { dateTime: (event.end as Date).toISOString(), timeZone: 'America/Sao_Paulo' },
+  };
+}
+
+function nextDay(dayKey: string): string {
+  return new Date(new Date(`${dayKey}T12:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10);
 }
 
 export class CalendarIntegrationService {
   private readonly googleClient: GoogleCalendarClient;
 
-  constructor(googleClient = new GoogleCalendarClient()) {
+  constructor(
+    googleClient = new GoogleCalendarClient(),
+    private readonly events = new CalendarEventsService(),
+  ) {
     this.googleClient = googleClient;
   }
 
@@ -38,6 +70,8 @@ export class CalendarIntegrationService {
       data: {
         ...(dto.syncTasks !== undefined ? { syncTasks: dto.syncTasks } : {}),
         ...(dto.syncExams !== undefined ? { syncExams: dto.syncExams } : {}),
+        ...(dto.syncSchedule !== undefined ? { syncSchedule: dto.syncSchedule } : {}),
+        ...(dto.syncReminders !== undefined ? { syncReminders: dto.syncReminders } : {}),
         ...(dto.defaultTime ? { defaultTime: dto.defaultTime } : {}),
       },
     });
@@ -69,12 +103,8 @@ export class CalendarIntegrationService {
 
     const generator = new ICalGenerator(`Engrama - ${integration.user.name}`);
 
-    if (integration.syncTasks) {
-      await this.appendTasksToIcal(generator, integration.userId, integration.defaultTime);
-    }
-
-    if (integration.syncExams) {
-      await this.appendExamsToIcal(generator, integration.userId);
+    for (const event of await this.events.build(integration.userId, integration)) {
+      generator.addEvent(toIcalEvent(event));
     }
 
     return generator.build();
@@ -140,36 +170,9 @@ export class CalendarIntegrationService {
       });
     }
 
-    const tasks = integration.syncTasks
-      ? await prisma.studyTask.findMany({ where: { userId, completed: false } })
-      : [];
-
-    const contests = integration.syncExams
-      ? await prisma.contest.findMany({ where: { userId, examDate: { not: null } } })
-      : [];
-
     let count = 0;
-    for (const task of tasks) {
-      const { startIso, endIso } = this.calculateTaskTimes(task.date, integration.defaultTime, task.duration);
-      await this.googleClient.insertEvent(accessToken, calendarId, {
-        summary: `[Engrama] ${task.title}`,
-        description: `Matéria: ${task.discipline ?? 'Geral'}\nDuração: ${task.duration} min\nStatus: Pendente`,
-        start: { dateTime: startIso, timeZone: 'America/Sao_Paulo' },
-        end: { dateTime: endIso, timeZone: 'America/Sao_Paulo' },
-      });
-      count++;
-    }
-
-    for (const contest of contests) {
-      if (!contest.examDate) continue;
-      const dateString = contest.examDate.toISOString().slice(0, 10);
-      await this.googleClient.insertEvent(accessToken, calendarId, {
-        summary: `🎯 Prova: ${contest.name}`,
-        description: `Data oficial da prova para o concurso ${contest.name}`,
-        start: { date: dateString },
-        end: { date: dateString },
-      });
-      count++;
+    for (const event of await this.events.build(userId, integration)) {
+      if (await this.googleClient.upsertEvent(accessToken, calendarId, toGoogleEvent(event))) count++;
     }
 
     await prisma.userCalendarIntegration.update({
@@ -201,6 +204,8 @@ export class CalendarIntegrationService {
     googleAccessToken: string | null;
     syncTasks: boolean;
     syncExams: boolean;
+    syncSchedule: boolean;
+    syncReminders: boolean;
     defaultTime: string;
     lastSyncedAt: Date | null;
   }): CalendarIntegrationResponse {
@@ -219,62 +224,10 @@ export class CalendarIntegrationService {
       isGoogleConfigured: this.googleClient.isConfigured(),
       syncTasks: integration.syncTasks,
       syncExams: integration.syncExams,
+      syncSchedule: integration.syncSchedule,
+      syncReminders: integration.syncReminders,
       defaultTime: integration.defaultTime,
       lastSyncedAt: integration.lastSyncedAt,
-    };
-  }
-
-  private async appendTasksToIcal(generator: ICalGenerator, userId: string, defaultTime: string): Promise<void> {
-    const tasks = await prisma.studyTask.findMany({
-      where: { userId },
-      orderBy: { date: 'asc' },
-    });
-
-    for (const task of tasks) {
-      const { startDate, endDate } = this.calculateTaskDates(task.date, defaultTime, task.duration);
-      generator.addEvent({
-        uid: `task-${task.id}@engrama.app`,
-        summary: `[Estudo] ${task.title}`,
-        description: `Disciplina: ${task.discipline ?? 'Geral'}\nDuração: ${task.duration} min\nStatus: ${task.completed ? 'Concluída' : 'Pendente'}`,
-        startDate,
-        endDate,
-        status: task.completed ? 'CONFIRMED' : 'TENTATIVE',
-      });
-    }
-  }
-
-  private async appendExamsToIcal(generator: ICalGenerator, userId: string): Promise<void> {
-    const contests = await prisma.contest.findMany({
-      where: { userId, examDate: { not: null } },
-      orderBy: { examDate: 'asc' },
-    });
-
-    for (const contest of contests) {
-      if (!contest.examDate) continue;
-      generator.addEvent({
-        uid: `contest-exam-${contest.id}@engrama.app`,
-        summary: `🎯 Dia da Prova: ${contest.name}`,
-        description: `Concurso: ${contest.name}\nCargo: ${contest.role ?? 'Não especificado'}`,
-        startDate: contest.examDate,
-        isAllDay: true,
-        status: 'CONFIRMED',
-      });
-    }
-  }
-
-  private calculateTaskDates(date: Date, defaultTime: string, durationMinutes: number) {
-    const [hoursStr, minutesStr] = defaultTime.split(':');
-    const startDate = new Date(date);
-    startDate.setHours(Number(hoursStr), Number(minutesStr), 0, 0);
-    const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
-    return { startDate, endDate };
-  }
-
-  private calculateTaskTimes(date: Date, defaultTime: string, durationMinutes: number) {
-    const { startDate, endDate } = this.calculateTaskDates(date, defaultTime, durationMinutes);
-    return {
-      startIso: startDate.toISOString(),
-      endIso: endDate.toISOString(),
     };
   }
 

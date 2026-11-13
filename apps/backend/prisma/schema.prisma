@@ -770,6 +770,8 @@ model UserCalendarIntegration {
   feedToken          String    @unique @default(cuid())
   syncTasks          Boolean   @default(true)
   syncExams          Boolean   @default(true)
+  syncSchedule       Boolean   @default(true)
+  syncReminders      Boolean   @default(true)
   defaultTime        String    @default("09:00")
   googleCalendarId   String?
   /// @lgpd:pii=high @lgpd:purpose="google_calendar_sync" @lgpd:encrypted=true @lgpd:algorithm="aes-256-gcm"

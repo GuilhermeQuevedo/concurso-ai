@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { toast } from '@/components/ui/toast-store';
 import { getErrorMessage } from '@/utils/error-message';
@@ -26,6 +27,9 @@ function toggleDayAt(schedule: StudySchedule, weekIndex: number, dayIndex: numbe
 
 export function useScheduleActions({ schedule, setSchedule, setSavedSchedules, clearDraft }: ScheduleSession) {
   const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
+  // O Calendário lê a lista de cronogramas salvos; qualquer mudança aqui precisa chegar lá.
+  const syncCalendar = () => void queryClient.invalidateQueries({ queryKey: ['study-schedules'] });
 
   const save = async () => {
     if (!schedule) return;
@@ -36,6 +40,7 @@ export function useScheduleActions({ schedule, setSchedule, setSavedSchedules, c
       setSchedule(saved);
       setSavedSchedules((prev) => [saved, ...prev]);
       clearDraft();
+      syncCalendar();
       toast.success('Cronograma salvo com sucesso!');
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Erro ao salvar cronograma.'));
@@ -51,6 +56,7 @@ export function useScheduleActions({ schedule, setSchedule, setSavedSchedules, c
     if (!schedule.id) return;
     try {
       await studyScheduleService.toggleDayCompletion(schedule.id, weekIndex, dayIndex);
+      syncCalendar();
     } catch (error: unknown) {
       setSchedule(previous);
       toast.error(getErrorMessage(error, 'Não foi possível sincronizar a conclusão do dia.'));
@@ -67,6 +73,7 @@ export function useScheduleActions({ schedule, setSchedule, setSavedSchedules, c
     if (schedule.id) {
       try {
         await studyScheduleService.replaceWeeks(schedule.id, result.schedule.schedule.weeks);
+        syncCalendar();
       } catch (error: unknown) {
         setSchedule(previous);
         return toast.error(getErrorMessage(error, 'Não foi possível salvar a reorganização.'));
@@ -81,6 +88,7 @@ export function useScheduleActions({ schedule, setSchedule, setSavedSchedules, c
     try {
       await studyScheduleService.deleteSchedule(id);
       setSavedSchedules((prev) => prev.filter((s) => s.id !== id));
+      syncCalendar();
       if (schedule?.id === id) {
         setSchedule(null);
         clearDraft();

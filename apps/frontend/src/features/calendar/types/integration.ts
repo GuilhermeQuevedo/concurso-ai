@@ -8,6 +8,8 @@ export interface CalendarIntegration {
   isGoogleConfigured: boolean;
   syncTasks: boolean;
   syncExams: boolean;
+  syncSchedule: boolean;
+  syncReminders: boolean;
   defaultTime: string;
   lastSyncedAt: string | null;
 }
@@ -15,6 +17,8 @@ export interface CalendarIntegration {
 export interface UpdateCalendarIntegrationPayload {
   syncTasks?: boolean;
   syncExams?: boolean;
+  syncSchedule?: boolean;
+  syncReminders?: boolean;
   defaultTime?: string;
 }
 
