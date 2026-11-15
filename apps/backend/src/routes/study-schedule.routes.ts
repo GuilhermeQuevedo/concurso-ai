@@ -6,6 +6,8 @@ import { editalUpload } from '../middlewares/upload.js';
 import { createAIProvider } from '../providers/ai.factory.js';
 import { StudyScheduleLayoutService } from '../services/study-schedule-layout.service.js';
 import { StudyScheduleLayoutController } from '../controllers/study-schedule-layout.controller.js';
+import { validateRequest } from '../middlewares/validate.js';
+import { reorganizeScheduleSchema } from '../dto/schedule-reorganize.dto.js';
 import { heavyRateLimiter } from '../middlewares/rate-limit.middleware.js';
 
 export function createStudyScheduleRouter(): Router {
@@ -23,7 +25,7 @@ export function createStudyScheduleRouter(): Router {
   router.post('/', controller.save);
   router.patch('/:id/name', controller.updateName);
   router.patch('/:id/toggle-day', controller.toggleDayCompletion);
-  router.put('/:id/weeks', layoutController.replaceWeeks);
+  router.put('/:id/weeks', validateRequest(reorganizeScheduleSchema), layoutController.replaceWeeks);
   router.delete('/:id', controller.delete);
 
   return router;

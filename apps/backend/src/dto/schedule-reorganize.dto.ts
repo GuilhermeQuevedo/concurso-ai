@@ -26,7 +26,9 @@ const weekSchema = z
   .passthrough();
 
 export const reorganizeScheduleSchema = z.object({
-  weeks: z.array(weekSchema).min(1).max(120),
+  body: z.object({
+    weeks: z.array(weekSchema).min(1).max(120),
+  }),
 });
 
-export type ReorganizeScheduleDTO = z.infer<typeof reorganizeScheduleSchema>;
+export type ReorganizeScheduleDTO = z.infer<typeof reorganizeScheduleSchema>['body'];

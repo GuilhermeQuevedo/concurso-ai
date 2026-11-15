@@ -3,6 +3,8 @@ import { env } from '../config/env.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { ICalGenerator } from '../utils/ical-generator.js';
 import { createHash } from 'node:crypto';
+import { withinHorizon } from '../utils/calendar-horizon.js';
+import { runWithConcurrency } from '../utils/run-with-concurrency.js';
 import { CalendarEventsService, type StudyCalendarEvent } from './calendar-events.service.js';
 import { GoogleCalendarClient } from '../providers/google-calendar.client.js';
 import { encryptData, decryptData, isEncrypted } from '../utils/crypto.js';
@@ -48,6 +50,9 @@ function toGoogleEvent(event: StudyCalendarEvent) {
 function nextDay(dayKey: string): string {
   return new Date(new Date(`${dayKey}T12:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10);
 }
+
+const GOOGLE_SYNC_CONCURRENCY = 5;
+const GOOGLE_SYNC_HORIZON_DAYS = 60;
 
 export class CalendarIntegrationService {
   private readonly googleClient: GoogleCalendarClient;
@@ -170,10 +175,12 @@ export class CalendarIntegrationService {
       });
     }
 
-    let count = 0;
-    for (const event of await this.events.build(userId, integration)) {
-      if (await this.googleClient.upsertEvent(accessToken, calendarId, toGoogleEvent(event))) count++;
-    }
+    // Envio em paralelo controlado e só dos próximos 60 dias: centenas de chamadas em sequência estouram o tempo da requisição.
+    const events = withinHorizon(await this.events.build(userId, integration), new Date(), GOOGLE_SYNC_HORIZON_DAYS);
+    const results = await runWithConcurrency(events, GOOGLE_SYNC_CONCURRENCY, (event) =>
+      this.googleClient.upsertEvent(accessToken, calendarId, toGoogleEvent(event)),
+    );
+    const count = results.filter(Boolean).length;
 
     await prisma.userCalendarIntegration.update({
       where: { userId },

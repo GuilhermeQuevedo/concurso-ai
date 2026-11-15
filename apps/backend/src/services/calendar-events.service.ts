@@ -1,4 +1,5 @@
 import { prisma } from '../database/prisma.js';
+import { latestPerContest } from '../utils/latest-per-contest.js';
 
 export interface CalendarSyncOptions {
   syncTasks: boolean;
@@ -92,7 +93,9 @@ export class CalendarEventsService {
     const [tasks, contests, schedules, reminders] = await Promise.all([
       options.syncTasks ? prisma.studyTask.findMany({ where: { userId }, orderBy: { date: 'asc' } }) : [],
       options.syncExams ? prisma.contest.findMany({ where: { userId, examDate: { not: null } } }) : [],
-      options.syncSchedule ? prisma.studySchedule.findMany({ where: { userId }, select: { id: true, schedule: true } }) : [],
+      options.syncSchedule
+        ? prisma.studySchedule.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, select: { id: true, contestId: true, schedule: true } })
+        : [],
       options.syncReminders ? prisma.reminder.findMany({ where: { userId, dueDate: { not: null } } }) : [],
     ]);
 
@@ -119,7 +122,7 @@ export class CalendarEventsService {
       });
     }
 
-    events.push(...scheduleEvents(schedules, options.defaultTime));
+    events.push(...scheduleEvents(latestPerContest(schedules), options.defaultTime));
 
     for (const reminder of reminders) {
       if (!reminder.dueDate) continue;
