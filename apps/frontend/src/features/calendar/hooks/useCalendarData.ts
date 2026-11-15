@@ -66,7 +66,7 @@ export function useCalendarData(range: DateRange, activeContestId: string | null
 
   const create = useMutation({
     mutationFn: async (input: NewItemInput): Promise<void> => {
-      if (input.kind === 'tarefa') {
+      if (input.kind === 'task') {
         await studyTaskService.create({ title: input.title, date: input.date, discipline: input.discipline, duration: input.duration });
       } else {
         await reminderService.create({ text: input.title, dueDate: input.date });

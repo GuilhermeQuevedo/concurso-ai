@@ -49,4 +49,4 @@ export interface StudySchedule {
   created_at?: string;
 }
 
-export type ContentKind = 'JOGOS' | 'QUESTOES' | 'FLASHCARDS';
+export type ContentKind = 'GAMES' | 'QUESTIONS' | 'FLASHCARDS';

@@ -1,42 +1,42 @@
 import { CheckCircle2, Circle, Loader } from 'lucide-react';
 
-export type DisciplineStatus = 'pendente' | 'andamento' | 'concluida';
+export type DisciplineStatus = 'pending' | 'in_progress' | 'completed';
 
-export const STATUS_ORDER: DisciplineStatus[] = ['andamento', 'pendente', 'concluida'];
+export const STATUS_ORDER: DisciplineStatus[] = ['in_progress', 'pending', 'completed'];
 
 export const STATUS_LABELS: Record<DisciplineStatus, string> = {
-  andamento: 'Em andamento',
-  pendente: 'Não iniciadas',
-  concluida: 'Concluídas',
+  in_progress: 'Em andamento',
+  pending: 'Não iniciadas',
+  completed: 'Concluídas',
 };
 
 export function statusOf(studied: number, total: number): DisciplineStatus {
-  if (total > 0 && studied >= total) return 'concluida';
-  return studied > 0 ? 'andamento' : 'pendente';
+  if (total > 0 && studied >= total) return 'completed';
+  return studied > 0 ? 'in_progress' : 'pending';
 }
 
 export function StatusIcon({ status }: { status: DisciplineStatus }) {
-  if (status === 'concluida') return <CheckCircle2 aria-label="Concluída" className="h-5 w-5 shrink-0 text-green-500" />;
-  if (status === 'andamento') return <Loader aria-label="Em andamento" className="h-5 w-5 shrink-0 text-amber-500" />;
+  if (status === 'completed') return <CheckCircle2 aria-label="Concluída" className="h-5 w-5 shrink-0 text-green-500" />;
+  if (status === 'in_progress') return <Loader aria-label="Em andamento" className="h-5 w-5 shrink-0 text-amber-500" />;
   return <Circle aria-label="Não iniciada" className="h-5 w-5 shrink-0 text-gray-300 dark:text-gray-600" />;
 }
 
 export function StatusBadge({ status }: { status: DisciplineStatus }) {
-  if (status === 'pendente') return null;
+  if (status === 'pending') return null;
   const style =
-    status === 'concluida'
+    status === 'completed'
       ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300'
       : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300';
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${style}`}>
-      {status === 'concluida' ? 'Concluída' : 'Em andamento'}
+      {status === 'completed' ? 'Concluída' : 'Em andamento'}
     </span>
   );
 }
 
 export function MiniProgress({ studied, total, status }: { studied: number; total: number; status: DisciplineStatus }) {
   const percent = total > 0 ? Math.round((studied / total) * 100) : 0;
-  const color = status === 'concluida' ? 'bg-green-500' : 'bg-amber-500';
+  const color = status === 'completed' ? 'bg-green-500' : 'bg-amber-500';
   return (
     <div
       role="progressbar"
@@ -53,14 +53,14 @@ export function MiniProgress({ studied, total, status }: { studied: number; tota
 
 interface StatusFilterProps {
   counts: Record<DisciplineStatus, number>;
-  value: DisciplineStatus | 'todas';
-  onChange: (value: DisciplineStatus | 'todas') => void;
+  value: DisciplineStatus | 'all';
+  onChange: (value: DisciplineStatus | 'all') => void;
 }
 
 export function StatusFilter({ counts, value, onChange }: StatusFilterProps) {
-  const total = counts.andamento + counts.pendente + counts.concluida;
-  const options: Array<{ key: DisciplineStatus | 'todas'; label: string; count: number }> = [
-    { key: 'todas', label: 'Todas', count: total },
+  const total = counts.in_progress + counts.pending + counts.completed;
+  const options: Array<{ key: DisciplineStatus | 'all'; label: string; count: number }> = [
+    { key: 'all', label: 'Todas', count: total },
     ...STATUS_ORDER.map((key) => ({ key, label: STATUS_LABELS[key], count: counts[key] })),
   ];
   return (

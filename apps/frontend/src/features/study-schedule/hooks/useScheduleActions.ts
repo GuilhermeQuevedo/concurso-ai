@@ -10,6 +10,12 @@ import { setCreatingNew } from '../utils/schedule-draft';
 import { reorganizeSchedule } from '../utils/schedule-reorganize';
 import type { ScheduleSession } from './useScheduleSession';
 
+const REORGANIZE_BLOCKED = {
+  exam_passed: 'A data da prova já passou. Ajuste a data para reorganizar.',
+  nothing_pending: 'Não há dias pendentes para reorganizar.',
+  no_study_days: 'Não há dias de estudo livres até a prova (só descanso ou datas já ocupadas). Nada foi alterado.',
+} as const;
+
 function localDayKey(): string {
   const now = new Date();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -65,22 +71,22 @@ export function useScheduleActions({ schedule, setSchedule, setSavedSchedules, c
 
   const reorganize = async () => {
     if (!schedule) return;
-    const result = reorganizeSchedule(schedule, localDayKey());
-    if (!result) return toast.error('Não há dias pendentes para reorganizar, ou a data da prova já passou.');
+    const outcome = reorganizeSchedule(schedule, localDayKey());
+    if (outcome.status !== 'ok') return toast.error(REORGANIZE_BLOCKED[outcome.status]);
     if (!window.confirm('Redistribuir os dias pendentes a partir de hoje até a prova? Os dias concluídos não mudam.')) return;
     const previous = schedule;
-    setSchedule(result.schedule);
+    setSchedule(outcome.schedule);
     if (schedule.id) {
       try {
-        await studyScheduleService.replaceWeeks(schedule.id, result.schedule.schedule.weeks);
+        await studyScheduleService.replaceWeeks(schedule.id, outcome.schedule.schedule.weeks);
         syncCalendar();
       } catch (error: unknown) {
         setSchedule(previous);
         return toast.error(getErrorMessage(error, 'Não foi possível salvar a reorganização.'));
       }
     }
-    const merged = result.merged > 0 ? ` ${result.merged} dia(s) foram juntados por falta de datas até a prova.` : '';
-    toast.success(`Cronograma reorganizado: ${result.moved} dia(s) redistribuídos.${merged}`);
+    const merged = outcome.merged > 0 ? ` ${outcome.merged} dia(s) foram juntados por falta de datas até a prova.` : '';
+    toast.success(`Cronograma reorganizado: ${outcome.moved} dia(s) redistribuídos.${merged}`);
   };
 
   const remove = async (id: string) => {

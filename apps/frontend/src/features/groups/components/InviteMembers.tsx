@@ -1,13 +1,7 @@
 import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2, MessageCircle, UserPlus } from 'lucide-react';
 
-import { toast } from '@/components/ui/toast-store';
-import { getErrorMessage } from '@/utils/error-message';
-
-import { friendService } from '@/features/friends/services/friend.service';
-
-import { groupService } from '../services/group.service';
+import { useGroupInvite } from '../hooks/useGroupInvite';
 
 export interface InviteMembersProps {
   groupId: string;
@@ -24,20 +18,8 @@ function whatsappLink(groupName: string, code: string): string {
 // Dois jeitos de trazer gente: convite direto por nickname ou código pelo WhatsApp.
 export function InviteMembers({ groupId, groupName, code, memberIds }: InviteMembersProps) {
   const [nickname, setNickname] = useState('');
-  const [invitedIds, setInvitedIds] = useState<string[]>([]);
   const trimmed = nickname.trim().replace(/^@/, '');
-  const { data: overview } = useQuery({ queryKey: ['friends'], queryFn: friendService.overview });
-  const friends = (overview?.friends ?? []).filter((f) => !memberIds.includes(f.user.id));
-
-  const invite = useMutation({
-    mutationFn: (target: { nickname: string } | { friendUserId: string }) => groupService.invite(groupId, target),
-    onSuccess: (_data, target) => {
-      toast.success('Convite enviado.');
-      if ('nickname' in target) setNickname('');
-      else setInvitedIds((current) => [...current, target.friendUserId]);
-    },
-    onError: (error) => toast.error(getErrorMessage(error, 'Não foi possível enviar o convite.')),
-  });
+  const { friends, invitedIds, pendingFriendId, isInviting, inviteFriend, inviteByNickname } = useGroupInvite(groupId, memberIds);
 
   return (
     <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
@@ -47,14 +29,14 @@ export function InviteMembers({ groupId, groupName, code, memberIds }: InviteMem
       <FriendPicker
         friends={friends}
         invitedIds={invitedIds}
-        pendingId={invite.isPending && invite.variables && 'friendUserId' in invite.variables ? invite.variables.friendUserId : null}
-        onInvite={(friendUserId) => invite.mutate({ friendUserId })}
+        pendingId={pendingFriendId}
+        onInvite={inviteFriend}
       />
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (trimmed.length >= 3) invite.mutate({ nickname: trimmed });
+            if (trimmed.length >= 3) inviteByNickname(trimmed, () => setNickname(''));
           }}
           className="flex flex-1 items-center gap-2"
         >
@@ -71,10 +53,10 @@ export function InviteMembers({ groupId, groupName, code, memberIds }: InviteMem
           </div>
           <button
             type="submit"
-            disabled={trimmed.length < 3 || invite.isPending}
+            disabled={trimmed.length < 3 || isInviting}
             className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
           >
-            {invite.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isInviting && <Loader2 className="h-4 w-4 animate-spin" />}
             Convidar
           </button>
         </form>

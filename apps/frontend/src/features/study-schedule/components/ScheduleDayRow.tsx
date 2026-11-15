@@ -85,7 +85,7 @@ export const ScheduleDayRow: React.FC<Props> = ({
           {!hasBlocks && isSimulado && onGenerate && (
             <button
               type="button"
-              onClick={() => onGenerate('QUESTOES')}
+              onClick={() => onGenerate('QUESTIONS')}
               disabled={isGenerating}
               className="text-xs font-semibold px-3 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-50 ml-2 cursor-pointer shadow-sm"
             >

@@ -4,8 +4,8 @@ import { Gamepad2, FileQuestion, Layers, Sparkles, X } from 'lucide-react';
 import type { ContentKind } from '../types';
 
 const OPTIONS: Array<{ kind: ContentKind; label: string; icon: typeof Gamepad2 }> = [
-  { kind: 'JOGOS', label: 'Jogos', icon: Gamepad2 },
-  { kind: 'QUESTOES', label: 'Questões', icon: FileQuestion },
+  { kind: 'GAMES', label: 'Jogos', icon: Gamepad2 },
+  { kind: 'QUESTIONS', label: 'Questões', icon: FileQuestion },
   { kind: 'FLASHCARDS', label: 'Flashcards', icon: Layers },
 ];
 

@@ -82,10 +82,10 @@ export function CalendarPage() {
           </button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setNewItem({ date: selectedDay, kind: 'tarefa' })} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700">
+          <button type="button" onClick={() => setNewItem({ date: selectedDay, kind: 'task' })} className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700">
             <Plus className="h-4 w-4" /> Nova tarefa
           </button>
-          <button type="button" onClick={() => setNewItem({ date: selectedDay, kind: 'lembrete' })} className={btn}>
+          <button type="button" onClick={() => setNewItem({ date: selectedDay, kind: 'reminder' })} className={btn}>
             <Bell className="h-4 w-4" /> Lembrete
           </button>
           <button type="button" onClick={() => setShowGenerate(!showGenerate)} className={btn}>
@@ -138,7 +138,7 @@ export function CalendarPage() {
             selectedDay={selectedDay}
             onSelectDay={setSelectedDay}
             onOpenItem={(item: CalendarItem) => setOpenItemId(item.id)}
-            onAdd={(date) => setNewItem({ date, kind: 'tarefa' })}
+            onAdd={(date) => setNewItem({ date, kind: 'task' })}
           />
           <DaySummary day={selectedDay} items={selectedItems} onOpen={(item) => setOpenItemId(item.id)} />
         </>
@@ -148,7 +148,7 @@ export function CalendarPage() {
           itemsByDay={itemsByDay}
           examDays={examDays}
           onOpenItem={(item) => setOpenItemId(item.id)}
-          onAdd={(date) => setNewItem({ date, kind: 'tarefa' })}
+          onAdd={(date) => setNewItem({ date, kind: 'task' })}
         />
       )}
 

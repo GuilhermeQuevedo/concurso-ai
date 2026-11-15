@@ -7,16 +7,16 @@ import type { StudyTask } from './services/study-task.service';
 import type { CalendarScheduleDay } from './utils-schedule-days';
 import { blockLabel } from './utils-schedule-days';
 
-export type ItemKind = 'cronograma' | 'revisao' | 'tarefa' | 'lembrete';
+export type ItemKind = 'schedule' | 'review' | 'task' | 'reminder';
 
 export const KIND_LABELS: Record<ItemKind, string> = {
-  cronograma: 'Cronograma',
-  revisao: 'Revisão',
-  tarefa: 'Tarefa',
-  lembrete: 'Lembrete',
+  schedule: 'Cronograma',
+  review: 'Revisão',
+  task: 'Tarefa',
+  reminder: 'Lembrete',
 };
 
-export const ALL_KINDS: ItemKind[] = ['cronograma', 'revisao', 'tarefa', 'lembrete'];
+export const ALL_KINDS: ItemKind[] = ['schedule', 'review', 'task', 'reminder'];
 
 export type ItemSource =
   | { type: 'task'; task: StudyTask }
@@ -45,7 +45,7 @@ export function taskItems(tasks: StudyTask[]): CalendarItem[] {
     .filter((task) => task.type !== 'ESSAY')
     .map((task) => ({
       id: `task-${task.id}`,
-      kind: task.type === 'REVIEW' ? ('revisao' as const) : ('tarefa' as const),
+      kind: task.type === 'REVIEW' ? ('review' as const) : ('task' as const),
       title: task.title,
       date: task.date.slice(0, 10),
       subject: task.discipline,
@@ -69,7 +69,7 @@ export function scheduleItems(byDay: Map<string, CalendarScheduleDay[]>): Calend
       blocks.forEach((block, index) => {
         items.push({
           id: `schedule-${entry.scheduleId}-${entry.weekIndex}-${entry.dayIndex}-${index}`,
-          kind: 'cronograma',
+          kind: 'schedule',
           title: block.subject,
           date,
           subject: block.subject,
@@ -89,7 +89,7 @@ export function reminderItems(reminders: ReminderDTO[]): CalendarItem[] {
     .filter((reminder) => reminder.dueDate)
     .map((reminder) => ({
       id: `reminder-${reminder.id}`,
-      kind: 'lembrete' as const,
+      kind: 'reminder' as const,
       title: reminder.text,
       date: (reminder.dueDate as string).slice(0, 10),
       subject: null,

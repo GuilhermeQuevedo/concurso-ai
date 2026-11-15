@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router';
 import type { ContentKind, ScheduleBlock, ScheduleDay } from '../types';
 
 const CONTENT_ROUTES: Record<ContentKind, string> = {
-  JOGOS: '/games',
-  QUESTOES: '/generate',
+  GAMES: '/games',
+  QUESTIONS: '/generate',
   FLASHCARDS: '/flashcards',
 };
 

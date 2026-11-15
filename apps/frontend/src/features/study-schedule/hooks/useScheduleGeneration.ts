@@ -44,9 +44,10 @@ export function useScheduleGeneration(
         clearDraft();
         void queryClient.invalidateQueries({ queryKey: ['study-schedules'] });
         toast.success('Cronograma gerado e salvo! Ele já aparece no Calendário.');
-      } catch {
+      } catch (saveError: unknown) {
+        console.error('Falha ao salvar o cronograma gerado:', saveError);
         setSchedule(generated);
-        toast.error('Cronograma gerado, mas não foi possível salvar agora. Clique em Salvar para mantê-lo.');
+        toast.error(getErrorMessage(saveError, 'Cronograma gerado, mas não foi possível salvar agora. Clique em Salvar para mantê-lo.'));
       }
       return true;
     } catch (error: unknown) {

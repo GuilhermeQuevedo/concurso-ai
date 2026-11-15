@@ -7,7 +7,7 @@ interface ScheduleRef {
 export function latestPerContest<T extends ScheduleRef>(schedules: readonly T[]): T[] {
   const seen = new Set<string>();
   return schedules.filter((schedule) => {
-    const key = schedule.contestId ?? '__sem_edital__';
+    const key = schedule.contestId ?? '__no_contest__';
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

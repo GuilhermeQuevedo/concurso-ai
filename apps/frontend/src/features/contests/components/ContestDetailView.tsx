@@ -1,7 +1,5 @@
-import { studyScheduleService } from '@/features/study-schedule/services/study-schedule.service';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Building2,
   CalendarDays,
@@ -11,88 +9,25 @@ import {
   Target,
   Trash2,
 } from 'lucide-react';
-import { toast } from '@/components/ui/toast-store';
-import { invalidateStudyData } from '@/lib/invalidate-study-data';
-import { getErrorMessage } from '@/utils/error-message';
-import { contestService, type SyllabusItem } from '../services/contest.service';
+import { useContestDetail } from '../hooks/useContestDetail';
 import { daysUntil, formatExamDate } from './ContestCard';
-import { DeleteContestDialog, type DeleteContestOptions } from './DeleteContestDialog';
+import { DeleteContestDialog } from './DeleteContestDialog';
 import { DisciplineGroup } from './DisciplineGroup';
-import { StatusFilter, STATUS_ORDER, statusOf, type DisciplineStatus } from './DisciplineStatus';
+import { StatusFilter, type DisciplineStatus } from './DisciplineStatus';
 
 export function ContestDetailView({ contestId, onBack }: { contestId: string; onBack: () => void }) {
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<DisciplineStatus | 'todas'>('todas');
+  const [statusFilter, setStatusFilter] = useState<DisciplineStatus | 'all'>('all');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const navigate = useNavigate();
-
-  const { data: contest, isLoading } = useQuery({
-    queryKey: ['contest', contestId],
-    queryFn: () => contestService.getById(contestId),
-  });
-
-  const { data: schedules = [] } = useQuery({ queryKey: ['study-schedules'], queryFn: studyScheduleService.listSchedules });
-  const linkedSchedules = schedules.filter((s) => s.contestId === contestId);
-
-  const deleteMutation = useMutation({
-    mutationFn: (options: DeleteContestOptions) => contestService.delete(contestId, options),
-    onSuccess: ({ deletedDocuments }) => {
-      queryClient.invalidateQueries({ queryKey: ['contests'] });
-      void invalidateStudyData(queryClient);
-      queryClient.invalidateQueries({ queryKey: ['due-reviews'] });
-      toast.success(deletedDocuments > 0 ? `Prova apagada, junto com ${deletedDocuments} documento(s).` : 'Prova apagada.');
-      onBack();
-    },
-    onError: (error) => toast.error(getErrorMessage(error, 'Não foi possível apagar a prova. Tente novamente.')),
-  });
-
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['contest', contestId] });
-    queryClient.invalidateQueries({ queryKey: ['contests'] });
-    queryClient.invalidateQueries({ queryKey: ['due-reviews'] });
-  };
-
-  const toggleMutation = useMutation({
-    mutationFn: ({ itemId, studied }: { itemId: string; studied: boolean }) =>
-      contestService.setTopicStudied(itemId, studied),
-    onSuccess: invalidate,
-  });
-
-  const reviewMutation = useMutation({
-    mutationFn: ({ reviewId, completed }: { reviewId: string; completed: boolean }) =>
-      contestService.completeReview(reviewId, completed),
-    onSuccess: invalidate,
-  });
-
-  const importanceMutation = useMutation({
-    mutationFn: ({ discipline, importance }: { discipline: string; importance: number }) =>
-      contestService.setImportance(contestId, discipline, importance),
-    onSuccess: invalidate,
-  });
-
-  const disciplines = useMemo(() => {
-    if (!contest) return [];
-    const groups = new Map<string, SyllabusItem[]>();
-    for (const item of contest.syllabus) {
-      const list = groups.get(item.discipline) ?? [];
-      list.push(item);
-      groups.set(item.discipline, list);
-    }
-    // Ordena pela prioridade calculada no backend
-    // Em andamento primeiro, depois as não iniciadas e por fim as concluídas; dentro de cada grupo vale a prioridade.
-    return contest.disciplines
-      .map((stat) => ({ stat, items: groups.get(stat.discipline) ?? [] }))
-      .filter((d) => d.items.length > 0)
-      .map((d) => ({ ...d, status: statusOf(d.stat.studied, d.items.length) }))
-      .sort((a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status));
-  }, [contest]);
+  const { contest, isLoading, linkedSchedules, disciplines, deleteContest, toggleTopic, completeReview, setImportance } =
+    useContestDetail(contestId, onBack);
 
   const statusCounts = useMemo(() => {
-    const counts: Record<DisciplineStatus, number> = { andamento: 0, pendente: 0, concluida: 0 };
+    const counts: Record<DisciplineStatus, number> = { in_progress: 0, pending: 0, completed: 0 };
     for (const d of disciplines) counts[d.status] += 1;
     return counts;
   }, [disciplines]);
-  const shownDisciplines = statusFilter === 'todas' ? disciplines : disciplines.filter((d) => d.status === statusFilter);
+  const shownDisciplines = statusFilter === 'all' ? disciplines : disciplines.filter((d) => d.status === statusFilter);
 
   if (isLoading || !contest) {
     return (
@@ -209,10 +144,10 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
               key={stat.discipline}
               stat={stat}
               items={items}
-              onToggle={(itemId, value) => toggleMutation.mutate({ itemId, studied: value })}
-              onReview={(reviewId, completed) => reviewMutation.mutate({ reviewId, completed })}
+              onToggle={(itemId, value) => toggleTopic.mutate({ itemId, studied: value })}
+              onReview={(reviewId, completed) => completeReview.mutate({ reviewId, completed })}
               onSetImportance={(importance) =>
-                importanceMutation.mutate({ discipline: stat.discipline, importance })
+                setImportance.mutate({ discipline: stat.discipline, importance })
               }
             />
           ))}
@@ -222,9 +157,9 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
         <DeleteContestDialog
           contestName={contest.name}
           editalDocumentId={contest.editalDocumentId}
-          isDeleting={deleteMutation.isPending}
+          isDeleting={deleteContest.isPending}
           onCancel={() => setConfirmingDelete(false)}
-          onConfirm={(options) => deleteMutation.mutate(options)}
+          onConfirm={(options) => deleteContest.mutate(options)}
         />
       )}
     </div>

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, Loader2, Upload } from 'lucide-react';
 
 import { toast } from '@/components/ui/toast-store';
-import { invalidateStudyData } from '@/lib/invalidate-study-data';
+import { invalidateDocuments } from '@/lib/query-invalidation';
 import { getErrorMessage } from '@/utils/error-message';
 
 import {
@@ -42,7 +42,7 @@ export function DocumentUploadCard({ subjects }: DocumentUploadCardProps) {
       toast.success('Documento enviado.');
       setName('');
       setNameMissing(false);
-      void invalidateStudyData(queryClient);
+      void invalidateDocuments(queryClient);
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
     onError: (error) =>

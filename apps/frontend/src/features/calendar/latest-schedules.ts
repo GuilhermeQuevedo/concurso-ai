@@ -5,7 +5,7 @@ import type { StudySchedule } from '@/features/study-schedule/types';
 export function latestPerStudy(schedules: StudySchedule[]): StudySchedule[] {
   const seen = new Set<string>();
   return schedules.filter((schedule) => {
-    const key = schedule.contestId ?? '__sem_edital__';
+    const key = schedule.contestId ?? '__no_contest__';
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
 
 import { toast } from '@/components/ui/toast-store';
-import { invalidateStudyData } from '@/lib/invalidate-study-data';
+import { invalidateAfterDocumentProcessed, invalidateDocuments } from '@/lib/query-invalidation';
 import { rankingService } from '@/features/rankings/services/ranking.service';
 import { getErrorMessage } from '@/utils/error-message';
 
@@ -19,7 +19,7 @@ function describeResult(result: ProcessResult): string {
 // Ações sobre os documentos da lista: apagar, trocar o tipo, sugerir ranking e processar. Erros viram toast.
 export function useDocumentActions() {
   const queryClient = useQueryClient();
-  const refresh = () => invalidateStudyData(queryClient);
+  const refreshDocuments = () => invalidateDocuments(queryClient);
 
   const [suggestedIds, setSuggestedIds] = useState<Set<string>>(new Set());
   const [processResult, setProcessResult] = useState<ProcessResult | null>(null);
@@ -27,7 +27,7 @@ export function useDocumentActions() {
   const remove = useMutation({
     mutationFn: (id: string) => documentService.delete(id),
     onSuccess: () => {
-      refresh();
+      void refreshDocuments();
       toast.success('Documento apagado.');
     },
     onError: (error) => toast.error(getErrorMessage(error, 'Não foi possível apagar o documento.')),
@@ -35,7 +35,7 @@ export function useDocumentActions() {
 
   const changeKind = useMutation({
     mutationFn: ({ id, kind }: { id: string; kind: DocumentKind }) => documentService.updateKind(id, kind),
-    onSuccess: refresh,
+    onSuccess: refreshDocuments,
     onError: (error) => toast.error(getErrorMessage(error, 'Não foi possível mudar o tipo do documento.')),
   });
 
@@ -55,7 +55,7 @@ export function useDocumentActions() {
     // O toast aparece mesmo se a pessoa já saiu da tela: a IA pode demorar e a navegação não fica presa.
     onSuccess: (result) => {
       setProcessResult(result);
-      refresh();
+      void invalidateAfterDocumentProcessed(queryClient);
       toast.success(describeResult(result));
     },
     onError: (error) =>
