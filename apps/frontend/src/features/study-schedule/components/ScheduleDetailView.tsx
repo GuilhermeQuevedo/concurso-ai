@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useOpenScheduleContent } from '../hooks/useOpenScheduleContent';
 import {
   CalendarDays,
   ChevronLeft,
@@ -13,7 +13,7 @@ import {
 import { daysUntil, formatExamDate } from '@/features/contests/components/ContestCard';
 import { exportScheduleToCsv, exportScheduleToPrint } from '../utils/schedule-export';
 import { WeekCollapsible } from './WeekCollapsible';
-import type { StudySchedule, ScheduleDay, ScheduleBlock } from '../types';
+import type { StudySchedule } from '../types';
 
 export interface ScheduleDetailViewProps {
   schedule: StudySchedule;
@@ -32,7 +32,7 @@ export function ScheduleDetailView({
   onDelete,
   onToggleDayCompletion,
 }: ScheduleDetailViewProps) {
-  const navigate = useNavigate();
+  const openContent = useOpenScheduleContent();
 
   const rawExamDate = schedule.examDate || schedule.exam_date || null;
   const days = daysUntil(rawExamDate);
@@ -41,21 +41,6 @@ export function ScheduleDetailView({
   const title =
     schedule.schedule?.title ||
     (rawExamDate ? `Prova em ${formatExamDate(rawExamDate)}` : 'Cronograma de Estudos');
-
-  const handleGenerateContentForDay = (
-    _dayIndex: number,
-    day: ScheduleDay,
-    block?: ScheduleBlock
-  ) => {
-    const targetSubject = block ? block.subject : day.subject;
-    const isQuestoes = block?.type === 'questoes' || day.type === 'questoes';
-
-    if (isQuestoes) {
-      void navigate('/generate', { state: { initialSubject: targetSubject } });
-    } else {
-      void navigate('/flashcards', { state: { initialSubject: targetSubject } });
-    }
-  };
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -167,7 +152,7 @@ export function ScheduleDetailView({
             weekIndex={weekIndex}
             defaultOpen={weekIndex === 0}
             onToggleDay={onToggleDayCompletion}
-            onGenerate={handleGenerateContentForDay}
+            onGenerate={(_dayIndex, day, kind, block) => openContent(day, kind, block)}
           />
         ))}
       </div>

@@ -72,8 +72,8 @@ function Segment({ active, onClick, children }: { active: boolean; onClick: () =
   );
 }
 
-export function GenerateAIModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [subjectId, setSubjectId] = useState('');
+export function GenerateAIModal({ onClose, onCreated, initialSubjectId = '' }: { onClose: () => void; onCreated: () => void; initialSubjectId?: string }) {
+  const [subjectId, setSubjectId] = useState(initialSubjectId);
   const [examBoardId, setExamBoardId] = useState('');
   const [customBanca, setCustomBanca] = useState('');
   const [content, setContent] = useState('');

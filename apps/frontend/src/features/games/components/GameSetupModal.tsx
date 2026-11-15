@@ -15,6 +15,7 @@ interface Props {
   decks: DeckDTO[];
   sets: QuestionSetSummary[];
   subjects: Array<{ id: string; name: string; prefix: string }>;
+  initialSubjectId?: string;
   starting: boolean;
   onStart: (source: GameSource) => void;
   onTrilhaMap: () => void;
@@ -48,11 +49,11 @@ function buildOptions(game: GameType, decks: DeckDTO[], sets: QuestionSetSummary
   }));
 }
 
-export function GameSetupModal({ game, title, decks, sets, subjects, starting, onStart, onTrilhaMap, onClose }: Props) {
+export function GameSetupModal({ game, title, decks, sets, subjects, initialSubjectId, starting, onStart, onTrilhaMap, onClose }: Props) {
   const isQuiz = QUESTION_GAMES.includes(game);
   const options = buildOptions(game, decks, sets);
   const [selected, setSelected] = useState('all');
-  const [subjectId, setSubjectId] = useState('');
+  const [subjectId, setSubjectId] = useState(initialSubjectId ?? '');
 
   const chosen = options.find((o) => o.key === selected);
   const source: GameSource = chosen ? chosen.source : subjectId ? { subjectId } : {};

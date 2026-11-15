@@ -1,6 +1,7 @@
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { NotificationRepository } from '../repositories/notification.repository.js';
+import { areFriends, findUserIdByIdentifier } from '../repositories/user-lookup.repository.js';
 
 export const GROUP_INVITE_NOTIFICATION = 'GROUP_INVITE';
 
@@ -12,11 +13,16 @@ export interface PendingInvite {
   createdAt: Date;
 }
 
+export interface InviteTarget {
+  nickname?: string;
+  friendUserId?: string;
+}
+
 // Convites para grupo de estudo: só quem já é membro convida, por nickname, e quem recebe aceita ou recusa.
 export class GroupInviteService {
   constructor(private readonly notifications = new NotificationRepository()) {}
 
-  async invite(userId: string, groupId: string, nickname: string): Promise<void> {
+  async invite(userId: string, groupId: string, target: InviteTarget): Promise<void> {
     const [membership, group, inviter] = await Promise.all([
       prisma.groupMember.findUnique({ where: { groupId_userId: { groupId, userId } } }),
       prisma.studyGroup.findUnique({ where: { id: groupId }, select: { name: true } }),
@@ -26,35 +32,48 @@ export class GroupInviteService {
       throw new AppError(403, 'NOT_GROUP_MEMBER', 'Só membros do grupo podem convidar.');
     }
 
-    const target = await prisma.user.findUnique({ where: { nickname }, select: { id: true } });
-    if (!target) throw new AppError(404, 'NICKNAME_NOT_FOUND', 'Nenhum aluno encontrado com esse nickname.');
-    if (target.id === userId) throw new AppError(400, 'INVITE_SELF', 'Você já faz parte do grupo.');
+    const invitee = await this.resolveTarget(userId, target);
+    if (invitee.id === userId) throw new AppError(400, 'INVITE_SELF', 'Você já faz parte do grupo.');
 
     const alreadyMember = await prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId, userId: target.id } },
+      where: { groupId_userId: { groupId, userId: invitee.id } },
     });
     if (alreadyMember) throw new AppError(409, 'ALREADY_MEMBER', 'Essa pessoa já está no grupo.');
 
     const existing = await prisma.groupInvite.findUnique({
-      where: { groupId_invitedUserId: { groupId, invitedUserId: target.id } },
+      where: { groupId_invitedUserId: { groupId, invitedUserId: invitee.id } },
     });
     if (existing?.status === 'PENDING') {
       throw new AppError(409, 'INVITE_PENDING', 'Já existe um convite pendente para essa pessoa.');
     }
 
     const invite = await prisma.groupInvite.upsert({
-      where: { groupId_invitedUserId: { groupId, invitedUserId: target.id } },
-      create: { groupId, invitedUserId: target.id, invitedById: userId },
+      where: { groupId_invitedUserId: { groupId, invitedUserId: invitee.id } },
+      create: { groupId, invitedUserId: invitee.id, invitedById: userId },
       update: { status: 'PENDING', invitedById: userId },
     });
 
     const who = inviter.nickname ? `${inviter.name} (@${inviter.nickname})` : inviter.name;
     await this.notifications.create({
-      userId: target.id,
+      userId: invitee.id,
       type: GROUP_INVITE_NOTIFICATION,
       message: `${who} convidou você para o grupo "${group.name}".`,
       payload: { inviteId: invite.id, groupId },
     });
+  }
+
+  private async resolveTarget(userId: string, who: InviteTarget): Promise<{ id: string }> {
+    if (who.friendUserId) {
+      if (!(await areFriends(userId, who.friendUserId))) {
+        throw new AppError(403, 'NOT_FRIENDS', 'Só dá para convidar por aqui quem já é seu amigo.');
+      }
+      return { id: who.friendUserId };
+    }
+    const found = who.nickname ? await findUserIdByIdentifier(who.nickname) : null;
+    if (!found) {
+      throw new AppError(404, 'NICKNAME_NOT_FOUND', 'Não achei ninguém com esse nickname ou código. Confira se está certo ou escolha um amigo da lista.');
+    }
+    return found;
   }
 
   async listPending(userId: string): Promise<PendingInvite[]> {

@@ -4,6 +4,8 @@ export const updateCalendarIntegrationSchema = z.object({
   body: z.object({
     syncTasks: z.boolean().optional(),
     syncExams: z.boolean().optional(),
+    syncSchedule: z.boolean().optional(),
+    syncReminders: z.boolean().optional(),
     defaultTime: z
       .string()
       .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora deve ser HH:mm')

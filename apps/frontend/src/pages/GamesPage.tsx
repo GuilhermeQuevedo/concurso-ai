@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Zap, Layers, Map, Lightbulb, LifeBuoy, Loader2, Lock, CheckCircle2, ArrowLeft, Gamepad2, type LucideIcon } from 'lucide-react';
+import { useScheduleTarget } from '@/features/content/hooks/useScheduleTarget';
 import { contentService, type SubjectDTO } from '@/features/content/services/content.service';
 import {
   gameService,
@@ -69,6 +70,7 @@ function flatten(subjects: SubjectDTO[], prefix = ''): Array<SubjectDTO & { pref
 
 export function GamesPage() {
   const queryClient = useQueryClient();
+  const target = useScheduleTarget();
   const [setupGame, setSetupGame] = useState<GameType | null>(null);
   const [showTrilha, setShowTrilha] = useState(false);
   const [active, setActive] = useState<{ round: Round; source: GameSource } | null>(null);
@@ -141,6 +143,13 @@ export function GamesPage() {
         </div>
       </div>
 
+      {target.name && (
+        <div className="mb-4 rounded-xl border border-primary-500/30 bg-primary-500/10 px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
+          Escolha um jogo para treinar <strong>{target.subject?.name ?? target.name}</strong>.
+          {target.ready && !target.subject && ' Não achei essa disciplina na sua lista; selecione-a dentro do jogo.'}
+        </div>
+      )}
+
       {showTrilha ? (
         <TrilhaMap
           nodes={trilha?.nodes ?? []}
@@ -189,6 +198,7 @@ export function GamesPage() {
           decks={decks}
           sets={sets}
           subjects={flatten(subjects)}
+          initialSubjectId={target.subject?.id}
           starting={start.isPending}
           onStart={(source) => start.mutate({ game: setupGame, source })}
           onTrilhaMap={() => {

@@ -141,7 +141,7 @@ export function StripeBillingModal({ onClose }: StripeBillingModalProps) {
                 Escolha o seu ciclo de assinatura
               </h3>
               <p className="mb-4 text-xs text-gray-600 dark:text-gray-300">
-                Questões com IA no estilo da sua banca, redações corrigidas, flashcards e cronograma inteligente.
+                Questões com IA no estilo da sua banca, flashcards e cronograma inteligente.
               </p>
 
               <div className="mb-5 grid grid-cols-1 gap-2.5 sm:grid-cols-3">

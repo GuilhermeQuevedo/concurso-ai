@@ -58,11 +58,6 @@ export const TOUR_STEPS: TourStep[] = [
     text: 'Gere flashcards automáticos do que você estuda e revise no estilo Anki (Esqueci/Difícil/Bom/Fácil).',
   },
   {
-    selector: '[data-tour="/essays"]',
-    title: 'Redações',
-    text: 'Envie sua redação e receba correção detalhada da IA — incluindo estudo de caso no estilo banca.',
-  },
-  {
     selector: '[data-tour="/memory-simulator"]',
     title: 'Simulador de Memória',
     text: 'Veja a curva do esquecimento e escolha o melhor plano de revisões pro seu perfil.',

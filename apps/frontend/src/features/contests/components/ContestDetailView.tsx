@@ -1,90 +1,33 @@
-import { studyScheduleService } from '@/features/study-schedule/services/study-schedule.service';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Building2,
   CalendarDays,
-  CheckCircle2,
-  ChevronDown,
   ChevronLeft,
-  Circle,
   Clock,
   Loader2,
   Target,
   Trash2,
 } from 'lucide-react';
-import { toast } from '@/components/ui/toast-store';
-import { getErrorMessage } from '@/utils/error-message';
-import { contestService, type SyllabusItem, type DisciplineStat } from '../services/contest.service';
+import { useContestDetail } from '../hooks/useContestDetail';
 import { daysUntil, formatExamDate } from './ContestCard';
-import { DeleteContestDialog, type DeleteContestOptions } from './DeleteContestDialog';
-import { TopicContent } from './TopicContent';
-import { TopicReviews } from './TopicReviews';
-import { PriorityBadge, ImportanceSelect } from './DisciplineHeaderMeta';
+import { DeleteContestDialog } from './DeleteContestDialog';
+import { DisciplineGroup } from './DisciplineGroup';
+import { StatusFilter, type DisciplineStatus } from './DisciplineStatus';
 
 export function ContestDetailView({ contestId, onBack }: { contestId: string; onBack: () => void }) {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-
-  const { data: contest, isLoading } = useQuery({
-    queryKey: ['contest', contestId],
-    queryFn: () => contestService.getById(contestId),
-  });
-
-  const { data: schedules = [] } = useQuery({ queryKey: ['study-schedules'], queryFn: studyScheduleService.listSchedules });
-  const linkedSchedules = schedules.filter((s) => s.contestId === contestId);
+  const [statusFilter, setStatusFilter] = useState<DisciplineStatus | 'all'>('all');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const navigate = useNavigate();
+  const { contest, isLoading, linkedSchedules, disciplines, deleteContest, toggleTopic, completeReview, setImportance } =
+    useContestDetail(contestId, onBack);
 
-  const deleteMutation = useMutation({
-    mutationFn: (options: DeleteContestOptions) => contestService.delete(contestId, options),
-    onSuccess: ({ deletedDocuments }) => {
-      queryClient.invalidateQueries({ queryKey: ['contests'] });
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
-      queryClient.invalidateQueries({ queryKey: ['due-reviews'] });
-      toast.success(deletedDocuments > 0 ? `Prova apagada, junto com ${deletedDocuments} documento(s).` : 'Prova apagada.');
-      onBack();
-    },
-    onError: (error) => toast.error(getErrorMessage(error, 'Não foi possível apagar a prova. Tente novamente.')),
-  });
-
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['contest', contestId] });
-    queryClient.invalidateQueries({ queryKey: ['contests'] });
-    queryClient.invalidateQueries({ queryKey: ['due-reviews'] });
-  };
-
-  const toggleMutation = useMutation({
-    mutationFn: ({ itemId, studied }: { itemId: string; studied: boolean }) =>
-      contestService.setTopicStudied(itemId, studied),
-    onSuccess: invalidate,
-  });
-
-  const reviewMutation = useMutation({
-    mutationFn: ({ reviewId, completed }: { reviewId: string; completed: boolean }) =>
-      contestService.completeReview(reviewId, completed),
-    onSuccess: invalidate,
-  });
-
-  const importanceMutation = useMutation({
-    mutationFn: ({ discipline, importance }: { discipline: string; importance: number }) =>
-      contestService.setImportance(contestId, discipline, importance),
-    onSuccess: invalidate,
-  });
-
-  const disciplines = useMemo(() => {
-    if (!contest) return [];
-    const groups = new Map<string, SyllabusItem[]>();
-    for (const item of contest.syllabus) {
-      const list = groups.get(item.discipline) ?? [];
-      list.push(item);
-      groups.set(item.discipline, list);
-    }
-    // Ordena pela prioridade calculada no backend
-    return contest.disciplines
-      .map((stat) => ({ stat, items: groups.get(stat.discipline) ?? [] }))
-      .filter((d) => d.items.length > 0);
-  }, [contest]);
+  const statusCounts = useMemo(() => {
+    const counts: Record<DisciplineStatus, number> = { in_progress: 0, pending: 0, completed: 0 };
+    for (const d of disciplines) counts[d.status] += 1;
+    return counts;
+  }, [disciplines]);
+  const shownDisciplines = statusFilter === 'all' ? disciplines : disciplines.filter((d) => d.status === statusFilter);
 
   if (isLoading || !contest) {
     return (
@@ -195,15 +138,16 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
         </div>
       ) : (
         <div className="space-y-3">
-          {disciplines.map(({ stat, items }) => (
+          <StatusFilter counts={statusCounts} value={statusFilter} onChange={setStatusFilter} />
+          {shownDisciplines.map(({ stat, items }) => (
             <DisciplineGroup
               key={stat.discipline}
               stat={stat}
               items={items}
-              onToggle={(itemId, value) => toggleMutation.mutate({ itemId, studied: value })}
-              onReview={(reviewId, completed) => reviewMutation.mutate({ reviewId, completed })}
+              onToggle={(itemId, value) => toggleTopic.mutate({ itemId, studied: value })}
+              onReview={(reviewId, completed) => completeReview.mutate({ reviewId, completed })}
               onSetImportance={(importance) =>
-                importanceMutation.mutate({ discipline: stat.discipline, importance })
+                setImportance.mutate({ discipline: stat.discipline, importance })
               }
             />
           ))}
@@ -213,99 +157,10 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
         <DeleteContestDialog
           contestName={contest.name}
           editalDocumentId={contest.editalDocumentId}
-          isDeleting={deleteMutation.isPending}
+          isDeleting={deleteContest.isPending}
           onCancel={() => setConfirmingDelete(false)}
-          onConfirm={(options) => deleteMutation.mutate(options)}
+          onConfirm={(options) => deleteContest.mutate(options)}
         />
-      )}
-    </div>
-  );
-}
-
-function DisciplineGroup({
-  stat,
-  items,
-  onToggle,
-  onReview,
-  onSetImportance,
-}: {
-  stat: DisciplineStat;
-  items: SyllabusItem[];
-  onToggle: (itemId: string, studied: boolean) => void;
-  onReview: (reviewId: string, completed: boolean) => void;
-  onSetImportance: (importance: number) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const done = stat.studied === items.length;
-
-  return (
-    <div
-      className={`overflow-hidden rounded-xl border bg-white dark:bg-gray-900 ${
-        stat.inFocus ? 'border-gray-200 dark:border-gray-800' : 'border-gray-200 opacity-60 dark:border-gray-800'
-      }`}
-    >
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-      >
-        <div className="flex min-w-0 items-center gap-2">
-          {done ? (
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-green-500" />
-          ) : (
-            <Circle className="h-5 w-5 shrink-0 text-gray-300 dark:text-gray-600" />
-          )}
-          <span className="truncate font-medium text-gray-900 dark:text-white">{stat.discipline}</span>
-          {!stat.inFocus && (
-            <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-              fora do foco
-            </span>
-          )}
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {stat.dueReviews > 0 && (
-            <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-              {stat.dueReviews} revisão{stat.dueReviews > 1 ? 'ões' : ''}
-            </span>
-          )}
-          <PriorityBadge priority={stat.priority} />
-          <ImportanceSelect value={stat.importance} onChange={onSetImportance} />
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {stat.studied}/{items.length}
-          </span>
-          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-        </div>
-      </button>
-
-      {open && (
-        <div className="border-t border-gray-200 dark:border-gray-800">
-          {items.map((item) => (
-            <div key={item.id} className="border-b border-gray-100 px-4 py-3 last:border-b-0 dark:border-gray-800">
-              <button
-                onClick={() => onToggle(item.id, !item.studied)}
-                className="flex w-full items-start gap-3 text-left"
-              >
-                {item.studied ? (
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                ) : (
-                  <Circle className="mt-0.5 h-4 w-4 shrink-0 text-gray-300 dark:text-gray-600" />
-                )}
-                <span
-                  className={`text-sm ${
-                    item.studied
-                      ? 'text-gray-500 dark:text-gray-400'
-                      : 'text-gray-700 dark:text-gray-300'
-                  }`}
-                >
-                  {item.topic}
-                </span>
-              </button>
-              <div className="pl-7">
-                <TopicReviews item={item} onComplete={onReview} />
-                <TopicContent itemId={item.id} />
-              </div>
-            </div>
-          ))}
-        </div>
       )}
     </div>
   );

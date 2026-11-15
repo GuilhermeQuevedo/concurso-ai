@@ -4,6 +4,7 @@ import { StudyTaskController } from '../controllers/study-task.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validateRequest } from '../middlewares/validate.js';
 import {
+  createTaskSchema,
   generatePlanSchema,
   listTasksSchema,
   updateTaskSchema,
@@ -16,8 +17,10 @@ const controller = new StudyTaskController(service);
 
 router.post('/generate', authMiddleware, validateRequest(generatePlanSchema), controller.generatePlan);
 router.get('/', authMiddleware, validateRequest(listTasksSchema), controller.list);
+router.post('/', authMiddleware, validateRequest(createTaskSchema), controller.create);
 router.get('/today', authMiddleware, controller.today);
 router.patch('/:id', authMiddleware, validateRequest(updateTaskSchema), controller.update);
+router.delete('/:id', authMiddleware, controller.remove);
 router.delete('/contest/:contestId', authMiddleware, controller.clearPlan);
 
 export { router as studyTaskRouter };
