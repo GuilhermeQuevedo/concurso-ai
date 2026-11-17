@@ -7,6 +7,7 @@ import { rankingService } from '@/features/rankings/services/ranking.service';
 import { getErrorMessage } from '@/utils/error-message';
 
 import { documentService, type DocumentDTO, type DocumentKind, type ProcessResult } from '../services/document.service';
+import { runProcessJob } from '../utils/process-job';
 
 const PROCESS_KEY = ['documents', 'process'];
 
@@ -50,7 +51,11 @@ export function useDocumentActions() {
 
   const process = useMutation({
     mutationKey: PROCESS_KEY,
-    mutationFn: (doc: DocumentDTO) => documentService.process(doc.id),
+    mutationFn: async (doc: DocumentDTO): Promise<ProcessResult> => {
+      const job = await runProcessJob(doc.id, undefined);
+      if (!job.result) throw new Error(job.message ?? 'A leitura terminou sem resultado.');
+      return job.result;
+    },
     onMutate: () => setProcessResult(null),
     // O toast aparece mesmo se a pessoa já saiu da tela: a IA pode demorar e a navegação não fica presa.
     onSuccess: (result) => {

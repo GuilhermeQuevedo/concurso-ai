@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { DocumentService } from '../services/document.service.js';
-import type { DocumentProcessService } from '../services/document-process.service.js';
+import type { DocumentJobService } from '../services/document-job.service.js';
 import type { ApiResponse } from '@concurso-ai/types';
 import { AppError } from '../middlewares/error-handler.js';
 import { getUserId } from '../utils/request.js';
@@ -16,7 +16,7 @@ function parseOptionalName(raw: unknown): string | undefined {
 export class DocumentController {
   constructor(
     private readonly service: DocumentService,
-    private readonly processService: DocumentProcessService,
+    private readonly jobs: DocumentJobService,
   ) {}
 
   upload = async (req: Request, res: Response, next: NextFunction) => {
@@ -90,8 +90,38 @@ export class DocumentController {
   process = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const focus = typeof req.body?.focus === 'string' ? req.body.focus : undefined;
-      const result = await this.processService.process(getUserId(req), req.params.id as string, focus);
-      const response: ApiResponse<typeof result> = { success: true, data: result };
+      const job = await this.jobs.start(getUserId(req), req.params.id as string, focus);
+      const response: ApiResponse<typeof job> = { success: true, data: job };
+      res.status(202).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getJob = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const job = await this.jobs.get(getUserId(req), req.params.jobId as string);
+      const response: ApiResponse<typeof job> = { success: true, data: job };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  cancelJob = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const job = await this.jobs.cancel(getUserId(req), req.params.jobId as string);
+      const response: ApiResponse<typeof job> = { success: true, data: job };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  contestJob = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const job = await this.jobs.latestForContest(getUserId(req), req.params.contestId as string);
+      const response: ApiResponse<typeof job> = { success: true, data: job };
       res.json(response);
     } catch (error) {
       next(error);

@@ -75,6 +75,7 @@ model User {
   friendRequestsSent    Friendship[]      @relation("FriendRequester")
   adminAuditLogs        AdminAuditLog[]          @relation("AdminAuditActor")
   consentRecords        ConsentRecord[]
+  processJobs ProcessJob[]
 }
 
 model Session {
@@ -190,12 +191,47 @@ model Document {
   kind      DocumentKind @default(OUTRO)
   content   String       @db.LongText
   subjectId String?
+  // PDF: total de páginas e onde termina o primeiro bloco lido (null = lido de uma vez só).
+  pageCount      Int?
+  firstPartChars Int?
   createdAt DateTime     @default(now())
 
-  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rankings RankingBoard[]
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rankings   RankingBoard[]
+  processJobs ProcessJob[]
 
   @@index([userId])
+}
+
+enum ProcessJobStatus {
+  RUNNING
+  DONE
+  FAILED
+  CANCELED
+}
+
+// Leitura de um documento pela IA em segundo plano: o site só acompanha o andamento, então nenhum tempo limite derruba o envio.
+model ProcessJob {
+  id         String           @id @default(cuid())
+  userId     String
+  documentId String
+  status     ProcessJobStatus @default(RUNNING)
+  partsDone  Int              @default(0)
+  totalParts Int              @default(1)
+  contestId  String?
+  result     Json?
+  // Aviso ou falha em texto simples (com status DONE é só um aviso, ex.: o restante do PDF não foi lido).
+  message    String?          @db.Text
+  errorCode  String?          @db.VarChar(60)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([documentId])
+  @@index([contestId])
 }
 
 model Favorite {
