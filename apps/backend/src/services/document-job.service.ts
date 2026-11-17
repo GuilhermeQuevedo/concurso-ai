@@ -28,6 +28,17 @@ export interface JobView {
   errorCode: string | null;
 }
 
+const GENERIC_FAILURE = 'Não foi possível ler o documento agora. Tente novamente em instantes.';
+const AI_FAILURE = 'A IA não respondeu agora. Tente novamente em instantes. Se continuar, avise o suporte.';
+
+// Mensagens da nossa própria validação (arquivo curto demais etc.) aparecem; erros do fornecedor de IA nunca vão para a tela,
+// porque podem trazer pedaços de chave e detalhes de conta. O texto original fica só no log do servidor.
+export function userMessageFor(error: unknown): string {
+  if (!(error instanceof AppError)) return GENERIC_FAILURE;
+  if (error.code.startsWith('AI_')) return AI_FAILURE;
+  return /sk-[A-Za-z0-9_*-]{6,}/.test(error.message) ? GENERIC_FAILURE : error.message;
+}
+
 const toView = (job: ProcessJob): JobView => ({
   id: job.id,
   documentId: job.documentId,
@@ -105,11 +116,7 @@ export class DocumentJobService {
     } catch (error) {
       logger.error('Falha ao ler o documento em segundo plano', { jobId, error: error instanceof Error ? error.message : String(error) });
       if (await this.isRunning(jobId)) {
-        const known = error instanceof AppError;
-        await this.finish(jobId, 'FAILED', {
-          message: known ? error.message : 'Não foi possível ler o documento agora. Tente novamente em instantes.',
-          errorCode: known ? error.code : 'PROCESS_FAILED',
-        });
+        await this.finish(jobId, 'FAILED', { message: userMessageFor(error), errorCode: error instanceof AppError ? error.code : 'PROCESS_FAILED' });
       }
     }
   }

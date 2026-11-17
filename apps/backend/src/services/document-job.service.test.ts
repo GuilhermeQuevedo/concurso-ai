@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 
 import { prisma } from '../database/prisma.js';
-import { DocumentJobService, type ContinuationRunner, type ProcessRunner } from './document-job.service.js';
+import { DocumentJobService, userMessageFor, type ContinuationRunner, type ProcessRunner } from './document-job.service.js';
+import { AppError } from '../middlewares/error-handler.js';
 import type { ProcessResult } from './document-process.service.js';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -149,5 +150,13 @@ describe('DocumentJobService', () => {
     const after = await jobs.get(userId, job.id);
     assert.equal(after.status, 'FAILED');
     assert.equal(after.errorCode, 'JOB_INTERRUPTED');
+  });
+
+  it('erro do fornecedor de IA nunca mostra chave nem detalhe de conta', () => {
+    const vendor = new AppError(502, 'AI_API_ERROR', 'Falha na API da OpenAI: 401 Incorrect API key provided: sk-proj-****1PwA.');
+    assert.ok(!userMessageFor(vendor).includes('sk-'));
+    assert.match(userMessageFor(vendor), /A IA não respondeu/);
+    assert.equal(userMessageFor(new AppError(400, 'EDITAL_TOO_SHORT', 'O documento não tem texto suficiente.')), 'O documento não tem texto suficiente.');
+    assert.ok(!userMessageFor(new AppError(400, 'X', 'chave sk-proj-abc123def')).includes('sk-'));
   });
 });
