@@ -1,3 +1,4 @@
+import { documentJobs } from './routes/document.routes.js';
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -193,6 +194,9 @@ app.use(errorHandler);
 const server = app.listen(env.PORT, () => {
   console.log(`Server running on http://localhost:${env.PORT}`);
   void bootstrapAdmin();
+  void documentJobs.failInterruptedJobs().then((count) => {
+    if (count > 0) console.warn(`${count} leitura(s) de documento interrompida(s) pelo reinício do servidor.`);
+  });
 });
 
 // IA local pode levar vários minutos em editais grandes
