@@ -60,6 +60,8 @@ pnpm --filter @concurso-ai/backend prisma:import-nap caminho/do/arquivo.json
 - Cada questão é identificada por `nap:<id>` (coluna `sourceRef`, única): rodar de novo não duplica.
 - Gabarito `CERTO`/`ERRADO` vira `C`/`E`; dificuldade "Muito Fácil/Fácil" = fácil, "Difícil/Muito Difícil" = difícil, vazio = média; o HTML é convertido em texto.
 - Disciplina vira matéria; banca vira banca (nomes como `CESPE / CEBRASPE` são normalizados).
+- **De qual concurso é a questão:** o campo `prova` do arquivo ("BANCA - ANO - ÓRGÃO - CARGO") vira `examName` (prova), `organ` (órgão) e `position` (cargo, extraído da prova; funciona em 100% das questões que têm prova).
+- **Área do concurso** (`area`): derivada do cargo por regras de palavras-chave (`question-area.ts`): Assistência Social, Jurídica, Administrativa, Saúde, Educação, Segurança e Trânsito, Tecnologia, Engenharia e Meio Ambiente e Outras. Sem cargo, usa a disciplina. É uma classificação aproximada.
 - Na tela: as 8 maiores bancas aparecem como atalho e as demais numa lista; o órgão é uma busca por texto (sugere os 300 mais frequentes).
 
 ## Pendências para produção

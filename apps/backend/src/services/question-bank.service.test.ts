@@ -30,6 +30,8 @@ describe('QuestionBankService', () => {
         source: 'BANK',
         examYear: year,
         organ: `Órgão ${suffix}`,
+        area: year === 2023 ? `Área ${suffix}` : 'Outras',
+        position: year === 2023 ? `Cargo ${suffix}` : null,
       },
     });
     questionIds.push(question.id);
@@ -60,6 +62,14 @@ describe('QuestionBankService', () => {
     assert.equal(await service.count({ examBoardId: boardA }), 2);
     assert.equal(await service.count({ examBoardId: boardA, examYear: 2024 }), 1);
     assert.equal(await service.count({ examBoardId: boardB, examYear: 2023 }), 0);
+  });
+
+  it('filtra por área e por cargo', async () => {
+    assert.equal(await service.count({ area: `Área ${suffix}` }), 1);
+    assert.equal(await service.count({ position: `Cargo ${suffix}`, examBoardId: boardA }), 1);
+    assert.equal(await service.count({ area: `Área ${suffix}`, examBoardId: boardB }), 0);
+    const facets = await service.facets();
+    assert.equal(facets.areas.find((a) => a.value === `Área ${suffix}`)?.count, 1);
   });
 
   it('monta o caderno sem IA e marca o tipo certo', async () => {

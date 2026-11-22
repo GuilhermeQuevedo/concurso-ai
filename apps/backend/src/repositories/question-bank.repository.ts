@@ -7,6 +7,8 @@ export interface BankFilters {
   subjectId?: string;
   examYear?: number;
   organ?: string;
+  area?: string;
+  position?: string;
   difficulty?: Difficulty;
 }
 
@@ -21,6 +23,8 @@ const whereOf = (filters: BankFilters): Prisma.QuestionWhereInput => ({
   subjectId: filters.subjectId,
   examYear: filters.examYear,
   organ: filters.organ,
+  area: filters.area,
+  position: filters.position,
   difficulty: filters.difficulty,
 });
 
@@ -50,13 +54,15 @@ export class QuestionBankRepository {
 
   async facets() {
     const where = { source: 'BANK' as const };
-    const [boards, years, organs, subjects] = await Promise.all([
+    const [boards, years, organs, subjects, areas, positions] = await Promise.all([
       prisma.question.groupBy({ by: ['examBoardId'], where, _count: { _all: true } }),
       prisma.question.groupBy({ by: ['examYear'], where, _count: { _all: true } }),
       prisma.question.groupBy({ by: ['organ'], where, _count: { _all: true } }),
       prisma.question.groupBy({ by: ['subjectId'], where, _count: { _all: true } }),
+      prisma.question.groupBy({ by: ['area'], where, _count: { _all: true } }),
+      prisma.question.groupBy({ by: ['position'], where, _count: { _all: true } }),
     ]);
-    return { boards, years, organs, subjects };
+    return { boards, years, organs, subjects, areas, positions };
   }
 
   boardNames(ids: string[]) {

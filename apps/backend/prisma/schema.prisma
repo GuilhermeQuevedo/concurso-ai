@@ -134,6 +134,8 @@ model Question {
   examYear      Int?
   organ         String?
   examName      String?
+  position      String?
+  area          String?
   sourceRef     String?        @unique
   createdAt     DateTime       @default(now())
 
@@ -148,6 +150,7 @@ model Question {
   @@index([difficulty])
   @@index([subjectId, difficulty])
   @@index([source, examBoardId, examYear])
+  @@index([source, area])
 }
 
 model QuestionAttempt {

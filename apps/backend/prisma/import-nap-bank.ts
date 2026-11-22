@@ -56,6 +56,8 @@ async function toRow(item: BankQuestionData) {
     examYear: item.examYear,
     organ: item.organ,
     examName: item.examName,
+    position: item.position,
+    area: item.area,
     sourceRef: item.sourceRef,
   };
 }
@@ -71,6 +73,15 @@ async function main(): Promise<void> {
     const rows = [];
     for (const item of valid.slice(i, i + BATCH)) rows.push(await toRow(item));
     created += (await prisma.question.createMany({ data: rows, skipDuplicates: true })).count;
+    // Quem já existia recebe os campos de metadados novos (cargo, área, órgão), sem mexer no resto.
+    await prisma.$transaction(
+      rows.map((row) =>
+        prisma.question.updateMany({
+          where: { sourceRef: row.sourceRef },
+          data: { organ: row.organ, examName: row.examName, position: row.position, area: row.area, examYear: row.examYear },
+        }),
+      ),
+    );
     console.log(`  ${Math.min(i + BATCH, valid.length)}/${valid.length}`);
   }
   console.log(`Concluído: ${created} novas, ${valid.length - created} já existiam.`);

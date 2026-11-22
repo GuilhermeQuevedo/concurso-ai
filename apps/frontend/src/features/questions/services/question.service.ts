@@ -16,6 +16,7 @@ export interface QuestionDTO {
   examYear?: number | null;
   organ?: string | null;
   examName?: string | null;
+  position?: string | null;
   createdAt: string;
   subject?: { id: string; name: string };
   examBoard?: { id: string; name: string; slug: string } | null;

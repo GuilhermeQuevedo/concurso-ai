@@ -7,6 +7,8 @@ const filterShape = {
   subjectId: z.string().min(1).optional(),
   examYear: z.coerce.number().int().min(1990).max(2100).optional(),
   organ: z.string().min(1).max(191).optional(),
+  area: z.string().min(1).max(191).optional(),
+  position: z.string().min(1).max(191).optional(),
   difficulty: difficulty.optional(),
 };
 

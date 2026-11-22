@@ -1,4 +1,5 @@
 import { htmlToPlainText } from './html.js';
+import { areaOf, positionOf, type Area } from './question-area.js';
 
 export interface NapAlternative {
   letra: string;
@@ -36,6 +37,8 @@ export interface BankQuestionData {
   examYear: number;
   organ: string | null;
   examName: string | null;
+  position: string | null;
+  area: Area;
 }
 
 const MAX_FIELD = 190;
@@ -76,6 +79,7 @@ export function toBankQuestion(raw: NapQuestion): BankQuestionData | null {
   const statement = htmlToPlainText([raw.texto_apoio_rich, raw.texto_principal_rich].filter(Boolean).join('\n\n'));
   if (statement.length < 3) return null;
 
+  const position = positionOf(raw.prova, raw.ano, raw.orgao);
   return {
     sourceRef: `nap:${raw.id}`,
     board: normalizeBoardName(raw.banca).slice(0, MAX_FIELD),
@@ -88,5 +92,7 @@ export function toBankQuestion(raw: NapQuestion): BankQuestionData | null {
     examYear: raw.ano,
     organ: clip(raw.orgao),
     examName: clip(raw.prova),
+    position: clip(position),
+    area: areaOf(position, raw.disciplina),
   };
 }

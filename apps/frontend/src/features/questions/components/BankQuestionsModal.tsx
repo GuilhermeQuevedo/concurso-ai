@@ -68,6 +68,7 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
   const [quantity, setQuantity] = useState(10);
   const [onlyUnanswered, setOnlyUnanswered] = useState(true);
   const [organText, setOrganText] = useState('');
+  const [positionText, setPositionText] = useState('');
 
   const { data: facets } = useQuery({ queryKey: ['question-bank-facets'], queryFn: questionBankService.facets });
   const { data: available, isFetching } = useQuery({
@@ -82,6 +83,12 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
     setOrganText(text);
     const match = facets?.organs.find((o) => o.value.toLowerCase() === text.trim().toLowerCase());
     patch({ organ: match?.value });
+  };
+
+  const changePosition = (text: string) => {
+    setPositionText(text);
+    const match = facets?.positions.find((p) => p.value.toLowerCase() === text.trim().toLowerCase());
+    patch({ position: match?.value });
   };
 
   const boards = facets?.boards ?? [];
@@ -128,6 +135,18 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
         ) : (
           <div className="space-y-4">
             <div>
+              <label className={label}>Área do concurso</label>
+              <div className="flex flex-wrap gap-1.5">
+                <Pill active={!filters.area} onClick={() => patch({ area: undefined })}>Todas</Pill>
+                {facets?.areas.map(({ value, count }) => (
+                  <Pill key={value} active={filters.area === value} onClick={() => patch({ area: value })}>
+                    {value} · {count}
+                  </Pill>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <label className={label}>Banca</label>
               <div className="flex flex-wrap gap-1.5">
                 <Pill active={!filters.examBoardId} onClick={() => patch({ examBoardId: undefined })}>Todas</Pill>
@@ -152,7 +171,7 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
               )}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <FacetSelect title="Matéria" items={facets?.subjects.map((s) => ({ value: s.value.id, count: s.count })) ?? []} value={filters.subjectId}
                 render={(id) => facets?.subjects.find((s) => s.value.id === id)?.value.name ?? id} onChange={(subjectId) => patch({ subjectId })} />
               <FacetSelect title="Ano" items={facets?.years ?? []} value={filters.examYear} render={String} onChange={(examYear) => patch({ examYear })} />
@@ -168,6 +187,20 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
                 />
                 <datalist id="bank-organs">
                   {facets?.organs.map((o) => <option key={o.value} value={o.value}>{o.count}</option>)}
+                </datalist>
+              </div>
+              <div>
+                <label className={label} htmlFor="bank-position">Cargo</label>
+                <input
+                  id="bank-position"
+                  list="bank-positions"
+                  value={positionText}
+                  onChange={(event) => changePosition(event.target.value)}
+                  placeholder="Digite para buscar"
+                  className={field}
+                />
+                <datalist id="bank-positions">
+                  {facets?.positions.map((p) => <option key={p.value} value={p.value}>{p.count}</option>)}
                 </datalist>
               </div>
             </div>

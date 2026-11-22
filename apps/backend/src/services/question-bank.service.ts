@@ -17,6 +17,8 @@ export interface BankFacets {
   subjects: Array<FacetCount<Named>>;
   years: Array<FacetCount<number>>;
   organs: Array<FacetCount<string>>;
+  areas: Array<FacetCount<string>>;
+  positions: Array<FacetCount<string>>;
 }
 
 // Há milhares de órgãos: a lista de sugestões traz só os mais frequentes.
@@ -60,6 +62,8 @@ export class QuestionBankService {
         .sort(byCountDesc),
       years: raw.years.flatMap((y) => (y.examYear ? [{ value: y.examYear, count: y._count._all }] : [])).sort((a, b) => b.value - a.value),
       organs: raw.organs.flatMap((o) => (o.organ ? [{ value: o.organ, count: o._count._all }] : [])).sort(byCountDesc).slice(0, MAX_ORGANS),
+      areas: raw.areas.flatMap((a) => (a.area ? [{ value: a.area, count: a._count._all }] : [])).sort(byCountDesc),
+      positions: raw.positions.flatMap((p) => (p.position ? [{ value: p.position, count: p._count._all }] : [])).sort(byCountDesc).slice(0, MAX_ORGANS),
     };
   }
 

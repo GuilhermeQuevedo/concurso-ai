@@ -8,6 +8,8 @@ export interface BankFilters {
   subjectId?: string;
   examYear?: number;
   organ?: string;
+  area?: string;
+  position?: string;
   difficulty?: Difficulty;
 }
 
@@ -22,6 +24,8 @@ export interface BankFacets {
   subjects: Array<FacetCount<{ id: string; name: string }>>;
   years: Array<FacetCount<number>>;
   organs: Array<FacetCount<string>>;
+  areas: Array<FacetCount<string>>;
+  positions: Array<FacetCount<string>>;
 }
 
 export interface BuildBankSetParams extends BankFilters {
