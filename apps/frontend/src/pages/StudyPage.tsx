@@ -16,6 +16,7 @@ import {
   Flag,
 } from 'lucide-react';
 import { GroupDoubtButton } from '@/features/groups/components/GroupDoubtButton';
+import { BankOriginBadge } from '@/features/questions/components/BankOriginBadge';
 import type { QuestionDTO } from '@/features/questions/services/question.service';
 import { studyService } from '@/features/study/services/study.service';
 import { errorNotebookService } from '@/features/error-notebook/services/error-notebook.service';
@@ -307,6 +308,8 @@ export default function StudyPage() {
               {current.favorited ? 'Favoritada' : 'Favoritar'}
             </button>
           </div>
+
+          <BankOriginBadge question={question} />
 
           {/* Statement */}
           <p className="mb-6 whitespace-pre-line text-base font-normal leading-relaxed text-gray-900 dark:text-gray-100">

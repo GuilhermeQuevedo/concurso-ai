@@ -131,6 +131,9 @@ model Question {
   examBoardId   String?
   source        QuestionSource @default(AI_GENERATED)
   aiModel       String?
+  examYear      Int?
+  organ         String?
+  examName      String?
   createdAt     DateTime       @default(now())
 
   subject   Subject    @relation(fields: [subjectId], references: [id])
@@ -143,6 +146,7 @@ model Question {
   @@index([examBoardId])
   @@index([difficulty])
   @@index([subjectId, difficulty])
+  @@index([source, examBoardId, examYear])
 }
 
 model QuestionAttempt {
@@ -280,6 +284,7 @@ enum QuestionSource {
   AI_GENERATED
   IMPORTED
   MANUAL
+  BANK
 }
 
 model StudyPlan {

@@ -1,0 +1,67 @@
+import type { Difficulty, Prisma } from '@prisma/client';
+
+import { prisma } from '../database/prisma.js';
+
+export interface BankFilters {
+  examBoardId?: string;
+  subjectId?: string;
+  examYear?: number;
+  organ?: string;
+  difficulty?: Difficulty;
+}
+
+export interface FacetCount<T> {
+  value: T;
+  count: number;
+}
+
+const whereOf = (filters: BankFilters): Prisma.QuestionWhereInput => ({
+  source: 'BANK',
+  examBoardId: filters.examBoardId,
+  subjectId: filters.subjectId,
+  examYear: filters.examYear,
+  organ: filters.organ,
+  difficulty: filters.difficulty,
+});
+
+export class QuestionBankRepository {
+  count(filters: BankFilters): Promise<number> {
+    return prisma.question.count({ where: whereOf(filters) });
+  }
+
+  findMatching(filters: BankFilters) {
+    return prisma.question.findMany({
+      where: whereOf(filters),
+      select: { id: true, alternatives: true },
+    });
+  }
+
+  async answeredIds(userId: string, questionIds: string[]): Promise<Set<string>> {
+    if (questionIds.length === 0) return new Set();
+    const rows = await prisma.questionAttempt.findMany({
+      where: { userId, questionId: { in: questionIds } },
+      distinct: ['questionId'],
+      select: { questionId: true },
+    });
+    return new Set(rows.map((row) => row.questionId));
+  }
+
+  async facets() {
+    const where = { source: 'BANK' as const };
+    const [boards, years, organs, subjects] = await Promise.all([
+      prisma.question.groupBy({ by: ['examBoardId'], where, _count: { _all: true } }),
+      prisma.question.groupBy({ by: ['examYear'], where, _count: { _all: true } }),
+      prisma.question.groupBy({ by: ['organ'], where, _count: { _all: true } }),
+      prisma.question.groupBy({ by: ['subjectId'], where, _count: { _all: true } }),
+    ]);
+    return { boards, years, organs, subjects };
+  }
+
+  boardNames(ids: string[]) {
+    return prisma.examBoard.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } });
+  }
+
+  subjectNames(ids: string[]) {
+    return prisma.subject.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } });
+  }
+}
