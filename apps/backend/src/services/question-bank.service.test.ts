@@ -97,6 +97,7 @@ describe('QuestionBankService', () => {
     const facets = await service.facets();
     assert.equal(facets.boards.find((b) => b.value.id === boardA)?.count, 2);
     assert.ok(facets.years.some((y) => y.value === 2024));
-    assert.ok(facets.organs.some((o) => o.value === `Órgão ${suffix}`));
+    assert.ok(facets.organs.length <= 300, 'a lista de órgãos é limitada aos mais frequentes');
+    assert.ok(facets.organs.every((o, i, list) => i === 0 || list[i - 1].count >= o.count));
   });
 });

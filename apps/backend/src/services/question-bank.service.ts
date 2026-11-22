@@ -19,6 +19,8 @@ export interface BankFacets {
   organs: Array<FacetCount<string>>;
 }
 
+// Há milhares de órgãos: a lista de sugestões traz só os mais frequentes.
+const MAX_ORGANS = 300;
 const byCountDesc = <T>(a: FacetCount<T>, b: FacetCount<T>) => b.count - a.count;
 const nameOf = (list: Named[], id: string) => list.find((item) => item.id === id)?.name ?? '';
 
@@ -57,25 +59,26 @@ export class QuestionBankService {
         .map((s) => ({ value: { id: s.subjectId, name: nameOf(subjectNames, s.subjectId) }, count: s._count._all }))
         .sort(byCountDesc),
       years: raw.years.flatMap((y) => (y.examYear ? [{ value: y.examYear, count: y._count._all }] : [])).sort((a, b) => b.value - a.value),
-      organs: raw.organs.flatMap((o) => (o.organ ? [{ value: o.organ, count: o._count._all }] : [])).sort(byCountDesc),
+      organs: raw.organs.flatMap((o) => (o.organ ? [{ value: o.organ, count: o._count._all }] : [])).sort(byCountDesc).slice(0, MAX_ORGANS),
     };
   }
 
   // Monta um caderno só com questões já cadastradas (sem IA), priorizando as que o aluno ainda não respondeu.
   async buildSet(userId: string, input: BuildBankSetInput) {
     const { name, quantity, onlyUnanswered, ...filters } = input;
-    const matching = await this.repository.findMatching(filters);
-    const answered = await this.repository.answeredIds(userId, matching.map((q) => q.id));
-    const fresh = matching.filter((q) => !answered.has(q.id));
-    if (onlyUnanswered && fresh.length === 0) {
+    const [matching, answered] = await Promise.all([this.repository.findIds(filters), this.repository.answeredIds(userId, filters)]);
+    const fresh = matching.filter((id) => !answered.has(id));
+    if (onlyUnanswered && fresh.length === 0 && matching.length > 0) {
       throw new AppError(400, 'NO_UNANSWERED_QUESTIONS', 'Você já respondeu todas as questões deste filtro.');
     }
 
-    const ordered = onlyUnanswered ? shuffle(fresh) : [...shuffle(fresh), ...shuffle(matching.filter((q) => answered.has(q.id)))];
-    const chosen = ordered.slice(0, quantity);
-    if (chosen.length === 0) {
+    const ordered = onlyUnanswered ? shuffle(fresh) : [...shuffle(fresh), ...shuffle(matching.filter((id) => answered.has(id)))];
+    const chosenIds = ordered.slice(0, quantity);
+    if (chosenIds.length === 0) {
       throw new AppError(400, 'NO_BANK_QUESTIONS', 'Não há questões das bancas para este filtro.');
     }
+    const chosen = await this.repository.alternativesOf(chosenIds);
+    const position = new Map(chosenIds.map((id, index) => [id, index]));
 
     return prisma.questionSet.create({
       data: {
@@ -83,7 +86,7 @@ export class QuestionBankService {
         name: name?.trim() || (await this.defaultName(filters)),
         subjectId: filters.subjectId ?? null,
         questionType: setTypeOf(chosen),
-        items: { create: chosen.map((q, order) => ({ questionId: q.id, order })) },
+        items: { create: chosen.map((q) => ({ questionId: q.id, order: position.get(q.id) ?? 0 })) },
       },
       select: { id: true, name: true },
     });

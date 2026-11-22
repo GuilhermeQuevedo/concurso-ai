@@ -48,9 +48,23 @@ Formato de cada item (lista JSON):
 - A importação é idempotente (banca + ano + órgão + enunciado iguais não duplicam).
 - Bancas e matérias que não existirem são criadas na hora.
 
+## Importar o `nap-questoes-all.json`
+
+```bash
+pnpm --filter @concurso-ai/backend prisma:import-nap          # lê ../../nap-questoes-all.json (raiz do repositório)
+pnpm --filter @concurso-ai/backend prisma:import-nap caminho/do/arquivo.json
+```
+
+- O arquivo (72 MB, 16.712 questões) **não vai para o Git** (está no `.gitignore`).
+- Aproveita 15.140 questões; descarta 1.572 (ocultas, sem gabarito, sem alternativas ou com gabarito que não bate com as alternativas).
+- Cada questão é identificada por `nap:<id>` (coluna `sourceRef`, única): rodar de novo não duplica.
+- Gabarito `CERTO`/`ERRADO` vira `C`/`E`; dificuldade "Muito Fácil/Fácil" = fácil, "Difícil/Muito Difícil" = difícil, vazio = média; o HTML é convertido em texto.
+- Disciplina vira matéria; banca vira banca (nomes como `CESPE / CEBRASPE` são normalizados).
+- Na tela: as 8 maiores bancas aparecem como atalho e as demais numa lista; o órgão é uma busca por texto (sugere os 300 mais frequentes).
+
 ## Pendências para produção
 
-- **Origem e licença das questões:** confirmar que o banco pode ser usado e exibido.
+- **Origem e licença das questões:** no `nap-questoes-all.json`, 14.893 itens trazem `plataforma = qconcursos`. Antes de publicar, confirmar com quem forneceu o arquivo que o uso e a exibição são permitidos.
 - Gabarito anulado/alterado, cargo e número da questão (campos a acrescentar conforme o banco real).
 - Filtro por edital/matéria do edital do aluno e busca por assunto.
 - Produção usa `db push` no boot (sem `_prisma_migrations`), então a migration `add_question_bank` só entra via `db push`.

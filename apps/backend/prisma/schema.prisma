@@ -134,6 +134,7 @@ model Question {
   examYear      Int?
   organ         String?
   examName      String?
+  sourceRef     String?        @unique
   createdAt     DateTime       @default(now())
 
   subject   Subject    @relation(fields: [subjectId], references: [id])

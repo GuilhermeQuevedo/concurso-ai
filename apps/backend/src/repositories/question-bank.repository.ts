@@ -29,21 +29,23 @@ export class QuestionBankRepository {
     return prisma.question.count({ where: whereOf(filters) });
   }
 
-  findMatching(filters: BankFilters) {
-    return prisma.question.findMany({
-      where: whereOf(filters),
-      select: { id: true, alternatives: true },
-    });
+  async findIds(filters: BankFilters): Promise<string[]> {
+    const rows = await prisma.question.findMany({ where: whereOf(filters), select: { id: true } });
+    return rows.map((row) => row.id);
   }
 
-  async answeredIds(userId: string, questionIds: string[]): Promise<Set<string>> {
-    if (questionIds.length === 0) return new Set();
+  // Questões deste filtro que o aluno já respondeu (uma consulta só, sem listar ids no IN).
+  async answeredIds(userId: string, filters: BankFilters): Promise<Set<string>> {
     const rows = await prisma.questionAttempt.findMany({
-      where: { userId, questionId: { in: questionIds } },
+      where: { userId, question: whereOf(filters) },
       distinct: ['questionId'],
       select: { questionId: true },
     });
     return new Set(rows.map((row) => row.questionId));
+  }
+
+  alternativesOf(ids: string[]) {
+    return prisma.question.findMany({ where: { id: { in: ids } }, select: { id: true, alternatives: true } });
   }
 
   async facets() {

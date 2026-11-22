@@ -7,6 +7,7 @@ import { questionBankService, type BankFilters, type FacetCount } from '../servi
 import type { Difficulty } from '../services/question-set.service';
 
 const QUANTITIES = [5, 10, 15, 20, 30];
+const TOP_BOARDS = 8;
 const DIFFICULTIES: Array<{ value: Difficulty | ''; label: string }> = [
   { value: '', label: 'Todas' },
   { value: 'EASY', label: 'Fácil' },
@@ -66,6 +67,7 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
   const [filters, setFilters] = useState<BankFilters>({});
   const [quantity, setQuantity] = useState(10);
   const [onlyUnanswered, setOnlyUnanswered] = useState(true);
+  const [organText, setOrganText] = useState('');
 
   const { data: facets } = useQuery({ queryKey: ['question-bank-facets'], queryFn: questionBankService.facets });
   const { data: available, isFetching } = useQuery({
@@ -74,6 +76,17 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
   });
 
   const patch = (change: Partial<BankFilters>) => setFilters((current) => ({ ...current, ...change }));
+
+  // O filtro de órgão só vale quando o texto bate com um órgão da lista.
+  const changeOrgan = (text: string) => {
+    setOrganText(text);
+    const match = facets?.organs.find((o) => o.value.toLowerCase() === text.trim().toLowerCase());
+    patch({ organ: match?.value });
+  };
+
+  const boards = facets?.boards ?? [];
+  const topBoards = boards.slice(0, TOP_BOARDS);
+  const otherBoards = boards.slice(TOP_BOARDS);
 
   const build = useMutation({
     mutationFn: () => questionBankService.buildSet({ ...filters, quantity, onlyUnanswered }),
@@ -118,19 +131,45 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
               <label className={label}>Banca</label>
               <div className="flex flex-wrap gap-1.5">
                 <Pill active={!filters.examBoardId} onClick={() => patch({ examBoardId: undefined })}>Todas</Pill>
-                {facets?.boards.map(({ value, count }) => (
+                {topBoards.map(({ value, count }) => (
                   <Pill key={value.id} active={filters.examBoardId === value.id} onClick={() => patch({ examBoardId: value.id })}>
                     {value.name} · {count}
                   </Pill>
                 ))}
               </div>
+              {otherBoards.length > 0 && (
+                <select
+                  aria-label="Outras bancas"
+                  value={otherBoards.some((b) => b.value.id === filters.examBoardId) ? filters.examBoardId : ''}
+                  onChange={(event) => patch({ examBoardId: event.target.value || undefined })}
+                  className={`${field} mt-2`}
+                >
+                  <option value="">Outras bancas ({otherBoards.length})</option>
+                  {otherBoards.map(({ value, count }) => (
+                    <option key={value.id} value={value.id}>{value.name} ({count})</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
               <FacetSelect title="Matéria" items={facets?.subjects.map((s) => ({ value: s.value.id, count: s.count })) ?? []} value={filters.subjectId}
                 render={(id) => facets?.subjects.find((s) => s.value.id === id)?.value.name ?? id} onChange={(subjectId) => patch({ subjectId })} />
               <FacetSelect title="Ano" items={facets?.years ?? []} value={filters.examYear} render={String} onChange={(examYear) => patch({ examYear })} />
-              <FacetSelect title="Órgão" items={facets?.organs ?? []} value={filters.organ} render={(organ) => organ} onChange={(organ) => patch({ organ })} />
+              <div>
+                <label className={label} htmlFor="bank-organ">Órgão</label>
+                <input
+                  id="bank-organ"
+                  list="bank-organs"
+                  value={organText}
+                  onChange={(event) => changeOrgan(event.target.value)}
+                  placeholder="Digite para buscar"
+                  className={field}
+                />
+                <datalist id="bank-organs">
+                  {facets?.organs.map((o) => <option key={o.value} value={o.value}>{o.count}</option>)}
+                </datalist>
+              </div>
             </div>
 
             <div>
