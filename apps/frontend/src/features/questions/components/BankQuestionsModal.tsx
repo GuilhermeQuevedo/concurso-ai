@@ -3,11 +3,11 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Landmark, Loader2, X } from 'lucide-react';
 
 import { toast } from '@/components/ui/toast-store';
-import { questionBankService, type BankFilters, type FacetCount } from '../services/question-bank.service';
+import { questionBankService, type BankFilters } from '../services/question-bank.service';
+import { BankFilterFields } from './BankFilterFields';
 import type { Difficulty } from '../services/question-set.service';
 
 const QUANTITIES = [5, 10, 15, 20, 30];
-const TOP_BOARDS = 8;
 const DIFFICULTIES: Array<{ value: Difficulty | ''; label: string }> = [
   { value: '', label: 'Todas' },
   { value: 'EASY', label: 'Fácil' },
@@ -15,15 +15,14 @@ const DIFFICULTIES: Array<{ value: Difficulty | ''; label: string }> = [
   { value: 'HARD', label: 'Difícil' },
 ];
 
-const field = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white';
-const label = 'mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300';
+const sectionTitle = 'mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400';
 
 function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-all ${
+      className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
         active
           ? 'bg-primary-600 text-white shadow-xs'
           : 'border border-gray-200 bg-gray-50 text-gray-700 hover:border-primary-400 dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-300'
@@ -34,41 +33,12 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-function FacetSelect<T extends string | number>({ title, items, value, render, onChange }: {
-  title: string;
-  items: Array<FacetCount<T>>;
-  value: T | undefined;
-  render: (item: T) => string;
-  onChange: (value: T | undefined) => void;
-}) {
-  return (
-    <div>
-      <label className={label}>{title}</label>
-      <select
-        value={value ?? ''}
-        onChange={(event) => {
-          const picked = items.find((item) => String(item.value) === event.target.value);
-          onChange(picked?.value);
-        }}
-        className={field}
-      >
-        <option value="">Todos</option>
-        {items.map((item) => (
-          <option key={String(item.value)} value={String(item.value)}>
-            {render(item.value)} ({item.count})
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [filters, setFilters] = useState<BankFilters>({});
   const [quantity, setQuantity] = useState(10);
   const [onlyUnanswered, setOnlyUnanswered] = useState(true);
-  const [organText, setOrganText] = useState('');
-  const [positionText, setPositionText] = useState('');
+  // Trocar a chave recria os campos de busca (órgão e cargo), que guardam o próprio texto.
+  const [resetKey, setResetKey] = useState(0);
 
   const { data: facets } = useQuery({ queryKey: ['question-bank-facets'], queryFn: questionBankService.facets });
   const { data: available, isFetching } = useQuery({
@@ -77,23 +47,11 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
   });
 
   const patch = (change: Partial<BankFilters>) => setFilters((current) => ({ ...current, ...change }));
-
-  // O filtro de órgão só vale quando o texto bate com um órgão da lista.
-  const changeOrgan = (text: string) => {
-    setOrganText(text);
-    const match = facets?.organs.find((o) => o.value.toLowerCase() === text.trim().toLowerCase());
-    patch({ organ: match?.value });
+  const activeFilters = Object.values(filters).filter((value) => value !== undefined).length;
+  const clearFilters = () => {
+    setFilters({});
+    setResetKey((key) => key + 1);
   };
-
-  const changePosition = (text: string) => {
-    setPositionText(text);
-    const match = facets?.positions.find((p) => p.value.toLowerCase() === text.trim().toLowerCase());
-    patch({ position: match?.value });
-  };
-
-  const boards = facets?.boards ?? [];
-  const topBoards = boards.slice(0, TOP_BOARDS);
-  const otherBoards = boards.slice(TOP_BOARDS);
 
   const build = useMutation({
     mutationFn: () => questionBankService.buildSet({ ...filters, quantity, onlyUnanswered }),
@@ -133,86 +91,27 @@ export function BankQuestionsModal({ onClose, onCreated }: { onClose: () => void
         {empty ? (
           <p className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">O banco de questões ainda não tem questões cadastradas.</p>
         ) : (
-          <div className="space-y-4">
-            <div>
-              <label className={label}>Área do concurso</label>
-              <div className="flex flex-wrap gap-1.5">
-                <Pill active={!filters.area} onClick={() => patch({ area: undefined })}>Todas</Pill>
-                {facets?.areas.map(({ value, count }) => (
-                  <Pill key={value} active={filters.area === value} onClick={() => patch({ area: value })}>
-                    {value} · {count}
-                  </Pill>
-                ))}
+          <div className="space-y-5">
+            <section>
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className={`${sectionTitle} mb-0`}>Qual prova?</h3>
+                {activeFilters > 0 && (
+                  <button type="button" onClick={clearFilters} className="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400">
+                    Limpar filtros ({activeFilters})
+                  </button>
+                )}
               </div>
-            </div>
+              {facets && <BankFilterFields key={resetKey} facets={facets} filters={filters} onChange={patch} />}
+            </section>
 
-            <div>
-              <label className={label}>Banca</label>
-              <div className="flex flex-wrap gap-1.5">
-                <Pill active={!filters.examBoardId} onClick={() => patch({ examBoardId: undefined })}>Todas</Pill>
-                {topBoards.map(({ value, count }) => (
-                  <Pill key={value.id} active={filters.examBoardId === value.id} onClick={() => patch({ examBoardId: value.id })}>
-                    {value.name} · {count}
-                  </Pill>
-                ))}
-              </div>
-              {otherBoards.length > 0 && (
-                <select
-                  aria-label="Outras bancas"
-                  value={otherBoards.some((b) => b.value.id === filters.examBoardId) ? filters.examBoardId : ''}
-                  onChange={(event) => patch({ examBoardId: event.target.value || undefined })}
-                  className={`${field} mt-2`}
-                >
-                  <option value="">Outras bancas ({otherBoards.length})</option>
-                  {otherBoards.map(({ value, count }) => (
-                    <option key={value.id} value={value.id}>{value.name} ({count})</option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <FacetSelect title="Matéria" items={facets?.subjects.map((s) => ({ value: s.value.id, count: s.count })) ?? []} value={filters.subjectId}
-                render={(id) => facets?.subjects.find((s) => s.value.id === id)?.value.name ?? id} onChange={(subjectId) => patch({ subjectId })} />
-              <FacetSelect title="Ano" items={facets?.years ?? []} value={filters.examYear} render={String} onChange={(examYear) => patch({ examYear })} />
-              <div>
-                <label className={label} htmlFor="bank-organ">Órgão</label>
-                <input
-                  id="bank-organ"
-                  list="bank-organs"
-                  value={organText}
-                  onChange={(event) => changeOrgan(event.target.value)}
-                  placeholder="Digite para buscar"
-                  className={field}
-                />
-                <datalist id="bank-organs">
-                  {facets?.organs.map((o) => <option key={o.value} value={o.value}>{o.count}</option>)}
-                </datalist>
-              </div>
-              <div>
-                <label className={label} htmlFor="bank-position">Cargo</label>
-                <input
-                  id="bank-position"
-                  list="bank-positions"
-                  value={positionText}
-                  onChange={(event) => changePosition(event.target.value)}
-                  placeholder="Digite para buscar"
-                  className={field}
-                />
-                <datalist id="bank-positions">
-                  {facets?.positions.map((p) => <option key={p.value} value={p.value}>{p.count}</option>)}
-                </datalist>
-              </div>
-            </div>
-
-            <div>
-              <label className={label}>Dificuldade</label>
+            <section>
+              <h3 className={sectionTitle}>Dificuldade</h3>
               <div className="flex flex-wrap gap-1.5">
                 {DIFFICULTIES.map((d) => (
                   <Pill key={d.label} active={(filters.difficulty ?? '') === d.value} onClick={() => patch({ difficulty: d.value || undefined })}>{d.label}</Pill>
                 ))}
               </div>
-            </div>
+            </section>
 
             <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
               <input type="checkbox" checked={onlyUnanswered} onChange={(event) => setOnlyUnanswered(event.target.checked)} className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
