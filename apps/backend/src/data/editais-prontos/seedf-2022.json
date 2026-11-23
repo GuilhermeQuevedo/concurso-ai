@@ -1,0 +1,2072 @@
+{
+ "id": "seedf-2022",
+ "title": "SEEDF 2022 – Edital nº 31",
+ "shortName": "SEEDF 2022",
+ "organization": "SEEDF",
+ "description": "Secretaria de Estado de Educação do Distrito Federal. Conteúdo programático oficial do Anexo IV, separado por cargo.",
+ "shared": {
+  "basicos": [
+   {
+    "name": "Língua Portuguesa",
+    "topics": [
+     "Compreensão e interpretação de textos de gêneros variados",
+     "Reconhecimento de tipos e gêneros textuais",
+     "Domínio da ortografia oficial",
+     "Domínio dos mecanismos de coesão textual. 4.1 Emprego de elementos de referenciação, substituição e repetição, de conectores e de outros elementos de sequenciação textual. 4.2 Emprego de tempos e modos verbais",
+     "Domínio da estrutura morfossintática do período. 5.1 Emprego das classes de palavras. 5.2 Relações de coordenação entre orações e entre termos da oração. 5.3 Relações de subordinação entre orações e entre termos da oração. 5.4 Emprego dos sinais de pontuação. 5.5 Concordância verbal e nominal. 5.6 Regência verbal e nominal. 5.7 Emprego do sinal indicativo de crase. 5.8 Colocação dos pronomes átonos",
+     "Reescrita de frases e parágrafos do texto. 6.1 Significação das palavras. 6.2 Substituição de palavras ou de trechos de texto. 6.3 Reorganização da estrutura de orações e de períodos do texto. 6.4 Reescrita de textos de diferentes gêneros e níveis de formalidade",
+     "Figuras de linguagem"
+    ]
+   },
+   {
+    "name": "Uso de Tecnologia na Educação e Informática Básica",
+    "topics": [
+     "Segurança da informação (noções de vírus e pragas virtuais, Procedimentos de backup)",
+     "Conhecimento da plataforma Google (Google Sala de Aula, Google Documentos, Google Planilha)",
+     "Sistema operacional e ambiente Windows (edição de textos, planilhas e apresentações em ambiente Windows)",
+     "Conceitos básicos, ferramentas, aplicativos e procedimentos de Internet",
+     "Conceitos de organização e de gerenciamento de informações, arquivos, pastas e programas"
+    ]
+   },
+   {
+    "name": "Noções de Direito Administrativo",
+    "topics": [
+     "Estado, governo e administração pública: conceitos, elementos, poderes e organização; natureza, fins e princípios",
+     "Organização administrativa do Estado",
+     "Administração direta e indireta",
+     "Agentes públicos: espécies e classificação, poderes, deveres e prerrogativas, cargo, emprego e função públicos",
+     "Poderes administrativos",
+     "Atos administrativos: conceitos, requisitos, atributos, classificação, espécies e invalidação",
+     "Controle e responsabilização da administração: controle administrativo, controle judicial, controle legislativo, responsabilidade civil do Estado",
+     "Lei Complementar nº 840/2011 e suas alterações (Título I – Das Disposições Preliminares. Título II – Dos Cargos Públicos e das Funções de Confiança. Título V – Dos Deveres. Título VI – Do Regime Disciplinar. Título VII – Dos Processos de Apuração de Infração Disciplinar.)"
+    ]
+   },
+   {
+    "name": "Conhecimentos acerca do Distrito Federal",
+    "topics": [
+     "Realidade étnica, social, histórica, geográfica, cultural, política e econômica do Distrito Federal e da Região Integrada de Desenvolvimento do Distrito Federal e Entorno (RIDE), instituída pela Lei Complementar nº 94/1998 e suas alterações"
+    ]
+   },
+   {
+    "name": "Atualidades",
+    "topics": [
+     "Tópicos atuais e relevantes de diversas áreas, tais como segurança, transportes, política, economia, sociedade, educação, saúde, cultura, tecnologia, energia, relações internacionais, desenvolvimento sustentável e ecologia",
+     "CONHECIMENTOS COMPLEMENTARES"
+    ]
+   }
+  ],
+  "magisterio": [
+   {
+    "name": "Legislação (Magistério Público)",
+    "topics": [
+     "Constituição Federal de 1988 (artigos de 205 a 214)",
+     "Lei de Diretrizes e Bases da Educação Nacional – Lei Federal nº 9.394/1996 e suas alterações (Título I até Título IX)",
+     "Estatuto da Criança e do Adolescente – Lei Federal nº 8.069/1990 e suas alterações (Título I – Das Disposições Preliminares. Título II – Dos Direitos Fundamentais. Título IV – Das Medidas Pertinentes aos Pais ou Responsável. Título V – Do Conselho Tutelar.)",
+     "Lei Brasileira de Inclusão da Pessoa com Deficiência – Lei Federal nº 13.146/2015 e suas alterações (Título II – Dos Direitos Fundamentais. Capítulo IV – Do Direito à Educação.)",
+     "Diretrizes Curriculares Nacionais para a Educação Infantil – Resolução CNE/CEB nº 5/2009",
+     "Diretrizes Curriculares Nacionais para o Ensino Fundamental de 9 anos – Resolução CNE-CEB nº 7/2010",
+     "Diretrizes Curriculares Nacionais para o Ensino Médio – Resolução CNE/CEB nº 3/2018",
+     "Diretrizes operacionais para a Educação de Jovens e Adultos nos aspectos relativos ao seu alinhamento à Política Nacional de alfabetização (PNA) e à Base Nacional Comum Curricular (BNCC) e Educação de Jovens e Adultos a Distância – Resolução CNE/CEB nº 1/2021",
+     "Lei nº 13.415/2017 – Reforma do Ensino Médio",
+     "Lei Orgânica do Distrito Federal (Título I – Dos Fundamentos da Organização dos Poderes e do Distrito Federal. Título II – Da Organização do Distrito Federal. Título III – Da Organização dos Poderes. Título VI – Da Ordem Social e do meio ambiente.)",
+     "Resolução nº 2/2020-CEDF",
+     "Regimento Escolar da Rede Pública de Ensino do Distrito Federal – Portaria nº 15, de 11 de fevereiro de 2015 e suas alterações",
+     "Plano Distrital de Educação (PDE 2015- 2024)",
+     "Currículo em Movimento da Educação Básica – Pressupostos Teóricos",
+     "II Plano Distrital de Política para Mulheres",
+     "Lei nº 5.105/2013 (para cargos da carreira Magistério Público)",
+     "Plano Nacional de Educação (PNE 2014‐2024)"
+    ]
+   },
+   {
+    "name": "Temas Educacionais e Pedagógicos",
+    "topics": [
+     "Planejamento e organização do trabalho pedagógico. 1.1 Processo de planejamento. 1.1.1 Concepção, importância, dimensões e níveis. 1.2 Planejamento participativo. 1.2.1 Concepção, construção, acompanhamento e avaliação. 1.3 Planejamento escolar. 1.3.1 Planos da escola, do ensino e da aula",
+     "Currículo do proposto à prática",
+     "Tecnologias da informação e comunicação na educação",
+     "Educação para a diversidade, cidadania, educação em e para os direitos humanos e educação a distância",
+     "Educação integral",
+     "Educação do campo",
+     "Educação de Jovens e Adultos",
+     "Educação ambiental",
+     "Fundamentos legais da Educação especial/inclusiva e o papel do professor",
+     "Educação/sociedade e prática escolar",
+     "Tendências pedagógicas na prática escolar",
+     "Didática e prática histórico-cultural",
+     "A didática na formação do professor",
+     "Aspectos pedagógicos e sociais da prática educativa, segundo as tendências pedagógicas",
+     "Processos de ensino e de aprendizagem",
+     "Relação professor/aluno",
+     "Compromisso social e ético do professor",
+     "Componentes do processo de ensino. 18.1 Objetivos, conteúdos, métodos, estratégias e meios",
+     "Interdisciplinaridade e transdisciplinaridade do conhecimento",
+     "Avaliação escolar e suas implicações pedagógicas",
+     "O papel político-pedagógico e organicidade do ensinar, aprender e pesquisar. 21.1 Função histórico-cultural da escola. 21.2 Escola. 21.2.1 Comunidade escolar e contextos institucional e sociocultural",
+     "Projeto político-pedagógico da escola. 22.1 Concepção, princípios e eixos norteadores",
+     "Políticas públicas para a Educação Básica",
+     "Gestão democrática",
+     "Educação em Direitos Humanos (Educação indígena; Educação quilombola; Educação das relações étnico-raciais; Educação em gênero e diversidade)"
+    ]
+   }
+  ],
+  "assistencia": [
+   {
+    "name": "Legislação (Assistência à Educação)",
+    "topics": [
+     "Constituição Federal de 1988 (artigos de 205 a 214)",
+     "Lei de Diretrizes e Bases da Educação Nacional – Lei Federal nº 9.394/1996 e suas alterações (Título I até Título IX)",
+     "Estatuto da Criança e do Adolescente – Lei Federal nº 8.069/1990 e suas alterações (Título I – Das Disposições Preliminares. Título II – Dos Direitos Fundamentais. Título IV – Das Medidas Pertinentes aos Pais ou Responsável. Título V – Do Conselho Tutelar.)",
+     "Lei Brasileira de Inclusão da Pessoa com Deficiência – Lei Federal nº 13.146/2015 e suas alterações (Título II – Dos Direitos Fundamentais. Capítulo IV – Do Direito à Educação.)",
+     "Lei Orgânica do Distrito Federal (Título I – Dos Fundamentos da Organização dos Poderes e do Distrito Federal. Título II – Da Organização do Distrito Federal. Título III – Da Organização dos Poderes. Título VI – Da Ordem Social e do meio ambiente.)",
+     "Regimento Escolar da Rede Pública de Ensino do Distrito Federal – Portaria nº 15, de 11 de fevereiro de 2015 e suas alterações",
+     "Plano Distrital de Educação (PDE 2015- 2024)",
+     "Currículo em Movimento da Educação Básica – Pressupostos Teóricos",
+     "II Plano Distrital de Política para Mulheres",
+     "Lei nº 5.106/2013 (para cargos da carreira Assistência à Educação)",
+     "Plano Nacional de Educação (PNE 2014‐2024). 3 CONHECIMENTOS ESPECÍFICOS 3.1 CARGOS DA CARREIRA MAGISTÉRIO PÚBLICO"
+    ]
+   }
+  ]
+ },
+ "cargos": [
+  {
+   "id": "administracao",
+   "group": "Professor de Educação Básica",
+   "name": "Administração",
+   "cargoCode": "Cargo 400",
+   "track": "magisterio",
+   "label": "Professor de Administração",
+   "specific": [
+    {
+     "name": "Administração Geral",
+     "topics": [
+      "Evolução da administração. 1.1 Principais abordagens da administração (clássica até contingencial)",
+      "Processo administrativo. 2.1 Funções de administração. 2.1.1 Planejamento, organização, direção e controle. 2.2 Processo de planejamento. 2.2.1 Planejamento estratégico. 2.2.1.1 Visão, missão e análise SWOT, matriz GUT e ferramenta 5W2H. 2.2.2 Análise competitiva e estratégias genéricas. 2.2.3 Redes e alianças. 2.2.4 Planejamento tático. 2.2.5 Planejamento operacional. 2.2.6 Administração por objetivos. 2.2.7 Balanced scorecard. 2.2.8 Processo decisório. 2.3 Organização. 2.3.1 Estrutura organizacional. 2.3.2 Tipos de departamentalização. 2.3.2.1 Características, vantagens e desvantagens de cada tipo. 2.3.3 Organização informal. 2.3.4 Cultura organizacional. 2.4 Direção. 2.4.1 Motivação e liderança. 2.4.2 Comunicação. 2.4.3 Descentralização e delegação. 2.5 Controle. 2.5.1 Características. 2.5.2 Tipos, vantagens e desvantagens. 2.5.3 Sistema de medição de desempenho organizacional",
+      "Gestão de pessoas. 3.1 Equilíbrio organizacional. 3.2 Objetivos, desafios e características da gestão de pessoas. 3.3 Recrutamento e seleção de pessoas. 3.3.1 Objetivos e características. 3.3.2 Principais tipos, características, vantagens e desvantagens. 3.3.3 Principais técnicas de seleção de pessoas. 3.3.3.1 Características, vantagens e desvantagens. 3.4 Análise e descrição de cargos. 3.5 Capacitação e desenvolvimento de pessoas. 3.6 Gestão de desempenho. 3.7 Gestão por competências. 3.8 Sistemas de Recompensas. 3.9 Clima Organizacional. 3.10 Qualidade de Vida no Trabalho. 3.11 Grupos e equipes de trabalho. 3.12 Gestão da Mudança",
+      "Gestão da qualidade e modelo de excelência gerencial. 4.1 Principais teóricos e suas contribuições para a gestão da qualidade. 4.2 Ferramentas de gestão da qualidade",
+      "Gestão de projetos. 5.1 Elaboração, análise e avaliação de projetos. 5.2 Principais características dos modelos de gestão de projetos. 5.3 Projetos e suas etapas",
+      "Gestão de processos. 6.1 Conceitos da abordagem por processos. 6.2 Técnicas de mapeamento, análise e melhoria de processos. 6.3 Noções de estatística aplicada ao controle e à melhoria de processos. 6.4 BPM",
+      "Administração Financeira. 7.1 Indicadores de Desempenho: tipo e variáveis. 7.2 Princípios gerais de alavancagem operacional e financeira. 7.3 Planejamento financeiro de curto e longo prazo. 7.4 Conceitos básicos de análise de balanços e demonstrações financeiras",
+      "Gestão de Riscos"
+     ]
+    },
+    {
+     "name": "Administração Pública",
+     "topics": [
+      "As reformas administrativas e a redefinição do papel do Estado; reforma do serviço civil (mérito, flexibilidade e responsabilização) e reforma do aparelho do Estado",
+      "Administração Pública do modelo racional-legal ao paradigma pós-burocrático; o Estado oligárquico e patrimonial, o Estado autoritário e burocrático, o Estado do bem-estar, o Estado regulador",
+      "Processos participativos de gestão pública. 3.1 Conselhos de gestão, orçamento participativo, parceria entre governo e sociedade",
+      "Governo eletrônico; transparência da administração pública; controle social e cidadania; accountability",
+      "Gestão por resultados na produção de serviços públicos",
+      "Comunicação na gestão pública e gestão de redes organizacionais",
+      "Administração de compras e materiais. 7.1 Processos de compras governamentais e gerenciamento de materiais e estoques",
+      "Governabilidade e governança; intermediação de interesses (clientelismo, corporativismo e neocorporativismo)",
+      "Mudanças institucionais. 9.1 Conselhos, organizações sociais, organização da sociedade civil de interesse público (OSCIP), agência reguladora, agência executiva, consórcios públicos",
+      "Processo de formulação e desenvolvimento de políticas. 10.1 Construção de agendas, formulação de políticas, implementação de políticas",
+      "As políticas públicas no Estado brasileiro contemporâneo; descentralização e democracia; participação, atores sociais e controle social; gestão local, cidadania e equidade social",
+      "Planejamento e avaliação nas políticas públicas. 12.1 Conceitos básicos de planejamento. 12.2 Aspectos administrativos, técnicos, econômicos e financeiros. 12.3 Formulação de programas e projetos. 12.4 Avaliação de programas e projetos. 12.5 Tipos de avaliação. 12.6 Análise custo-benefício e análise custo-efetividade",
+      "Lei nº 12.527/2011 (Lei de acesso à informação)",
+      "Lei Complementar nº 131/2009 (Lei da Transparência)"
+     ]
+    },
+    {
+     "name": "Administração Orçamentária e Financeira e Orçamento Público",
+     "topics": [
+      "Orçamento público. 1.1 Conceito 1.2 Técnicas orçamentárias. 1.3 Princípios orçamentários. 1.4 Ciclo orçamentário. 1.5 Processo orçamentário",
+      "O orçamento público no Brasil. 2.1 Sistema de planejamento e de orçamento federal. 2.2 Plano plurianual. 2.3 Diretrizes orçamentárias. 2.4 Orçamento anual. 2.5 Sistema e processo de orçamentação. 2.6 Classificações orçamentárias. 2.7 Estrutura programática. 2.8 Créditos ordinários e adicionais",
+      "Programação e execução orçamentária e financeira. 3.1 Descentralização orçamentária e financeira. 3.2 Acompanhamento da execução. 3.3 Sistemas de informações. 3.4 Alterações orçamentárias",
+      "Receita pública. 4.1 Conceito e classificações. 4.2 Estágios. 4.3 Fontes. 4.4 Dívida ativa",
+      "Despesa pública. 5.1 Conceito e classificações. 5.2 Estágios. 5.3 Restos a pagar. 5.4 Despesas de exercícios anteriores. 5.5 Dívida flutuante e fundada. 5.6 Suprimento de fundos",
+      "Lei Complementar nº 101/2000 e suas alterações (Lei de Responsabilidade Fiscal)",
+      "Lei nº 4.320/1964 e suas alterações",
+      "Metodologia de ensino de Administração: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Administração diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Administração"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arquitetura",
+   "group": "Professor de Educação Básica",
+   "name": "Arquitetura",
+   "cargoCode": "Cargo 401",
+   "track": "magisterio",
+   "label": "Professor de Arquitetura",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Arquitetura",
+     "topics": [
+      "Conceitos fundamentais em arquitetura e urbanismo",
+      "Patrimônio cultural, ambiental e arquitetônico"
+     ]
+    },
+    {
+     "name": "Planejamento Urbano",
+     "topics": [
+      "Planejamento e projeto urbano. 1.1 Uso do solo. 1.2 Lei nº 6.766/1979 (parcelamento do solo urbano)",
+      "Gestão urbana e instrumentos de gestão. 2.1 Plano diretor, instrumentos econômicos e administrativos, estudo e relatório de impacto ambiental (EIA/RIMA), licenciamento ambiental, áreas de proteção permanente e de proteção ambiental, Resolução CONAMA nº 237/1997. 2.2 Lei nº 10.257/2001 (Estatuto da Cidade)",
+      "Dimensionamento e programação. 3.1 Equipamentos públicos e comunitários. 3.2 Sistemas de infraestrutura urbana. 3.2.1 Subsistema viário: hierarquização, dimensionamento, geometria e pavimentação. 3.2.2 Subsistema de drenagem pluvial. 3.2.3 Subsistema de abastecimento de água. 3.2.4 Subsistema de esgotamento sanitário. 3.2.5 Subsistema de resíduos sólidos: coleta e destinação. 3.2.6 Subsistema energético. 3.2.7 Subsistema de comunicações",
+      "Topografia. 4.1 Noções de poligonais, curvas de nível, corte, aterro e cálculo de movimento de terra. 4.2. Noções de sistema cartográfico e de georreferenciamento",
+      "Sustentabilidade urbana. 5.1 Sistemas de baixo impacto ambiental. 5.1.1 Fontes alternativas de energia",
+      "Comunicação visual no edifício e na cidade",
+      "Paisagismo. 7.1 Espaços livres: praças e parques. 7.2 Espaços vinculados à edificação: jardins"
+     ]
+    },
+    {
+     "name": "Edificação",
+     "topics": [
+      "Projeto de arquitetura para edifícios. 1.1 NBR 16636-1:2017 e NBR 16636-2:2017. 1.2 Metodologia de projeto. 1.3 Tipologias de organização espacial. 1.4 Partido arquitetônico e construtivo. 1.5 Modulação e racionalização da construção. 1.6 Acessos, fluxos e circulações. 1.7 Fases de projeto: levantamento de dados, programa de necessidades, estudo de viabilidade, estudo preliminar, anteprojeto, projeto legal, projeto básico e projeto executivo",
+      "Decreto nº 43.056/2022",
+      "Acessibilidade: ABNT NBR 9050:2020",
+      "Critérios e parâmetros de desempenho. 4.1 ABNT NBR 15575:2021",
+      "Modelagem da Informação para a Construção – BIM (Building Information Modelling). 5.1 Arquitetura Paramétrica",
+      "Sustentabilidade na Arquitetura. 6.1 Controle ambiental da edificação (térmico, acústico e luminoso). 6.2 Racionalização do consumo de água. 6.3 Eficiência energética. 6.3.1 Fontes alternativas de energia. 6.4 Industrialização da construção. 6.5 Processo de certificação de obras públicas — Programa PBE Edifica. Instalações Prediais: 1. Projetos complementares para edifícios. 1.1 Dimensionamento básico, leitura e interpretação de projetos complementares para edifícios. 2 Estrutura. 2.1 Aço. 2.2 Concreto. 2.2.1 Pré-moldado. 2.3 Madeira. 3 Instalações elétricas. 4 Instalações de cabeamento estruturado de dados e voz. 5 Instalações hidrossanitárias. 6 Elevadores",
+      "Climatização",
+      "Noções de prevenção contra incêndio. 8.1 NT nº 1 (medidas de segurança contra incêndio no Distrito Federal) e NT nº 2 (risco de incêndio e carga de incêndio) do Corpo de Bombeiros Militar do Distrito Federal (CBMDF). 8.2 Saída de emergência: NBR 9077:2001 e NT nº 10. 8.3 NT nº 3 (sistema de proteção por extintores de incêndio). 8.3 NT nº 21 (iluminação de emergência). 8.4 NT nº 22 (sinalização de emergência)",
+      "Instalações especiais"
+     ]
+    },
+    {
+     "name": "Desenho Técnico e Documentação",
+     "topics": [
+      "Representação do projeto de arquitetura. 1.1 Desenho técnico. 1.1.1 NBR 16861:2020, NBR 8404:1984, NBR 16752:2020, NBR 6492:2021, NBR 17006:2021 e NBR 10126:1987 (Errata 2:1998). 1.2 Detalhamento das soluções construtivas",
+      "Informática aplicada à arquitetura e ao urbanismo. 2.1 Programas de softwares básicos para uso em escritório. 2.1.1 AutoCAD. 2.1.2 Revit",
+      "Memorial descritivo",
+      "Especificação de materiais, produtos e insumos",
+      "Elaboração de caderno de encargos e especificações técnicas"
+     ]
+    },
+    {
+     "name": "Coordenação e Gestão de Projetos",
+     "topics": [
+      "Conceito de projeto, programa e processo",
+      "Gerenciamento de escopo, tempo, custos e recursos humanos alocados em projetos",
+      "Métricas de desempenho do projeto",
+      "Análise de projetos de arquitetura, urbanismo e complementares",
+      "Compatibilização de projetos",
+      "Elaboração de relatórios técnicos",
+      "Noções de análise de risco",
+      "Mitigação de riscos"
+     ]
+    },
+    {
+     "name": "Licitação de Obras Públicas",
+     "topics": [
+      "Lei nº 14.133/2021. 1.1 Elaboração de estudo técnico preliminar (ETP) e termo de referência. 1.2 Orçamento de referência de obras e serviços de engenharia para licitação. 1.2.1 Composição de custos, levantamento de quantitativos, planejamento e cronograma físico-financeiro. 1.2.2 BDI e encargos sociais incidentes em orçamentos de obras. 1.2.3 Decreto nº 7.983/2013",
+      "Contratos e aditivos",
+      "Princípios de planejamento e de orçamento público"
+     ]
+    },
+    {
+     "name": "Programação, Controle e Acompanhamento de Obras",
+     "topics": [
+      "Acompanhamento e fiscalização de obras e serviços",
+      "Organização e projeto do canteiro de obras",
+      "Acompanhamento e aplicação de recursos – vistorias, emissão de faturas, controle de materiais",
+      "Critérios de medição de obras",
+      "Produtividade na construção civil",
+      "Noções de segurança do trabalho"
+     ]
+    },
+    {
+     "name": "Legislação Profissional",
+     "topics": [
+      "Lei nº 12.378/2010",
+      "Resolução CAU nº 21/2012",
+      "Ética profissional em Arquitetura e Urbanismo"
+     ]
+    },
+    {
+     "name": "Metodologia de Ensino de Arquitetura",
+     "topics": [
+      "Organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula",
+      "Organização didático‐pedagógica e o ensino integrado de Arquitetura diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Arquitetura"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "artes",
+   "group": "Professor de Educação Básica",
+   "name": "Artes",
+   "cargoCode": "Cargo 402",
+   "track": "magisterio",
+   "label": "Professor de Artes",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Artes",
+     "topics": [
+      "Artes Visuais. 1.1 Constituição dos elementos visuais. 1.2 Composição: fundamentos sintáticos do alfabetismo visual. 1.3 Leitura, interpretação e crítica de arte. 1.4 Mediação artística. 1.5 Abordagem Triangular e Cultura Visual. 1.6 História do Ensino de Arte no Brasil. 1.7 A representação gráfica no desenvolvimento da criança e do adolescente. 1.8 Artes visuais e preservação do patrimônio histórico. 1.9 História das artes visuais no Brasil: Arte indígena, Missão artística francesa, Romantismo, Semana de arte moderna. 1.10 Arte internacional brasileira: Beatriz Milhazes, Tarsila do Amaral, Vik Muniz, Cildo Meireles, Hélio Oiticica e Ligya Clark. 1.11 Artes visuais e meio ambiente",
+      "Teatro. 2.1 Pedagogia do teatro. 2.2 Elementos da linguagem teatral. 2.3 Leitura cênica, análise e crítica teatral. 2.4 Mediação teatral. 2.5 História do teatro brasileiro. 2.5.1 O teatro jesuítico no Brasil. 2.5.2 Nascimento do teatro nacional: a comédia de costumes, Martins Pena e Artur Azevedo. 2.5.3 Teatro de Revista. 2.5.4 A modernização do teatro: teatro experimental do Negro, os Comediantes, Nelson Rodrigues, TBC. 2.5.5 O teatro político: Arena, Oficina e Opinião, O teatro do Oprimido de Augusto Boal. 2.5.6 Tendências contemporâneas: Antunes Filho, Gerald Thomas. 2.5.7 O teatro brasiliense: Ary Para-raios, Hugo Rodas. 2.6 Fundamentos da educação teatral. 2.7 História do ensino de teatro no Brasil. 2.8 Metodologias de ensino do teatro. 2.9 Teatro e meio ambiente",
+      "Música. 3.1 Metodologia de ensino da música. 3.1.1 Organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula. 3.1.2 Organização didático-pedagógica e o ensino integrado da música diante das exigências metodológicas de ensino e de aprendizagem. 3.2 Fundamentos da educação musical. 3.3 História da educação musical no Brasil. 3.4 Elementos da linguagem musical. 3.5 Música e tecnologia. 3.6 Formação da música brasileira: influências indígena, africana, portuguesa e outras. 3.7 Músicas popular e folclórica. 3.7.1 Correntes da produção musical popular brasileira. 3.7.2 Cultura popular e contextos socioantropológicos que a geraram",
+      "Dança. 4.1 Desempenhos indispensáveis à identificação, descrição, compreensão, análise e articulação dos elementos da composição coreográfica. 4.2 Reconhecimento e análise de estruturas metodológicas e domínios didáticos relativos ao ensino da dança. 4.3 Habilidades indispensáveis ao trabalho da dança do portador de necessidades especiais. 4.4 Estética e história da dança no Brasil: Dramática e Folclórica, poupar e erudita. 4.5 Cinesiologia. 4.6 Técnicas de criação artística e de expressão corporal e coreográfica. 4.7 Aspectos coreográficos e de expressão corporal e desenvolvimento de atividades relacionadas com os espaços cênicos, com as artes plásticas, com a sonoplastia e com as demais práticas inerentes à produção em dança como expressão da arte e da vida",
+      "As artes audiovisuais: TV, Cinema, Fotografia, Multimidia – novos recursos e novas linguagens",
+      "Competências e habilidades propostas pela BNCC do Ensino Fundamental para a disciplina de Arte",
+      "Diretrizes Pedagógicas para Organização Escolar do 3º Ciclo para as Aprendizagens",
+      "Diretrizes para a Organização do Trabalho Pedagógico na Semestralidade: Ensino Médio",
+      "Orientações Pedagógicas da Integração da Educação Profissional com o Ensino Médio e a Educação de Jovens e Adultos",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular Arte nos Anos Finais do Ensino Fundamental e Médio e para a área de Linguagens e suas Tecnologias no Ensino Médio",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Artes"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "atividades",
+   "group": "Professor de Educação Básica",
+   "name": "Atividades",
+   "cargoCode": "Cargo 403",
+   "track": "magisterio",
+   "label": "Professor de Atividades",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Atividades",
+     "topics": [
+      "Relação entre educação e sociedade: dimensões filosófica, histórico‐cultural e pedagógica",
+      "Desenvolvimento histórico das concepções pedagógicas"
+     ]
+    },
+    {
+     "name": "Currículo e produção do conhecimento",
+     "topics": [
+      "Teorias de Currículo",
+      "A diversidade na formação humana",
+      "Relações entre sujeitos, conhecimentos e realidades",
+      "Dinâmica do trabalho educativo"
+     ]
+    },
+    {
+     "name": "Processo de ensino e de aprendizagem",
+     "topics": [
+      "Relação professor/aluno",
+      "Bases psicológicas da aprendizagem",
+      "Planejamento de ensino em seus elementos constitutivos: objetivos e conteúdos de ensino; métodos e estratégias; multimídia educativa e avaliação educacional",
+      "Relação entre a teoria e a prática. 4.1 Interdisciplinaridade e globalização do conhecimento",
+      "Análise de dificuldades, problemas e potencialidades no cotidiano escolar, em sua relação com a sociedade",
+      "Formação continuada dos profissionais da escola",
+      "Metodologia de ensino: organização didático‐pedagógica e suas implicações na produção do conhecimento em sala de aula; e organização didático‐pedagógica e intencionalidade na prática pedagógica",
+      "Andragogia e as considerações curriculares para aprendizagem do estudante adulto",
+      "A modalidade de Educação de Jovens e Adultos e os princípios norteadores para a formação do sujeito a partir das suas especificidades culturais",
+      "Políticas para Educação de Jovens e Adultos como inclusão social, construção da cidadania e educação ao longo da vida",
+      "Prática pedagógica e áreas do conhecimento. 11.1 Linguagens e suas Tecnologias. 11.2 Matemática e suas Tecnologias. 11.3 Ciências da Natureza e suas Tecnologias. 11.4 Ciências Humanas e Sociais Aplicadas",
+      "Competências e Habilidades propostas pela BNCC para a Educação Infantil e o Ensino Fundamental"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "biologia",
+   "group": "Professor de Educação Básica",
+   "name": "Biologia",
+   "cargoCode": "Cargo 404",
+   "track": "magisterio",
+   "label": "Professor de Biologia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Biologia",
+     "topics": [
+      "Identidade dos seres vivos: aspectos físicos, químicos e estruturais da célula. 1.1 As organelas e a organização celular. 1.1.1 Seres procariontes, eucariontes e sem organização celular. 1.1.2 Funções celulares: síntese, transporte, eliminação de substâncias e processos de obtenção de energia (fermentação, fotossíntese e respiração celular)",
+      "Noções básicas de microscopia",
+      "Origem e evolução da vida: hipóteses sobre a origem da vida; teoria de Lamarck e teoria de Darwin; e origem do ser humano",
+      "Diversidade da vida: principais características dos representantes de cada domínio e de cada reino da natureza; regras de nomenclatura; e biodiversidade no planeta e no Brasil",
+      "Características anatômicas e fisiológicas do ser humano: fisiologia dos sistemas biológicos (digestório, respiratório, cardiovascular, urinário, nervoso, endócrino, imunológico, reprodutor e locomotor)",
+      "Transmissão da vida: fundamentos da hereditariedade ― gene e código genético; primeira e segunda leis de Mendel; e aplicações da engenharia genética (clonagem e transgênicos)",
+      "Interação entre os seres vivos: conceitos básicos em ecologia; relações tróficas (cadeias e teias alimentares; distribuição natural da matéria e da energia e concentração de pesticidas e de subprodutos radiativos); relações ecológicas limitadoras do crescimento populacional; e ecossistemas do Brasil",
+      "Ensino de Biologia: conhecimento científico e habilidade didática no ensino de Biologia",
+      "A construção do conhecimento no ensino de Biologia: abordagens metodológicas",
+      "Recursos didáticos no ensino de Biologia (utilizados em sala de aula e laboratório, incluindo conhecimentos básicos de técnicas, materiais e normas de segurança laboratoriais)",
+      "O ensino de Biologia e as novas tecnologias da informação e comunicação",
+      "Avaliação de aprendizagem aplicada ao conhecimento biológico",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de Biologia no Ensino Médio e para a área de Ciências da Natureza e suas tecnologias no Ensino Médio",
+      "Competências e habilidades propostas pela BNCC para o componente Biologia para o Ensino Fundamental",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Biologia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "biomedicina",
+   "group": "Professor de Educação Básica",
+   "name": "Biomedicina",
+   "cargoCode": "Cargo 405",
+   "track": "magisterio",
+   "label": "Professor de Biomedicina",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Biomedicina",
+     "topics": [
+      "Bioquímica. 1.1 Dosagens hormonais e de enzimas. 1.2 Eletroforese de hemoglobina, lipoproteínas e proteínas. 1.3 Equilíbrio ácido-base. 1.4 Propriedades da água. 1.5 Radicais livres. 1.6 Automação em bioquímica",
+      "Biologia molecular. 2.1 Técnicas de engenharia genética",
+      "Citologia e citopatologia ginecológica. 3.1 Métodos de diagnóstico",
+      "Genética e reprodução humana. 4.1 Diagnóstico citogenético. 4.2 Laboratório de reprodução humana",
+      "Hematologia: testes hematológicos, automação em hematologia",
+      "Imunologia. 6.1 Alergias. 6.2 Avaliação da função imune. 6.3 Carcinogênese. 6.4 Doenças autoimunes. 6.5 Leucemias",
+      "Microbiologia da água e dos alimentos: métodos de análise; e parâmetros legais",
+      "Microbiologia médica (bacteriologia, virologia e micologia)",
+      "Urinálise: EAS; bioquímica; cultura; e teste de gravidez",
+      "Escolha, coleta e conservação de amostra para diagnóstico",
+      "Preparo de vidraria, reagentes e soluções",
+      "Preparo de meios de cultura",
+      "Equipamentos (princípios e fundamentos), potenciômetros, autoclaves e fornos, microscópios, centrífugas, espectrofotômetros e leitores de Elisa, termocicladores, citômetros de fluxo, filtros, destiladores e purificadores de água",
+      "Cromatografia e eletroforese",
+      "Controle de qualidade no laboratório clínico",
+      "Metodologia de ensino de biomedicina: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático-pedagógica e o ensino integrado de biomedicina diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Biomedicina"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ciencias-naturais",
+   "group": "Professor de Educação Básica",
+   "name": "Ciências Naturais",
+   "cargoCode": "Cargo 406",
+   "track": "magisterio",
+   "label": "Professor de Ciências Naturais",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Ciências Naturais",
+     "topics": [
+      "Seres vivos e ambiente: características morfofisiológicas dos grupos de vírus aos mamíferos e de algas a gimnospermas e suas relações entre si e com o meio",
+      "Citologia e histologia, organização das células, divisão celular – características dos tecidos básicos animais e vegetais",
+      "Reprodução: tipos de reprodução – reprodução humana –, características hereditárias, sexualidade e DST",
+      "Evolução: origem da vida e evolução humana",
+      "Misturas e substâncias: propriedades e processos de separação; átomos, moléculas e substâncias; reações químicas; átomo e eletricidade; gases e líquidos",
+      "Ondas e energia: ondas eletromagnéticas – luz, visão, espectro eletromagnético; óptica e suas leis; problemas da visão; ondas e comunicação; tipos de energia e suas transformações; propagação da energia",
+      "Terra – energia e vida; a terra e a luz no espaço, seus movimentos e suas consequências; atmosfera e pressão; a vida na Terra e suas relações com a energia solar; camadas da terra; condições ambientais e condições de sobrevivência",
+      "Metodologia de ensino de Ciências: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático-pedagógica e o ensino integrado de ciências diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Educação ambiental",
+      "O Projeto Genoma. 11 Competências e habilidades propostas pela BNCC para a disciplina de Ciências no Ensino Fundamental",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Ciências Naturais"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "construcao-civil",
+   "group": "Professor de Educação Básica",
+   "name": "Construção Civil",
+   "cargoCode": "Cargo 407",
+   "track": "magisterio",
+   "label": "Professor de Construção Civil",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Construção Civil",
+     "topics": [
+      "Resistência dos Materiais",
+      "Análise de Estruturas",
+      "Estruturas de Concreto Armado",
+      "Estruturas de Concreto Pré-moldado",
+      "Estruturas de Aço",
+      "Fundações",
+      "Tecnologia do Concreto",
+      "Hidrologia Aplicada",
+      "Mecânica dos Solos",
+      "Obras de Terra",
+      "Terraplanagem",
+      "Arruamento e Pavimentação",
+      "Materiais de Construção Civil",
+      "Técnicas de Construção Civil",
+      "Planejamento e Controle de Obras",
+      "Estruturas de Concreto Protendido",
+      "Pontes e Obras de Arte Correntes",
+      "Hidráulica",
+      "Saneamento Básico",
+      "Instalações Prediais Hidrossanitárias",
+      "Instalações Prediais Elétricas",
+      "Gestão da Qualidade na Construção Civil",
+      "Conforto nas Edificações",
+      "Segurança e Manutenção de Edificações",
+      "Transportes",
+      "Topografia",
+      "Estradas",
+      "Teoria eletromagnética",
+      "Circuitos elétricos – CC e CA (monofásicos e trifásicos)",
+      "Máquinas elétricas: transformador, máquina síncrona, motor de indução e máquina de corrente contínua",
+      "Análise de sistemas elétricos: valores por unidade (p.u.), componentes simétricas, modelagem dos elementos, faltas simétricas e assimétricas",
+      "Geração, transmissão e distribuição de energia elétrica",
+      "Acionamentos e controles elétricos",
+      "Instalações elétricas: baixa e média tensão",
+      "Aterramento de sistemas e de segurança",
+      "Proteção de sistemas elétricos",
+      "Medidas elétricas",
+      "Eletrônica analógica e digital. 8 Eletrônica de Potência"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "contabilidade",
+   "group": "Professor de Educação Básica",
+   "name": "Contabilidade",
+   "cargoCode": "Cargo 408",
+   "track": "magisterio",
+   "label": "Professor de Contabilidade",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Contabilidade",
+     "topics": [
+      "Lei nº 6.404/1976 e legislação complementar",
+      "Lei nº 11.638/2007 e legislação complementar",
+      "Lei nº 11.941/2009 e legislação complementar",
+      "Lei nº 12.249/2010 e legislação complementar",
+      "Lei nº 12.973/2014 e legislação complementar",
+      "Pronunciamentos, interpretações e orientações do Comitê de Pronunciamentos Contábeis (CPC)",
+      "Elaboração de demonstrações contábeis pela legislação societária e pelos pronunciamentos técnicos do CPC. 7.1 Demonstração dos fluxos de caixa (métodos direto e indireto). 7.2 Balanço patrimonial. 7.3 Demonstração do resultado do exercício. 7.4 Demonstração do valor adicionado. 7.5 Demonstração das mutações do patrimônio líquido. 7.6 Demonstração de lucros ou prejuízos acumulados. 7.7 Demonstração do resultado abrangente. 7.8 Notas explicativas",
+      "Estrutura conceitual para a elaboração e a divulgação de relatório contábil-financeiro",
+      "Disponibilidades – caixa e equivalentes de caixa. 9.1 Conteúdo, classificação e critérios de avaliação",
+      "Contas a receber. 10.1 Conceito, conteúdo e critérios contábeis",
+      "Estoques. 11.1 Conceito, conteúdo, classificação e critérios de avaliação",
+      "Despesas antecipadas. 12.1 Conceito, conteúdo, classificação e critérios de avaliação",
+      "Realizável a longo prazo (não circulante). 13.1 Conceito e classificação. 13.2 Ajuste a valor presente. 13.2.1 Cálculo e contabilização de contas ativas e passivas",
+      "Instrumentos financeiros. 14.1 Aspectos conceituais, reconhecimento, mensuração e evidenciação. 14.2 Recuperabilidade de instrumentos financeiros. 14.3 Contabilidade de Hedge",
+      "Mensuração do valor justo. 15.1 Definição de valor justo. 15.2 Valor justo: aplicação para ativos, passivos e instrumentos patrimoniais. 15.3 Técnicas de avaliação do valor justo",
+      "Propriedades para investimento. 16.1 Conceito, reconhecimento, mensuração e apresentação",
+      "Contabilização de investimentos em coligadas e controladas. 17.1 Goodwill",
+      "Ativo imobilizado. 18.1 Conceituação, classificação e conteúdo das contas. 18.2 Critérios de avaliação e mensuração do ativo imobilizado. 18.3 Depreciação, exaustão e amortização",
+      "Ativos intangíveis. 19.1 Aspectos conceituais, definição, reconhecimento e mensuração. 19.2 Goodwill",
+      "Redução ao valor recuperável de ativos. 20.1 Definições, identificação, reconhecimento, mensuração e divulgação",
+      "Passivo exigível. 21.1 Conceitos gerais, avaliação, reconhecimento, mensuração e conteúdo do passivo",
+      "Fornecedores, obrigações fiscais e outras obrigações",
+      "Empréstimos e financiamentos, debêntures e outros títulos de dívida",
+      "Provisões, passivos contingentes e ativos contingentes",
+      "Patrimônio Líquido. 25.1 Capital social. 25.2 Reservas de capital. 25.3 Ajustes de avaliação patrimonial. 25.4 Reservas de lucros. 25.5 Ações em tesouraria. 25.6 Prejuízos acumulados. 25.7 Dividendos. 25.8 Juros sobre o capital próprio",
+      "Arrendamento mercantil. 26.1 Conceito, contabilização, reconhecimento, mensuração e apresentação. 26.2 Transação de venda e leaseback",
+      "Combinação de negócios, fusão, incorporação e cisão",
+      "Concessões. 28.1 Reconhecimento, mensuração e divulgação",
+      "Políticas contábeis, mudança de estimativas, retificação de erros e eventos subsequentes",
+      "Receitas de vendas de produtos e serviços. 30.1 Conceitos e mensuração da receita e o momento de seu reconhecimento. 30.2 Deduções das vendas",
+      "Custo das mercadorias, dos produtos vendidos e dos serviços prestados. 31.1 Custeio real por absorção. 31.2 Custeio direto (ou custeio variável). 31.3 Custo-padrão. 31.4 Custeio com base em atividades. 31.5 RKW. 31.6 Custos para tomada de decisões. 31.7 Sistemas de custos e informações gerenciais. 31.8 Estudo da relação custo versus volume versus lucro",
+      "Despesas e outros resultados das operações continuadas",
+      "Transações entre partes relacionadas",
+      "Consolidação das demonstrações contábeis e demonstrações separadas",
+      "Correção integral das demonstrações contábeis",
+      "Análise econômico-financeira. 36.1 Indicadores de liquidez. 36.2 Indicadores de rentabilidade. 36.3 Indicadores de lucratividade. 36.4 Indicadores de endividamento. 36.5 Indicadores de estrutura de capitais. 36.6 Análise vertical e horizontal"
+     ]
+    },
+    {
+     "name": "Contabilidade Pública",
+     "topics": [
+      "Princípios de contabilidade sob a perspectiva do setor público",
+      "Sistema de Contabilidade Federal",
+      "Conceituação, objeto e campo de aplicação",
+      "Composição do patrimônio público. 4.1 Patrimônio público. 4.2 Ativo. 4.3 Passivo. 4.4 Saldo patrimonial",
+      "Variações patrimoniais. 5.1 Qualitativas. 5.2 Quantitativas. 5.2.1 Receita e despesa sob o enfoque patrimonial. 5.3 Realização da variação patrimonial. 5.4 Resultado patrimonial",
+      "Mensuração de ativos. 6.1 Ativo imobilizado. 6.2 Ativo intangível. 6.3 Reavaliação e redução ao valor recuperável. 6.4 Depreciação, amortização e exaustão",
+      "Mensuração de passivos. 7.1 Provisões. 7.2 Passivos contingentes",
+      "Tratamento contábil aplicável aos impostos e contribuições",
+      "Sistema de custos. 9.1 Aspectos legais do sistema de custos. 9.2 Ambiente da informação de custos. 9.3 Características da informação de custos. 9.4 Terminologia de custos",
+      "Plano de Contas Aplicado ao Setor Público (PCASP)",
+      "Demonstrações contábeis aplicadas ao setor público. 11.1 Balanço orçamentário. 11.2 Balanço financeiro. 11.3 Demonstração das variações patrimoniais. 11.4 Balanço patrimonial. 11.5 Demonstração dos fluxos de caixa. 11.6 Demonstração das mutações do patrimônio líquido. 11.7 Notas explicativas às demonstrações contábeis. 11.8 Consolidação das demonstrações contábeis",
+      "Transações no setor público",
+      "Despesa pública. 13.1 Conceito, etapas, estágios e categorias econômicas",
+      "Receita pública. 14.1 Conceito, etapas, estágios e categorias econômicas",
+      "Execução orçamentária e financeira",
+      "Conta Única do Tesouro Nacional",
+      "Sistema Integrado de Administração Financeira (SIAFI). 17.1 Conceitos básicos, objetivos, características, instrumentos de segurança e principais documentos de entrada",
+      "Suprimento de Fundos",
+      "MCASP 9ª edição",
+      "Regime contábil"
+     ]
+    },
+    {
+     "name": "Legislação Tributária aplicada às contratações públicas",
+     "topics": [
+      "Noções básicas sobre tributos. 1.1 Impostos, taxas e contribuições",
+      "Tratamento contábil aplicável aos impostos e às contribuições",
+      "Retenções na fonte realizadas pela Administração Pública Federal. 3.1 Imposto sobre a renda das pessoas jurídicas (IRPJ). 3.2 Contribuição Social sobre o Lucro Líquido (CSLL). 3.3 Programa de Integração Social (PIS). 3.4 Contribuição para o Financiamento da Seguridade Social (COFINS). 3.5 Imposto sobre Serviços (ISS). 3.6 Contribuição previdenciária (INSS)",
+      "Legislação básica e suas atualizações 4.1 Instrução Normativa da Receita Federal do Brasil nº 971/2009. 4.2 Instrução normativa da Receita Federal do Brasil nº 1.234/2012. 4.3 Lei Complementar nº 116/2003",
+      "Legislação aplicada ao Programa de Formação do Patrimônio do Servidor Público (PASEP)",
+      "Noções básicas de obrigações acessórias. 6.1 Declaração do Imposto sobre a Renda Retido na Fonte (DIRF), Relação Anual de Informações Sociais (RAIS), Guia de Recolhimento do FGTS e Informações à Previdência Social (GFIP), eSocial",
+      "Metodologia de ensino de Contabilidade: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Contabilidade diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Contabilidade"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "direito",
+   "group": "Professor de Educação Básica",
+   "name": "Direito",
+   "cargoCode": "Cargo 409",
+   "track": "magisterio",
+   "label": "Professor de Direito",
+   "specific": [
+    {
+     "name": "Direito Administrativo",
+     "topics": [
+      "Estado, governo e Administração Pública. 1.1 Conceitos. 1.2 Elementos",
+      "Direito administrativo. 2.1 Conceito. 2.2 Objeto. 2.3 Fontes",
+      "Ato administrativo. 3.1 Conceito, requisitos, atributos, classificação e espécies. 3.2 Extinção do ato administrativo (cassação, anulação, revogação e convalidação). 3.3 Decadência administrativa",
+      "Agentes públicos do Distrito Federal. 4.1 Disposições constitucionais aplicáveis.4.2 Disposições doutrinárias. 4.2.1 Conceito. 4.2.2 Espécies. 4.2.3 Cargo, emprego e função pública. 4.2.4 Provimento. 4.2.5 Vacância. 4.2.6 Efetividade, estabilidade e vitaliciedade. 4.2.7 Remuneração. 4.2.8 Direitos e deveres. 4.2.9 Responsabilidade. 4.2.10 Processo administrativo disciplinar",
+      "Poderes da Administração Pública. 5.1 Hierárquico, disciplinar, regulamentar e de polícia. 5.2 Uso e abuso do poder",
+      "Regime jurídico-administrativo. 6.1 Conceito. 6.2 Princípios expressos e implícitos da Administração Pública",
+      "Responsabilidade civil do Estado. 7.1 Evolução histórica. 7.2 Responsabilidade civil do Estado no direito brasileiro. 7.2.1 Responsabilidade por ato comissivo do Estado. 7.2.2 Responsabilidade por omissão do Estado. 7.3 Requisitos para a demonstração da responsabilidade do Estado. 7.4 Causas excludentes e atenuantes da responsabilidade do Estado. 7.5 Reparação do dano. 7.6 Direito de regresso",
+      "Serviços públicos. 8.1 Conceito. 8.2 Elementos constitutivos. 8.3 Formas de prestação e meios de execução. 8.4 Delegação: concessão, permissão e autorização. 8.5 Classificação. 8.6 Princípios",
+      "Organização administrativa. 9.1 Centralização, descentralização, concentração e desconcentração. 9.2 Administração direta e indireta. 9.3 Autarquias, fundações, empresas públicas e sociedades de economia mista. 9.4 Entidades paraestatais e terceiro setor: serviços sociais autônomos, entidades de apoio, organizações sociais e organizações da sociedade civil de interesse público",
+      "Controle da Administração Pública. 10.1 Controle exercido pela Administração Pública. 10.2 Controle judicial. 10.3 Controle legislativo. 10.4 Improbidade administrativa: Lei nº 8.429/1992",
+      "Processo administrativo: Lei nº 9.784/1999",
+      "Licitações e contratos administrativos. 12.1 Legislação pertinente. 12.1.1 Lei nº 14.133/2021. 12.1.2 Lei nº 10.520/2002 e demais disposições normativas relativas ao pregão. 12.1.3 Lei nº 12.462/2011 (Regime diferenciado de contratações públicas). 12.1.4 Decreto nº 6.170/2007, Portaria Interministerial MPOG/MF/CGU nº 507/2011 e Instrução Normativa do STN nº 1/1997 (convênios e instrumentos congêneres). 12.2 Fundamentos constitucionais",
+      "Legislação: Lei nº 8.069/1990 (Estatuto da Criança e do Adolescente); Lei nº 9.394/1996 (Lei de Diretrizes e Bases da Educação Nacional - LDB); Lei nº 13.005/2014; Lei nº 14.113/2020; Lei nº 11.788/2008 (Lei do estágio); Lei Distrital nº 5.499/2015 (Lei do PDE)"
+     ]
+    },
+    {
+     "name": "Direito Constitucional",
+     "topics": [
+      "Constituição da República Federativa do Brasil de 1988. 1.1 Princípios fundamentais",
+      "Aplicabilidade das normas constitucionais. 2.1 Normas de eficácia plena, contida e limitada. 2.2 Normas programáticas",
+      "Direitos e garantias fundamentais. 3.1 Direitos e deveres individuais e coletivos, direitos sociais, direitos de nacionalidade, direitos políticos e partidos políticos",
+      "Organização político-administrativa do Estado. 4.1 Estado Federal brasileiro, União, estados, Distrito Federal, municípios e Territórios",
+      "Administração Pública. 5.1 Disposições gerais e servidores públicos. L6 Poder Executivo. 6.1 Atribuições e responsabilidades do presidente da República",
+      "Poder Legislativo. 7.1 Estrutura. 7.2 Funcionamento e atribuições. 7.3 Processo legislativo. 7.4 Fiscalização contábil, financeira e orçamentária. 7.5 Comissões parlamentares de inquérito",
+      "Poder Judiciário. 8.1 Disposições gerais. 8.2 Órgãos do Poder Judiciário. 8.2.1 Organização, competências e Conselho Nacional de Justiça",
+      "Funções essenciais à justiça. 9.1 Ministério público e advocacia pública. 9.2 Defensoria pública"
+     ]
+    },
+    {
+     "name": "Direito Processual do Trabalho",
+     "topics": [
+      "Procedimentos nos dissídios individuais. 1.1 Reclamação. 1.2 Jus postulandi. 1.3 Revelia. 1.4 Exceções. 1.5 Contestação. 1.6 Reconvenção. 1.7 Partes e procuradores. 1.8 Audiência. 1.9 Conciliação. 1.10 Instrução e julgamento. 1.11 Justiça gratuita",
+      "Provas no processo do trabalho. 2.1 Interrogatórios. 2.2 Confissão e consequências. 2.3 Documentos. 2.4 Oportunidade de juntada. 2.5 Prova técnica. 2.6 Sistemática da realização das perícias. 2.7 Testemunhas",
+      "Recursos no processo do trabalho. 3.1 Disposições gerais. 3.1.1 Efeitos suspensivo e devolutivo. 3.1.2 Recursos no processo de cognição. 3.1.3 Recursos no processo de execução",
+      "Processos de execução. 4.1 Liquidação. 4.2 Modalidades da execução. 4.3 Embargos do executado – impugnação do exequente",
+      "Jurisprudência do Tribunal Superior do Trabalho. 5.1 Súmulas e orientações jurisprudenciais",
+      "Prescrição e decadência no processo do trabalho",
+      "Competência da justiça do trabalho",
+      "Rito sumaríssimo no dissídio individual",
+      "Comissão prévia de conciliação nos dissídios individuais",
+      "Ação rescisória no processo do trabalho",
+      "Mandado de segurança. 11.1 Cabimento no processo do trabalho",
+      "Dissídios coletivos"
+     ]
+    },
+    {
+     "name": "Direito Previdenciário",
+     "topics": [
+      "Seguridade social. 1.1 Conceito, origem e evolução legislativa no Brasil, organização e princípios",
+      "Custeio da seguridade social. 2.1 Receitas, contribuições sociais, salário de contribuição",
+      "Regime Geral de Previdência Social. 3.1 Segurados e dependentes. 3.2 Filiação e inscrição. 3.3 Carência. 3.4 Espécies de benefícios e prestações, disposições gerais e específicas. 3.5 Salário de benefício. 3.6 Renda mensal inicial. 3.7 Reajustamento e revisão. 3.8 Prescrição e decadência. 3.9 Acumulação de benefícios. 3.10 Justificação. 3.11 Ações judiciais em matéria previdenciária. 3.12 Acidente de trabalho",
+      "Regime próprio de previdência dos servidores públicos",
+      "Contagem recíproca de tempo de contribuição e compensação financeira",
+      "Previdência complementar"
+     ]
+    },
+    {
+     "name": "Direito Civil",
+     "topics": [
+      "Lei de introdução às normas do direito brasileiro. 1.1 Vigência, aplicação, obrigatoriedade, interpretação e integração das leis. 1.2 Conflito das leis no tempo. 1.3 Eficácia das leis no espaço",
+      "Pessoas naturais. 2.1 Conceito. 2.2 Início da pessoa natural. 2.3 Personalidade. 2.4 Capacidade. 2.5 Direitos da personalidade. 2.6 Domicílio",
+      "Pessoas jurídicas. 3.1 Disposições Gerais. 3.2 Constituição. 3.3 Extinção. 3.4 Sociedades de fato. 3.5 Associações. 3.6 Fundações",
+      "Bens imóveis, móveis e públicos",
+      "Fato jurídico",
+      "Negócio jurídico. 6.1 Disposições gerais. 6.2 Invalidade",
+      "Prescrição. 7.1 Disposições gerais",
+      "Decadência",
+      "Obrigações. 9.1 Características. 9.2 Adimplemento pelo pagamento. 9.3 Inadimplemento das obrigações – disposições gerais e mora",
+      "Contratos. 10.1 Princípios. 10.2 Contratos em geral. 10.3 Disposições gerais",
+      "Responsabilidade civil objetiva e subjetiva. 11.1 Obrigação de indenizar. 11.2 Dano material. 11.3 Dano moral",
+      "Lei nº 8.078/1990. 12.1 Consumidor. 12.2 Fornecedor",
+      "Lei nº 10.741/2003 (Estatuto do Idoso). 13.1 Disposições preliminares. 13.2 Direitos fundamentais",
+      "Lei nº 8.245/1991 (Locação de Imóveis Urbanos)"
+     ]
+    },
+    {
+     "name": "Direito Processual Civil",
+     "topics": [
+      "Lei nº 13.105/2015 (Novo Código de Processo Civil). 1.1 Normas processuais civis. 1.2 Função jurisdicional. 1.3 Ação. 1.3.1 Conceito, natureza, elementos e características. 1.3.2 Condições da ação. 1.3.3 Classificação. 1.4 Pressupostos processuais. 1.5 Preclusão. 1.6 Sujeitos do processo. 1.6.1 Capacidade processual e postulatória. 1.6.2 Deveres das partes e procuradores. 1.6.3 Procuradores. 1.6.4 Sucessão das partes e dos procuradores. 1.7 Litisconsórcio. 1.8 Intervenção de terceiros. 1.9 Poderes, deveres e responsabilidade do juiz. 1.10 Ministério Público. 1.11 Advocacia Pública. 1.12 Defensoria pública. 1.13 Atos processuais. 1.13.1 Forma dos atos. 1.13.2 Tempo e lugar. 1.13.3 Prazos. 1.13.4 Comunicação dos atos processuais. 1.13.5 Nulidades. 1.13.6 Distribuição e registro. 1.13.7 Valor da causa. 1.14 Tutela provisória. 1.14.1. Tutela de urgência. 1.14.2 Disposições gerais. 1.15 Formação, suspensão e extinção do processo. 1.16 Processo de conhecimento e do cumprimento de sentença. 1.16.1 Procedimento comum. 1.16.2 Disposições Gerais. 1.16.3 Petição inicial. 1.16.4 Improcedência liminar do pedido. 1.16.5 Audiência de conciliação ou de mediação. 1.16.6 Contestação, reconvenção e revelia. 1.16.7 Audiência de instrução e julgamento. 1.16.8 Providências preliminares e do saneamento. 1.16.9 Julgamento conforme o estado do processo. 1.16.10 Provas. 1.16.11 Sentença e coisa julgada. 1.16.12 Cumprimento da sentença. 1.16.13 Disposições Gerais. 1.16.14 Cumprimento. 1.16.15 Liquidação. 1.17 Procedimentos Especiais. 1.18 Procedimentos de jurisdição voluntária. 1.19 Processos de execução. 1.20 Processos nos tribunais e meios de impugnação das decisões judiciais. 1.21 Livro Complementar. 1.21.1 Disposições finais e transitórias. 1.21.2 Mandado de segurança. 1.21.3 Ação popular. 1.21.4 Ação civil pública. 1.21.5 Ação de improbidade administrativa. 1.21.6 Reclamação constitucional. 1.22 Lei nº 8.245/1991 e suas alterações (Locação de imóveis urbanos). 1.22.1 Procedimentos. 1.23 Jurisprudência dos tribunais superiores",
+      "Metodologia de ensino de Direito: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Direito diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Direito"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "educacao-fisica",
+   "group": "Professor de Educação Básica",
+   "name": "Educação Física",
+   "cargoCode": "Cargo 410",
+   "track": "magisterio",
+   "label": "Professor de Educação Física",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Educação Física",
+     "topics": [
+      "Histórico da Educação Física",
+      "Educação Física enquanto linguagem",
+      "Construindo competências e habilidades em Educação Física",
+      "Avaliação em Educação Física",
+      "Educação Física e sociedade",
+      "Fundamentos didático-pedagógicos da Educação Física",
+      "Atividade física e saúde",
+      "Crescimento e desenvolvimento",
+      "Aspectos da aprendizagem motora",
+      "Aspectos sócio-históricos da Educação Física",
+      "Política educacional e Educação Física",
+      "Cultura e Educação Física",
+      "Aspectos da competição e cooperação no cenário escolar",
+      "Práticas Corporais",
+      "Cultura corporal e cultura corporal do movimento",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de Educação Física no Ensino Fundamental e Médio e para a área de Linguagens e suas tecnologias no Ensino Médio",
+      "Competências e Habilidades da BNCC para Educação Física",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Educação Física"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "eletronica",
+   "group": "Professor de Educação Básica",
+   "name": "Eletrônica",
+   "cargoCode": "Cargo 411",
+   "track": "magisterio",
+   "label": "Professor de Eletrônica",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Eletrônica",
+     "topics": [
+      "Eletrônica analógica",
+      "Eletrônica digital",
+      "Circuitos elétricos e de potência",
+      "Conversão eletromecânica de energia",
+      "Máquinas elétricas: transformadores e máquinas rotativas, máquina síncrona, motor de indução e máquina de corrente contínua",
+      "Transmissão e distribuição de energia elétrica",
+      "Análise de sistemas elétricos",
+      "Acionamentos e controles elétricos",
+      "Equipamentos elétricos",
+      "Eletrônica analógica e digital",
+      "Eletrônica de potência",
+      "Controle linear, não linear e digital",
+      "Sistemas lineares, não lineares e digitais",
+      "Instrumentação e técnicas de medidas",
+      "Microprocessadores e microcomputadores",
+      "Comunicação analógica e digital",
+      "Software",
+      "Metodologia de ensino de Eletrônica: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Eletrônica diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Eletrônica"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "eletrotecnica",
+   "group": "Professor de Educação Básica",
+   "name": "Eletrotécnica",
+   "cargoCode": "Cargo 412",
+   "track": "magisterio",
+   "label": "Professor de Eletrotécnica",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Eletrotécnica",
+     "topics": [
+      "Conceitos Básicos. 1.1 Tensão; corrente; potência elétrica; energia; e rendimento.1.2 Elementos e Leis de Circuitos Elétricos: Lei de Ohm e Leis de Kirchhoff. 1.3 Circuitos de Corrente Contínua (CC): resolução de circuitos resistivos",
+      "Circuitos de Corrente Alternada (CA) em regime permanente senoidal: tensões e correntes senoidais de mesma frequência; valor de pico, médio e eficaz; representação por fasores; Leis de Kirchhoff; equações e elementos do circuito na forma fasorial; diagrama fasorial; conceito de impedância e admitância; e métodos de resolução de circuitos CA, usando impedância e admitância",
+      "Potência em Circuitos CA: potência ativa, reativa, aparente e complexa; fator de potência; ajuste do fator de potência",
+      "Circuitos Trifásicos: sequência de fases; ligações de geradores e cargas em triângulo e estrela; tensões e correntes de fase e de linha; métodos de resolução de circuitos trifásicos equilibrados e desequilibrados; e potências trifásicas em função de grandezas de linha",
+      "Transformadores e autotransformadores monofásicos e trifásicos, associação de transformadores e aplicações",
+      "Filtros passivos e ativos: análise da resposta em frequência; diagrama de bode; ressonância série/paralelo; fator de escala; funções de transferência",
+      "Instrumentos de medidas elétricas: princípios de funcionamento e utilização de instrumentos de medidas elétricas",
+      "Análise avançada de circuitos: séries de Fourier; transformadas de Fourier; transformadas de Laplace; aplicações",
+      "Equações: soluções de circuitos por métodos algébricos e matriciais. 9.1 Equacionamento de circuitos dinâmicos e solução por equações diferenciais. 9.2 Variáveis de estado. Circuitos no domínio do tempo e frequência. 9.3 Entradas(fontes): constante, degrau e impulso",
+      "Circuitos de dois terminais: parâmetros, impedância, admitância, híbridos, transmissão e conexão de circuitos de dois terminais",
+      "Metodologia de ensino de Eletrotécnica: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐ pedagógica o ensino integrado de Eletrotécnica diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e a formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Eletrotécnica"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "enfermagem",
+   "group": "Professor de Educação Básica",
+   "name": "Enfermagem",
+   "cargoCode": "Cargo 413",
+   "track": "magisterio",
+   "label": "Professor de Enfermagem",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Enfermagem",
+     "topics": [
+      "Lei do exercício Profissional: análise crítica",
+      "Código de Ética: análise crítica",
+      "Epidemiologia e enfermagem",
+      "Estatística e enfermagem",
+      "Teorias em enfermagem",
+      "Enfermeiro como líder e agente de mudança",
+      "Concepções teórico‐práticas da assistência de enfermagem",
+      "Administração dos serviços de enfermagem",
+      "Políticas públicas em saúde e sua evolução histórica",
+      "Lei orgânica de saúde a partir da Constituição de 1988",
+      "Processo social de mudança das práticas sanitárias no SUS e na enfermagem",
+      "Administração de materiais e enfermagem",
+      "Teorias administrativas e enfermagem",
+      "Organização dos serviços de enfermagem",
+      "Estrutura e funcionamento dos serviços de enfermagem",
+      "Planejamento na administração e na assistência de enfermagem em nível ambulatorial",
+      "Enfermagem e recursos humanos: recrutamento e seleção",
+      "Enfermagem em equipe – dimensionamento de recursos humanos",
+      "Enfermagem, enfermeiro e tomada de decisão na administração da assistência e do serviço",
+      "Enfermagem na auditoria dos serviços e assistência",
+      "Administração do processo de cuidar em Enfermagem",
+      "Normas do Ministério da Saúde para atuação: programa nacional de imunizações, programa da mulher, programa da criança, programa do adolescente, programa do idoso, programa DST e AIDS, programa de hanseníase, programa de pneumologia sanitária, programa de hipertensão e programa de diabético",
+      "Planejamento da assistência de enfermagem",
+      "Processo de enfermagem: teoria e prática",
+      "Consulta de enfermagem",
+      "Medidas de higiene e de segurança nos serviços de enfermagem e para o trabalhador",
+      "Participação do enfermeiro na CIPA",
+      "Emergências clínicas e cirúrgicas e a assistência de enfermagem",
+      "Primeiros socorros",
+      "Assistência integral por meio do trabalho em equipe: de enfermagem, multiprofissional e interdisciplinar",
+      "Planejamento do ensino ao cliente com vistas ao autocuidado: promoção e prevenção da saúde",
+      "Metodologia de ensino de Enfermagem: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático‐pedagógica e o ensino integrado de Enfermagem diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Enfermagem"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "farmacia",
+   "group": "Professor de Educação Básica",
+   "name": "Farmácia",
+   "cargoCode": "Cargo 414",
+   "track": "magisterio",
+   "label": "Professor de Farmácia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Farmácia",
+     "topics": [
+      "Equipamentos utilizados em laboratório de manipulação de fármacos e operações gerais",
+      "Preparação de soluções, reagentes e soluções volumétricas. 2.1 Diluição e mistura de soluções. 2.2 Padronização de soluções",
+      "Cálculos e unidades utilizados na preparação de soluções",
+      "Farmacopeias e formulários",
+      "Farmacotécnica: formas farmacêuticas sólidas, semissólidas e líquidas de administração oral, parenteral, retal, tópica, oftálmica e vaginal",
+      "Princípios de farmacocinética e farmacodinâmica",
+      "Princípios e mecanismos de atuação de fármacos e mediadores químicos",
+      "Farmacologia cardíaca, renal e da hipertensão",
+      "Farmacologia do sistema nervoso central",
+      "Fármacos usados no tratamento de parasitoses",
+      "Fármacos que afetam a função gastrointestinal",
+      "Fármacos utilizados nas afecções do aparelho respiratório",
+      "Mecanismo de atuação de antimicrobianos, anti-inflamatórios, antineoplásicos e antivirais",
+      "Manipulação de medicamentos e produção de antissépticos e desinfetantes",
+      "Fundamentos da dispensação de medicamentos. 15.1 Doses e vias de administração",
+      "Medicamentos genéricos, excepcionais e específicos",
+      "Farmacologia da dor",
+      "Abuso de drogas",
+      "Interações medicamentosas",
+      "Neurotransmissão colinérgica e adrenérgica",
+      "Insulina e fármacos hipoglicemiantes orais",
+      "Vitaminas hidrossolúveis e lipossolúveis",
+      "Noções básicas de toxicologia e toxicologia de medicamentos",
+      "Farmacoepidemiologia: ensaios clínicos de fase I a IV",
+      "Ciclos da assistência farmacêutica",
+      "Inspeção de indústrias farmacêuticas",
+      "Política Nacional de Medicamentos",
+      "Legislação farmacêutica. 28.1 Lei nº 5.991/1973, Resolução nº 328/1999 do Conselho Federal de Farmácia, Portaria nº 344/1998 do Ministério da Saúde e Lei nº 6.437/1977",
+      "Princípios básicos para controle de estoque. 29.1 Avaliação, previsão, custo e níveis de estoque",
+      "Farmacovigilância e hemovigilância",
+      "Probabilidade e estatística. 31.1 Estatística aplicada",
+      "Controle de qualidade físico-químico e microbiológico de medicamentos alopáticos, saneantes e biológicos. 32.1 Garantia de qualidade aplicada à indústria farmacêutica. 32.2 Boas práticas de fabricação (Cgmp) aplicadas à indústria farmacêutica",
+      "Planejamento estratégico. 33.1 Planejamento e controle de produção. 33.2 Logística. 33.3 Gestão de erros, desvios e não conformidades. 33.4 Gestão de equipamentos. 33.5 Controle de mudanças. 33.6 Padronização de procedimentos. 33.7 Gestão de fornecedores. 33.8 Cadeia cliente-fornecedor",
+      "Controle de infecção hospitalar",
+      "Metodologia de ensino de Farmácia: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Farmácia diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Farmácia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "filosofia",
+   "group": "Professor de Educação Básica",
+   "name": "Filosofia",
+   "cargoCode": "Cargo 415",
+   "track": "magisterio",
+   "label": "Professor de Filosofia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Filosofia",
+     "topics": [
+      "A emergência da filosofia grega. 1.1 Filosofia e cidade. 1.2 Filosofia e democracia. 1.3 Filosofia e universalização da palavra. 1.4 Filosofia, verdade e argumentação",
+      "Filosofia e os conhecimentos tradicionais (narrativas/mitos). 2.1 Filosofia e a consciência cotidiana. 2.2 Filosofia, arte e ciências",
+      "Filosofia e ação. 3.1 Moral, ética e política. 3.2 Filosofia, ética e felicidade (Platão, Aristóteles, Agostinho de Hipona e Spinoza). 3.3 Ética, autonomia da razão e dignidade (Kant). 3.4 Crítica e genealogia da moral (Nietzsche). 3..4.1 Contextualização histórica dessas questões e principais argumentos",
+      "Filosofia e conhecimento científico. 4.1 Racionalismo (Descartes) e empirismo (Bacon). 4.2 Filosofia e crítica da técnica (Heidegger, Benjamin). 4.3 Contextualização histórica dessas questões e principais argumentos",
+      "Filosofia e experiência estética. 5.1 Arte e absoluto (Hegel), arte e afirmação da vida (Nietzsche). 5.2 Arte e sentido (Heidegger e Gadamer). 5.3 Arte e capitalismo (Benjamin, Adorno e Horkheimer). 5.3.1 Contextualização histórica dessas questões e principais argumentos",
+      "Reflexões acerca do ensino de Filosofia no Ensino Médio. 6.1 Ensino de Filosofia e interdisciplinaridade. 6.2 Estratégias didáticas e seleção de conteúdos",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de Filosofia no Ensino Médio e para a área de Ciências Humanas e Sociais Aplicadas no Ensino Médio",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Filosofia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fisica",
+   "group": "Professor de Educação Básica",
+   "name": "Física",
+   "cargoCode": "Cargo 416",
+   "track": "magisterio",
+   "label": "Professor de Física",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Física",
+     "topics": [
+      "História e Evolução das ideias da Física: cosmologia antiga; a física de Aristóteles; origens da mecânica",
+      "Mecânica: cinemática escalar e vetorial; movimento circular; leis de Newton e suas aplicações; trabalho; potência; energia, conservação e suas transformações, impulso; quantidade de movimento, conservação da quantidade de movimento; gravitação universal; estática dos corpos rígidos; estática dos fluidos; princípios de Pascal, Arquimedes e Stevin",
+      "Termodinâmica: calor e temperatura; temperatura e dilatação térmica; calor específico; trocas de calor; mudança de fase e diagramas de fases; propagação do calor; teoria cinética dos gases; energia interna; lei de Joule; transformações gasosas; leis da termodinâmica: entropia e entalpia; máquinas térmicas; ciclo de Carnot",
+      "Eletromagnetismo: introdução à eletricidade; campo elétrico; lei de Gauss; potencial elétrico; corrente elétrica; potência elétrica e resistores; circuitos elétricos; campo magnético; lei de Ampère; lei de Faraday; propriedades elétricas e magnéticas dos materiais",
+      "Ondulatória: movimento harmônico simples; oscilações livres, amortecidas e forçadas; ondas; ondas sonoras e eletromagnéticas; frequências naturais e ressonância",
+      "Óptica Geométrica: reflexão e refração da luz; instrumentos ópticos – características e aplicações",
+      "Óptica Física: interferência; difração; polarização",
+      "Ensino de Física: conhecimento científico e habilidade didática no ensino de Física. A construção do conhecimento no ensino da Física: abordagens metodológicas. Recursos didáticos no ensino de Física (utilizados em sala de aula e laboratório, incluindo conhecimentos básicos de técnicas, materiais e normas de segurança laboratoriais)",
+      "Avaliação de aprendizagem aplicada ao conhecimento da física",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de Física no Ensino médio e para a área de Ciências da Natureza e suas tecnologias no Ensino Médio",
+      "Competências e Habilidades da BNCC para Física",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Física"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fisioterapia",
+   "group": "Professor de Educação Básica",
+   "name": "Fisioterapia",
+   "cargoCode": "Cargo 417",
+   "track": "magisterio",
+   "label": "Professor de Fisioterapia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Fisioterapia",
+     "topics": [
+      "Fisioterapia geral (efeitos fisiológicos, indicações e contraindicações de termoterapia, fototerapia, hidroterapia, massoterapia, cinesioterapia, eletroterapia e manipulação vertebral)",
+      "Fisioterapia em traumatologia, ortopedia e reumatologia",
+      "Fisioterapia em neurologia",
+      "Fisioterapia em ginecologia e obstetrícia",
+      "Fisioterapia em pediatria, geriatria e neonatologia",
+      "Fisioterapia em doenças cardiovasculares",
+      "Amputação: próteses e órteses; e mastectomias",
+      "Fisioterapia em pneumologia, fisioterapia respiratória: fisioterapia pulmonar ‒ gasometria arterial; insuficiência respiratória aguda e crônica; infecção do aparelho respiratório; avaliação fisioterápica de paciente crítico; e ventilação mecânica (vias aéreas artificiais, indicações da ventilação mecânica, modos de ventilação mecânica e desmame da ventilação mecânica). 9.Fisioterapia na saúde do trabalhador: ergonomia; doenças ocupacionais relacionadas ao trabalho; e práticas preventivas no ambiente de trabalho",
+      "Assistência fisioterapêutica domiciliar",
+      "Metodologia de ensino da fisioterapia: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático- pedagógica e o ensino integrado da fisioterapia diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Fisioterapia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gastronomia",
+   "group": "Professor de Educação Básica",
+   "name": "Gastronomia",
+   "cargoCode": "Cargo 418",
+   "track": "magisterio",
+   "label": "Professor de Gastronomia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Gastronomia",
+     "topics": [
+      "Antropologia da alimentação",
+      "Higiene e segurança dos alimentos",
+      "Nutrição básica e cozinha profissional",
+      "Preparo prévio de alimentos",
+      "Culinária brasileira regional",
+      "Gastronomia saudável e sustentável",
+      "Gerência de cozinhas",
+      "Mercado cultural, formatos de captação e parcerias",
+      "Técnicas de cozinha",
+      "Cozinha asiática",
+      "Cozinha mediterrânea",
+      "Ervas, especiarias e molhos",
+      "Fundamentos de panificação e confeitaria",
+      "Panificação e confeitaria",
+      "Cozinha contemporânea e tendências",
+      "Cozinha regional francesa",
+      "Cultura gastronômica francesa",
+      "Enologia, aperitivos e drinks",
+      "Experiências gastronômicas e de hospedagem",
+      "Departamento de alimentos e bebidas na hotelaria",
+      "Aproveitamento integral de alimentos",
+      "Boas Práticas e Controles Operacionais Essenciais para Serviços de Alimentação: NBR 15635",
+      "Boas Práticas para Serviços de Alimentação e Distribuição",
+      "Boas Práticas para Serviços de Alimentação (PSG)",
+      "Congelamento de alimentos",
+      "Controle de estoques de alimentos e bebidas",
+      "Sustentabilidade aplicada à cozinha",
+      "Planejamento e gestão de cardápios",
+      "Transtornos alimentares",
+      "Metodologia de ensino de Gastronomia: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Gastronomia diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Gastronomia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "geografia",
+   "group": "Professor de Educação Básica",
+   "name": "Geografia",
+   "cargoCode": "Cargo 419",
+   "track": "magisterio",
+   "label": "Professor de Geografia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Geografia",
+     "topics": [
+      "Concepções do pensamento geográfico e sua influência no ensino da Geografia. 1.1 Sociedade, lugar e paisagem no ensino da Geografia. 1.2 Currículo: cultura e territorialidade no ensino da Geografia. \u0001 Novas abordagens teóricas e metodológicas no ensino da Geografia. 1.4 Novas tecnologias de comunicação e informação no ensino da Geografia. 1.5 Aspectos avaliativos no Ensino da Geografia",
+      "Geopolítica e Econômica. 2.1 O espaço como produto do ser humano. 2.2 Capitalismo. 2.3 Desenvolvimento e subdesenvolvimento. 2.4 Economia do pós-guerra. 2.5 O Brasil, a nova ordem mundial e a globalização. 2.6 O comércio internacional. 2.7 O Mercosul. 2.8 A economia mundial e do Brasil. 2.9 O problema da dívida externa. 2.10 Energia e transporte. 2.11 A agropecuária. 2.12 O comércio. 2.13 A indústria. 2.14 Os serviços. 2.15 As relações de trabalho. 2.16 As desigualdades sociais e a exploração humana. 2.17 A revolução técnico-científica",
+      "Geografia da população. 3.1 A população e as formas de ocupação do espaço. 3.2 Os contrastes regionais do Brasil. 3.1 Urbanização e metropolização",
+      "Ecologia. 4.1 Ecossistemas naturais. 4.2 Impactos ambientais. 4.3 Recursos naturais e devastação histórica. 4.4 Política ambiental",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de Geografia no Ensino Fundamental e Médio e para a área de Ciências Humanas e Socais Aplicadas no Ensino Médio",
+      "Competências e Habilidades da BNCC para Geografia",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Geografia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "historia",
+   "group": "Professor de Educação Básica",
+   "name": "História",
+   "cargoCode": "Cargo 420",
+   "track": "magisterio",
+   "label": "Professor de História",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – História",
+     "topics": [
+      "Concepções do pensamento histórico, a dinâmica historiográfica e sua influência no ensino da história. 1.1 Memória, oralidade e cotidiano no ensino de História. 1.2 Currículo: cultura, gênero, direitos humanos, meio ambiente, história local e diversidade étnico racial no ensino de História, novas abordagens teóricas e metodológicas no ensino de História. 1.3 Novas tecnologias de comunicação e informação no ensino de História. 1.4 Aspecto avaliativo no ensino de História",
+      "História Natural e História Social. 2.1 O processo de humanização e a dinâmica da formação das sociedades humanas na Pré-história. 2.2 A Organização sociopolítica, econômica, cultural religiosa do Egito, Núbia, Kush, Ménroe, Napata, Mesopotâmia, Palestina, Fenícia, Pérsia, Grega e Romana, sua dinâmica, relações, rupturas e transformações",
+      "A organização sociopolítica, econômica, cultural e religiosa da sociedade europeia do século V ao XV sua dinâmica, relações, rupturas e transformações",
+      "Os reinos africanos no século V ao XV",
+      "Dinâmica, relações, rupturas e transformações da sociedade europeia do século XV ao XVIII",
+      "Dinâmica, relações, rupturas e transformações da sociedade europeia, americana, africana e asiática do século XVIII a contemporaneidade",
+      "Dinâmica, relações, rupturas e transformações da organização sociopolítica, econômica e cultural no Brasil Colonial. 7.1 Escravidão e resistência negra e indígena no Brasil Colonial. 7.2 As tecnologias de agricultura, de beneficiamento de cultivo, de mineração e de edificações trazidas pelos escravizados, bem como a produção científica, artística (artes plásticas, literatura, música, dança, teatro) e política. 7.3 Cultura e religiosidade africana e indígena no Brasil Colonial. 7.4 Movimento de independência no Brasil Colonial. 7.5 Organização sociopolítica, econômica e cultural no Império: 1º e 2º Reinado. 7.6 As revoluções sociais: Cabanagem, Balaiada, Farroupilha, Sabinada, Revolta dos Malês, Quebra Quilo; Abolição e Movimento Republicano no Brasil",
+      "Dinâmica, relações, rupturas e transformações da organização sociopolítica, econômica e cultural no Brasil na República",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de História no Ensino Fundamental e Médio e para a área de Ciências Humanas e Socais Aplicadas no Ensino Médio",
+      "Competências e Habilidades da BNCC para História",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de História"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "informatica",
+   "group": "Professor de Educação Básica",
+   "name": "Informática",
+   "cargoCode": "Cargo 421",
+   "track": "magisterio",
+   "label": "Professor de Informática",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Informática",
+     "topics": [
+      "Fundamentos de computação. 1.1 Organização e arquitetura de computadores. 1.2 Componentes de um computador (hardware e software). 1.3 Sistemas de entrada, saída e armazenamento. 1.4 Princípios de sistemas operacionais. 1.5 Características dos principais processadores do mercado. 1.6 Aplicações de informática e microinformática. 1.7 Ambiente Windows e Linux",
+      "Desenvolvimento de sistemas. 2.1 Aspectos de linguagens de programação, algoritmos e estruturas de dados e objetos. 2.2 Programação orientada a objetos. 2.3 Padrões de projeto. 2.4 Arquitetura MVC",
+      "Bancos de dados. 3.1 Organização de arquivos e métodos de acesso. 3.2 Sistemas Gerenciadores de Banco de Dados (SGBD). 3.3 Linguagens de definição e manipulação de dados. 3.4 Linguagens de consulta (query language) – SQL, conceitos e comandos SQL SERVER e DB2. 3.5 Bancos de dados textuais",
+      "Linguagens de programação. 4.1 Tipos de dados elementares e estruturados. 4.2 Funções e procedimentos. 4.3 Estruturas de controle de fluxo. 4.4 Programação Java: arquitetura J2EE. 4.5 Portais corporativos: conceitos básicos e aplicações, portlets e RSS",
+      "Redes de computadores. 5.1 Fundamentos de comunicação de dados. 5.2 Elementos de interconexão de redes de computadores (gateways, switches, roteadores). 5.3 Estações e servidores. 5.4 Tecnologias de redes locais e de longa distância. 5.5 Arquitetura, protocolos e serviços de redes de comunicação. 5.6 Arquitetura TCP/IP. 5.7 Arquitetura cliente-servidor. 5.8 Conceitos de internet e intranet",
+      "Metodologia de ensino de informática: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula, organização didático-pedagógica e o ensino integrado de informática diante das exigências metodológicas de ensino e de aprendizagem",
+      "Metodologia de ensino de Informática: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Informática diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância. 11Questões relacionadas ao processo de ensino e de aprendizagem de Informática"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lem-alemao",
+   "group": "Professor de Educação Básica",
+   "name": "LEM – Alemão",
+   "cargoCode": "Cargo 422",
+   "track": "magisterio",
+   "label": "Professor de LEM – Alemão",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – LEM – Alemão",
+     "topics": [
+      "Semantische und syntaktische Aspekte der deutschen Sprache. 1.1 Der Satzbau. 1.2 Antwort auf Ja-/Nein-Fragen. 1.3 Die Position des Verbs und seine Komplementsätze. 1.4 Komplementsätze. 1.5 Pronomen. 1.6 Die Bildung des Substantivs. 1.7 Groß -und Kleinschreibung. 1.8 Grammatikalische Zusätze in der deutschen Sprache. 1.9 Die 4 Fälle (Satzintegration von Koordinationen und Apposition in der Nachfeldstellung). 1.10 Deklination der Pronomen und Substantive. 1.11 Die n-Deklination. 1.12 Satzklammer. 1.13 Konnektoren. 1.14 Komplexer Satzbau. 1.15 Artikel (bestimmt, unbestimmt, Negation, Possessiv und Frageartikel). 1.16 Adjektive und Adverbien und deren Bildung und Position im Satz. 1.17 Präpositionen. 1.18 Aussprache und phonologische Aspekte der deutschen Sprache. 1.19 Doppelkonsonanten und vorherige Vokale, Diphtonge, der S-Laut, zusammengesetzte Konsonanten, der st-Laut und der sp-Laut",
+      "Metodologia de ensino da Língua Alemã: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático-pedagógica e o ensino integrado da Língua Alemã diante das exigências metodológicas de ensino e de aprendizagem. 2.1 Ensino globalizado e formação da cidadania",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de alemão"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lem-espanhol",
+   "group": "Professor de Educação Básica",
+   "name": "LEM – Espanhol",
+   "cargoCode": "Cargo 423",
+   "track": "magisterio",
+   "label": "Professor de LEM – Espanhol",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – LEM – Espanhol",
+     "topics": [
+      "Morfologia: el artículo; el nombre: género, heterogenéricos em relación al portugués, número; el adjetivo: género, número, formas apocopadas, grados de comparación; el pronombre: personal, demostrativo, posesivo, indefinido, relativo; el verbo: conjugación (verbos regulares e irregulares), formas no personales, formas personales (uso de los diferentes tiempos y modos), perífrasis verbales, forma pasiva; el adverbio: formas apocopadas; la preposición; la conjunción",
+      "Silabeo",
+      "Acentuación",
+      "Heterotónicos y heterosemánticos em relación al portugués",
+      "Sintaxis: oraciones compuestas: cordinadas, subordinadas; el estilo indirecto",
+      "Interpretación de textos",
+      "Metodologia de ensino da Língua Espanhola: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático-pedagógica e o ensino integrado da Língua Espanhola diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de espanhol"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lem-frances",
+   "group": "Professor de Educação Básica",
+   "name": "LEM – Francês",
+   "cargoCode": "Cargo 424",
+   "track": "magisterio",
+   "label": "Professor de LEM – Francês",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – LEM – Francês",
+     "topics": [
+      "Compréhension de texte",
+      "Les éléments du discours",
+      "La phrase simple: structures de la frase simple affirmative, fonctions essentielles et accessoires; structures de la frase négative, exclamative et interrogative",
+      "La phrase complexe: la juxtaposition, la coordination et la subordination",
+      "Les parties du discours",
+      "Le nom: genre, nombre et fonctions",
+      "L-adjectif qualificatif: genre, nombre, accord, degré, fonctions et place",
+      "La détermination: l-article, formes et emplois; les pronoms personnels: formes, emplois et place; les adjectifs et les pronoms démonstratifs, possessifs et indéfinis: fonctions et emplois; les pronoms et les adjectifs interrogatifs et relatifs: fonctions et emplois; les adjectives numéraux",
+      "Le système verbal: les conjugaisons; les constructions: les verbes transitifs et intransitifs, actifs et passifs, pronominaux et non- pronominaux, impersonnels; les modes et les temps: valeurs et emplois; l-accord du verbe; la concordance des temps",
+      "Les mots invariables: les prépositions et les conjonctions, emplois; les adverbes, emplois, fonctions et place",
+      "Metodologia de ensino da Língua Francesa: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático-pedagógica e o ensino integrado da Língua Francesa diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de francês"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lem-ingles",
+   "group": "Professor de Educação Básica",
+   "name": "LEM – Inglês",
+   "cargoCode": "Cargo 425",
+   "track": "magisterio",
+   "label": "Professor de LEM – Inglês",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – LEM – Inglês",
+     "topics": [
+      "Semantic aspects of the language",
+      "Syntactic aspects of the language concerning the following items: the simple sentence; adjuncts; disjuncts, conjuncts; coordination and apposition; sentence connection; the complex sentence; the verb and its complementation; the complex noun phrase; word formation",
+      "Morphological aspects of the language concerning the following items: verbs and the verb phrase; nouns, pronouns, articles and determiners; adjectives and adverbs; prepositions and prepositional phrases",
+      "Phonetic/phonological aspects of the language concerning: segmental features: English vocalic and consonantal systems",
+      "Reading Comprehension",
+      "Metodologia de ensino da Língua Inglesa: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático‐pedagógica e o ensino integrado da Língua Inglesa frente às exigências metodológicas de ensino e de aprendizagem: o ensino globalizado e formação da cidadania",
+      "Avaliação formativa no ensino e aprendizagem da Língua Inglesa na educação básica",
+      "Objetivos da aprendizagem do Currículo do Distrito Federal para o componente curricular de Língua Inglesa no Ensino Fundamental e no Ensino Médio e para a área de Linguagens e suas Tecnologias no Ensino Médio",
+      "Objetivos da aprendizagem do Currículo em Movimento do Distrito Federal",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de inglês"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lem-japones",
+   "group": "Professor de Educação Básica",
+   "name": "LEM – Japonês",
+   "cargoCode": "Cargo 426",
+   "track": "magisterio",
+   "label": "Professor de LEM – Japonês",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – LEM – Japonês",
+     "topics": [
+      "A Língua Japonesa: sua posição no mundo; características do ponto de vista da linguística contrastiva; e características do ponto de vista da sociolinguística",
+      "Descrição da Língua Japonesa. 2.1 Fonética e fonologia: fonemas e alofones; vogais; consoantes; semivogais; sílaba; e mora. 2.1.1 Vogais longas, consoantes geminadas, sons palatalizados, acento, ritmo e entonação. 2.2 Sistema ortográfico e sua evolução. 2.2.1 Escrita ideográfica: origem e formação do kanji. 2.2.2 Leituras on e kun. 2.2.3 As partes componentes e os kanji fundamentais. 2.2.4 Escrita fonográfica. 2.2.4.1 Origem e evolução de hiragana e katakana. 2.2.5 O uso dos três sistemas de escrita. 2.2.6 Pontuação. 2.2.7 Escrita na posição vertical e na posição horizontal. 2.3 Morfologia e sintaxe. 2.3.1 Identificação dos constituintes da frase. 2.3.2 Estruturas de coordenação e de subordinação (orações adjetivas). 2.3.3 Tipos de predicados. 2.3.4 Frases afirmativas, interrogativas e negativas. 2.3.5 Auxiliares modais flexíveis. 2.3.6 Auxiliares temporais. 2.3.7 Partículas pospositivas de caso e marcadoras de tópicos frasais. 2.3.8 Conectivos. 2.3.9 Verbos de existência, transitivos diretos e intransitivos (deslocamento, ação, impessoais). 2.3.10 Pronomes pessoais e demonstrativos. 2.3.11 Dêiticos. 2.3.12 Adjetivos I e NA: flexão (afirmativa, negativa, passado); função sintática; e posição na frase. 2.3.13 Numerais e sufixos de contagem",
+      "Verbos de atividade mental",
+      "Verbos seguidos de auxiliares modais de volição",
+      "Verbos seguidos de auxiliares modais de desejo",
+      "Verbos seguidos de auxiliares modais de julgamento",
+      "Auxiliar modal de informação indireta",
+      "Verbos possuidores de pares transitivo/intransitivo",
+      "Partículas marcadoras de matéria-prima, material ou ingrediente",
+      "Oração nominalizada com função explicativa",
+      "Os aspectos verbais: durativo; permansivo; e conclusivo",
+      "Metodologia de ensino da Língua Japonesa: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático-pedagógica e o ensino integrado da Língua Japonesa diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de japonês"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "letras-libras",
+   "group": "Professor de Educação Básica",
+   "name": "Letras Libras",
+   "cargoCode": "Cargo 427",
+   "track": "magisterio",
+   "label": "Professor de Letras Libras",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Letras Libras",
+     "topics": [
+      "Fundamentos e princípios da educação inclusiva. 1.1 Legislação educacional. 1.2 Convenção interamericana para a eliminação de todas as formas de discriminação contra as pessoas com deficiência. 1.3 Política Nacional de Educação Especial na perspectiva da educação inclusiva. 1.4. Decreto nº 7.611/2011 (dispõe sobre a educação especial e o atendimento educacional especializado e dá outras providências). 1.5 Inclusão escolar de alunos surdos. 1.6 Lei nº 10.098/2000 e suas alterações (Normas gerais e critérios básicos para a promoção da acessibilidade das pessoas com deficiência ou com mobilidade reduzida). 1.7 Lei nº 10.436/2002 (Língua Brasileira de Sinais – LIBRAS). 1.8 Decreto nº 5.626/2005 (regulamenta a Lei nº 10.436/2002 e o art. 18 da Lei nº 10.098/2000). 1.9 Decreto nº 6.949/2009 (promulga a Convenção Internacional sobre os Direitos das Pessoas com Deficiência e seu Protocolo Facultativo, assinados em Nova York, em 30 de março de 2007)",
+      "Estrutura linguística da LIBRAS",
+      "Gramática da LIBRAS",
+      "Educação bilíngue para surdos",
+      "LIBRAS e Língua Portuguesa",
+      "Aquisição da LIBRAS pela criança surda",
+      "História da educação de surdos",
+      "O intérprete e o código de ética",
+      "Atuação do intérprete de LIBRAS/Língua Portuguesa no campo educacional",
+      "Lei nº 12.319/2010 (regulamenta a profissão de tradutor e intérprete da Língua Brasileira de Sinais – LIBRAS)",
+      "Representação e alteridade da pessoa com deficiência na sociedade",
+      "Concepção clínico-patológica e socioantropológica sobre a surdez",
+      "Identidade, cultura e comunidade surda",
+      "Surdocegueira",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Libras"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lingua-portuguesa",
+   "group": "Professor de Educação Básica",
+   "name": "Língua Portuguesa",
+   "cargoCode": "Cargo 428",
+   "track": "magisterio",
+   "label": "Professor de Língua Portuguesa",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Língua Portuguesa",
+     "topics": [
+      "Fonologia: relação entre letra e fonema",
+      "Separação de sílaba e translineação",
+      "Acentuação gráfica e tônica",
+      "Ortografia e pontuação",
+      "Morfologia. 5.1 Estrutura de palavras. 5.2 Processo de formação de palavras. 5.3 Classes gramaticais de palavras",
+      "Sintaxe. 6.1 Frase, oração e período",
+      "Tipos de períodos. 7.1 Período simples e composto",
+      "Análise morfossintática de período simples",
+      "Análise de período composto por coordenação",
+      "Análise de período composto por subordinação (orações substantivas, adjetivas e adverbiais)",
+      "Sintaxe de concordância verbal e nominal",
+      "Sintaxe de regência verbal e nominal",
+      "Colocação pronominal",
+      "Semântica. 14.1 Sinonímia, antonímia, homonímia, paronímia, polissemia e ambiguidade",
+      "Linguagem. 15.1 Funções da linguagem. 15.2 Denotação e conotação. 15.3 Figuras de linguagem. 15.4 Níveis de linguagem",
+      "Coesão e coerência",
+      "Tipologia textual e gênero textual. 17.1 Narração, descrição, dissertação, carta (argumentativa, familiar, comercial, convite etc.)",
+      "Noções de estilística",
+      "Teoria literária. 19.1 Conceito de literatura, teoria dos gêneros literários, estilos de época e movimentos literários",
+      "Literatura brasileira",
+      "Literatura colonial e o Barroco",
+      "Arcadismo",
+      "Romantismo",
+      "Realismo",
+      "Naturalismo e Parnasianismo",
+      "Simbolismo e pré-Modernismo",
+      "Modernismo e tendências contemporâneas",
+      "Metodologia de ensino da Língua Portuguesa: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático-pedagógica e o ensino integrado da Língua Portuguesa diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Semiótica, multiletramento e multimodalidade",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de Língua Portuguesa no Ensino Fundamental e no Ensino Médio e para a área de Linguagens e suas Tecnologias no Ensino Médio",
+      "Competências e habilidades propostas pela BNCC para a disciplina de Língua Portuguesa no Ensino Fundamental",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Língua Portuguesa"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "matematica",
+   "group": "Professor de Educação Básica",
+   "name": "Matemática",
+   "cargoCode": "Cargo 429",
+   "track": "magisterio",
+   "label": "Professor de Matemática",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Matemática",
+     "topics": [
+      "Números. 1.1 Propriedades e operações fundamentais com números inteiros, racionais, irracionais e reais",
+      "Funções. 2.1 Igualdade de funções. 2.2 Determinação do domínio de uma função. 2.3 Funções injetivas, sobrejetivas e bijetivas. 2.4 Função inversa. 2.5 Composição de funções. 2.6 Funções crescentes, decrescentes, pares e ímpares; os zeros e o sinal de uma função. 2.7 Funções lineares, funções do 2º grau, funções modulares, funções polinomiais, logarítmicas e exponenciais",
+      "Equações e inequações",
+      "Geometrias plana, espacial e analítica",
+      "Trigonometria do triângulo retângulo, estudo do seno, cosseno e tangente",
+      "Sequências. 6.1 Sequências de Fibonacci, sequências numéricas. 6.2 Progressões aritmética e geométrica",
+      "Matrizes. 7.1 Determinantes. 7.2 Sistemas lineares. 7.3 Análise combinatória. 7.4 Binômio de Newton",
+      "Noções de estatística. 8.1 Medidas de tendência central. 8.2 Medidas de dispersão, distribuição de frequência. 8.3 Gráficos. 8.4 Tabelas",
+      "Matemática financeira. 9.1 Proporção, porcentagem, juros e taxas de juros, juro simples e juro composto, sistemas de capitalização, descontos simples, desconto racional, desconto bancário. 9.2 Taxa efetiva, equivalência de capitais",
+      "Cálculo de probabilidade",
+      "Números complexos",
+      "Noções de história da Matemática",
+      "Avaliação e educação matemática. 13.1 Formas e instrumentos",
+      "Ensino de Matemática",
+      "Competências e habilidades propostas pela BNCC para a disciplina de Matemática do Ensino Fundamental e do Ensino Médio",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular Matemática no Ensino Fundamental e no Ensino Médio. 16. Questões relacionadas ao processo de ensino e de aprendizagem de matemática"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "musica",
+   "group": "Professor de Educação Básica",
+   "name": "Música",
+   "cargoCode": "Cargos 430 a 458",
+   "track": "magisterio",
+   "label": "Professor de Música",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Música",
+     "topics": [
+      "Acústica musical e organologia: geração e propriedades do som; série harmônica; propagação do som; velocidade do som; cordas, tubos e lâminas sonoros; e classificação dos instrumentos musicais",
+      "Teoria da música. 2.1 Compasso: definição; classificação; regras de grafia; articulação e sinais de repetição; intervalos; e elementos de harmonia. 2.2 Escalas: modos eclesiásticos; tonalidade; ornamentos, graus tonais e modais; acordes de 3, 4 e 5 sons; cadências; funções tonais e modais; e sistema anglo-americano de representação gráfica utilizado na música popular (cifras)",
+      "Estética, história da música e análise musical: características estético-musicais dos diferentes períodos da história da música, por meio da análise musical (antiga, medieval, renascentista, do século XVII ao século XX, contemporânea e fraseologia musical)",
+      "Músicas popular e folclórica: correntes da produção musical popular brasileira; cultura popular; e contextos socioantropológicos que a geraram",
+      "Educação musical: escolas e tendências surgidas neste século; atividades musicais na escola de ensino fundamental e ensino médio; e fisiologia da voz",
+      "Metodologia de ensino da música: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático-pedagógica e o ensino integrado da música diante das exigências metodológicas de ensino e de aprendizagem. 6.1 Ensino globalizado e formação da cidadania",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de música"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nutricao",
+   "group": "Professor de Educação Básica",
+   "name": "Nutrição",
+   "cargoCode": "Cargo 459",
+   "track": "magisterio",
+   "label": "Professor de Nutrição",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Nutrição",
+     "topics": [
+      "Nutrição básica. 1.1 Nutrientes: conceito, classificação, funções, requerimentos, recomendações e fontes alimentares. 1.2 Aspectos clínicos da carência e do excesso. 1.3 Dietas não convencionais. 1.4 Aspectos antropométricos, clínico e bioquímico da avaliação nutricional. 1.5 Nutrição e fibras. 1.6 Utilização de tabelas de alimentos. 1.7 Alimentação nas diferentes fases e momentos biológicos",
+      "Educação nutricional. 2.1 Conceito, importância, princípios e objetivos da educação nutricional. 2.2 Papel que desempenha a educação nutricional nos hábitos alimentares. 2.3 Aplicação de meios e técnicas do processo educativo. 2.4 Desenvolvimento e avaliação de atividades educativas em nutrição",
+      "Avaliação nutricional. 3.1 Métodos diretos e indiretos de avaliação nutricional. 3.2 Técnicas de medição. 3.3 Avaliação do estado e da situação nutricional da população",
+      "Técnica dietética. 4.1 Alimentos: conceito, classificação, características, grupos de alimentos, valor nutritivo, caracteres organoléticos. 4.2 Seleção e preparo dos alimentos. 4.3 Planejamento, execução e avaliação de cardápios",
+      "Higiene de alimentos. 5.1 Análise microbiológica, toxicológica dos alimentos. 5.2 Fontes de contaminação. 5.3 Fatores extrínsecos e intrínsecos que condicionam o desenvolvimento de microrganismos no alimento. 5.4 Modificações físicas, químicas e biológicas dos alimentos. 5.5 Enfermidades transmitidas pelos alimentos",
+      "Nutrição e dietética. 6.1 Recomendações nutricionais. 6.2 Função social dos alimentos. 6.3 Atividade física e alimentação. 6.4 Alimentação vegetariana e suas implicações nutricionais",
+      "Tecnologia de alimentos. 7.1 Operações unitárias. 7.2 Conservação de alimentos. 7.3 Embalagem em alimentos. 7.4 Processamento tecnológico de produtos de origem vegetal e animal. 7.5 Análise sensorial",
+      "Nutrição em saúde pública. 8.1 Análise dos distúrbios nutricionais como problemas de saúde pública. 8.2 Problemas nutricionais em populações em desenvolvimento",
+      "Dietoterapia. 9.1 Abordagem ao paciente hospitalizado. 9.2 Generalidades, fisiopatologia e tratamento das diversas enfermidades. 9.3 Exames laboratoriais: importância e interpretação. 9.4 Suporte nutricional enteral e parenteral",
+      "Bromatologia. 10.1 Aditivos alimentares. 10.2 Condimentos. 10.3 Pigmentos. 10.4 Estudo químico‐bromatológico dos alimentos: proteínas, lipídios e carboidratos. 10.5 Vitaminas. 10.6 Minerais. 10.7 Bebidas. 10.8 Ética Profissional",
+      "Metodologia de ensino de Nutrição: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Nutrição diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Nutrição"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "odontologia",
+   "group": "Professor de Educação Básica",
+   "name": "Odontologia",
+   "cargoCode": "Cargo 460",
+   "track": "magisterio",
+   "label": "Professor de Odontologia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Odontologia",
+     "topics": [
+      "Exame da cavidade bucal",
+      "Etiopatogenia da cárie- dental",
+      "Semiologia, tratamento e prevenção da cárie dentária",
+      "Preparo cavitário",
+      "materiais odontológicos: forradores e restauradores",
+      "Etiopatogenia da prevenção da doença periodontal",
+      "Implante e suas indicações",
+      "Princípios gerais de radiologia e interpretação radiográfica",
+      "Cirurgia menor em odontologia",
+      "Terapêutica e farmacologia odontológica de interesse clínico",
+      "Anestesia local em odontologia",
+      "Exodontia: indicações, contraindicações e tratamento dos acidentes e das complicações",
+      "Traumatismos dentoalveolares: diagnóstico e tratamento",
+      "Princípios gerais de ortodontia e suas indicações",
+      "Procedimentos clínicos integrados em periodontia, endodontia, prótese e dentística",
+      "Normas de biossegurança",
+      "Odontopediatria: diagnóstico, plano de tratamento e procedimentos em clínica odontológica infantil",
+      "Odontologia estética",
+      "Polpa dental",
+      "Odontologia preventiva e saúde pública",
+      "Prótese bucomaxilofacial",
+      "Metodologia de ensino de Odontologia: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐pedagógica e o ensino integrado de Odontologia diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Odontologia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "psicologia",
+   "group": "Professor de Educação Básica",
+   "name": "Psicologia",
+   "cargoCode": "Cargo 461",
+   "track": "magisterio",
+   "label": "Professor de Psicologia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Psicologia",
+     "topics": [
+      "Teorias da psicologia do desenvolvimento humano e suas implicações educacionais: epistemologia genética de Piaget, psicologia histórico‐cultural de Vigotsky, teoria da psicogênese da pessoa de Wallon, contribuições da psicanálise para a educação, princípios básicos da análise do comportamento e psicologia do desenvolvimento adulto",
+      "Processo de ensino e de aprendizagem. 2.1 Relação entre professor e aluno, relação entre desenvolvimento e educação, encontro entre subjetividade e educação no cotidiano da prática educativa, desenvolvimento atípico, segregação e exclusão",
+      "Psicologia escolar: histórico, caracterização, interdisciplinaridade, perspectivas atuais e controvérsias da atuação em psicologia escolar",
+      "Relação da Psicologia com a Educação. 4.1 Fracasso escolar, medicalização da educação e patologização das dificuldades do processo educativo. 4.2 Atuação em psicologia escolar: colaboração com o processo de ensino e de aprendizagem; trabalho junto aos professores e demais servidores; educação continuada e formação pessoal dos educadores; ação e intervenção junto à comunidade educativa; ampliação da abordagem das dificuldades no processo de escolarização; mapeamento e análise da instituição educativa; e contribuição para elaboração e implementação de políticas públicas de educação",
+      "Complexidade e multideterminação do processo educativo",
+      "Cultura, ideologia e instituição educativa",
+      "Função e finalidade da escola",
+      "Projeto político‐pedagógico, gestão democrática e políticas públicas de educação",
+      "Função humanizadora da educação",
+      "Planejamento da ação educativa: objetivos, conteúdos e vivências; métodos, técnicas e estratégias de ensino e de aprendizagem; humanização no e do processo educativo; e multimídia educativa e processo de avaliação educacional",
+      "Metodologia de projetos, interdisciplinaridade e globalização do conhecimento e análise de dificuldades e potencialidades no cotidiano escolar, em sua relação com a sociedade concreta",
+      "Educação em e para os direitos humanos, cidadania e diversidade cultural",
+      "Educação a distância: paradigmas, limites e possibilidades",
+      "Universidade: conceito, histórico e função social",
+      "Políticas públicas de educação superior e realidade brasileira",
+      "Metodologia de ensino de Psicologia: organização didático‐pedagógica e suas implicações na construção do conhecimento em sala de aula; e organização didático‐ pedagógica e o ensino integrado de Psicologia diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Psicologia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "quimica",
+   "group": "Professor de Educação Básica",
+   "name": "Química",
+   "cargoCode": "Cargo 462",
+   "track": "magisterio",
+   "label": "Professor de Química",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Química",
+     "topics": [
+      "História da Química: a alquimia como precursora da ciência química. 1.1 Nascimento da Química moderna. 1.2 Química e sociedade",
+      "O mundo e suas transformações: leis ponderais (Lavoisier, Proust, Dalton, Richter); leis das reações gasosas de Gay Lussac; hipótese de Avogadro, mole, molécula; cálculos estequiométricos; e natureza elétrica da matéria (os trabalhos de Faraday)",
+      "Ligações químicas: iônica, covalente, eletronegatividade, repulsão de pares eletrônicos, geometria molecular e teoria da ligação de valência",
+      "Sólidos, líquidos e gases no universo da Química: evolução do conceito de matéria; características e propriedades; líquidos e sólidos ideais e ligações químicas nos sólidos e nos líquidos",
+      "Sólidos, líquidos e gases reais. 5.1 Mudança de estado. 5.2 Diagrama de fase",
+      "Soluções. 6.1 Misturas, tipos de solução, concentração e solubilidade. 6.2 Propriedades coligativas, eletrólitos e íons em solução aquosa",
+      "O modelo atômico: evolução dos conceitos de átomo e propriedades dos átomos (eletronegatividade, afinidade eletrônica e suas dimensões)",
+      "Funções químicas e aplicações: ácidos, bases, sais, óxidos, reações em solução aquosa de ácido-base, precipitação e complexação, equilíbrio das soluções aquosas de ácido-base, dissociação, hidrólise, indicadores ácido-base de titulação, tampões e estequiometria de soluções",
+      "A tabela periódica. 9.1 Histórico da tabela e sua construção. 9.2 O problema da classificação (metais, não metais e semimetais), gases nobres e química do carbono",
+      "Cinética e equilíbrio químico: velocidades e mecanismos de reação; equação de velocidade, teoria de colisões, complexo ativado e catálise",
+      "Química orgânica: princípios básicos da nomenclatura orgânica, funções orgânicas, reações e mecanismos de reação",
+      "Ensino de Química: conhecimento científico e habilidade didática no ensino de Química. A construção do conhecimento no ensino da Química: abordagens metodológicas",
+      "Recursos didáticos no ensino de Química (utilizados em sala de aula e em laboratório, incluindo conhecimentos básicos de técnicas, materiais e normas de segurança laboratoriais)",
+      "Avaliação de aprendizagem aplicada ao conhecimento químico",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de Química no Ensino Médio e para a área de Ciências da Natureza e suas Tecnologias no Ensino Médio",
+      "Competências e Habilidades da BNCC em Química",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Química"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "radiologia",
+   "group": "Professor de Educação Básica",
+   "name": "Radiologia",
+   "cargoCode": "Cargo 463",
+   "track": "magisterio",
+   "label": "Professor de Radiologia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Radiologia",
+     "topics": [
+      "Normas de radioproteção",
+      "Fundamentos de dosimetria e radiobiologia",
+      "Efeitos biológicos das radiações",
+      "Exames radiológicos em contraste, gerais e especiais",
+      "Operação de equipamentos em radiologia",
+      "Câmara escura – manipulação de filmes, chassis, écrans reveladores e fixadores, processadora de filmes",
+      "Câmara clara – seleção de exames, identificação, exames gerais e especializados em radiologia",
+      "Técnicas radiográficas em tomografia computadorizada. 8.1 Bases físicas e tecnológicas aplicadas à ressonância magnética. 8.2 Protocolos de exames em tomografia computadorizada e ressonância magnética",
+      "Bases físicas e tecnológicas aplicadas à medicina nuclear. 9.1 Protocolos de exames de medicina nuclear. 9.2 Normas de radioproteção aplicadas à medicina nuclear",
+      "Contaminação radioativa: fontes, prevenção e controle",
+      "Processamento de imagens digitais. 11.1 Informática aplicada ao diagnóstico por imagem. 11.2 Processamento digital de imagens: ajustes para a qualidade das imagens. 11.3 Equipamentos utilizados no processamento de imagens digitais. 11.4 Técnicas de trabalho na produção de imagens digitais. 11.5 Protocolos de operação de equipamentos de aquisição de imagem",
+      "Anatomia Humana. 12.1 Nomenclatura e terminologia anatômica. 12.2 Planos de delimitação do corpo e eixos. 12.3 Sistema esquelético, articulações e músculos. 12.4 Sistema neurológico. 12.5 Sistema cardiovascular. 12.6 Sistema linfático. 12.7 Sistema respiratório. 12.8 Sistema gastrointestinal. 12.9 Sistema renal. 12.10 Sistema reprodutor masculino e feminino. 12.11 Sistema endócrino. 12.12 Traumatologia",
+      "Legislação radiológica e segurança no trabalho"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sociologia",
+   "group": "Professor de Educação Básica",
+   "name": "Sociologia",
+   "cargoCode": "Cargo 464",
+   "track": "magisterio",
+   "label": "Professor de Sociologia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Sociologia",
+     "topics": [
+      "A constituição do saber sociológico. 1.1 A Sociologia como ciência. 1.2 Subjetividade e objetividade. 1.3 A questão metodológica nas ciências sociais e a pesquisa social",
+      "Estrutura e organização social. 2.1 Estrutura da sociedade. 2.2 Instituições sociais. 2.3 Classes sociais, estratificação e desigualdade: Karl Marx e Max Weber. 2.4 Classe social na sociedade ocidental atual: classes e estilos de vida",
+      "Problemas sociais contemporâneos. 3.1 As desigualdades sociais. 3.2 Exclusão social. 3.3 Preconceito e discriminação. 3.4 Movimentos sociais tradicionais e novos. 3.5 Gênero e envelhecimento. 3.6 Gênero e violência. 3.7 Cultura e consumo. 3.8 Violência e Estado. 3.9 Migrações. 3.10 Ética e cidadania. 3.11 Sociedade, trabalho e emprego, relações sociais e transformações do trabalho. 3.12 Os meios de comunicação e a questão ideológica. 3.13 O meio ambiente e o desenvolvimento tecnológico. 3.14 A globalização e os Estados nacionais. 3.15 Diversidade cultural e étnica. 3.16 Religião e sociedade",
+      "Metodologia de ensino de Sociologia",
+      "Competências e Habilidades do Currículo do Distrito Federal para o componente curricular de Sociologia no Ensino Médio e para a área de Ciências Humanas e Sociais Aplicadas no Ensino Médio",
+      "Competências e Habilidades da BNCC em Sociologia",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Sociologia"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "telecomunicacoes",
+   "group": "Professor de Educação Básica",
+   "name": "Telecomunicações",
+   "cargoCode": "Cargo 465",
+   "track": "magisterio",
+   "label": "Professor de Telecomunicações",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Telecomunicações",
+     "topics": [
+      "Legislação específica e fundamentos básicos do setor de telecomunicações brasileiro. 1.1 Concessão de serviços públicos. 1.2 Política nacional de telecomunicações. 1.3 Plano geral de outorgas. 1.4 Plano geral de universalização. 1.5 Plano geral de metas da qualidade. 1.6 Regulamento de serviços de telecomunicação. 1.7 Fundamentos e classificação de sistemas de telecomunicações",
+      "Espectro eletromagnético",
+      "Noções de técnicas de modulação, de multiplexação e de múltiplo acesso",
+      "Noções de sistemas de comunicações. 4.1 Sistemas de radiodifusão. 4.1.1 Sistemas FM. 4.1.2 Sistemas AM. 4.1.3 Sistemas de televisão VHF/UHF. 4.2 Sistemas de telefonia fixa comutada. 4.3 Sistemas de telefonia móvel. 4.4 Sistemas via satélite. 4.5 Sistemas de comunicações ópticas. 4.6 Sistemas de micro-ondas. 4.7 Sistemas de televisão por assinatura",
+      "Fundamentos de redes de comunicação",
+      "Metodologia de ensino de telecomunicações: organização didático-pedagógica e suas implicações na construção do conhecimento em sala de aula; organização didático- pedagógica e o ensino integrado de telecomunicações diante das exigências metodológicas de ensino e de aprendizagem",
+      "Ensino globalizado e formação da cidadania",
+      "Diretrizes Curriculares Nacionais para a Educação Profissional Técnica de Nível Médio",
+      "Currículo em Movimento da Educação Básica – Educação Profissional e a Distância",
+      "Questões relacionadas ao processo de ensino e de aprendizagem de Telecomunicações"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "orientador-educacional",
+   "group": "Pedagogo",
+   "name": "Orientador Educacional",
+   "cargoCode": "Cargo 466",
+   "track": "magisterio",
+   "label": "Pedagogo – Orientador Educacional",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Orientador Educacional",
+     "topics": [
+      "Aspectos pedagógicos e sociais da prática educativa, segundo as tendências pedagógicas",
+      "Currículo em Movimento da Educação Básica da SEEDF – cadernos (2014). 2.1. Pedagogia histórico- crítica. 2.2. Psicologia histórico-cultural. 2.3. Eixos transversais: educação para a diversidade, educação para a sustentabilidade e educação em e para os direitos humanos",
+      "Educação Integral: concepções teórico-metodológicas. 3.1 Teoria crítica e pós-crítica",
+      "Planejamento educacional: projeto político-pedagógico",
+      "Avaliação educacional: aprendizagem, institucional e em larga escala. Funções da avaliação: diagnóstica, somativa, classificatória e formativa",
+      "Escolarização na socioeducação",
+      "Organização do trabalho pedagógico e da gestão escolar: projeto político-pedagógico da escola e coordenação pedagógica na educação básica. 7.1 Orientação Pedagógica para elaboração do Projeto Político-Pedagógico na escola. 7.1. A orientação educacional e a construção do projeto político-pedagógico na escola: concepção, princípios e eixos norteadores. 7.2 Gestão educacional decorrente do projeto político-pedagógico. 7.2.1 Processo de planejamento: importância, dimensões, componentes e instrumentos",
+      "Gestão Democrática – Lei 4.751/2012",
+      "Origem, evolução e contextualização da orientação educacional no Brasil: conceituação, evolução histórica, fundamentos legais, pressupostos teóricos, o profissional de orientação educacional e a ética",
+      "A orientação educacional como mediadora do sucesso na aprendizagem e da permanência do aluno na escola",
+      "Meios para a apropriação crítica dos conhecimentos dos diversos campos disciplinares e transversais. 11.1 Interdisciplinaridade, multidisciplinaridade e transdisciplinaridade. 11.2 Inclusão educacional, evasão escolar e estudo das causas fundamentais. 11.3 O problema da repetência e como vencê-la e as dificuldades de aprendizagem",
+      "Psicologia do desenvolvimento: aspectos biopsicossociais da criança, do adolescente, da juventude, do adulto e do idoso",
+      "Orientação Pedagógica da Orientação Educacional (2019)",
+      "Processos de transição escolar dos estudantes – Caderno Transição Escolar: Trajetórias na Educação Básica do Distrito Federal",
+      "Cultura de paz e convivência escolar",
+      "Projeto de vida 17 Comunicação não violenta",
+      "Metodologias ativas",
+      "Pedagogia da cooperação",
+      "Pressupostos da educação inclusiva",
+      "Prática da orientação educacional no processo de avaliação: limites e possibilidades para medir e avaliar, conceitos básicos. 21.1 Instrumentos de medida e avaliação como subsídios no trabalho de orientação educacional: observação, análise de cenário, entrevistas, questionário, testes sociométricos, testes vocacionais e projeto de pesquisa como caminho para elaboração de instrumentos de medida",
+      "Perspectivas de atuação na área vocacional diante das características dos alunos das escolas brasileiras: trajetória da orientação vocacional, proposições teóricas e suas aplicações à prática da orientação e da visão crítica",
+      "A orientação educacional e a construção de processos solidários e de engajamento normativo: o orientador educacional como mediador das relações escola-família-comunidade",
+      "Conselho escolar e grêmio estudantil",
+      "Alunos e pais representantes de turma e conselho de classe",
+      "Plano de convivência escolar/mediação de conflitos no contexto escolar"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-administracao",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Administração",
+   "cargoCode": "Cargo 467",
+   "track": "assistencia",
+   "label": "Gestor em Administração",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Administração",
+     "topics": [
+      "Evolução da administração. 1.1 principais abordagens da administração (da clássica até a contingencial). 1.2 Evolução da administração pública no Brasil (após 1930); reformas administrativas; a nova gestão pública",
+      "Processo administrativo. 2.1 Funções de administração: planejamento, organização, direção e controle. 2.2 Processo de planejamento. 2.2.1 Planejamento estratégico: visão, missão e análise SWOT. 2.2.2 Análise competitiva e estratégias genéricas. 2.2.3 Redes e alianças. 2.2.4 Planejamento tático. 2.2.5 Planejamento operacional. 2.2.6 Administração por objetivos. 2.2.7 Balanced scorecard. 2.2.8 Processo decisório. 2.3 Organização. 2.3.1 Estrutura organizacional. 2.3.2 Tipos de departamentalização: características, vantagens e desvantagens de cada tipo. 2.3.3 Organização informal. 2.3.4 Cultura organizacional. 2.4 Direção. 2.4.1 Motivação e liderança. 2.4.2 Comunicação. 2.4.3 Descentralização e delegação. 2.5 Controle. 2.5.1 Características. 2.5.2 Tipos, vantagens e desvantagens. 2.5.3 Sistema de medição de desempenho organizacional",
+      "Gestão de pessoas. 3.1 Equilíbrio organizacional. 3.2 Objetivos, desafios e características da gestão de pessoas. 3.3 Recrutamento e seleção de pessoas. 3.3.1 Objetivos e características. 3.3.2 Principais tipos, características, vantagens e desvantagens. 3.3.3 Principais técnicas de seleção de pessoas: características, vantagens e desvantagens. 3.4 Análise e descrição de cargos. 3.5 Capacitação de pessoas. 3.6 Gestão de desempenho",
+      "Gestão da qualidade e modelo de excelência gerencial. 4.1 Principais teóricos e suas contribuições para a gestão da qualidade. 4.2 Ferramentas de gestão da qualidade. 4.3 Modelo da fundação nacional da qualidade. 4.4 Modelo de gespublica",
+      "Gestão de projetos. 5.1 Elaboração, análise e avaliação de projetos. 5.2 Principais características dos modelos de gestão de projetos. 5.3 Projetos e suas etapas",
+      "Gestão de processos. 6.1 Conceitos da abordagem por processos. 6.2 Técnicas de mapeamento, análise e melhoria de processos. 6.3 Processos e certificação ISO 9000:2000. 6.4 Noções de estatística aplicada ao controle e à melhoria de processos",
+      "Legislação administrativa. 7.1 Administração direta, indireta e fundacional. 7.2 Atos administrativos. 7.3 Requisição. 7.4 Regime dos servidores públicos federais: admissão, demissão, concurso público, estágio probatório, vencimento básico, licença e aposentadoria",
+      "Orçamento público. 8.1 Princípios orçamentários. 8.2 Diretrizes orçamentárias. 8.3 Processo orçamentário. 8.4 Métodos, técnicas e instrumentos do orçamento público. 8.4.1 Normas legais aplicáveis. 8.5 SIOP e SIAFI. 8.6 Receita pública: categorias, fontes, estágios e dívida ativa. 8.7 Despesa pública: categorias e estágios. 8.8 Suprimento de fundos. 8.9 Restos a pagar. 8.10 Despesas de exercícios anteriores. 8.11 A conta única do Tesouro",
+      "Licitação pública. 9.1 Modalidades, dispensa e inexigibilidade. 9.2 Pregão. 9.3 Contratos e compras. 9.4 Convênios e termos similares",
+      "Ética no serviço público. 10.1 Comportamento profissional, atitudes no serviço, organização do trabalho e prioridade em serviço"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-arquivologia",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Arquivologia",
+   "cargoCode": "Cargo 468",
+   "track": "assistencia",
+   "label": "Gestor em Arquivologia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Arquivologia",
+     "topics": [
+      "Arquivística: princípios e conceitos",
+      "Políticas públicas de arquivo, legislação arquivística",
+      "Normas nacionais e internacionais de arquivo",
+      "Sistemas e redes de arquivo",
+      "Gestão de documentos. 5.1 Implementação de programas de gestão de documentos",
+      "Diagnóstico da situação arquivística e realidade arquivística brasileira",
+      "Protocolo: recebimento, registro, distribuição, tramitação e expedição de documentos",
+      "Funções arquivísticas. 8.1 Criação de documentos. 8.2 Aquisição de documentos. 8.3 Classificação de documentos. 8.4 Avaliação de documentos. 8.5 Difusão de documentos. 8.6 Descrição de documentos. 8.7 Preservação de documentos",
+      "Análise tipológica dos documentos de arquivo",
+      "Políticas de acesso aos documentos de arquivo",
+      "Sistemas informatizados de gestão arquivística de documentos. 11.1 Documentos digitais. 11.2 Requisitos. 11.3 Metadados",
+      "Microfilmagem de documentos de arquivo"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-biblioteconomia",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Biblioteconomia",
+   "cargoCode": "Cargo 469",
+   "track": "assistencia",
+   "label": "Gestor em Biblioteconomia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Biblioteconomia",
+     "topics": [
+      "Pesquisa. 1.1 Desenvolvimento de coleções. 1.2 Políticas de seleções e de aquisição. 1.3 Avaliação de coleções. 1.4 Fontes de informação",
+      "Documentação e informação. 2.1 Documentação: conceitos e finalidades. 2.2 Biblioteconomia: conceitos e finalidades. 2.3 Preparação de guias de bibliotecas, centro de informações e de documentação",
+      "Processos e técnicas de tratamento. 3.1 Catalogação descritiva (AACR2) de livros, artigos, CD-ROM e fitas. 3.2 Princípios. 3.3 Estrutura. 3.4 Normas técnicas de referência. 3.5 Classificação Decimal Universal (CDU). 3.6 Indexação de documentos. 3.7 Linguagem documentária, descritores, elaboração de tesauro e vocabulário controlado. 3.8 Organização e administração de bibliotecas e centros de documentação. 3.9 Preparação de índices",
+      "Normas técnicas para a área de documentação. 4.1 Normas da Associação Brasileira de Normas Técnicas (ABNT). 4.2 Referência bibliográfica (ABNT 6023). 4.3 Numeração progressiva (ABNT 6024). 4.4 Sumários (ABNT 6027). 4.5 Resumo (ABNT 6028). 4.6 Apresentação de livros (ABNT 6029). 4.7 Apresentação de citações (ABNT 10520). 4.8 Lombada de livro (ABNT 12225). 4.9 Método para análise de documentos (ABNT 12676). 4.10 Apresentação de trabalhos acadêmicos (ABNT 14724)",
+      "Serviço de referência. 5.1 Organização de serviço de alerta. 5.2 Disseminação seletiva da informação e marketing em bibliotecas. 5.3 Novas tecnologias: Internet, intranet e bibliotecas digitais (virtuais e eletrônicas). 5.4 Referência bibliográfica: conceituação, teoria, classificação e histórico. 5.5 Norma ABNT 6023. 5.6 Estratégias de busca de informação. 5.7 Recuperação de informação. 5.8 Planejamento e etapas de elaboração da busca. 5.9 Atendimento ao usuário. 5.10 Uso e acesso a bases de dados e fontes de informação on-line",
+      "Automação. 6.1 US MARC. 6.2 Banco de dados. 6.3 Planejamento da automação de bibliotecas. 6.4 Sistemas informatizados nacionais e internacionais. 6.5 Informática para bibliotecas",
+      "Controle e produção. 7.1 Noções de bibliometria. 7.2 Controle do acervo",
+      "Estudo de usuário. 8.1 Métodos e abordagens. 8.2 Necessidades de informação",
+      "Bibliotecas digitais. 9.1 Conceitos e definições. 9.2 Requisitos para implementação de bibliotecas digitais"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-comunicacao-social",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Comunicação Social",
+   "cargoCode": "Cargo 470",
+   "track": "assistencia",
+   "label": "Gestor em Comunicação Social",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Comunicação Social",
+     "topics": [
+      "Teoria da comunicação. 1.1 Principais escolas e pensadores",
+      "Técnicas de relações públicas",
+      "Comunicação dirigida",
+      "Públicos de uma instituição",
+      "Assessoria de imprensa",
+      "Release, presskit e organização de entrevistas coletivas",
+      "Notas oficiais",
+      "Clipping",
+      "Marketing institucional",
+      "Pesquisas de opinião e de mercado. 10.1 Pesquisas qualitativas e quantitativas, amostragem, questionários, grupos de discussão e grupos focais",
+      "Responsabilidade social, consumo sustentável e relações com a comunidade",
+      "Planejamento de comunicação organizacional",
+      "Interfaces entre as relações públicas e a administração da empresa",
+      "Relações públicas e recursos humanos",
+      "Instrumentos de comunicação interna",
+      "Comunicação digital",
+      "Relações com consumidores. 17.1 Serviços de atendimento ao consumidor. 17.2 Código de Defesa do Consumidor",
+      "Comunicação pública",
+      "Imagem institucional",
+      "Cerimonial e protocolo",
+      "Organização de eventos. 21.1 Mídias web e digitais. 21.2 Mídias sociais (redes sociais, blogs, podcasts, wikis etc.)"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-contabilidade",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Contabilidade",
+   "cargoCode": "Cargo 471",
+   "track": "assistencia",
+   "label": "Gestor em Contabilidade",
+   "specific": [
+    {
+     "name": "Contabilidade Geral",
+     "topics": [
+      "Lei nº 6.404/1976, suas alterações e legislação complementar",
+      "Lei 11.638/2007, suas alterações e legislação complementar",
+      "Lei 11.941/2009, suas alterações e legislação complementar",
+      "Lei 12.249/2010, suas alterações e legislação complementar",
+      "Pronunciamentos do Comitê de Pronunciamentos Contábeis (CPC)",
+      "Princípios fundamentais de contabilidade (aprovados pelo Conselho Federal de Contabilidade - CFC - por meio da Resolução do CFC nº 750/1993, atualizada pela Resolução CFC nº 1.282/2010)",
+      "Elaboração de demonstrações contábeis pela legislação societária, pelos princípios fundamentais da contabilidade e pelos pronunciamentos contábeis do Comitê de Pronunciamentos Contábeis (CPC). 7.1 Demonstração de fluxos de caixa (métodos direto e indireto). 7.2 Balanço patrimonial. 7.3 Demonstração do resultado do exercício. 7.4 Demonstração do valor adicionado. 7.5 Demonstração das Mutações do Patrimônio Líquido. 7.6 Demonstração de Lucros ou Prejuízos Acumulados. 7.7 Demonstração do Resultado Abrangente",
+      "Disponibilidades - caixa e equivalentes de caixa: conteúdo, classificação e critérios de avaliação",
+      "Contas a receber: conceito, conteúdo e critérios contábeis",
+      "Estoques: conceito e classificação. 10.1 Critérios de avaliação de estoques",
+      "Realizável a longo prazo (não circulante): conceito e classificação. 11.1 Ajuste a valor presente: cálculo e contabilização de contas ativas e passivas",
+      "Instrumentos financeiros: reconhecimento, mensuração e evidenciação. 12.1 Recuperabilidade de instrumentos financeiros",
+      "Mensuração do valor justo. 13.1 Definição do valor justo. 13.2 Valor justo: aplicação para ativos, passivos e instrumentos patrimoniais. 13.3 Técnicas para avaliação do valor justo",
+      "Contabilização de investimentos em coligadas e controladas. 14.1 Goodwill",
+      "Ativo Imobilizado: conceituação, classificação e conteúdo das contas. 15.1 Critérios de avaliação e mensuração do ativo imobilizado. 15.2 Redução ao valor recuperável (impairment). 15.3 Depreciação, exaustão e amortização",
+      "Ativos intangíveis: definição, reconhecimento e mensuração. 16.1 Impairment test: intangíveis com vida útil definida, indefinida e goodwill",
+      "Passivo exigível: conceitos gerais, avaliação e conteúdo do passivo",
+      "Fornecedores, obrigações fiscais e outras obrigações",
+      "Empréstimos e financiamentos, debêntures e outros títulos de dívida",
+      "Provisões, passivos contingentes e ativos contingentes",
+      "Patrimônio Líquido. 21.1 Reservas de capital. 21.2 Ajustes de avaliação patrimonial. 21.3 Reservas de lucros. 21.4 Ações em tesouraria. 21.5 Prejuízos acumulados. 21.6 Dividendos",
+      "Combinação de negócios, fusão, incorporação e cisão",
+      "Concessões: reconhecimento e mensuração",
+      "Receitas de vendas de produtos e serviços. 24.1 Conceitos e mensuração da receita e o momento de seu reconhecimento. 24.2 Deduções das vendas",
+      "Custo das mercadorias e dos produtos vendidos e dos serviços prestados. 25.1 Custeio real por absorção. 25.2 Custeio direto (ou custeio variável). 25.3 Custo- padrão. 25.4 Custeio com base em atividades. 25.5 RKW. 25.6 Custos para tomada de decisões.25.7 Sistemas de custos e informações gerenciais. 25.8 Estudo da relação custo versus volume versus lucro",
+      "Despesas e outros resultados operacionais",
+      "Consolidação das demonstrações contábeis e demonstrações separadas",
+      "Correção integral das demonstrações contábeis",
+      "Análise econômico-financeira. 29.1 Indicadores de liquidez. 29.2 Indicadores de rentabilidade. 29.3 Indicadores de lucratividade. 29.4 Indicadores de endividamento. 29.5 Indicadores de estrutura de capitais. 29.6 Análise vertical e horizontal"
+     ]
+    },
+    {
+     "name": "Contabilidade Pública",
+     "topics": [
+      "Princípios de contabilidade sob a perspectiva do Setor Público",
+      "Sistema de Contabilidade Federal",
+      "Conceituação, objeto e campo de aplicação",
+      "Composição do patrimônio público. 4.1 Patrimônio público. 4.2 Ativo. 4.3 Passivo. 4.4 Saldo patrimonial",
+      "Variações patrimoniais. 5.1 Qualitativas. 5.2 Quantitativas: receita e despesa sob o enfoque patrimonial. 5.3 Realização da variação patrimonial. 5.4 Resultado patrimonial",
+      "Mensuração de ativos. 6.1 Ativo Imobilizado. 6.2 Ativo Intangível. 6.3 Reavaliação e redução ao valor recuperável. 6.4 Depreciação, amortização e exaustão",
+      "Mensuração de passivos. 7.1 Provisões. 7.2 Passivos Contingentes",
+      "Tratamento contábil aplicável aos impostos e às contribuições",
+      "Sistema de custos. 9.1 Aspectos legais do sistema de custos. 9.2 Ambiente da informação de custos. 9.3 Características da informação de custos. 9.4 Terminologia de custos",
+      "Plano de contas aplicado ao Setor Público",
+      "Demonstrações contábeis aplicadas ao Setor Público. 11.1 Balanço orçamentário. 11.2 Balanço financeiro. 11.3 Demonstração das variações patrimoniais. 11.4 Balanço patrimonial. 11.5 Demonstração de fluxos de caixa. 11.6 Demonstração das Mutações do Patrimônio Líquido. 11.7 Notas explicativas às demonstrações contábeis. 11.8 Consolidação das demonstrações contábeis",
+      "Transações no Setor Público",
+      "Despesa pública (conceito, etapas, estágios e categorias econômicas)",
+      "Receita pública (conceito, etapas, estágios e categorias econômicas)",
+      "Execução orçamentária e financeira",
+      "Conta Única do Tesouro Nacional",
+      "Sistema Integrado de Administração Financeira (conceitos básicos, objetivos, características, instrumentos de segurança e principais documentos de entrada)",
+      "Suprimento de fundos",
+      "MCASP (última edição)",
+      "Regime contábil"
+     ]
+    },
+    {
+     "name": "Legislação Tributária aplicada às Contratações Públicas",
+     "topics": [
+      "Noções básicas sobre tributos. 1.1 Impostos, taxas e contribuições",
+      "Tratamento contábil aplicável aos impostos e às contribuições",
+      "Retenções na fonte realizadas pela Administração Pública Federal. 3.1 Imposto de Renda de Pessoa Jurídica (IRPJ). 3.2 Contribuição Social Sobre o Lucro Líquido (CSLL). 3.3 Programa de Integração Social (PIS). 3.4 Contribuição para o Financiamento da Seguridade Social (COFINS). 3.5 Imposto Sobre Serviços (ISS). 3.6 Contribuição previdenciária (INSS)",
+      "Legislação básica e suas atualizações 4.1 Instrução normativa da Receita Federal do Brasil nº 971/2009. 4.2 Instrução normativa da Receita Federal do Brasil nº 1.234/2012. 4.3 Lei Complementar nº 116/2003"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-direito-e-legislacao",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Direito e Legislação",
+   "cargoCode": "Cargo 472",
+   "track": "assistencia",
+   "label": "Gestor em Direito e Legislação",
+   "specific": [
+    {
+     "name": "Direito Constitucional",
+     "topics": [
+      "Constituição. 1.1 Conceito, objeto, elementos e classificações. 1.2 Supremacia da Constituição. 1.3 Aplicabilidade das normas constitucionais. 1.4 Interpretação das normas constitucionais",
+      "Poder constituinte. 2.1 Características. 2.2 Poder constituinte originário. 2.3 Poder constituinte derivado",
+      "Princípios fundamentais",
+      "Direitos e garantias fundamentais. 4.1 Direitos e deveres individuais e coletivos. 4.2 Habeas corpus, mandado de segurança, mandado de injunção e habeas data. 4.3 Direitos sociais. 4.4 Nacionalidade. 4.5 Direitos políticos. 4.6 Partidos políticos",
+      "Organização do Estado. 5.1 Organização político-administrativa. 5.2 Estado federal brasileiro. 5.3 A União. 5.4 Estados federados. 5.5 Municípios. 5.6 O Distrito Federal. 5.7 Territórios",
+      "Administração Pública. 6.1 Disposições gerais. 6.2 Servidores públicos. 6.3 Militares dos estados, do Distrito Federal e dos territórios",
+      "Organização dos poderes no Estado. 7.1 Mecanismos de freios e contrapesos. 7.2 Poder legislativo. 7.3 Poder executivo. 7.4 Poder judiciário",
+      "Funções essenciais à justiça. 8.1 Ministério Público. 8.2 Advocacia Pública. 8.3 Advocacia e Defensoria Pública",
+      "Controle da constitucionalidade. 9.1 Sistemas gerais e sistema brasileiro. 9.2 Controle incidental ou concreto. 9.3 Controle abstrato de constitucionalidade. 9.4 Exame in abstractu da constitucionalidade de proposições legislativas. 9.5 Ação declaratória de constitucionalidade. 9.6 Ação direta de inconstitucionalidade. 9.7 Arguição de descumprimento de preceito fundamental. 9.8 Ação direta de inconstitucionalidade por omissão. 9.9 Ação direta de inconstitucionalidade interventiva",
+      "Defesa do Estado e das instituições democráticas",
+      "Sistema Tributário Nacional. 11.1 Princípios gerais. 11.2 Limitações do poder de tributar. 11.3 Impostos da União, dos estados e dos municípios. 11.4 Repartição das receitas tributárias",
+      "Finanças públicas. 12.1 Normas gerais. 12.2 Orçamentos",
+      "Ordem econômica e financeira. 13.1 Princípios gerais da atividade econômica",
+      "Ordem social"
+     ]
+    },
+    {
+     "name": "Direito Administrativo",
+     "topics": [
+      "Introdução ao direito administrativo. 1.1 Origem, natureza jurídica e objeto do direito administrativo. 1.2 Os diferentes critérios adotados para a conceituação do direito administrativo. 1.3 Fontes do direito administrativo",
+      "Administração Pública. 2.1 Administração pública em sentido amplo e em sentido estrito. 2.2 Administração pública em sentido objetivo e em sentido subjetivo",
+      "Regime jurídico-administrativo. 3.1 Conceito. 3.2 Conteúdo: supremacia do interesse público sobre o privado e indisponibilidade, pela Administração, dos interesses púbicos. 3.3 Princípios expressos e implícitos da administração pública. 3.4 Jurisprudência aplicada dos tribunais superiores",
+      "Organização administrativa. 4.1 Centralização, descentralização, concentração e desconcentração. 4.2 Administração direta. 4.3 Administração indireta",
+      "Atos administrativos. 5.1 Conceito. 5.2 Fatos da administração, atos da administração e atos administrativos. 5.3 Requisitos ou elementos. 5.4 Atributos. 5.5 Classificação. 5.6 Atos administrativos em espécie. 5.7 O silêncio no direito administrativo. 5.8 Extinção dos atos administrativos: Revogação, anulação e cassação. 5.9 Convalidação. 5.10 Vinculação e discricionariedade. 5.11 Atos administrativos nulos, anuláveis e inexistentes. 5.12 Decadência administrativa",
+      "Processo administrativo. 6.1 Disposições doutrinárias aplicáveis",
+      "Poderes e deveres da Administração Pública. 7.1 Poder regulamentar. 7.2 Poder hierárquico. 7.3 Poder disciplinar. 7.4 Poder de polícia. 7.5 Dever de agir. 7.6 Dever de eficiência. 7.7 Dever de probidade. 7.8 Dever de prestação de contas. 7.9 Uso e abuso do poder",
+      "Lei nº 14.133/2021. 8.1 Licitações: conceito; objeto; finalidades; princípios; obrigatoriedade; dispensa; inexigibilidade; vedação; modalidades; procedimentos; fases; revogação; invalidação; desistência; e controle",
+      "Contratos administrativos. 9.1 Legislação pertinente. 9.1.1 Lei nº 14.133/2021. 9.1.2 Decreto nº 6.170/2007 e Portaria Interministerial CGU/MF/MP nº 507/2011 e suas alterações. 9.1.3 Lei nº 11.107/2005 e suas alterações e Decreto nº 6.017/2007 (consórcios administrativos). 9.2 Disposições doutrinárias. 9.2.1 Conceito. 9.2.2 Características. 9.2.3 Vigência. 9.2.4 Alterações contratuais. 9.2.5 Execução, inexecução e rescisão. 9.2.6 Convênios e instrumentos congêneres",
+      "Controle da administração pública. 10.1 Conceito. 10.2 Classificação das formas de controle. 10.2.1 Conforme a origem. 10.2.2 Conforme o momento a ser exercido. 10.2.3 Conforme a amplitude. 10.3 Controle exercido pela administração pública. 10.4 Controle legislativo. 10.5 Controle judicial. 10.6 Jurisprudência aplicada dos tribunais superiores",
+      "Agentes públicos. 11.1 Legislação pertinente. 11.2 Disposições constitucionais aplicáveis. 11.3 Disposições doutrinárias. 11.3.1 Conceito. 11.3.2 Espécies. 11.3.3 Cargo, emprego e função pública. 11.3.4 Provimento. 11.3.5 Vacância. 11.3.6 Efetividade, estabilidade e vitaliciedade. 11.3.7 Remuneração. 11.3.8 Direitos e deveres. 11.3.9 Responsabilidade. 11.3.10 Processo administrativo disciplinar. 11.3.11 Regime de previdência",
+      "Jurisprudência aplicada dos tribunais superiores",
+      "Responsabilidade civil do Estado. 13.1 Evolução histórica. 13.2 Teorias subjetivas e objetivas da responsabilidade patrimonial do Estado. 13.3 Responsabilidade civil do Estado no direito brasileiro. 13.3.1 Responsabilidade por ato comissivo do Estado. 13.3.2 Responsabilidade por omissão do Estado. 13.4 Requisitos para a demonstração da responsabilidade do Estado. 13.5 Causas excludentes e atenuantes da responsabilidade do Estado. 13.6 Reparação do dano. 13.7 Direito de regresso. 13.8 Responsabilidade primária e subsidiária. 13.9 Responsabilidade do Estado por atos legislativos. 13.10 Responsabilidade do Estado por atos judiciais"
+     ]
+    },
+    {
+     "name": "Direito Civil",
+     "topics": [
+      "Lei de introdução às normas do direito brasileiro. 1.1 Vigência, aplicação, obrigatoriedade, interpretação e integração das leis. 1.2 Conflito das leis no tempo. 1.3 Eficácia das leis no espaço",
+      "Pessoas naturais. 2.1 Conceito. 2.2 Início da pessoa natural. 2.3 Personalidade. 2.4 Capacidade. 2.5 Direitos da personalidade. 2.6 Nome civil. 2.7 Estado civil. 2.8 Domicílio. 2.9 Ausência",
+      "Pessoas jurídicas. 3.1 Disposições Gerais. 3.2 Conceito e Elementos Caracterizadores. 3.3 Constituição. 3.4 Extinção. 3.5 Capacidade e direitos da personalidade. 3.6 Domicílio. 3.7 Sociedades de fato. 3.8 Associações. 3.9 Sociedades. 3.10 Fundações. 3.11 Grupos despersonalizados. 3.12 Desconsideração da personalidade jurídica. 3.13 Responsabilidade da pessoa jurídica e dos sócios",
+      "Bens. 4.1 Diferentes classes. 4.2 Bens Corpóreos e incorpóreos. 4.3 Bens no comércio e fora do comércio",
+      "Fato jurídico",
+      "Negócio jurídico. 6.1 Disposições gerais. 6.2 Classificação e interpretação. 6.3 Elementos. 6.4 Representação. 6.5 Condição, termo e encargo. 6.6 Defeitos do negócio jurídico. 6.7 Existência, eficácia, validade, invalidade e nulidade do negócio jurídico. 6.8 Simulação",
+      "Atos jurídicos lícitos e ilícitos",
+      "Prescrição e decadência",
+      "Prova do fato jurídico",
+      "Obrigações. 10.1 Características. 10.2 Elementos 10.3 Princípios. 10.4 Boa-fé. 10.5 Obrigação complexa (a obrigação como um processo). 10.6 Obrigações de dar. 10.7 Obrigações de fazer e de não fazer. 10.8 Obrigações alternativas e facultativas. 10.9 Obrigações divisíveis e indivisíveis. 10.10 Obrigações solidárias. 10.11 Obrigações civis e naturais, de meio, de resultado e de garantia. 10.12 Obrigações de execução instantânea, diferida e continuada. 10.13 Obrigações puras e simples, condicionais, a termo e modais. 10.14 Obrigações líquidas e ilíquidas. 10.15 Obrigações principais e acessórias. 10.16 Transmissão das obrigações. 10.17 Adimplemento e extinção das obrigações. 10.18 Inadimplemento das obrigações",
+      "Contratos. 11.1 Princípios. 11.2 Classificação. 11.3 Contratos em geral. 11.4 Disposições gerais. 11.5 Interpretação. 11.6 Extinção. 11.7 Espécies de contratos regulados no Código Civil",
+      "Atos unilaterais"
+     ]
+    },
+    {
+     "name": "Direito Processual Civil",
+     "topics": [
+      "Lei nº 13.105/2015 – Novo Código de Processo Civil. 1.1 Normas processuais civis. 1.2 Função jurisdicional. 1.3 Ação. 1.4 Pressupostos processuais. 1.5 Preclusão. 1.6 Sujeitos do processo. 1.7 Litisconsórcio. 1.8 Intervenção de terceiros. 1.9 Poderes, deveres e responsabilidade do juiz. 1.10 Ministério Público. 1.11 Advocacia Pública. 1.12 Defensoria Pública. 1.13 Atos processuais. 1.14 Tutela provisória. 1.15 Formação, suspensão e extinção do processo. 1.16 Processo de conhecimento e do cumprimento de sentença. 1.17 Procedimentos Especiais. 1.18 Procedimentos de jurisdição voluntária. 1.19 Processos de execução. 1.20 Processos nos tribunais e meios de impugnação das decisões judiciais",
+      "Mandado de segurança"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-economia",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Economia",
+   "cargoCode": "Cargo 473",
+   "track": "assistencia",
+   "label": "Gestor em Economia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Economia",
+     "topics": [
+      "Microeconomia. 1.1 Conceitos fundamentais. 1.1.1 Formas de organização da atividade econômica, o papel dos preços, custo de oportunidade, fator de produção e fronteiras das possibilidades de produção. 1.2 Determinação das curvas de procura. 1.2.1 Curvas de indiferença. 1.2.2 Equilíbrio do consumidor. 1.2.3 Efeitos preço, renda e substituição. 1.2.4 Elasticidade da procura. 1.2.5 Fatores de produção. 1.2.6 Produtividade média e marginal. 1.2.7 Lei dos rendimentos decrescentes e rendimentos de escala. 1.2.8 Custos de produção no curto e no longo prazo. 1.2.9 Custos totais, médios e marginais, fixos e variáveis. 1.3 Teoria do consumidor, utilidades cardinal e ordinal, restrição orçamentária, equilíbrio do consumidor e funções demanda, curvas de Engel, demanda de mercado, teoria da produção, isoquantas e curvas de isocusto, funções de produção e suas propriedades, curvas de produto e produtividade, curvas de custo, equilíbrio da firma, equilíbrio de curto e de longo prazos. 1.3.1 Economia do bem-estar. 1.3.2 Ótimo de Pareto. 1.4 Estruturas de mercado. 1.4.1 Concorrência perfeita, concorrência imperfeita, monopólio, oligopólio. 1.4.2 Outras estruturas de mercado. 1.4.3 Dinâmica de determinação de preços e margem de lucro. 1.4.4 Padrão de concorrência. 1.4.5 Análise de competitividade. 1.4.6 Análise de indústrias e da concorrência. 1.4.7 Vantagens competitivas. 1.4.8 Cadeias e redes produtivas. 1.4.9 Competitividade e estratégia empresarial",
+      "Macroeconomia. 2.1 Principais agregados macroeconômicos. 2.2 Identidades macroeconômicas básicas. 2.3 Sistema de contas nacionais. 2.4 Contas nacionais no Brasil. 2.5 Conceitos de déficit e dívida pública. 2.6 Balanço de pagamentos. 2.7 Papel do governo na economia. 2.7.1 Estabilização, crescimento e redistribuição. 2.8 A teoria keynesiana. 2.9 Oferta e demanda agregadas. 2.10 Agregados monetários. 2.10.1 As contas do sistema monetário. 2.11 Modelo IS-LM. 2.12 Políticas fiscal e monetária. 2.13 Relações entre inflação, juros e o resultado fiscal. 2.14 Relações entre o nível de atividade e o mercado de trabalho. 2.14.1 Salários, inflação e desemprego. 2.15 Comércio exterior. 2.15.1 Câmbio, tarifas, subsídios, cotas. 2.16 Blocos econômicos, acordos internacionais e retaliações. 2.17 Globalização e organismos multilaterais. 2.18 Fluxos financeiros internacionais e mercados de capitais",
+      "Economia do setor público. 3.1 O Estado e as funções econômicas governamentais. 3.2 As necessidades públicas e as formas de atuação dos governos. 3.3 Estado regulador e produtor. 3.4 Políticas fiscal e monetária. 3.4.1 Outras políticas econômicas. 3.5 Evolução da participação do setor público na atividade econômica. 3.6 Contabilidade fiscal. 3.6.1 NFSP. 3.6.2 Resultados nominal, operacional e primário. 3.6.3 Dívida pública. 3.7 Sustentabilidade do endividamento público. 3.8 Financiamento do déficit público a partir dos anos 80 do século XX. 3.9 Inflação e crescimento",
+      "Economia brasileira. 4.1 Aspectos gerais do comportamento recente da economia brasileira e das políticas econômicas adotadas pelos últimos governos. 4.2 Mudanças estruturais da economia brasileira a partir da aceleração dos processos de industrialização e urbanização. 4.3 Os planos de desenvolvimento mais importantes desde a segunda metade do século XX. 4.4 Principais características e os resultados dos planos de estabilização a partir da década de 80 do século XX. 4.5 Indicadores do desenvolvimento econômico e social brasileiro contemporâneo. 4.6 Desigualdades pessoais e espaciais de renda e de riqueza. 4.7 Perfil demográfico brasileiro. 4.8 Estrutura tributária brasileira. 4.9 O mercado de trabalho e as condições de emprego e renda. 4.10 Estrutura orçamentária e a evolução do déficit e da dívida pública brasileira. 4.11 A previdência social e suas perspectivas. 4.12 Câmbio, reservas e relações comerciais e financeiras do Brasil com o resto do mundo"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-nutricao",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Nutrição",
+   "cargoCode": "Cargo 474",
+   "track": "assistencia",
+   "label": "Gestor em Nutrição",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Nutrição",
+     "topics": [
+      "Nutrição humana básica: digestão, absorção, transporte, metabolismo, biodisponiblidade, excreção, classificação, função, fontes, carências e toxicidade de macro e micronutrientes, água, eletrólitos e fibras",
+      "Necessidades e recomendações nutricionais para indivíduos: planejamento e avaliação",
+      "Avaliação e diagnóstico do estado nutricional do indivíduo saudável ou enfermo nos ciclos da vida: conceitos e métodos, inquéritos dietéticos, antropometria, composição corporal, avaliação laboratorial dos parâmetros nutricionais e imunológicos, semiologia nutricional, balanço nitrogenado, balanço energético. 3.1 Prognóstico nutricional e avaliação nutricional subjetiva global",
+      "Guias alimentares para a população brasileira, alimentação saudável nos ciclos da vida. 4.1 Educação nutricional",
+      "Modificações da dieta normal e dietas especiais com finalidades terapêuticas. 5.1 Nutrição funcional, antioxidante e imunonutrição. 5.2 Nutrição no exercício físico e no esporte",
+      "Terapia nutricional enteral e parenteral em crianças, adultos e idosos: indicação, contraindicação, características, prescrição, monitorização, complicações",
+      "Banco de leite, lactário, sondário hospitalar, cozinha dietética: normas, procedimentos, equipamentos, Análise de Perigos e Pontos Críticos de Controle (APPCC) e manual de boas práticas",
+      "Noções de epidemiologia clínica e bioestatística. 8.1 Epidemiologia e vigilância nutricional",
+      "Fisiopatologia nutricional e dietoterapia. 9.1 Desnutrição e carências nutricionais. 9.2 Obesidade. 9.3 Transtornos alimentares. 9.4 Estresse metabólico: sepse, queimaduras, cirurgias, câncer e Síndrome da Imunodeficiência Adquirida (SIDA). 9.5 Diabetes e outras doenças endócrinas e metabólicas. 9.6 Cardiovasculopatias e síndrome metabólica. 9.7 Doenças do aparelho digestório. 9.8 Nefropatias. 9.9 Doenças do aparelho respiratório. 9.10 Transplantes. 9.11 Alergias e intolerâncias alimentares. 9.12 Doenças reumáticas e neurodegenerativas. 9.13 Doenças gestacionais, da infância e da adolescência. 9.14 Enfermidades transmitidas por alimentos (ETA)",
+      "Características e efeitos das diferentes modalidades terapêuticas e investigação diagnóstica sobre o estado e as necessidades nutricionais: procedimentos cirúrgicos, diálise, interação entre drogas e nutrientes, quimioterapia, radioterapia e exames bioquímicos e de imagem",
+      "Técnica dietética aplicada à nutrição clínica",
+      "Ética e legislação profissional"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-psicologia",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Psicologia",
+   "cargoCode": "Cargo 475",
+   "track": "assistencia",
+   "label": "Gestor em Psicologia",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Psicologia",
+     "topics": [
+      "Teorias da psicologia do desenvolvimento humano e suas implicações educacionais: epistemologia genética de Piaget, psicologia histórico‐cultural de Vigotsky, teoria da psicogênese da pessoa de Wallon, contribuições da psicanálise para a educação, princípios básicos da análise do comportamento e psicologia do desenvolvimento adulto",
+      "Processo de ensino e de aprendizagem. 2.1 Relação entre professor e aluno, relação entre desenvolvimento e educação, encontro entre subjetividade e educação no cotidiano da prática educativa, desenvolvimento atípico, segregação e exclusão",
+      "Psicologia escolar: histórico, caracterização, interdisciplinaridade, perspectivas atuais e controvérsias da atuação em psicologia escolar",
+      "Relação da Psicologia com a Educação. 4.1 Fracasso escolar, medicalização da educação e patologização das dificuldades do processo educativo. 4.2 Atuação em psicologia escolar: colaboração com o processo de ensino e de aprendizagem; trabalho junto aos professores e demais servidores; educação continuada e formação pessoal dos educadores; ação e intervenção junto à comunidade educativa; ampliação da abordagem das dificuldades no processo de escolarização; mapeamento e análise da instituição educativa; e contribuição para elaboração e implementação de políticas públicas de educação",
+      "Complexidade e multideterminação do processo educativo",
+      "Cultura, ideologia e instituição educativa",
+      "Função e finalidade da escola",
+      "Projeto político‐pedagógico, gestão democrática e políticas públicas de educação",
+      "Função humanizadora da educação",
+      "Planejamento da ação educativa: objetivos, conteúdos e vivências; métodos, técnicas e estratégias de ensino e de aprendizagem; humanização no e do processo educativo; e multimídia educativa e processo de avaliação educacional",
+      "Metodologia de projetos, interdisciplinaridade e globalização do conhecimento e análise de dificuldades e potencialidades no cotidiano escolar, em sua relação com a sociedade concreta",
+      "Educação em e para os direitos humanos, cidadania e diversidade cultural",
+      "Educação a distância: paradigmas, limites e possibilidades",
+      "Universidade: conceito, histórico e função social",
+      "Políticas públicas de educação superior e realidade brasileira"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-servico-social",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Serviço Social",
+   "cargoCode": "Cargo 476",
+   "track": "assistencia",
+   "label": "Gestor em Serviço Social",
+   "specific": [
+    {
+     "name": "Conhecimentos Específicos – Serviço Social",
+     "topics": [
+      "Fundamentos históricos e teórico-metodológicos do serviço social. 1.1 Institucionalização do serviço social ao movimento de reconceituação na América Latina, em particular no Brasil. 1.2 Análise crítica das influências teórico-metodológicas e as formas de intervenção construídas pela profissão em seus distintos contextos históricos. 1.3 Redimensionamento da profissão ante as transformações societárias. 1.3.1 Condições e relações de trabalho, espaços sócio-ocupacionais, atribuições",
+      "O projeto ético-político do serviço social: construção e desafios",
+      "Fundamentos éticos, ética profissional e legislação específica. 3.1 Lei de regulamentação da profissão, Código de Ética Profissional, diretrizes curriculares dos cursos de serviço social, resoluções do Conselho Federal de Serviço Social",
+      "A dimensão investigativa, processos de planejamento e de intervenção profissional. 5.1 Formulação de projeto de intervenção profissional: aspectos teóricos e metodológicos. 5.2 Fundamentos, instrumentos e técnicas de pesquisa social. 5.3 O planejamento como processo técnico-político: concepção, operacionalização e avaliação de planos, programas e projetos. 5.4 Assessoria, consultoria e supervisão em serviço social",
+      "A dimensão técnico-operativa do serviço social. 6.1 Concepções e debates sobre instrumentos e técnicas. 6.2 Entrevista, visita domiciliar, visita institucional, reunião, mobilização social, trabalho em rede, ação socioeducativa com indivíduos, grupos e família, abordagens individual e coletiva. 6.3 Estudo social, perícia social, relatório social, laudo social, parecer social. 6.4 Atuação em equipe multiprofissional e interdisciplinar",
+      "Questão social e direitos de cidadania. 7.1 Formas de expressão, enfrentamento e serviço social",
+      "Política social. 8.1 Fundamentos, história e políticas. 8.2 Seguridade social no Brasil: relação Estado-sociedade; contexto atual e neoliberalismo. 8.3 Políticas de saúde, de assistência social e de Previdência Social, e respectivas legislações. 8.4 Políticas sociais setoriais e respectivas legislações: educação, habitação, trabalho, políticas urbanas e rurais, meio ambiente. 8.5 Políticas e programas sociais dirigidas aos segmentos: crianças, adolescentes, jovens, idosos, mulheres, homens, afrodescendentes, indígenas, pessoas com deficiência, pessoas com transtorno mental, pessoas vítimas de violência, moradores de rua, usuários de álcool e outras drogas, portadores de HIV, e respectivas legislações. 8.6 Políticas, diretrizes, ações e desafios na área da família, da criança e do adolescente. 8.6.1 Concepções e modalidades de família, estratégias de atendimento e acompanhamento. 8.6.2 Estatuto da Criança e do Adolescente (ECA). 8.6.3 Defesa de direitos da criança e do adolescente. 8.6.4 O papel dos conselhos, dos centros de defesa e das delegacias. 8.6.5 Adoção e guarda. 8.6.6 Violência contra crianças e adolescentes. 8.6.7 Prostituição infanto-juvenil; exploração sexual no trabalho e no tráfico de drogas; turismo sexual. 8.6.8 Extermínio, sequestro e tráfico de crianças. 8.6.9 Meninos e meninas de rua. 8.6.10 Trabalho infanto-juvenil",
+      "Legislação social. 9.1 Constituição Federal de 1988 e leis da seguridade social: Lei nº 8.212/1991 (Lei Orgânica da Seguridade Social); Lei nº 8.080/1990 (Lei Orgânica da Saúde); Lei nº 8.213/1991 (planos de benefícios da Previdência Social); Lei nº 8.742/1993 (Lei Orgânica da Assistência Social). 9.2 Legislação social para áreas/segmentos específicos. 9.2.1 Lei de Diretrizes e Bases da Educação Brasileira (LDB); Estatuto do Idoso; Lei Maria da Penha; Programa Nacional de Direitos Humanos (PNDH); Sistema Nacional de Atendimento Socioeducativo (SINASE); Sistema Nacional de Políticas Públicas sobre Drogas (SISNAD). 9.2.2 Normativas internacionais: Declaração de Beijing, Princípios Orientadores das Nações Unidas para a Prevenção da Delinquência Juvenil (Princípios Orientadores de Riad), Normas Mínimas para a Proteção de Adolescentes Privados de Liberdade, Regras Mínimas para a Administração da Justiça da Infância e da Juventude",
+      "Legislação profissional. 10.1 Lei nº 8.662/1993 (lei de regulamentação da profissão de assistente social). 10.2 Código de Ética Profissional do(a) Assistente Social. 10.3 Resoluções do Conselho Federal de Serviço Social (CFESS)"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gestor-tecnologia-da-informacao",
+   "group": "Gestor em Políticas Públicas e Gestão Educacional",
+   "name": "Tecnologia da Informação",
+   "cargoCode": "Cargo 477",
+   "track": "assistencia",
+   "label": "Gestor em Tecnologia da Informação",
+   "specific": [
+    {
+     "name": "Desenvolvimento de Sistemas",
+     "topics": [
+      "Desenvolvimento de sistemas. 1.1 Desenvolvimento web. 1.1.1 JavaScript, HTML5, CSS3, WebSocket, Single Page Application (SPA). 1.2 Framework JavaScript AngularJS, DHTML, AJAX. 1.3 Jasper. 1.4 Noções e conceitos de desenvolvimento para dispositivos móveis. 1.5 Framework Apache CXF. 1.6 Programação PHP. 1.7 Framework Zend. 1.8 Programação Phyton. 1.9 Usabilidade e acessibilidade na internet, padrões W3C e e-MAG. 1.10 Sistema de gerenciamento de conteúdo web ZOPE/Plone: principais características, componentes e arquitetura Zope (templates, schemas, classes), instalação e configuração de sítios web",
+      "Análise estática de código fonte (Clean Code e ferramenta SonarQube)",
+      "Arquitetura de software. 3.1 Interoperabilidade de sistemas. 3.2 Arquitetura orientada a serviços. 3.2.1 Web Services. 3.3 Arquitetura orientada a objetos. 3.4 Arquitetura. 3.5 Camadas, modelo MVC. 3.6 Arquitetura de aplicações para ambiente web. 3.6.1 Servidor de aplicações. Servidor Web",
+      "Ambientes internet, extranet, intranet e portal: finalidades, características físicas e lógicas, aplicações e serviços",
+      "Padrões XML, XSLT, UDDI, WSDL, SOAP, REST e JSON",
+      "Engenharia de software. 6.1 Levantamento de requisitos funcionais e não funcionais. 6.2 Análise de Sistemas. 6.3 Qualidade de software. 6.4 Unified process (UP). 6.5 Unified modeling language (UML). 6.6 Metodologias ágeis para o desenvolvimento de software",
+      "Métrica de análise de ponto de função"
+     ]
+    },
+    {
+     "name": "Bancos de Dados",
+     "topics": [
+      "Banco de dados. 1.1 Conceitos básicos. 1.2 Arquitetura. 1.3 Estrutura de Dados. 1.4 Modelagem e normalização de dados. 1.5 Noções de administração de dados e de banco de dados. 1.6 Topologia típica de ambientes com alta disponibilidade e escalabilidade. 1.7 SQL (ANSI). 1.8 Microsoft SQL Server, MySql e PostgreSQL. 1.9 Transact-SQL (T-SQL). 1.10 Arquitetura e políticas de armazenamento de dados. 1.11 Balanceamento de carga, fail‐over e replicação de estado. 1.12 Técnicas de análise de desempenho e otimização de consultas (tuning). 1.13 Segurança de banco de dados"
+     ]
+    },
+    {
+     "name": "Segurança da Informação",
+     "topics": [
+      "Políticas de segurança da informação",
+      "Procedimentos de segurança, conceitos gerais de gerenciamento",
+      "Normas ISO 27001 e ISO 27002",
+      "Segurança de redes de computadores, inclusive redes sem fio",
+      "Vulnerabilidades e ataques a sistemas computacionais",
+      "Prevenção e tratamento de incidentes",
+      "Ataques e proteções relativos a hardware, software, sistemas operacionais, aplicações, bancos de dados, redes, inclusive firewalls, proxies, virtual private networks (IPSEC VPN e SSL VPN)",
+      "Segurança física e lógica dos ativos de TI",
+      "Criptografia",
+      "Proteção contra softwares maliciosos",
+      "Sistemas de detecção de intrusão",
+      "Segurança de servidores e sistemas operacionais",
+      "Certificação digital",
+      "Gestão de riscos. 14.1 Norma NBR ISO/IEC nº 27005. 14.2 Planejamento, identificação e análise de riscos",
+      "Plano de continuidade de negócio"
+     ]
+    },
+    {
+     "name": "Suporte e Infraestrutura",
+     "topics": [
+      "Administração de sistemas operacionais. 1.1 z/OS, Linux, Unix e MSWindows (Desktop e Server). 1.2 Linguagens de script",
+      "compartilhamento, segurança e integridade",
+      "Interoperação entre sistemas operacionais",
+      "Arquitetura hardware de servidores. 4.1 RISC, CISC e mainframe",
+      "Formatação de dados",
+      "Armazenamento de dados. 6.1 Rede SAN (storage area network). 6.2 Switches e directors fiber channel. 6.3 ISL (inter switch link). 6.4 Definição de trunk. 6.5 Zoning (especificação de zoneamento). 6.6 Conceitos de fitotecas. 6.7 Conceitos de armazenamento de discos e conceito de replicação de dados",
+      "Tópicos avançados. 7.1 Virtualização (XEN, VMWare, KVM, ZVM). 7.2 Consolidação de servidores. 7.3 Integração de plataforma alta com plataforma baixa. 7.4 Cluster (alta disponibilidade e performance). 7.5 Conceitos de mensageria. 7.6 Computação em grid e em nuvem",
+      "Servidores de aplicação. 8.1 Apache, Tomcat, Jboss e IIS",
+      "Teoria e políticas de backup e recuperação de dados",
+      "Active Directory (Microsoft Windows)",
+      "SAMBA (Linux)"
+     ]
+    },
+    {
+     "name": "Administração de Redes",
+     "topics": [
+      "Procedimentos de segurança",
+      "Vulnerabilidades e ataques a sistemas computacionais",
+      "Processos de definição, implantação e gestão de políticas de segurança e auditoria",
+      "Criptografia, protocolos criptográficos, sistemas de criptografia, estrutura de certificação e assinatura digital",
+      "Ataques e proteções: hardware, software, aplicativos, bancos de dados, redes, inclusive firewalls, proxies, antivírus e defesa de perímetros (IDS e IPS), pessoas e ambiente físico",
+      "Legislação relativa à segurança dos sistemas de informação",
+      "Configuração, administração e gerenciamento de servidores de DNS, DHCP, WINS, FTP, NNTP, VPN, autenticação, arquivos, HTTP, proxy, firewall, correio eletrônico bem como IMAP e POP, banco de dados Microsoft SQL Server, MySql Server e PostgreSQL Server",
+      "Balanceamento de carga e alta disponibilidade entre servidores",
+      "Redes geograficamente distribuídas",
+      "Topologias em estrela, anel e barra"
+     ]
+    },
+    {
+     "name": "Gestão e Governança de Tecnologia da Informação",
+     "topics": [
+      "Gerenciamento de projetos – PMBOK 6ª edição. 1.1 Projetos e a organização. 1.2 Escritório de projetos. 1.2.1 Modelos e características",
+      "Processos, grupos de processos e área de conhecimento",
+      "Gestão de riscos",
+      "Gerenciamento de serviços (ITIL v4). 4.1 Conceitos básicos, disciplinas, estrutura e objetivos",
+      "Governança de TI (COBIT 5). 5.1 Conceitos básicos, estrutura e objetivos",
+      "Qualidade de software. 6.1 MPSBR e CMMI. 6.2 Conceitos básicos e objetivos. 6.3 Disciplinas e formas de representação. 6.4 Níveis de capacidade e maturidade. 6.5 Processos e categorias de processos"
+     ]
+    },
+    {
+     "name": "Língua Inglesa",
+     "topics": [
+      "Compreensão de texto em língua inglesa",
+      "Itens gramaticais relevantes para compreensão de conteúdos semânticos"
+     ]
+    }
+   ]
+  }
+ ]
+}
