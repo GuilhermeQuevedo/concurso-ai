@@ -8,7 +8,9 @@ import {
 } from '@/features/questions/services/question-set.service';
 import { useScheduleTarget } from '@/features/content/hooks/useScheduleTarget';
 import { QuestionSetCard } from '@/features/questions/components/QuestionSetCard';
+import { BankQuestionsModal } from '@/features/questions/components/BankQuestionsModal';
 import { GenerateAIModal } from '@/features/questions/components/GenerateAIModal';
+import { QuestionSourceChooser } from '@/features/questions/components/QuestionSourceChooser';
 import { CreateManualModal } from '@/features/questions/components/CreateManualModal';
 import { subjectColor } from '@/features/questions/subjectColor';
 
@@ -33,6 +35,8 @@ export function GeneratePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAI, setShowAI] = useState(false);
+  const [showChooser, setShowChooser] = useState(false);
+  const [showBank, setShowBank] = useState(false);
   const target = useScheduleTarget();
   const autoOpened = useRef(false);
   useEffect(() => {
@@ -96,6 +100,8 @@ export function GeneratePage() {
 
   const refresh = () => {
     setShowAI(false);
+    setShowBank(false);
+    setShowChooser(false);
     setShowManual(false);
     queryClient.invalidateQueries({ queryKey: ['question-sets'] });
   };
@@ -140,10 +146,10 @@ export function GeneratePage() {
             <PencilLine className="h-4 w-4" /> Criar Manual
           </button>
           <button
-            onClick={() => setShowAI(true)}
+            onClick={() => setShowChooser(true)}
             className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
           >
-            <Sparkles className="h-4 w-4" /> Gerar com IA
+            <Sparkles className="h-4 w-4" /> Gerar questões
           </button>
         </div>
       </div>
@@ -157,7 +163,7 @@ export function GeneratePage() {
           <FileQuestion className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
           <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Nenhum simulado ainda</p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Clique em “Gerar com IA” para criar seu primeiro simulado no estilo da sua prova.
+            Clique em “Gerar questões” para criar seu primeiro simulado no estilo da sua prova.
           </p>
         </div>
       ) : view === 'folders' && filter === 'all' ? (
@@ -191,6 +197,17 @@ export function GeneratePage() {
         </div>
       )}
 
+      {showChooser && (
+        <QuestionSourceChooser
+          onClose={() => setShowChooser(false)}
+          onChoose={(source) => {
+            setShowChooser(false);
+            if (source === 'ai') setShowAI(true);
+            else setShowBank(true);
+          }}
+        />
+      )}
+      {showBank && <BankQuestionsModal onClose={() => setShowBank(false)} onCreated={refresh} />}
       {showAI && <GenerateAIModal onClose={() => setShowAI(false)} onCreated={refresh} initialSubjectId={target.subject?.id} />}
       {showManual && <CreateManualModal onClose={() => setShowManual(false)} onCreated={refresh} />}
     </div>
