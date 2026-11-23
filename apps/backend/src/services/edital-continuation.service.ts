@@ -2,7 +2,7 @@ import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { partsOf } from '../utils/document-parts.js';
-import { newTopics } from '../utils/syllabus-merge.js';
+import { focusOfNewTopic, newTopics } from '../utils/syllabus-merge.js';
 
 const CONTINUATION_NOTE = '[CONTINUAÇÃO DO EDITAL: este trecho segue as páginas já analisadas. Extraia só matérias e tópicos que aparecem aqui.]';
 
@@ -30,7 +30,13 @@ export class EditalContinuationService {
 
     const lastOrder = contest.syllabus.reduce((max, item) => Math.max(max, item.order), 0);
     await prisma.contestSyllabusItem.createMany({
-      data: added.map((entry, index) => ({ contestId, discipline: entry.discipline, topic: entry.topic, order: lastOrder + index + 1, focus: true })),
+      data: added.map((entry, index) => ({
+        contestId,
+        discipline: entry.discipline,
+        topic: entry.topic,
+        order: lastOrder + index + 1,
+        focus: focusOfNewTopic(entry.discipline, contest.syllabus, parsed.focusDisciplines),
+      })),
     });
     return added.length;
   }

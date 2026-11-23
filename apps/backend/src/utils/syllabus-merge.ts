@@ -35,3 +35,16 @@ export function newTopics(existing: readonly SyllabusEntryLike[], incoming: read
   }
   return added;
 }
+
+// Foco de um tópico novo: herda o da disciplina que o edital já tem; se a disciplina é nova, segue a lista de foco da IA (sem lista, tudo é foco).
+export function focusOfNewTopic(
+  discipline: string,
+  existing: ReadonlyArray<{ discipline: string; focus: boolean }>,
+  focusDisciplines: readonly string[] | null | undefined,
+): boolean {
+  const key = norm(discipline);
+  const known = existing.find((item) => norm(item.discipline) === key);
+  if (known) return known.focus;
+  if (!focusDisciplines || focusDisciplines.length === 0) return true;
+  return focusDisciplines.some((name) => norm(name) === key);
+}

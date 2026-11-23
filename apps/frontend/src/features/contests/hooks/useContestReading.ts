@@ -26,7 +26,9 @@ export function useContestReading(contestId: string) {
     wasRunning.current = false;
     void queryClient.invalidateQueries({ queryKey: ['contest', contestId] });
     void queryClient.invalidateQueries({ queryKey: ['contests'] });
-    if (job.message) toast.success(job.message);
+    if (!job.message) return;
+    if (job.errorCode === 'REST_FAILED') toast.warning(job.message);
+    else toast.success(job.message);
   }, [job, contestId, queryClient]);
 
   return { readingRest: job?.status === 'RUNNING' && job.partsDone >= 1 };
