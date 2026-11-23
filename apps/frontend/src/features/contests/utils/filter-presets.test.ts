@@ -5,8 +5,8 @@ import { filterPresetGroups } from './filter-presets';
 
 const cargo = (id: string, label: string) => ({ id, label, name: label, cargoCode: 'Cargo 1', topicCount: 1, disciplines: [] });
 const groups = [
-  { name: 'Professor', cargos: [cargo('a', 'Professor de Matemática'), cargo('b', 'Professor de Filosofia')] },
-  { name: 'Gestor', cargos: [cargo('c', 'Gestor em Economia')] },
+  { name: 'Professor', label: 'Professores', cargos: [cargo('a', 'Professor de Matemática'), cargo('b', 'Professor de Filosofia')] },
+  { name: 'Gestor', label: 'Gestores', cargos: [cargo('c', 'Gestor em Economia')] },
 ];
 
 describe('filterPresetGroups', () => {

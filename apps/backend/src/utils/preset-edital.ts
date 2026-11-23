@@ -28,16 +28,19 @@ export function summarizeCargo(catalog: PresetCatalog, cargo: PresetCargo): Pres
 }
 
 export function summarizeCatalog(catalog: PresetCatalog): PresetCatalogSummary {
-  const groups = new Map<string, PresetCargoSummary[]>();
+  const groups = new Map<string, { label: string; cargos: PresetCargoSummary[] }>();
   for (const cargo of catalog.cargos) {
-    groups.set(cargo.group, [...(groups.get(cargo.group) ?? []), summarizeCargo(catalog, cargo)]);
+    const group = groups.get(cargo.group) ?? { label: cargo.groupLabel, cargos: [] };
+    group.cargos.push(summarizeCargo(catalog, cargo));
+    groups.set(cargo.group, group);
   }
   return {
     id: catalog.id,
+    area: catalog.area,
     title: catalog.title,
     organization: catalog.organization,
     description: catalog.description,
-    groups: [...groups].map(([name, cargos]) => ({ name, cargos })),
+    groups: [...groups].map(([name, group]) => ({ name, label: group.label, cargos: group.cargos })),
   };
 }
 

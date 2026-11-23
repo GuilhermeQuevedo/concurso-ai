@@ -15,10 +15,11 @@ export interface PresetCargo {
 
 export interface PresetCatalog {
   id: string;
+  area: string;
   title: string;
   organization: string;
   description: string;
-  groups: { name: string; cargos: PresetCargo[] }[];
+  groups: { name: string; label: string; cargos: PresetCargo[] }[];
 }
 
 export const presetEditalService = {

@@ -1,9 +1,10 @@
 {
  "id": "seedf-2022",
- "title": "SEEDF 2022 – Edital nº 31",
+ "area": "Educação",
+ "title": "SEEDF – Último edital",
  "shortName": "SEEDF 2022",
  "organization": "SEEDF",
- "description": "Secretaria de Estado de Educação do Distrito Federal. Conteúdo programático oficial do Anexo IV, separado por cargo.",
+ "description": "Secretaria de Estado de Educação do Distrito Federal · Edital nº 31/2022. Conteúdo programático oficial, separado por cargo.",
  "shared": {
   "basicos": [
    {
@@ -135,6 +136,7 @@
    "name": "Administração",
    "cargoCode": "Cargo 400",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Administração",
    "specific": [
     {
@@ -194,6 +196,7 @@
    "name": "Arquitetura",
    "cargoCode": "Cargo 401",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Arquitetura",
    "specific": [
     {
@@ -298,6 +301,7 @@
    "name": "Artes",
    "cargoCode": "Cargo 402",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Artes",
    "specific": [
     {
@@ -324,6 +328,7 @@
    "name": "Atividades",
    "cargoCode": "Cargo 403",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Atividades",
    "specific": [
     {
@@ -367,6 +372,7 @@
    "name": "Biologia",
    "cargoCode": "Cargo 404",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Biologia",
    "specific": [
     {
@@ -397,6 +403,7 @@
    "name": "Biomedicina",
    "cargoCode": "Cargo 405",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Biomedicina",
    "specific": [
     {
@@ -431,6 +438,7 @@
    "name": "Ciências Naturais",
    "cargoCode": "Cargo 406",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Ciências Naturais",
    "specific": [
     {
@@ -458,6 +466,7 @@
    "name": "Construção Civil",
    "cargoCode": "Cargo 407",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Construção Civil",
    "specific": [
     {
@@ -511,6 +520,7 @@
    "name": "Contabilidade",
    "cargoCode": "Cargo 408",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Contabilidade",
    "specific": [
     {
@@ -603,6 +613,7 @@
    "name": "Direito",
    "cargoCode": "Cargo 409",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Direito",
    "specific": [
     {
@@ -702,6 +713,7 @@
    "name": "Educação Física",
    "cargoCode": "Cargo 410",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Educação Física",
    "specific": [
     {
@@ -735,6 +747,7 @@
    "name": "Eletrônica",
    "cargoCode": "Cargo 411",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Eletrônica",
    "specific": [
     {
@@ -772,6 +785,7 @@
    "name": "Eletrotécnica",
    "cargoCode": "Cargo 412",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Eletrotécnica",
    "specific": [
     {
@@ -802,6 +816,7 @@
    "name": "Enfermagem",
    "cargoCode": "Cargo 413",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Enfermagem",
    "specific": [
     {
@@ -853,6 +868,7 @@
    "name": "Farmácia",
    "cargoCode": "Cargo 414",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Farmácia",
    "specific": [
     {
@@ -907,6 +923,7 @@
    "name": "Filosofia",
    "cargoCode": "Cargo 415",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Filosofia",
    "specific": [
     {
@@ -930,6 +947,7 @@
    "name": "Física",
    "cargoCode": "Cargo 416",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Física",
    "specific": [
     {
@@ -957,6 +975,7 @@
    "name": "Fisioterapia",
    "cargoCode": "Cargo 417",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Fisioterapia",
    "specific": [
     {
@@ -986,6 +1005,7 @@
    "name": "Gastronomia",
    "cargoCode": "Cargo 418",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Gastronomia",
    "specific": [
     {
@@ -1035,6 +1055,7 @@
    "name": "Geografia",
    "cargoCode": "Cargo 419",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Geografia",
    "specific": [
     {
@@ -1057,6 +1078,7 @@
    "name": "História",
    "cargoCode": "Cargo 420",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de História",
    "specific": [
     {
@@ -1083,6 +1105,7 @@
    "name": "Informática",
    "cargoCode": "Cargo 421",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Informática",
    "specific": [
     {
@@ -1108,6 +1131,7 @@
    "name": "LEM – Alemão",
    "cargoCode": "Cargo 422",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de LEM – Alemão",
    "specific": [
     {
@@ -1126,6 +1150,7 @@
    "name": "LEM – Espanhol",
    "cargoCode": "Cargo 423",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de LEM – Espanhol",
    "specific": [
     {
@@ -1150,6 +1175,7 @@
    "name": "LEM – Francês",
    "cargoCode": "Cargo 424",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de LEM – Francês",
    "specific": [
     {
@@ -1178,6 +1204,7 @@
    "name": "LEM – Inglês",
    "cargoCode": "Cargo 425",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de LEM – Inglês",
    "specific": [
     {
@@ -1203,6 +1230,7 @@
    "name": "LEM – Japonês",
    "cargoCode": "Cargo 426",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de LEM – Japonês",
    "specific": [
     {
@@ -1232,6 +1260,7 @@
    "name": "Letras Libras",
    "cargoCode": "Cargo 427",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Letras Libras",
    "specific": [
     {
@@ -1262,6 +1291,7 @@
    "name": "Língua Portuguesa",
    "cargoCode": "Cargo 428",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Língua Portuguesa",
    "specific": [
     {
@@ -1310,6 +1340,7 @@
    "name": "Matemática",
    "cargoCode": "Cargo 429",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Matemática",
    "specific": [
     {
@@ -1341,6 +1372,7 @@
    "name": "Música",
    "cargoCode": "Cargos 430 a 458",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Música",
    "specific": [
     {
@@ -1363,6 +1395,7 @@
    "name": "Nutrição",
    "cargoCode": "Cargo 459",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Nutrição",
    "specific": [
     {
@@ -1393,6 +1426,7 @@
    "name": "Odontologia",
    "cargoCode": "Cargo 460",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Odontologia",
    "specific": [
     {
@@ -1434,6 +1468,7 @@
    "name": "Psicologia",
    "cargoCode": "Cargo 461",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Psicologia",
    "specific": [
     {
@@ -1469,6 +1504,7 @@
    "name": "Química",
    "cargoCode": "Cargo 462",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Química",
    "specific": [
     {
@@ -1501,6 +1537,7 @@
    "name": "Radiologia",
    "cargoCode": "Cargo 463",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Radiologia",
    "specific": [
     {
@@ -1529,6 +1566,7 @@
    "name": "Sociologia",
    "cargoCode": "Cargo 464",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Sociologia",
    "specific": [
     {
@@ -1551,6 +1589,7 @@
    "name": "Telecomunicações",
    "cargoCode": "Cargo 465",
    "track": "magisterio",
+   "groupLabel": "Professores",
    "label": "Professor de Telecomunicações",
    "specific": [
     {
@@ -1576,6 +1615,7 @@
    "name": "Orientador Educacional",
    "cargoCode": "Cargo 466",
    "track": "magisterio",
+   "groupLabel": "Pedagogo",
    "label": "Pedagogo – Orientador Educacional",
    "specific": [
     {
@@ -1616,6 +1656,7 @@
    "name": "Administração",
    "cargoCode": "Cargo 467",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Administração",
    "specific": [
     {
@@ -1641,6 +1682,7 @@
    "name": "Arquivologia",
    "cargoCode": "Cargo 468",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Arquivologia",
    "specific": [
     {
@@ -1668,6 +1710,7 @@
    "name": "Biblioteconomia",
    "cargoCode": "Cargo 469",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Biblioteconomia",
    "specific": [
     {
@@ -1692,6 +1735,7 @@
    "name": "Comunicação Social",
    "cargoCode": "Cargo 470",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Comunicação Social",
    "specific": [
     {
@@ -1728,6 +1772,7 @@
    "name": "Contabilidade",
    "cargoCode": "Cargo 471",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Contabilidade",
    "specific": [
     {
@@ -1806,6 +1851,7 @@
    "name": "Direito e Legislação",
    "cargoCode": "Cargo 472",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Direito e Legislação",
    "specific": [
     {
@@ -1877,6 +1923,7 @@
    "name": "Economia",
    "cargoCode": "Cargo 473",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Economia",
    "specific": [
     {
@@ -1896,6 +1943,7 @@
    "name": "Nutrição",
    "cargoCode": "Cargo 474",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Nutrição",
    "specific": [
     {
@@ -1923,6 +1971,7 @@
    "name": "Psicologia",
    "cargoCode": "Cargo 475",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Psicologia",
    "specific": [
     {
@@ -1953,6 +2002,7 @@
    "name": "Serviço Social",
    "cargoCode": "Cargo 476",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Serviço Social",
    "specific": [
     {
@@ -1977,6 +2027,7 @@
    "name": "Tecnologia da Informação",
    "cargoCode": "Cargo 477",
    "track": "assistencia",
+   "groupLabel": "Gestores",
    "label": "Gestor em Tecnologia da Informação",
    "specific": [
     {

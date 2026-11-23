@@ -154,6 +154,7 @@ for num, b in blocks.items():
         'name': area_t,
         'cargoCode': (b['cargo'] or '').replace('CARGOS', 'Cargos').replace('CARGO', 'Cargo').replace(' ATÉ ', ' a '),
         'track': track,
+        'groupLabel': {'Professor de Educação Básica': 'Professores', 'Pedagogo': 'Pedagogo'}.get(group, 'Gestores'),
         'label': ('Pedagogo – ' + area_t) if group == 'Pedagogo' else (('Professor de ' if track == 'magisterio' else 'Gestor em ') + area_t),
         'specific': [
             {'name': (ti if ti and len(b['sections']) > 1 else f'Conhecimentos Específicos – {area_t}'), 'topics': tp}
@@ -173,10 +174,11 @@ for k, v in shared.items():
 
 catalog = {
     'id': 'seedf-2022',
-    'title': 'SEEDF 2022 – Edital nº 31',
+    'area': 'Educação',
+    'title': 'SEEDF – Último edital',
     'shortName': 'SEEDF 2022',
     'organization': 'SEEDF',
-    'description': 'Secretaria de Estado de Educação do Distrito Federal. Conteúdo programático oficial do Anexo IV, separado por cargo.',
+    'description': 'Secretaria de Estado de Educação do Distrito Federal · Edital nº 31/2022. Conteúdo programático oficial, separado por cargo.',
     'shared': shared,
     'cargos': cargos,
 }

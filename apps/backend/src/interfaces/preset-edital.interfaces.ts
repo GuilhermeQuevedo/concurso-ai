@@ -8,6 +8,7 @@ const disciplineSchema = z.object({
 const cargoSchema = z.object({
   id: z.string().min(1),
   group: z.string().min(1),
+  groupLabel: z.string().min(1),
   label: z.string().min(1),
   name: z.string().min(1),
   cargoCode: z.string(),
@@ -17,6 +18,7 @@ const cargoSchema = z.object({
 
 export const presetCatalogSchema = z.object({
   id: z.string().min(1),
+  area: z.string().min(1),
   title: z.string().min(1),
   shortName: z.string().min(1),
   organization: z.string().min(1),
@@ -44,8 +46,9 @@ export interface PresetCargoSummary {
 
 export interface PresetCatalogSummary {
   id: string;
+  area: string;
   title: string;
   organization: string;
   description: string;
-  groups: { name: string; cargos: PresetCargoSummary[] }[];
+  groups: { name: string; label: string; cargos: PresetCargoSummary[] }[];
 }

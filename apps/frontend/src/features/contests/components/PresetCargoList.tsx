@@ -4,9 +4,10 @@ interface PresetCargoListProps {
   groups: PresetCatalog['groups'];
   selectedId: string | null;
   onSelect: (cargoId: string) => void;
+  showTitles: boolean;
 }
 
-export function PresetCargoList({ groups, selectedId, onSelect }: PresetCargoListProps) {
+export function PresetCargoList({ groups, selectedId, onSelect, showTitles }: PresetCargoListProps) {
   if (groups.length === 0) {
     return <p className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">Nenhum cargo encontrado para essa busca.</p>;
   }
@@ -15,7 +16,7 @@ export function PresetCargoList({ groups, selectedId, onSelect }: PresetCargoLis
     <div className="space-y-4">
       {groups.map((group) => (
         <section key={group.name}>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{group.name}</h3>
+          {showTitles && <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{group.name}</h3>}
           <div className="grid gap-2 sm:grid-cols-2">
             {group.cargos.map((cargo) => {
               const active = cargo.id === selectedId;
