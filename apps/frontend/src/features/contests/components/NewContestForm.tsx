@@ -3,11 +3,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import { contestService } from '../services/contest.service';
 import { EditalUpload } from './EditalUpload';
+import { PresetEditalPicker } from './PresetEditalPicker';
 
-type Mode = 'edital' | 'manual';
+type Mode = 'preset' | 'edital' | 'manual';
 
 export function NewContestForm({ onBack, onCreated }: { onBack: () => void; onCreated: (id: string) => void }) {
-  const [mode, setMode] = useState<Mode>('edital');
+  const [mode, setMode] = useState<Mode>('preset');
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -18,12 +19,15 @@ export function NewContestForm({ onBack, onCreated }: { onBack: () => void; onCr
 
       <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">Novo Edital ou Estudo</h2>
 
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
+        <ModeButton active={mode === 'preset'} onClick={() => setMode('preset')} label="Editais prontos" />
         <ModeButton active={mode === 'edital'} onClick={() => setMode('edital')} label="A partir de um arquivo (IA)" />
         <ModeButton active={mode === 'manual'} onClick={() => setMode('manual')} label="Cadastro manual" />
       </div>
 
-      {mode === 'edital' ? <EditalUpload onCreated={onCreated} /> : <ManualForm onCreated={onCreated} />}
+      {mode === 'preset' && <PresetEditalPicker onCreated={onCreated} />}
+      {mode === 'edital' && <EditalUpload onCreated={onCreated} />}
+      {mode === 'manual' && <ManualForm onCreated={onCreated} />}
     </div>
   );
 }
