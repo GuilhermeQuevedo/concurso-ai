@@ -1,8 +1,9 @@
 import fs from 'node:fs/promises';
-import { PDFParse } from 'pdf-parse';
 import { prisma } from '../database/prisma.js';
 import { AppError } from '../middlewares/error-handler.js';
 import { mimeToDocType } from '../middlewares/upload.js';
+import { splitPdfPages, splitPlainText, MAX_FIRST_PART_PAGES } from '../utils/document-parts.js';
+import { extractPdfPageTexts } from '../utils/pdf.js';
 import { decodeTextBuffer } from '../utils/text-encoding.js';
 import { detectDocumentKind, DOCUMENT_KINDS, type DocumentKind } from '../utils/document-kind.js';
 
@@ -22,7 +23,7 @@ export class DocumentService {
       }
     }
 
-    const content = await this.extractText(file);
+    const { content, pageCount, firstPartChars } = await this.extractText(file);
     const docType = mimeToDocType(file.mimetype);
     const suggestedKind = detectDocumentKind(content);
     const finalKind = kind ?? suggestedKind;
@@ -34,13 +35,15 @@ export class DocumentService {
         type: docType as 'PDF' | 'TXT' | 'HTML' | 'MARKDOWN' | 'DOCX',
         kind: finalKind,
         content,
+        pageCount,
+        firstPartChars,
         subjectId: subjectId ?? null,
       },
     });
 
     await fs.unlink(file.path).catch(() => {});
 
-    return { ...document, suggestedKind, kindAutoDetected: !kind };
+    return { ...document, suggestedKind, kindAutoDetected: !kind, reading: readingInfo(content.length, pageCount, firstPartChars) };
   }
 
   async updateName(userId: string, id: string, name: string) {
@@ -117,19 +120,33 @@ export class DocumentService {
     return combined;
   }
 
-  private async extractText(file: UploadedFile): Promise<string> {
+  private async extractText(file: UploadedFile): Promise<{ content: string; pageCount: number | null; firstPartChars: number | null }> {
     if (file.mimetype === 'application/pdf') {
-      const data = await fs.readFile(file.path);
-      const parser = new PDFParse({ data: new Uint8Array(data) }) as unknown as {
-        load(): Promise<void>;
-        getText(): Promise<{ text: string }>;
-      };
-      await parser.load();
-      const result = await parser.getText();
-      return result.text.trim();
+      const split = splitPdfPages(await extractPdfPageTexts(file.path));
+      return { content: split.content, pageCount: split.pageCount, firstPartChars: split.firstPartChars };
     }
 
-    const buffer = await fs.readFile(file.path);
-    return decodeTextBuffer(buffer).trim();
+    const content = decodeTextBuffer(await fs.readFile(file.path)).trim();
+    return { content, pageCount: null, firstPartChars: splitPlainText(content) };
   }
+}
+
+export interface ReadingInfo {
+  characters: number;
+  pageCount: number | null;
+  processedPages: number | null;
+  processedChars: number;
+  // true quando o documento será lido em duas partes (as primeiras páginas agora, o restante em seguida).
+  inParts: boolean;
+}
+
+function readingInfo(characters: number, pageCount: number | null, firstPartChars: number | null): ReadingInfo {
+  const inParts = firstPartChars !== null;
+  return {
+    characters,
+    pageCount,
+    processedPages: pageCount === null ? null : inParts ? Math.min(MAX_FIRST_PART_PAGES, pageCount) : pageCount,
+    processedChars: firstPartChars ?? characters,
+    inParts,
+  };
 }

@@ -10,6 +10,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useContestDetail } from '../hooks/useContestDetail';
+import { useContestReading } from '../hooks/useContestReading';
+import { ReadingRestBanner } from './ReadingRestBanner';
 import { daysUntil, formatExamDate } from './ContestCard';
 import { DeleteContestDialog } from './DeleteContestDialog';
 import { DisciplineGroup } from './DisciplineGroup';
@@ -21,6 +23,7 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
   const navigate = useNavigate();
   const { contest, isLoading, linkedSchedules, disciplines, deleteContest, toggleTopic, completeReview, setImportance } =
     useContestDetail(contestId, onBack);
+  const { readingRest } = useContestReading(contestId);
 
   const statusCounts = useMemo(() => {
     const counts: Record<DisciplineStatus, number> = { in_progress: 0, pending: 0, completed: 0 };
@@ -95,6 +98,8 @@ export function ContestDetailView({ contestId, onBack }: { contestId: string; on
           </div>
         </div>
       )}
+
+      {readingRest && <ReadingRestBanner />}
 
       {total > 0 && (
         <button
