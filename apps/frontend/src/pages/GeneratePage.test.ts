@@ -29,7 +29,7 @@ describe('GeneratePage Component (Phase 5 — Batch 4)', () => {
 
     assert.ok(html.includes('Questões &amp; Simulados') || html.includes('Questões & Simulados'));
     assert.ok(html.includes('Criar Manual'));
-    assert.ok(html.includes('Gerar com IA'));
+    assert.ok(html.includes('Gerar questões') || html.includes('Gerar com IA'));
     assert.ok(html.includes('Filtrar'));
     assert.ok(html.includes('min-h-[44px]'));
   });

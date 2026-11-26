@@ -23,7 +23,7 @@ function AstryxToastItem({ id, kind, message }: ToastItemProps) {
   return (
     <div className="pointer-events-auto">
       <AstryxToast
-        type={kind === 'error' ? 'error' : kind === 'warning' ? 'warning' : 'info'}
+        type={kind === 'error' ? 'error' : 'info'}
         body={message}
         isAutoHide={true}
         autoHideDuration={5000}

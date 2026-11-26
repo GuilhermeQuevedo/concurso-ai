@@ -5,19 +5,31 @@ export interface Crumb {
   onClick?: () => void;
 }
 
-// O último item é o lugar atual; os anteriores voltam um nível.
-export function PresetBreadcrumb({ crumbs }: { crumbs: Crumb[] }) {
+export interface PresetBreadcrumbProps {
+  crumbs: Crumb[];
+}
+
+/**
+ * Breadcrumb de navegação do assistente de editais com tokens Astryx.
+ */
+export function PresetBreadcrumb({ crumbs }: PresetBreadcrumbProps) {
   return (
-    <nav aria-label="Caminho" className="flex flex-wrap items-center gap-1 text-sm">
+    <nav aria-label="Navegação estrutural do edital" className="flex flex-wrap items-center gap-1.5 text-sm">
       {crumbs.map((crumb, index) => {
-        const last = index === crumbs.length - 1;
+        const isLast = index === crumbs.length - 1;
         return (
-          <span key={crumb.label} className="flex items-center gap-1">
-            {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-gray-400" />}
-            {last || !crumb.onClick ? (
-              <span className="font-semibold text-gray-900 dark:text-white">{crumb.label}</span>
+          <span key={crumb.label} className="flex items-center gap-1.5">
+            {index > 0 && <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />}
+            {isLast || !crumb.onClick ? (
+              <span className="font-bold text-slate-900 dark:text-white" aria-current={isLast ? 'page' : undefined}>
+                {crumb.label}
+              </span>
             ) : (
-              <button type="button" onClick={crumb.onClick} className="text-primary-600 hover:underline dark:text-primary-400">
+              <button
+                type="button"
+                onClick={crumb.onClick}
+                className="font-medium text-[#2E8C82] transition-colors hover:underline dark:text-[#52b3a8] cursor-pointer"
+              >
                 {crumb.label}
               </button>
             )}
