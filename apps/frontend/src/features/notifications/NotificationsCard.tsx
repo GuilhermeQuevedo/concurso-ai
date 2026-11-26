@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Bell, BellOff, Check } from 'lucide-react';
+import { Button as AstryxButton } from '@astryxdesign/core';
+import { isFeatureEnabled } from '@/config/feature-flags';
 
 type Perm = 'default' | 'granted' | 'denied' | 'unsupported';
 
@@ -10,6 +12,7 @@ function currentPerm(): Perm {
 
 export function NotificationsCard() {
   const [perm, setPerm] = useState<Perm>(currentPerm);
+  const isAstryxActive = isFeatureEnabled('ASTRYX_FEEDBACK');
 
   const enable = async () => {
     if (perm === 'unsupported') return;
@@ -22,10 +25,14 @@ export function NotificationsCard() {
     }
   };
 
+  const cardBorderClass = isAstryxActive
+    ? 'border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated-1)]'
+    : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900';
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+    <div className={`rounded-xl border p-5 ${cardBorderClass}`}>
       <div className="mb-4 flex items-center gap-2">
-        <Bell className="h-4 w-4 text-primary-600" />
+        <Bell className="h-4 w-4 text-[var(--color-brand-primary,#2E8C82)] dark:text-[var(--color-brand-primary,#2E8C82)]" />
         <h3 className="font-semibold text-gray-900 dark:text-white">Notificações de revisão</h3>
       </div>
       <div className="flex items-center justify-between gap-4">
@@ -33,7 +40,7 @@ export function NotificationsCard() {
           Receba um aviso do navegador quando tiver flashcards e tarefas pendentes do dia.
         </p>
         {perm === 'granted' ? (
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-green-100 px-3 py-2 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-400">
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[var(--color-semantic-success)]/15 px-3 py-2 text-xs font-medium text-[var(--color-semantic-success)]">
             <Check className="h-3.5 w-3.5" /> Ativadas
           </span>
         ) : perm === 'denied' ? (
@@ -42,6 +49,13 @@ export function NotificationsCard() {
           </span>
         ) : perm === 'unsupported' ? (
           <span className="shrink-0 text-xs text-gray-400">Não suportado neste navegador</span>
+        ) : isAstryxActive ? (
+          <AstryxButton
+            variant="primary"
+            label="Ativar"
+            onClick={enable}
+            icon={<Bell className="h-4 w-4" />}
+          />
         ) : (
           <button
             onClick={enable}

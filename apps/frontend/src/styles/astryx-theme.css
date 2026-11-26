@@ -1,0 +1,170 @@
+/**
+ * Tema Engrama (Astryx Custom Theme)
+ * Camada de Tema baseada na Especificação Visual OKLCH (docs/design/visual-spec.md)
+ * 
+ * Separação estrita: o Astryx provê comportamento e acessibilidade,
+ * enquanto o tema Engrama define a identidade visual perceptualmente uniforme.
+ */
+
+@layer astryx-theme {
+  :root,
+  [data-astryx-theme="engrama"] {
+    /* ─── 1. Paleta Original Engrama — Verde-Revisão (#2E8C82) ─── */
+    --color-brand: oklch(0.54 0.088 188);
+    --color-brand-srgb: #2E8C82;
+    --color-brand-glow: oklch(0.66 0.095 188);
+    --color-brand-glow-srgb: #46A79B;
+    --color-brand-subtle: oklch(0.96 0.018 188);
+    --color-brand-subtle-dark: oklch(0.22 0.035 188);
+
+    /* ─── 2. Superfícies e Canvas (Tinta & Papel / Slate) ─── */
+    --color-canvas: oklch(0.99 0.002 240);
+    --color-surface-elevated-1: oklch(1.0 0 0);
+    --color-surface-elevated-2: oklch(0.96 0.004 240);
+    --color-surface-elevated-3: oklch(0.91 0.006 240);
+
+    /* Textos (Light Mode) */
+    --color-text-primary: oklch(0.18 0.015 240);
+    --color-text-secondary: oklch(0.48 0.018 240);
+    --color-text-tertiary: oklch(0.62 0.012 240);
+
+    /* ─── 3. Bordas Translúcidas (Hairlines Sutis com Alfa) ─── */
+    --border-alpha-subtle: 0.10;
+    --border-alpha-default: 0.15;
+    --border-alpha-emphasis: 0.28;
+
+    --color-border-subtle: oklch(0.18 0.015 240 / var(--border-alpha-subtle));
+    --color-border-default: oklch(0.18 0.015 240 / var(--border-alpha-default));
+    --color-border-emphasis: oklch(0.18 0.015 240 / var(--border-alpha-emphasis));
+
+    /* Controles Interativos (Mínimo 3:1 WCAG 1.4.11) */
+    --color-border-control: oklch(0.55 0.015 240);
+    --color-border-control-srgb: #878c96;
+
+    /* ─── 4. Cores Semânticas de Estado ─── */
+    --color-semantic-success: oklch(0.52 0.15 148);
+    --color-semantic-success-badge: oklch(0.60 0.14 148);
+    --color-semantic-success-text-dark: oklch(0.20 0.05 148);
+    --color-semantic-success-srgb: #15803d;
+
+    --color-semantic-error: oklch(0.55 0.20 28);
+    --color-semantic-error-srgb: #dc2626;
+
+    --color-semantic-warning: oklch(0.68 0.16 75);
+    --color-semantic-warning-srgb: #d97706;
+
+    --color-semantic-info: oklch(0.55 0.14 245);
+    --color-semantic-info-srgb: #2563eb;
+
+    /* ─── 5. Escala de Uma Matiz do Mapa (Single-Hue Mastery Teal H=195) ─── */
+    --map-mastery-0: oklch(0.35 0.02 195 / 0.5);
+    --map-mastery-1: oklch(0.44 0.07 195);
+    --map-mastery-2: oklch(0.62 0.12 195);
+    --map-mastery-3: oklch(0.79 0.15 195);
+
+    /* ─── 6. Integração direta com variáveis internas do Astryx Core ─── */
+    --color-accent: var(--color-brand);
+    --color-accent-muted: var(--color-brand-subtle);
+    --color-text-accent: var(--color-brand);
+    --color-icon-accent: var(--color-brand);
+
+    --color-background-body: var(--color-canvas);
+    --color-background-surface: var(--color-surface-elevated-1);
+    --color-background-card: var(--color-surface-elevated-1);
+    --color-background-popover: var(--color-surface-elevated-2);
+
+    --color-border: var(--color-border-default);
+    --color-border-emphasized: var(--color-border-control);
+
+    --color-success: var(--color-semantic-success);
+    --color-error: var(--color-semantic-error);
+    --color-warning: var(--color-semantic-warning);
+    --color-info: var(--color-semantic-info);
+  }
+
+  /* ─── MODO ESCURO (Dark Mode via Elevação de Luminosidade OKLCH — Tinta & Superfícies) ─── */
+  .dark,
+  [data-theme="dark"],
+  .dark [data-astryx-theme="engrama"],
+  [data-theme="dark"] [data-astryx-theme="engrama"] {
+    --color-canvas: oklch(0.12 0.008 240);
+    --color-surface-elevated-1: oklch(0.16 0.010 240);
+    --color-surface-elevated-2: oklch(0.20 0.012 240);
+    --color-surface-elevated-3: oklch(0.25 0.015 240);
+
+    --color-text-primary: oklch(0.97 0.004 240);
+    --color-text-secondary: oklch(0.72 0.010 240);
+    --color-text-tertiary: oklch(0.55 0.012 240);
+
+    --color-border-subtle: oklch(0.97 0.004 240 / var(--border-alpha-subtle));
+    --color-border-default: oklch(0.97 0.004 240 / var(--border-alpha-default));
+    --color-border-emphasis: oklch(0.97 0.004 240 / var(--border-alpha-emphasis));
+
+    --color-border-control: oklch(0.68 0.010 240);
+    --color-border-control-srgb: #a7adb7;
+
+    --color-brand-subtle: var(--color-brand-subtle-dark);
+
+    /* Zenital Hairline no Dark Mode (efeito de profundidade sem sombras pesadas) */
+    --zenital-hairline: inset 0 1px 0 0 oklch(1 0 0 / 0.08);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UTILITÁRIOS ESPECÍFICOS DA ESPECIFICAÇÃO VISUAL DO ASTRYX
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 1. Troca em Desfoque (BlurSwap) — Orçamento rígido: max 3px blur, 140ms */
+.blur-swap-transition {
+  transition: filter var(--duration-fast, 140ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+              opacity var(--duration-fast, 140ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.blur-swap-animating {
+  filter: blur(3px);
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blur-swap-transition,
+  .blur-swap-animating {
+    filter: none !important;
+    transition: opacity 0ms !important;
+  }
+}
+
+/* 2. Pontas com Máscara (Scroll Fade Masking) */
+.scroll-mask-x {
+  mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
+}
+
+.scroll-mask-y {
+  mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
+}
+
+/* 3. Borda Hairline Translúcida */
+.border-hairline {
+  border: 1px solid var(--color-border-default);
+}
+
+.border-control-interactive {
+  border: 1px solid var(--color-border-control);
+}
+
+/* 4. Gradiente Original Engrama (Verde-Revisão ao Verde Profundo #1E5853) */
+.bg-gradient-brand-oklch {
+  background: linear-gradient(in oklch 135deg, var(--color-brand) 0%, oklch(0.38 0.075 188) 100%);
+}
+
+/* 5. Feedback Global & Notificações (Astryx Toasts & Empty States) */
+.astryx-toast {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.astryx-empty-state {
+  color: var(--color-text-primary);
+}

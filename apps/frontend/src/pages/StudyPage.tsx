@@ -6,18 +6,13 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  Check,
-  XCircle,
-  ChevronDown,
-  Star,
-  CheckCircle2,
-  Sparkles,
   Loader2,
   Flag,
 } from 'lucide-react';
-import { GroupDoubtButton } from '@/features/groups/components/GroupDoubtButton';
 import { BankOriginBadge } from '@/features/questions/components/BankOriginBadge';
 import type { QuestionDTO } from '@/features/questions/services/question.service';
+import { QuestionCard } from '@/features/study/components/QuestionCard';
+import { StudyFeedbackBanner } from '@/features/study/components/StudyFeedbackBanner';
 import { studyService } from '@/features/study/services/study.service';
 import { errorNotebookService } from '@/features/error-notebook/services/error-notebook.service';
 import { ResultsView, type QuestionState } from '@/features/study/components/ResultsView';
@@ -34,12 +29,6 @@ interface LocationState {
   examBoardId?: string;
   difficulty?: string;
 }
-
-const FORMAT_LABEL: Record<Format, string> = {
-  MULTIPLE: 'Múltipla escolha',
-  TRUE_FALSE: 'Certo ou errado',
-  ESSAY: 'Subjetiva',
-};
 
 const SELF_RIGHT = 'S';
 const SELF_WRONG = 'N';
@@ -64,7 +53,6 @@ export default function StudyPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [states, setStates] = useState<Record<string, QuestionState>>({});
-  const [showExplanation, setShowExplanation] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [stats, setStats] = useState<{ total: number; correct: number; wrong: number; accuracy: number; totalTime: number } | null>(null);
   const questionTimer = useRef(0);
@@ -189,7 +177,6 @@ export default function StudyPage() {
   const goTo = (next: number) => {
     questionTimer.current = 0;
     setIndex(next);
-    setShowExplanation(false);
   };
 
   const select = (letter: string) => {
@@ -285,172 +272,52 @@ export default function StudyPage() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto px-4 py-6 pb-28">
         <div className="mx-auto max-w-2xl">
-          {/* Top Badges */}
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-850 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="rounded-md bg-primary-600/10 px-2.5 py-1 text-xs font-bold text-primary-600 dark:text-primary-400">
-                Questão {index + 1} de {questions.length}
-              </span>
-              <span className="rounded-md bg-gray-200/80 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                {FORMAT_LABEL[format]}
-              </span>
-            </div>
-
-            <button
-              onClick={favorite}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md border transition-all ${
-                current.favorited
-                  ? 'border-amber-400 bg-amber-50 text-amber-600 dark:border-amber-700 dark:bg-amber-950/40'
-                  : 'border-gray-200 text-gray-500 hover:text-amber-500 dark:border-gray-800 hover:border-amber-300'
-              }`}
-            >
-              <Star className="h-3.5 w-3.5" fill={current.favorited ? 'currentColor' : 'none'} />
-              {current.favorited ? 'Favoritada' : 'Favoritar'}
-            </button>
+          {/* Question Source Badge (Banca/Concurso Oficial) */}
+          <div className="mb-3">
+            <BankOriginBadge question={question} />
           </div>
 
-          <BankOriginBadge question={question} />
-
-          {/* Statement */}
-          <p className="mb-6 whitespace-pre-line text-base font-normal leading-relaxed text-gray-900 dark:text-gray-100">
-            {htmlToPlainText(question.statement)}
-          </p>
-
-          {/* Alternatives / Essay */}
-          {format === 'ESSAY' ? (
-            <EssayArea
-              q={question}
-              state={current}
-              showFeedback={showFeedback}
-              onDraft={(d) => patch(question.id, { draft: d })}
-              onSelfEval={(ok) => submit.mutate({ questionId: question.id, answer: ok ? SELF_RIGHT : SELF_WRONG })}
-              pending={submit.isPending}
-              answered={isAnswered}
-            />
-          ) : (
-            <div className="space-y-3">
-              {question.alternatives.map((alt) => {
-                const picked = current.selectedAnswer === alt.letter;
-                const isRight = showFeedback && alt.letter === question.correctAnswer;
-                const isWrong = showFeedback && picked && alt.letter !== question.correctAnswer;
-
-                let cardStyle = 'border-gray-200 bg-white hover:border-primary-400 dark:border-gray-800 dark:bg-gray-900 text-gray-800 dark:text-gray-200';
-                let circleStyle = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300';
-
-                if (isRight) {
-                  cardStyle = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-100 shadow-xs ring-1 ring-emerald-500';
-                  circleStyle = 'bg-emerald-600 text-white font-bold';
-                } else if (isWrong) {
-                  cardStyle = 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-100 shadow-xs ring-1 ring-red-500';
-                  circleStyle = 'bg-red-600 text-white font-bold';
-                } else if (picked) {
-                  cardStyle = 'border-primary-500 bg-primary-50/70 dark:bg-primary-950/40 text-primary-900 dark:text-primary-100 ring-2 ring-primary-500/80 shadow-xs';
-                  circleStyle = 'bg-primary-600 text-white font-bold';
-                }
-
-                return (
-                  <button
-                    key={alt.letter}
-                    onClick={() => select(alt.letter)}
-                    disabled={isAnswered}
-                    className={`flex w-full items-center gap-3.5 rounded-xl border p-4 text-left text-sm transition-all cursor-pointer ${cardStyle} ${
-                      isAnswered ? 'cursor-default' : 'active:scale-[0.995]'
-                    }`}
-                  >
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs transition-transform ${circleStyle}`}>
-                      {isRight ? <Check className="h-4 w-4 stroke-[3]" /> : isWrong ? <XCircle className="h-4 w-4 stroke-[3]" /> : alt.letter}
-                    </span>
-                    <span className="leading-snug">{htmlToPlainText(alt.text)}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Botão de Alta Visibilidade: Responder e Ver Resposta (logo abaixo das opções) */}
-          {!isAnswered && format !== 'ESSAY' && (
-            <div className="mt-5">
-              <button
-                type="button"
-                onClick={confirm}
-                disabled={!current.selectedAnswer || submit.isPending}
-                className="w-full h-12 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:hover:bg-primary-600 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
-              >
-                {submit.isPending ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Conferindo com a banca...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-5 w-5" />
-                    <span>{mode === 'EXAM' ? 'Confirmar Resposta' : 'Responder e Ver Resposta'}</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
+          {/* Question Card (Pose to Pose, Feedback & Doherty) */}
+          <QuestionCard
+            question={question}
+            index={index}
+            total={questions.length}
+            format={format}
+            selectedAnswer={current.selectedAnswer}
+            isAnswered={isAnswered}
+            showFeedback={showFeedback}
+            isFavorited={current.favorited}
+            isSubmitting={submit.isPending}
+            mode={mode}
+            onSelectAlternative={select}
+            onConfirmAnswer={confirm}
+            onToggleFavorite={favorite}
+          >
+            {format === 'ESSAY' && (
+              <EssayArea
+                q={question}
+                state={current}
+                showFeedback={showFeedback}
+                onDraft={(d) => patch(question.id, { draft: d })}
+                onSelfEval={(ok) => submit.mutate({ questionId: question.id, answer: ok ? SELF_RIGHT : SELF_WRONG })}
+                pending={submit.isPending}
+                answered={isAnswered}
+              />
+            )}
+          </QuestionCard>
 
           {/* Feedback Imediato após Responder (Modo Estudo) */}
           {showFeedback && (
-            <div className="mt-6 space-y-4 animate-in fade-in duration-200">
-              {/* Banner de Resultado */}
-              <div
-                className={`flex items-center justify-between rounded-xl border p-4 shadow-xs ${
-                  isCurrentCorrect
-                    ? 'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200'
-                    : 'border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white shadow-xs ${
-                      isCurrentCorrect ? 'bg-emerald-600' : 'bg-red-600'
-                    }`}
-                  >
-                    {isCurrentCorrect ? <Check className="h-6 w-6 stroke-[3]" /> : <XCircle className="h-6 w-6 stroke-[3]" />}
-                  </div>
-                  <div>
-                    <p className="font-bold text-base">
-                      {isCurrentCorrect ? 'Parabéns, você acertou!' : 'Você errou esta questão.'}
-                    </p>
-                    <p className="text-xs opacity-90">
-                      Gabarito oficial: <strong>Alternativa {question.correctAnswer}</strong>
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowExplanation((prev) => !prev)}
-                  className="flex items-center gap-1 text-xs font-bold underline cursor-pointer hover:opacity-80"
-                >
-                  {showExplanation ? 'Ocultar Explicação' : 'Ver Explicação'}
-                  <ChevronDown className={`h-4 w-4 transition-transform ${showExplanation ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-
-              <div className="flex justify-end">
-                <GroupDoubtButton
-                  targetType="QUESTION"
-                  targetId={question.id}
-                  context={[htmlToPlainText(question.statement), ...question.alternatives.map((a) => `${a.letter}) ${a.text}`)].join('\n')}
-                />
-              </div>
-
-              {/* Explicação Pedagógica da Banca */}
-              {showExplanation && (
-                <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200 shadow-sm animate-in fade-in">
-                  <div className="mb-2 flex items-center gap-2 font-bold text-primary-600 dark:text-primary-400">
-                    <Sparkles className="h-4 w-4" />
-                    <span>Comentário Didático e Justificativa</span>
-                  </div>
-                  <div className="whitespace-pre-line leading-relaxed text-xs sm:text-sm">
-                    {htmlToPlainText(question.explanation) || 'Sem comentário cadastrado para esta questão.'}
-                  </div>
-                </div>
-              )}
-            </div>
+            <StudyFeedbackBanner
+              isCorrect={!!isCurrentCorrect}
+              correctAnswer={question.correctAnswer}
+              explanation={question.explanation}
+              questionContext={[
+                htmlToPlainText(question.statement),
+                ...question.alternatives.map((a) => `${a.letter}) ${a.text}`),
+              ].join('\n')}
+              targetId={question.id}
+            />
           )}
         </div>
       </main>

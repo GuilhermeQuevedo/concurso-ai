@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router';
 import { Eye, EyeOff, LogIn, Sparkles } from 'lucide-react';
+import { Button } from '@astryxdesign/core';
+import { isFeatureEnabled } from '@/config/feature-flags';
 import { useAuth } from '../hooks/useAuth';
 import { GoogleAuthButton } from './GoogleAuthButton';
 
@@ -21,6 +23,7 @@ export function LoginForm() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const isAstryxAuth = isFeatureEnabled('ASTRYX_AUTH');
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
   const processedGoogleAuth = useRef(false);
@@ -97,17 +100,19 @@ export function LoginForm() {
   return (
     <div className="space-y-5">
       {planLabel && (
-        <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-3.5 text-xs text-teal-800 dark:border-teal-900/50 dark:bg-teal-950/30 dark:text-teal-300">
-          <div className="flex items-center gap-2 font-bold mb-1">
-            <Sparkles className="h-4 w-4 text-teal-600" />
+        <div className="rounded-xl border border-hairline bg-[var(--color-surface-elevated-2)] p-3.5 text-xs text-[var(--color-text-primary)]">
+          <div className="flex items-center gap-2 font-bold mb-1 text-[var(--color-brand)]">
+            <Sparkles className="h-4 w-4 stroke-[1.75px]" />
             <span>Assinatura Engrama Pro ({planLabel})</span>
           </div>
-          <p>Faça login para prosseguir diretamente ao pagamento seguro com ativação imediata.</p>
+          <p className="text-[var(--color-text-secondary)]">
+            Faça login para prosseguir diretamente ao pagamento seguro com ativação imediata.
+          </p>
         </div>
       )}
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300">
           {error}
         </div>
       )}
@@ -118,10 +123,10 @@ export function LoginForm() {
       {/* Divisor */}
       <div className="relative my-4">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200 dark:border-gray-800" />
+          <div className="w-full border-t border-hairline" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-gray-400 dark:bg-gray-900 dark:text-gray-500">
+          <span className="bg-[var(--color-canvas)] px-2 text-[var(--color-text-tertiary)]">
             ou continue com e-mail
           </span>
         </div>
@@ -129,7 +134,7 @@ export function LoginForm() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-[var(--color-text-primary)]">
             E-mail
           </label>
           <input
@@ -137,20 +142,24 @@ export function LoginForm() {
             type="email"
             autoComplete="email"
             {...register('email')}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+            className={
+              isAstryxAuth
+                ? 'w-full rounded-lg border border-control-interactive bg-[var(--color-surface-elevated-1)] px-4 py-2.5 text-sm text-[var(--color-text-primary)] transition-colors focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]/20'
+                : 'w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white'
+            }
             placeholder="seu@email.com"
           />
-          {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
+          {errors.email && <p className="mt-1 text-sm text-rose-500">{errors.email.message}</p>}
         </div>
 
         <div>
           <div className="mb-1.5 flex items-center justify-between">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="password" className="block text-sm font-medium text-[var(--color-text-primary)]">
               Senha
             </label>
             <Link
               to="/forgot-password"
-              className="text-xs font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
+              className="text-xs font-medium text-[var(--color-brand)] hover:underline"
             >
               Esqueceu sua senha?
             </Link>
@@ -161,44 +170,62 @@ export function LoginForm() {
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               {...register('password')}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-10 text-sm text-gray-900 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              className={
+                isAstryxAuth
+                  ? 'w-full rounded-lg border border-control-interactive bg-[var(--color-surface-elevated-1)] px-4 py-2.5 pr-10 text-sm text-[var(--color-text-primary)] transition-colors focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]/20'
+                  : 'w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-10 text-sm text-gray-900 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white'
+              }
               placeholder="Sua senha"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors cursor-pointer"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>}
+          {errors.password && <p className="mt-1 text-sm text-rose-500">{errors.password.message}</p>}
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
-        >
-          {isSubmitting ? (
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-          ) : (
-            <LogIn className="h-4 w-4" />
-          )}
-          Entrar
-        </button>
+        {isAstryxAuth ? (
+          <div className="cursor-pointer pt-1">
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              label="Entrar"
+              isLoading={isSubmitting}
+              className="w-full cursor-pointer flex justify-center font-bold"
+            />
+          </div>
+        ) : (
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50 cursor-pointer"
+          >
+            {isSubmitting ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            ) : (
+              <LogIn className="h-4 w-4" />
+            )}
+            Entrar
+          </button>
+        )}
 
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-center text-sm text-[var(--color-text-secondary)]">
           Não tem conta?{' '}
-          <Link to={planParam ? `/register?plan=${planParam}` : '/register'} className="font-medium text-primary-600 hover:text-primary-500">
+          <Link to={planParam ? `/register?plan=${planParam}` : '/register'} className="font-semibold text-[var(--color-brand)] hover:underline">
             Cadastre-se
           </Link>
         </p>
 
-        <div className="border-t border-gray-100 pt-3 text-center dark:border-gray-800">
+        <div className="border-t border-hairline pt-3 text-center">
           <Link
             to="/landing"
-            className="text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline dark:text-primary-400"
+            className="text-xs font-semibold text-[var(--color-brand)] hover:underline"
           >
             Conhecer Planos & Assinatura Engrama Pro →
           </Link>

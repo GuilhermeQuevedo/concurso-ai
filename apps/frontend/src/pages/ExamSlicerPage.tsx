@@ -145,16 +145,16 @@ export function ExamSlicerPage() {
 
   if (slicedQuestions && slicedQuestions.length > 0) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-fast">
         {/* Header Superior Repaginado */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap mb-1.5">
-              <span className="rounded-md bg-primary-600/10 px-2.5 py-0.5 text-xs font-bold text-primary-600 dark:text-primary-400">
+              <span className="rounded-lg bg-primary-600/10 px-2.5 py-1 text-xs font-bold text-primary-700 dark:bg-primary-950/60 dark:text-primary-300 border border-primary-600/20">
                 Prova Comentada
               </span>
               {effectiveSubjectName && !effectiveSubjectName.includes('Todas as Matérias') && (
-                <span className="rounded-md bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="rounded-lg bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-500/20">
                   {effectiveSubjectName}
                 </span>
               )}
@@ -168,13 +168,12 @@ export function ExamSlicerPage() {
             </p>
           </div>
 
-          {/* Botão Fatiar Outra Prova estilizado e sem quebra feia */}
           <button
             type="button"
             onClick={() => setSlicedQuestions(null)}
-            className="shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-xs flex items-center gap-2 cursor-pointer transition-all"
+            className="min-h-[44px] shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-xs flex items-center gap-2 cursor-pointer transition-all duration-fast touch-manipulation active:scale-98 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
-            <RotateCcw className="w-4 h-4 text-primary-500" />
+            <RotateCcw className="w-4 h-4 text-primary-600" />
             <span>Fatiar Outra Prova</span>
           </button>
         </div>
@@ -193,13 +192,13 @@ export function ExamSlicerPage() {
   const isFormValid = Boolean(examFile && examTitle.trim() && !sliceMutation.isPending);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-fast">
       {/* Title */}
       <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
           <Layers className="w-6 h-6 text-primary-600" /> Provas Comentadas (Exam Slicer)
         </h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
           Envie o PDF de uma prova de concurso real e o gabarito oficial. A inteligência artificial lê todo o documento, fatia as questões por matéria e gera fundamentação aprofundada com artigos de lei, doutrina e análise de distratores.
         </p>
       </div>
@@ -208,7 +207,7 @@ export function ExamSlicerPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-primary-500" /> Arquivo da Prova (PDF) *
+            <FileText className="w-4 h-4 text-primary-600" /> Arquivo da Prova (PDF) *
           </label>
           <PdfDropzone
             file={examFile}
@@ -220,7 +219,7 @@ export function ExamSlicerPage() {
 
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Gabarito Oficial (Opcional)
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Gabarito Oficial (Opcional)
           </label>
           <PdfDropzone
             file={answerKeyFile}
@@ -233,10 +232,10 @@ export function ExamSlicerPage() {
 
       {/* Extraction Options */}
       {examFile && (
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 md:p-8 space-y-6 shadow-sm animate-in slide-in-from-bottom-2">
-          <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
-            <Sparkles className="w-4 h-4 text-primary-500" />
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
+        <div className="rounded-2xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 md:p-8 space-y-6 shadow-xs animate-in slide-in-from-bottom-2 duration-fast">
+          <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3.5">
+            <Sparkles className="w-4 h-4 text-primary-600" />
+            <h3 className="font-bold text-sm text-gray-900 dark:text-white">
               Configurações da Extração e Fatiamento
             </h3>
           </div>
@@ -246,7 +245,7 @@ export function ExamSlicerPage() {
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <Type className="w-3.5 h-3.5 text-primary-500" /> Título da Prova / Simulado *
+                  <Type className="w-3.5 h-3.5 text-primary-600" /> Título da Prova / Simulado *
                 </span>
                 <span className="text-[11px] font-semibold text-amber-500 lowercase">(obrigatório)</span>
               </label>
@@ -256,7 +255,7 @@ export function ExamSlicerPage() {
                 value={examTitle}
                 onChange={(e) => setExamTitle(e.target.value)}
                 placeholder="Ex: PCDF 2021 - Escrivão de Polícia Civil"
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none placeholder:text-gray-400"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 text-base text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none placeholder:text-gray-400 font-medium"
               />
               <p className="text-[11px] text-gray-500 dark:text-gray-400">
                 Este nome será exibido com destaque no topo do simulado e nos relatórios de desempenho.
@@ -267,7 +266,7 @@ export function ExamSlicerPage() {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                  <Filter className="w-3.5 h-3.5 text-primary-500" /> Matéria Desejada para Extração
+                  <Filter className="w-3.5 h-3.5 text-primary-600" /> Matéria Desejada para Extração
                 </label>
                 <span className="text-[11px] text-gray-400">A IA filtrará o PDF pela disciplina</span>
               </div>
@@ -281,10 +280,10 @@ export function ExamSlicerPage() {
                       key={sub}
                       type="button"
                       onClick={() => handleSubjectSelect(sub)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                      className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-fast touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                         isSelected
-                          ? 'bg-primary-600 text-white shadow-xs'
-                          : 'border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30'
+                          ? 'bg-primary-600 text-white shadow-xs font-bold'
+                          : 'border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-950/30'
                       }`}
                     >
                       {sub}
@@ -295,9 +294,9 @@ export function ExamSlicerPage() {
                 <button
                   type="button"
                   onClick={() => handleSubjectSelect('__custom__')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                  className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-fast touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                     isCustomSubject
-                      ? 'bg-primary-600 text-white shadow-xs'
+                      ? 'bg-primary-600 text-white shadow-xs font-bold'
                       : 'border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:border-primary-400'
                   }`}
                 >
@@ -307,13 +306,13 @@ export function ExamSlicerPage() {
 
               {/* Campo para Matéria Customizada */}
               {isCustomSubject && (
-                <div className="pt-1 animate-in fade-in duration-200">
+                <div className="pt-1 animate-in fade-in duration-fast">
                   <input
                     type="text"
                     value={customSubject}
                     onChange={(e) => setCustomSubject(e.target.value)}
                     placeholder="Digite o nome exato da disciplina (ex: Direito Previdenciário, Contabilidade Geral, etc.)..."
-                    className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 text-base focus:ring-2 focus:ring-primary-500 focus:outline-none font-medium"
                     autoFocus
                   />
                 </div>
@@ -325,7 +324,7 @@ export function ExamSlicerPage() {
                   <select
                     value={selectedSubject}
                     onChange={(e) => handleSubjectSelect(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[44px]"
                   >
                     <option value="Todas as Matérias (Geral da Prova)">Ou selecione das disciplinas da sua conta...</option>
                     {dbSubjects.map((s: SubjectDTO) => (
@@ -338,7 +337,7 @@ export function ExamSlicerPage() {
               )}
 
               <p className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-primary-500 shrink-0" />
+                <BookOpen className="w-3.5 h-3.5 text-primary-600 shrink-0" />
                 <span>
                   A IA lerá o PDF por completo e isolará apenas as questões de <strong>{effectiveSubjectName}</strong>.
                 </span>
@@ -356,7 +355,7 @@ export function ExamSlicerPage() {
                     key={n}
                     type="button"
                     onClick={() => setQuantity(n)}
-                    className={`h-9 flex-1 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                    className={`min-h-[40px] flex-1 rounded-xl text-xs font-bold cursor-pointer transition-all duration-fast touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                       quantity === n
                         ? 'bg-primary-600 text-white shadow-xs'
                         : 'border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -374,7 +373,8 @@ export function ExamSlicerPage() {
             type="button"
             onClick={() => sliceMutation.mutate()}
             disabled={!isFormValid}
-            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-md transition-all disabled:opacity-50 cursor-pointer mt-4"
+            aria-busy={sliceMutation.isPending}
+            className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-sm transition-all duration-fast disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed mt-4 touch-manipulation active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
           >
             {sliceMutation.isPending ? (
               <>

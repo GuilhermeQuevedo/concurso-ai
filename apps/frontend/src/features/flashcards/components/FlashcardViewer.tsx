@@ -20,11 +20,13 @@ export interface FlashcardViewerProps {
 export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardViewerProps) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
 
   useEffect(() => {
     setFlipped(false);
     setFeedback(null);
+    setIsSwapping(false);
   }, [index]);
 
   const currentCard = cards[index];
@@ -44,6 +46,14 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
     }
   }, [index]);
 
+  const toggleFlip = useCallback(() => {
+    setIsSwapping(true);
+    setFlipped((f) => !f);
+    setTimeout(() => {
+      setIsSwapping(false);
+    }, 140);
+  }, []);
+
   const handleRating = useCallback((rating: number) => {
     const isSuccess = rating >= 4;
     setFeedback(isSuccess ? 'correct' : 'incorrect');
@@ -59,7 +69,7 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        setFlipped((f) => !f);
+        toggleFlip();
       } else if (e.key === 'ArrowRight') {
         handleNext();
       } else if (e.key === 'ArrowLeft') {
@@ -72,7 +82,7 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [flipped, handleNext, handlePrev, handleRating]);
+  }, [flipped, toggleFlip, handleNext, handlePrev, handleRating]);
 
   if (!cards || cards.length === 0 || !currentCard) {
     return (
@@ -138,7 +148,7 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
         <div className="flex items-center gap-2">
           <div className="w-24 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary-500 transition-all duration-300"
+              className="h-full bg-primary-600 transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -146,18 +156,29 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
         </div>
       </div>
 
-      {/* 3D Flip Card Container */}
+      {/* 3D Flip Card Container with Astryx BlurSwap transition token */}
       <div
-        onClick={() => setFlipped((f) => !f)}
-        className="relative min-h-[320px] w-full cursor-pointer select-none perspective-1000 transition-transform duration-150 hover:scale-[1.01]"
+        role="button"
+        tabIndex={0}
+        aria-label={flipped ? 'Gabarito revelado. Clique para voltar à pergunta' : 'Pergunta do flashcard. Clique para revelar resposta'}
+        onClick={toggleFlip}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleFlip();
+          }
+        }}
+        className="relative min-h-[320px] w-full cursor-pointer select-none perspective-1000 transition-transform duration-fast hover:scale-[1.008] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-2xl"
       >
         <div
-          className={`w-full min-h-[320px] rounded-2xl border bg-white dark:bg-gray-900 p-8 shadow-sm flex flex-col justify-between transition-all duration-300 ${
+          className={`blur-swap-transition w-full min-h-[320px] rounded-2xl border bg-white dark:bg-gray-900 p-6 sm:p-8 shadow-xs flex flex-col justify-between transition-all duration-fast ${
+            isSwapping ? 'blur-swap-animating' : ''
+          } ${
             feedback === 'correct'
               ? 'border-emerald-500 ring-2 ring-emerald-500/30'
               : feedback === 'incorrect'
                 ? 'border-red-500 ring-2 ring-red-500/30'
-                : 'border-gray-200 dark:border-gray-800 hover:border-primary-500/60'
+                : 'border-gray-200/90 dark:border-gray-800 hover:border-primary-500/60'
           }`}
         >
           {/* Card Badge */}
@@ -165,17 +186,17 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
             <span className="flex items-center gap-1.5">
               {flipped ? (
                 <>
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-                  Gabarito & Fundamentação
+                  <Sparkles className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
+                  <span className="text-primary-700 dark:text-primary-300 font-bold">Gabarito & Fundamentação</span>
                 </>
               ) : (
                 <>
                   <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-                  {isCloze ? 'Preencha mentalmente a lacuna' : 'Pergunta'}
+                  <span className="text-amber-600 dark:text-amber-400 font-bold">{isCloze ? 'Preencha mentalmente a lacuna' : 'Pergunta'}</span>
                 </>
               )}
             </span>
-            <span className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-primary-500">
+            <span className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
               <RotateCw className="w-3 h-3" />
               Girar (Espaço)
             </span>
@@ -185,7 +206,7 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
           <div className="my-auto py-4 text-center">
             {flipped ? (
               <div className="space-y-4 text-left">
-                <div className="text-lg md:text-xl font-bold text-emerald-600 dark:text-emerald-400 leading-relaxed">
+                <div className="text-lg md:text-xl font-bold text-primary-700 dark:text-primary-300 leading-relaxed">
                   {currentCard.back}
                 </div>
                 {currentCard.explanation && (
@@ -206,8 +227,8 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
             )}
           </div>
 
-          {flipped && (
-            <div className="flex justify-center pt-3">
+          {flipped && currentCard.id && (
+            <div className="flex justify-center pt-3" onClick={(e) => e.stopPropagation()}>
               <GroupDoubtButton targetType="FLASHCARD" targetId={currentCard.id} context={['Frente: ' + currentCard.front, 'Verso: ' + currentCard.back].join('\n')} />
             </div>
           )}
@@ -221,47 +242,50 @@ export function FlashcardViewer({ cards, onFinish, onRate, title }: FlashcardVie
 
       {/* Action Rating Buttons */}
       {flipped ? (
-        <div className="grid grid-cols-3 gap-3 animate-in fade-in duration-200">
+        <div className="grid grid-cols-3 gap-3 animate-in fade-in duration-fast">
           <button
+            type="button"
             onClick={() => handleRating(1)}
-            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 text-sm font-semibold transition-colors"
+            className="min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 text-sm font-semibold transition-all duration-fast active:scale-95 touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
           >
             <X className="w-4 h-4" /> Errei (1)
           </button>
           <button
+            type="button"
             onClick={() => handleRating(3)}
-            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-400 text-sm font-semibold transition-colors"
+            className="min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-400 text-sm font-semibold transition-all duration-fast active:scale-95 touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             Em dúvida (2)
           </button>
           <button
+            type="button"
             onClick={() => handleRating(5)}
-            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400 text-sm font-semibold transition-colors"
+            className="min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400 text-sm font-semibold transition-all duration-fast active:scale-95 touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <Check className="w-4 h-4" /> Acertei (3)
           </button>
         </div>
       ) : (
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={handlePrev}
             disabled={index === 0}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium transition-colors"
+            className="min-h-[48px] flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium transition-all duration-fast active:scale-95 touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <ArrowLeft className="w-4 h-4" /> Anterior
           </button>
           <button
             type="button"
-            onClick={() => setFlipped(true)}
-            className="flex-1 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-sm transition-all"
+            onClick={toggleFlip}
+            className="min-h-[48px] flex-1 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold shadow-xs transition-all duration-fast active:scale-[0.99] touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
           >
             Revelar Resposta
           </button>
           <button
             type="button"
             onClick={handleNext}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium transition-colors"
+            className="min-h-[48px] flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium transition-all duration-fast active:scale-95 touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             Pular <ArrowRight className="w-4 h-4" />
           </button>

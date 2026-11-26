@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
+  ShieldAlert,
 } from 'lucide-react';
 import { adminService, type Contact } from '@/features/admin/services/admin.service';
 import { RevealPiiModal } from '@/features/admin/components/RevealPiiModal';
@@ -28,7 +29,7 @@ import { GroupCampaignCard } from '@/features/admin/components/GroupCampaignCard
 
 function loadStored(key: string, fallback: string): string {
   try {
-    return localStorage.getItem(key) ?? fallback;
+    return typeof window !== 'undefined' ? localStorage.getItem(key) ?? fallback : fallback;
   } catch {
     return fallback;
   }
@@ -36,13 +37,18 @@ function loadStored(key: string, fallback: string): string {
 
 function persist(key: string, value: string) {
   try {
-    localStorage.setItem(key, value);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
   } catch {
     /* ignore */
   }
 }
 
 const PAGE_SIZE = 50;
+
+const FIELD_BASE =
+  'min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#2E8C82] focus:outline-none focus:ring-2 focus:ring-[#2E8C82]/20 transition-colors duration-fast dark:border-slate-700 dark:bg-slate-800 dark:text-white';
 
 export function AdminContactsPage() {
   const queryClient = useQueryClient();
@@ -126,53 +132,78 @@ export function AdminContactsPage() {
   const contacts = rawContacts.map((c) => revealedContacts[c.id] ?? c);
 
   return (
-    <div>
-      <div className="mb-6 flex items-center gap-3">
-        <div className="rounded-lg bg-gray-50 p-2 text-primary-600 dark:bg-gray-800">
-          <ContactIcon className="h-5 w-5" />
+    <div className="space-y-6 motion-safe:animate-in motion-safe:fade-in duration-fast">
+      {/* Page Header */}
+      <div className="flex items-center gap-3.5">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2E8C82]/10 text-[#2E8C82] dark:bg-[#2E8C82]/20 dark:text-[#38b2a6]">
+          <ContactIcon className="h-6 w-6" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Possíveis Clientes</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Base de leads para gestão. {data ? `${totalContacts} contato(s) cadastrado(s).` : ''}
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Possíveis Clientes & CRM
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Base de leads para gestão e prospecção ativa em conformidade com a LGPD. {data ? `${totalContacts} contato(s) cadastrado(s).` : ''}
           </p>
         </div>
       </div>
 
-      <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
-        Use esta base apenas para contato com consentimento (follow-up de quem comprou ou leads opt-in).
-        Disparo automático em massa para lista fria viola a LGPD e os termos do WhatsApp (risco de banimento do número).
+      {/* LGPD Safety Notice */}
+      <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+        <ShieldAlert className="h-5 w-5 shrink-0 text-[#F2A93B] mt-0.5" />
+        <div className="leading-relaxed">
+          <strong>Diretriz Regulatória e Anti-Bloqueio:</strong> Utilize esta base apenas com consentimento explícito prévio ou relacionamento pré-contratual. Disparo automático em massa para lista fria viola a LGPD e acarreta banimento do número pelo WhatsApp.
+        </div>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-        <h2 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">Importar contatos</h2>
-        <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-          Cole CSV ou texto (um por linha). Detecta automaticamente nome, telefone e e-mail.
+      {/* Contacts Import Card */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-3 flex items-center gap-2">
+          <Upload className="h-4 w-4 text-[#2E8C82]" />
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">
+            Importar contatos (CSV ou Lista)
+          </h2>
+        </div>
+        <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+          Cole CSV ou texto corrido (um por linha). O sistema detecta automaticamente nome, telefone e e-mail.
         </p>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={5}
           placeholder={'Nome,Telefone,Email\nMaria Silva,+55 61 99999-0000,maria@email.com'}
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          aria-label="Conteúdo CSV ou texto para importação"
+          className="min-h-[120px] w-full rounded-xl border border-slate-300 bg-white p-3.5 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#2E8C82] focus:outline-none focus:ring-2 focus:ring-[#2E8C82]/20 transition-colors duration-fast dark:border-slate-700 dark:bg-slate-800 dark:text-white"
         />
 
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">Origem da lista</label>
+            <label
+              htmlFor="source-input"
+              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300"
+            >
+              Origem da lista
+            </label>
             <input
+              id="source-input"
               value={source}
               onChange={(e) => setSource(e.target.value)}
               placeholder="Origem (ex: leads-webinar, lista-loja)"
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className={`${FIELD_BASE} w-full`}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">Base Legal (Art. 7º LGPD)</label>
+            <label
+              htmlFor="legal-basis-select"
+              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300"
+            >
+              Base Legal (Art. 7º LGPD)
+            </label>
             <select
+              id="legal-basis-select"
               value={legalBasis}
               onChange={(e) => setLegalBasis(e.target.value as 'CONSENT' | 'LEGITIMATE_INTEREST' | 'PRE_CONTRACTUAL')}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className={`${FIELD_BASE} w-full`}
             >
               <option value="CONSENT">Consentimento do Titular (Opt-in)</option>
               <option value="PRE_CONTRACTUAL">Diligências Pré-Contratuais</option>
@@ -181,100 +212,113 @@ export function AdminContactsPage() {
           </div>
         </div>
 
-        <div className="mt-3">
-          <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+        <div className="mt-4">
+          <label
+            htmlFor="consent-notes-input"
+            className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300"
+          >
             Comprovação de Consentimento / Notas de Origem (mínimo 10 caracteres)
           </label>
           <input
+            id="consent-notes-input"
             value={consentNotes}
             onChange={(e) => setConsentNotes(e.target.value)}
             placeholder="Ex.: Formulário landing page com checkbox de consentimento registrado"
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className={`${FIELD_BASE} w-full`}
           />
         </div>
 
-        <div className="mt-4 flex items-center justify-end">
+        <div className="mt-5 flex items-center justify-end">
           <button
+            type="button"
             onClick={() => importMutation.mutate()}
             disabled={!text.trim() || consentNotes.trim().length < 10 || importMutation.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+            className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#2E8C82] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#26776f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] focus-visible:ring-offset-2 active:scale-95 transition-all duration-fast disabled:opacity-50 shadow-xs touch-manipulation"
           >
             {importMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            Importar
+            Importar Contatos
           </button>
         </div>
 
-        {feedback && <p className="mt-3 text-sm text-green-600 dark:text-green-400">{feedback}</p>}
+        {feedback && (
+          <p className="mt-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+            {feedback}
+          </p>
+        )}
         {importMutation.isError && (
-          <p className="mt-3 text-sm text-red-600 dark:text-red-400">Falha ao importar contatos. Verifique os dados e tente novamente.</p>
+          <p className="mt-3 text-sm font-semibold text-rose-600 dark:text-rose-400">
+            Falha ao importar contatos. Verifique os dados e tente novamente.
+          </p>
         )}
       </div>
 
-      <div className="mt-6">
-        <GroupCampaignCard
-          template={template}
-          groupLink={groupLink}
-          onTemplateChange={updateTemplate}
-          onGroupLinkChange={updateGroupLink}
-        />
-      </div>
+      {/* WhatsApp Campaign Configuration Card */}
+      <GroupCampaignCard
+        template={template}
+        groupLink={groupLink}
+        onTemplateChange={updateTemplate}
+        onGroupLinkChange={updateGroupLink}
+      />
 
-      <div className="mt-6">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Contatos ({totalContacts})
+      {/* Contacts Table Section */}
+      <div className="mt-8">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            Contatos Cadastrados ({totalContacts})
           </h2>
           {totalPages > 1 && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-gray-500 dark:text-gray-400">
-                Página {page} de {totalPages}
+            <div className="flex items-center gap-3 text-xs">
+              <span className="font-medium text-slate-500 dark:text-slate-400">
+                Página <strong className="text-slate-800 dark:text-slate-200">{page}</strong> de {totalPages}
               </span>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1 || isLoading}
-                className="rounded-lg border border-gray-300 p-1 text-gray-600 hover:bg-gray-100 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                aria-label="Página anterior"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages || isLoading}
-                className="rounded-lg border border-gray-300 p-1 text-gray-600 hover:bg-gray-100 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                aria-label="Próxima página"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1 || isLoading}
+                  className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] active:scale-95 transition-all duration-fast touch-manipulation dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages || isLoading}
+                  className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] active:scale-95 transition-all duration-fast touch-manipulation dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  aria-label="Próxima página"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-10">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <div className="flex justify-center py-16" role="status" aria-label="Carregando lista de contatos">
+            <Loader2 className="h-8 w-8 animate-spin text-[#2E8C82]" />
           </div>
         ) : contacts.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-gray-300 py-10 text-center text-sm text-gray-400 dark:border-gray-700">
-            Nenhum contato ainda. Importe sua lista acima.
+          <p className="rounded-2xl border border-dashed border-slate-300 py-12 text-center text-sm font-medium text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            Nenhum contato cadastrado ainda. Importe sua lista pelo formulário acima.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-100 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800">
-                  <th className="px-4 py-3 font-medium">Nome</th>
-                  <th className="px-4 py-3 font-medium">Telefone</th>
-                  <th className="px-4 py-3 font-medium">E-mail</th>
-                  <th className="px-4 py-3 font-medium">Origem</th>
-                  <th className="px-4 py-3 font-medium">WhatsApp</th>
-                  <th className="px-4 py-3 font-medium text-right">Ações</th>
+                <tr className="border-b border-slate-100 bg-slate-50/70 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                  <th className="px-5 py-3.5">Nome</th>
+                  <th className="px-5 py-3.5">Telefone</th>
+                  <th className="px-5 py-3.5">E-mail</th>
+                  <th className="px-5 py-3.5">Origem</th>
+                  <th className="px-5 py-3.5">WhatsApp</th>
+                  <th className="px-5 py-3.5 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {contacts.map((c) => (
-                  <ContactRow
+                  <ContactTableRow
                     key={c.id}
                     contact={c}
                     isRevealed={!!revealedContacts[c.id]}
@@ -290,6 +334,7 @@ export function AdminContactsPage() {
         )}
       </div>
 
+      {/* LGPD Contact PII Reveal Modal */}
       <RevealPiiModal
         isOpen={!!selectedContactToReveal}
         title="Visualizar Dados do Contato"
@@ -306,7 +351,7 @@ export function AdminContactsPage() {
   );
 }
 
-interface ContactRowProps {
+interface ContactTableRowProps {
   contact: Contact;
   isRevealed: boolean;
   template: string;
@@ -315,77 +360,81 @@ interface ContactRowProps {
   onDelete: () => void;
 }
 
-function ContactRow({
+function ContactTableRow({
   contact,
   isRevealed,
   template,
   groupLink,
   onOpenReveal,
   onDelete,
-}: ContactRowProps) {
+}: ContactTableRowProps) {
   const waLink = buildWhatsAppLink(contact.phone, applyTemplate(template, contact, groupLink));
+
   return (
-    <tr className="text-gray-700 dark:text-gray-300">
-      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-        {contact.name ?? <span className="text-gray-400">—</span>}
+    <tr className="text-slate-700 hover:bg-slate-50/70 dark:text-slate-300 dark:hover:bg-slate-800/40 transition-colors duration-fast">
+      <td className="px-5 py-3.5 font-bold text-slate-900 dark:text-white">
+        {contact.name ?? <span className="text-slate-400 font-normal">—</span>}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-3.5">
         {contact.phone ? (
-          <span className="inline-flex items-center gap-1.5">
-            <Phone className="h-3.5 w-3.5 text-gray-400" />
+          <span className="inline-flex items-center gap-1.5 font-mono text-xs text-slate-700 dark:text-slate-300">
+            <Phone className="h-3.5 w-3.5 text-slate-400" />
             {contact.phone}
           </span>
         ) : (
-          <span className="text-gray-400">—</span>
+          <span className="text-slate-400">—</span>
         )}
       </td>
-      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+      <td className="px-5 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-400">
         {contact.email ? (
           <span className="inline-flex items-center gap-1.5">
-            <Mail className="h-3.5 w-3.5 text-gray-400" />
+            <Mail className="h-3.5 w-3.5 text-slate-400" />
             {contact.email}
           </span>
         ) : (
-          <span className="text-gray-400">—</span>
+          <span className="text-slate-400">—</span>
         )}
       </td>
-      <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{contact.source ?? '—'}</td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-3.5 text-xs text-slate-500 dark:text-slate-400">
+        {contact.source ?? '—'}
+      </td>
+      <td className="px-5 py-3.5">
         {waLink ? (
           <a
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700"
+            className="min-h-[38px] inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 active:scale-95 transition-all duration-fast touch-manipulation"
             title="Abrir conversa no WhatsApp com o convite pronto"
           >
             <MessageCircle className="h-3.5 w-3.5" />
             Convidar
           </a>
         ) : (
-          <span className="text-xs text-gray-400">—</span>
+          <span className="text-xs text-slate-400">—</span>
         )}
       </td>
-      <td className="px-4 py-3 text-right">
+      <td className="px-5 py-3.5 text-right">
         <div className="flex items-center justify-end gap-1.5">
           {isRevealed ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-              <ShieldCheck className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              <ShieldCheck className="h-4 w-4" />
             </span>
           ) : (
             <button
               type="button"
               onClick={onOpenReveal}
-              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
-              title="Revelar dados pessoais com auditoria"
+              className="min-h-[38px] min-w-[38px] inline-flex items-center justify-center rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] active:scale-95 transition-all duration-fast dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              title="Revelar dados pessoais com auditoria imutável"
             >
               <Eye className="h-4 w-4" />
             </button>
           )}
           <button
+            type="button"
             onClick={onDelete}
-            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
-            title="Remover"
+            className="min-h-[38px] min-w-[38px] inline-flex items-center justify-center rounded-xl p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 active:scale-95 transition-all duration-fast dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+            title="Remover lead"
           >
             <Trash2 className="h-4 w-4" />
           </button>

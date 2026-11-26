@@ -78,6 +78,7 @@ export class AnonymizationService {
       await tx.gameRound.deleteMany({ where: { userId } });
       await tx.document.deleteMany({ where: { userId } });
       await tx.editalMap.deleteMany({ where: { userId } });
+      await tx.userTopicMastery.deleteMany({ where: { userId } });
       await tx.studySchedule.deleteMany({ where: { userId } });
       await tx.studyPlan.deleteMany({ where: { userId } });
       await tx.userCalendarIntegration.deleteMany({ where: { userId } });

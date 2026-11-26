@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, BookOpen, Clock, Target } from 'lucide-react';
 
 import { DaysStep } from './DaysStep';
 import { GoalStep } from './GoalStep';
@@ -15,19 +15,23 @@ export interface SectionProps {
   number: number;
   title: string;
   hint?: string;
+  icon?: typeof Calendar;
   children: ReactNode;
 }
 
-function Section({ number, title, hint, children }: SectionProps) {
+function Section({ number, title, hint, icon: Icon, children }: SectionProps) {
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
-      <h2 className="mb-1 flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-600 text-xs text-white">
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs dark:border-gray-800 dark:bg-gray-900 sm:p-6 transition-all duration-normal motion-safe:animate-in motion-safe:fade-in">
+      <h2 className="mb-1 flex items-center gap-2.5 text-base font-bold text-gray-900 dark:text-white">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white shadow-xs">
           {number}
         </span>
-        {title}
+        <span className="flex items-center gap-2">
+          {Icon && <Icon className="h-4 w-4 text-primary-500" />}
+          {title}
+        </span>
       </h2>
-      {hint && <p className="mb-4 ml-8 text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
+      {hint && <p className="mb-4 ml-9 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{hint}</p>}
       <div className={hint ? '' : 'mt-4'}>{children}</div>
     </section>
   );
@@ -49,15 +53,16 @@ export function ScheduleWizard({ loading, onGenerate }: ScheduleWizardProps) {
         number={1}
         title="Escolha a prova e as matérias"
         hint="Puxamos as matérias direto de Meus Editais. Defina importância e dificuldade de cada uma."
+        icon={BookOpen}
       >
-        <div className="mb-4 grid gap-3 sm:grid-cols-2">
-          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <div className="mb-4 grid gap-3.5 sm:grid-cols-2">
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">
             Prova ou estudo
             <select
               value={wizard.contestId}
               onChange={(e) => wizard.setContestId(e.target.value)}
               disabled={wizard.isLoadingContests}
-              className="mt-1 h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className="mt-1.5 h-11 w-full rounded-xl border border-gray-300 bg-white px-3.5 text-sm font-normal text-gray-900 outline-none transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             >
               <option value="">Montar manualmente</option>
               {wizard.contests.map((c) => (
@@ -67,17 +72,17 @@ export function ScheduleWizard({ loading, onGenerate }: ScheduleWizardProps) {
               ))}
             </select>
           </label>
-          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">
             Data da prova
             <input
               type="date"
               min={new Date().toISOString().split('T')[0]}
               value={wizard.examDate}
               onChange={(e) => wizard.setExamDate(e.target.value)}
-              className="mt-1 h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className="mt-1.5 h-11 w-full rounded-xl border border-gray-300 bg-white px-3.5 text-sm font-normal text-gray-900 outline-none transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
             {wizard.examDate && (
-              <span className="mt-1 block text-[11px] font-medium text-primary-600 dark:text-primary-400">
+              <span className="mt-1.5 block text-xs font-semibold text-primary-600 dark:text-primary-400 motion-safe:animate-in motion-safe:fade-in">
                 {(() => {
                   const [y, m, d] = wizard.examDate.split('-').map(Number);
                   const target = new Date(y, m - 1, d);
@@ -93,17 +98,17 @@ export function ScheduleWizard({ loading, onGenerate }: ScheduleWizardProps) {
           </label>
         </div>
         {wizard.isLoadingDetail ? (
-          <div className="h-24 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+          <div className="h-28 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
         ) : (
           <SubjectsStep subjects={wizard.subjects} onChange={wizard.setSubjects} />
         )}
       </Section>
 
-      <Section number={2} title="Dias e limites de estudo">
+      <Section number={2} title="Dias e limites de estudo" icon={Clock}>
         <DaysStep days={wizard.days} onChange={wizard.setDays} />
       </Section>
 
-      <Section number={3} title="Meta semanal">
+      <Section number={3} title="Meta semanal e distribuição diária" icon={Target}>
         <GoalStep
           weeklyHours={wizard.weeklyHours}
           maxSubjectsPerDay={wizard.maxSubjects}
@@ -113,7 +118,10 @@ export function ScheduleWizard({ loading, onGenerate }: ScheduleWizardProps) {
       </Section>
 
       {error && (
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+        <p
+          role="alert"
+          className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-sm font-medium text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300 motion-safe:animate-in motion-safe:fade-in"
+        >
           {error}
         </p>
       )}
@@ -122,15 +130,16 @@ export function ScheduleWizard({ loading, onGenerate }: ScheduleWizardProps) {
         type="button"
         onClick={submit}
         disabled={loading}
-        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary-600 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:opacity-60"
+        aria-busy={loading}
+        className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-700 active:scale-[0.98] disabled:opacity-60 touch-manipulation"
       >
         {loading ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" /> Montando seu cronograma…
-          </>
+          <span role="status" className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" /> Montando seu cronograma inteligente…
+          </span>
         ) : (
           <>
-            <Sparkles className="h-4 w-4" /> Gerar cronograma
+            <Sparkles className="h-4 w-4" /> Gerar cronograma inteligente
           </>
         )}
       </button>

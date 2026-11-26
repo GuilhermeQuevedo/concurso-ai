@@ -538,6 +538,7 @@ export class AuthService {
       studyPlans,
       studyTasks,
       payments,
+      reviewMapMasteries,
     ] = await Promise.all([
       prisma.consentRecord.findMany({
         where: { userId },
@@ -666,6 +667,29 @@ export class AuthService {
           createdAt: true,
         },
       }),
+      prisma.userTopicMastery.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          topicId: true,
+          topic: {
+            select: {
+              name: true,
+              slug: true,
+              level: true,
+            },
+          },
+          masteryScore: true,
+          state: true,
+          attemptsCount: true,
+          correctCount: true,
+          accuracy: true,
+          dueFlashcardsCount: true,
+          priorityScore: true,
+          lastAttemptAt: true,
+          calculatedAt: true,
+        },
+      }),
     ]);
 
     return {
@@ -698,6 +722,7 @@ export class AuthService {
       studyPlans,
       studyTasks,
       payments,
+      reviewMapMasteries,
     };
   }
 

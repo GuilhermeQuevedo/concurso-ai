@@ -28,6 +28,8 @@ const subscribe = (listener: () => void) => {
   return () => listeners.delete(listener);
 };
 
+const getSnapshot = () => floating;
+
 export function usePomodoroFloating(): boolean {
-  return useSyncExternalStore(subscribe, () => floating);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

@@ -24,7 +24,8 @@ export function RevealPiiModal({
   useEffect(() => {
     if (isOpen) {
       setJustification('');
-      setTimeout(() => textareaRef.current?.focus(), 50);
+      const timer = setTimeout(() => textareaRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -40,38 +41,39 @@ export function RevealPiiModal({
 
   if (!isOpen) return null;
 
-  const isValid = justification.trim().length >= 10;
+  const trimmed = justification.trim();
+  const isValid = trimmed.length >= 10;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isValid && !isPending) {
-      onConfirm(justification.trim());
+      onConfirm(trimmed);
     }
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs motion-safe:animate-in motion-safe:fade-in duration-fast"
       onClick={() => !isPending && onClose()}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="reveal-pii-title"
-        className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900"
+        className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 motion-safe:animate-in motion-safe:zoom-in-95 duration-fast"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-amber-50 p-2 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-[#F2A93B] dark:bg-amber-500/20 dark:text-[#f7bf67]">
               <ShieldAlert className="h-5 w-5" />
             </div>
             <div>
-              <h2 id="reveal-pii-title" className="text-lg font-bold text-gray-900 dark:text-white">
+              <h2 id="reveal-pii-title" className="text-lg font-bold text-slate-900 dark:text-white">
                 {title}
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Alvo: <span className="font-semibold text-gray-700 dark:text-gray-300">{targetName}</span>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Alvo: <span className="font-semibold text-slate-700 dark:text-slate-300">{targetName}</span>
               </p>
             </div>
           </div>
@@ -79,20 +81,24 @@ export function RevealPiiModal({
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+            aria-label="Fechar modal"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] transition-colors duration-fast disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
-          <strong>Aviso de Conformidade LGPD:</strong> A visualização de dados pessoais (PII) é restrita e
-          auditada. Seu acesso será registrado na trilha imutável com seu identificador de administrador, timestamp, IP e a justificativa abaixo.
+        {/* LGPD Compliance Warning Banner */}
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+          <strong>Aviso de Conformidade LGPD:</strong> A visualização de dados pessoais (PII) é restrita e auditada. Seu acesso será registrado na trilha imutável com seu identificador de administrador, timestamp, IP e a justificativa abaixo.
         </div>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label htmlFor="justification" className="mb-1.5 block text-xs font-semibold text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="justification"
+              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300"
+            >
               Justificativa formal do acesso (mínimo 10 caracteres):
             </label>
             <textarea
@@ -102,32 +108,38 @@ export function RevealPiiModal({
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
               placeholder="Ex.: Verificação de solicitação de suporte aberta pelo titular sob protocolo #1234."
-              className="w-full rounded-xl border border-gray-300 bg-white p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className="min-h-[96px] w-full rounded-xl border border-slate-300 bg-white p-3 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#2E8C82] focus:outline-none focus:ring-2 focus:ring-[#2E8C82]/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               disabled={isPending}
             />
-            <div className="mt-1 flex justify-between text-[11px] text-gray-400">
-              <span>{justification.trim().length} / 10 caracteres mínimos</span>
+            <div className="mt-1 flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <span>{trimmed.length} / 10 caracteres mínimos</span>
               {!isValid && justification.length > 0 && (
-                <span className="text-red-500">Mínimo de 10 caracteres obrigatório</span>
+                <span className="font-semibold text-rose-600 dark:text-rose-400">
+                  Mínimo de 10 caracteres obrigatório
+                </span>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              className="min-h-[44px] rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] active:scale-95 transition-all duration-fast disabled:opacity-50 touch-manipulation dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={!isValid || isPending}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+              className="min-h-[44px] inline-flex items-center gap-2 rounded-xl bg-[#2E8C82] px-5 py-2 text-sm font-bold text-white hover:bg-[#26776f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] focus-visible:ring-offset-2 active:scale-95 transition-all duration-fast disabled:opacity-50 shadow-xs touch-manipulation"
             >
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
               Revelar Dados Pessoais
             </button>
           </div>

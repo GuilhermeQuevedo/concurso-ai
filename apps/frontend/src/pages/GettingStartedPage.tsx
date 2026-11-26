@@ -48,8 +48,8 @@ const steps: SetupStep[] = [
     description: 'Adicione as matérias do seu edital, curso ou objetivo. Você pode criar sub-tópicos para organizar melhor.',
     why: 'A IA precisa saber quais matérias você estuda para gerar questões adequadas.',
     icon: BookOpen,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900',
+    color: 'text-[#2E8C82] dark:text-[#38b2a6]',
+    bgColor: 'bg-[#2E8C82]/10 dark:bg-[#2E8C82]/20',
     path: '/subjects',
     buttonLabel: 'Cadastrar Disciplinas',
     check: (d) => d.subjects > 0,
@@ -61,8 +61,8 @@ const steps: SetupStep[] = [
     description: 'Adicione as bancas organizadoras das provas (ex: CESPE, FCC, FGV).',
     why: 'Cada banca tem um estilo diferente de questão. A IA reproduz o estilo certo.',
     icon: Building2,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900',
+    color: 'text-indigo-600 dark:text-indigo-400',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-950/40',
     path: '/exam-boards',
     buttonLabel: 'Cadastrar Bancas',
     check: (d) => d.boards > 0,
@@ -74,8 +74,8 @@ const steps: SetupStep[] = [
     description: 'Escolha disciplina, banca, dificuldade e quantidade. A IA cria questões inéditas na hora.',
     why: 'Questões personalizadas no estilo da sua banca aceleram muito sua preparação.',
     icon: Sparkles,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-100 dark:bg-amber-900',
+    color: 'text-amber-600 dark:text-amber-400',
+    bgColor: 'bg-amber-50 dark:bg-amber-950/40',
     path: '/generate',
     buttonLabel: 'Gerar Questões',
     check: (d) => d.sessions > 0,
@@ -87,8 +87,8 @@ const steps: SetupStep[] = [
     description: 'Suba PDFs, leis ou apostilas. A IA usa esse conteúdo para criar questões mais precisas.',
     why: 'Com seus próprios materiais, as questões ficam muito mais contextualizadas.',
     icon: FileText,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100 dark:bg-green-900',
+    color: 'text-teal-600 dark:text-teal-400',
+    bgColor: 'bg-teal-50 dark:bg-teal-950/40',
     path: '/documents',
     buttonLabel: 'Importar Documentos',
     check: (d) => d.documents > 0,
@@ -100,8 +100,8 @@ const steps: SetupStep[] = [
     description: 'Crie cards com pergunta e resposta. O app repete mais o que você erra e menos o que já sabe.',
     why: 'Revisão espaçada é comprovadamente eficaz para memorização de longo prazo.',
     icon: Layers,
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-100 dark:bg-pink-900',
+    color: 'text-rose-600 dark:text-rose-400',
+    bgColor: 'bg-rose-50 dark:bg-rose-950/40',
     path: '/flashcards',
     buttonLabel: 'Criar Flashcards',
     check: (d) => d.flashcards > 0,
@@ -109,12 +109,12 @@ const steps: SetupStep[] = [
   {
     id: 'groups',
     number: 6,
-    title: 'Entre em um grupo de competição (opcional)',
+    title: 'Entre em um grupo de estudo (opcional)',
     description: 'Crie ou entre em um grupo com amigos. Ganhe pontos ao estudar e dispute o ranking semanal.',
-    why: 'Competir com amigos aumenta a motivação e mantém a constância nos estudos.',
+    why: 'Estudo colaborativo e metas em grupo aumentam a motivação e mantêm a constância.',
     icon: Users,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900',
+    color: 'text-blue-600 dark:text-blue-400',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/40',
     path: '/groups',
     buttonLabel: 'Ver Grupos',
     check: () => false,
@@ -126,8 +126,8 @@ const steps: SetupStep[] = [
     description: 'Defina quais disciplinas estudar em cada dia da semana e acompanhe seu progresso.',
     why: 'Um plano organizado garante que todas as matérias recebam atenção.',
     icon: CalendarDays,
-    color: 'text-teal-600',
-    bgColor: 'bg-teal-100 dark:bg-teal-900',
+    color: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-950/40',
     path: '/study-plan',
     buttonLabel: 'Criar Plano',
     check: () => false,
@@ -176,40 +176,41 @@ export function GettingStartedPage() {
   const allRequiredDone = requiredDone >= totalRequired;
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-8">
-        <div className="mb-2 flex items-center gap-2">
-          <Rocket className="h-6 w-6 text-primary-600" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2E8C82]/10 text-[#2E8C82] dark:bg-[#2E8C82]/20">
+          <Rocket className="h-6 w-6" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Como alimentar a plataforma
           </h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            Siga os passos abaixo para configurar tudo e começar a estudar. Os 3 primeiros passos são essenciais — os demais complementam sua rotina.
+          </p>
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Siga os passos abaixo para configurar tudo e começar a estudar.
-          Os 3 primeiros são essenciais — os demais são opcionais.
-        </p>
       </div>
 
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Seu progresso
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-3 flex items-center justify-between text-sm">
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Seu progresso de configuração
           </span>
-          <span className="text-sm font-bold text-primary-600">
-            {completedCount} de {steps.length} concluídos
+          <span className="font-bold text-[#2E8C82]">
+            {`${completedCount} de ${steps.length} concluídos`}
           </span>
         </div>
-        <div className="h-3 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
           <div
-            className="h-full rounded-full bg-primary-600 transition-all duration-500"
+            className="h-full rounded-full bg-[#2E8C82] transition-all duration-normal"
             style={{ width: `${(completedCount / steps.length) * 100}%` }}
           />
         </div>
         {allRequiredDone && (
-          <div className="mt-3 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 dark:bg-green-950/30">
-            <Trophy className="h-4 w-4 text-green-600" />
-            <span className="text-xs font-medium text-green-700 dark:text-green-400">
-              Parabéns! Você completou os passos essenciais. A plataforma está pronta para uso!
+          <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-950/30 dark:text-emerald-300">
+            <Trophy className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-xs font-semibold">
+              Parabéns! Você completou os passos essenciais. A plataforma está pronta para turbinar seus estudos!
             </span>
           </div>
         )}
@@ -222,92 +223,98 @@ export function GettingStartedPage() {
           return (
             <div
               key={step.id}
-              className={`rounded-xl border bg-white transition-all dark:bg-gray-900 ${
+              className={`rounded-2xl border bg-white p-5 shadow-xs transition-all duration-fast dark:bg-slate-900 ${
                 done
-                  ? 'border-green-200 dark:border-green-900'
-                  : 'border-gray-200 dark:border-gray-800'
+                  ? 'border-emerald-500/40 dark:border-emerald-500/30'
+                  : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
               }`}
             >
-              <div className="flex gap-4 p-5">
+              <div className="flex gap-4">
                 <div className="flex flex-col items-center">
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                    done ? 'bg-green-100 dark:bg-green-900' : step.bgColor
-                  }`}>
+                  <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors duration-fast ${
+                      done ? 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400' : `${step.bgColor} ${step.color}`
+                    }`}
+                  >
                     {done ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     ) : (
-                      <step.icon className={`h-5 w-5 ${step.color}`} />
+                      <step.icon className="h-6 w-6" />
                     )}
                   </div>
                   {step.number < steps.length && (
-                    <div className={`mt-2 h-full w-0.5 ${
-                      done ? 'bg-green-200 dark:bg-green-800' : 'bg-gray-200 dark:bg-gray-700'
-                    }`} />
+                    <div
+                      className={`mt-3 h-full w-0.5 rounded-full ${
+                        done ? 'bg-emerald-300 dark:bg-emerald-800' : 'bg-slate-200 dark:bg-slate-700'
+                      }`}
+                    />
                   )}
                 </div>
 
-                <div className="flex-1">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className={`text-xs font-bold ${done ? 'text-green-600' : 'text-gray-400'}`}>
-                      PASSO {step.number}
+                <div className="flex-1 min-w-0">
+                  <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                    <span className={`text-xs font-bold tracking-wider ${done ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                      {`PASSO ${step.number}`}
                     </span>
                     {isRequired && !done && (
-                      <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:bg-red-900 dark:text-red-400">
+                      <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-400/10 dark:text-amber-300">
                         ESSENCIAL
                       </span>
                     )}
-                    {!isRequired && (
-                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-800">
+                    {!isRequired && !done && (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                         OPCIONAL
                       </span>
                     )}
                     {done && (
-                      <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-600 dark:bg-green-900 dark:text-green-400">
+                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
                         FEITO
                       </span>
                     )}
                   </div>
 
-                  <h3 className={`mb-1 text-base font-semibold ${
-                    done ? 'text-green-700 line-through dark:text-green-400' : 'text-gray-900 dark:text-white'
+                  <h2 className={`text-base font-bold ${
+                    done ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-900 dark:text-white'
                   }`}>
                     {step.title}
-                  </h3>
-                  <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                     {step.description}
                   </p>
-                  <div className="mb-3 rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-800">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      <strong className="text-gray-700 dark:text-gray-300">Por que?</strong>{' '}
+
+                  <div className="mt-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      <strong className="font-semibold text-slate-800 dark:text-slate-200">Por que?</strong>{' '}
                       {step.why}
                     </p>
                   </div>
 
-                  {!done && (
-                    <button
-                      onClick={() => navigate(step.path)}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${
-                        isRequired
-                          ? 'bg-primary-600 hover:bg-primary-700'
-                          : 'bg-gray-600 hover:bg-gray-700'
-                      }`}
-                    >
-                      {step.buttonLabel}
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-
-                  {done && (
-                    <div className="flex items-center gap-1.5 text-sm text-green-600">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Concluído
-                      {step.id === 'subjects' && <span className="text-gray-400">({stepData.subjects} disciplina{stepData.subjects !== 1 ? 's' : ''})</span>}
-                      {step.id === 'boards' && <span className="text-gray-400">({stepData.boards} banca{stepData.boards !== 1 ? 's' : ''})</span>}
-                      {step.id === 'generate' && <span className="text-gray-400">({stepData.sessions} sessão{stepData.sessions !== 1 ? 'ões' : ''})</span>}
-                      {step.id === 'documents' && <span className="text-gray-400">({stepData.documents} documento{stepData.documents !== 1 ? 's' : ''})</span>}
-                      {step.id === 'flashcards' && <span className="text-gray-400">({stepData.flashcards} card{stepData.flashcards !== 1 ? 's' : ''})</span>}
-                    </div>
-                  )}
+                  <div className="mt-4">
+                    {!done ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(step.path)}
+                        className={`min-h-[44px] inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold shadow-xs transition-all duration-fast active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 touch-manipulation ${
+                          isRequired
+                            ? 'bg-[#2E8C82] text-white hover:bg-[#26776f] focus-visible:ring-[#2E8C82]'
+                            : 'bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 focus-visible:ring-slate-500'
+                        }`}
+                      >
+                        {step.buttonLabel}
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <div className="inline-flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
+                        <span>Concluído</span>
+                        {step.id === 'subjects' && <span className="font-normal text-slate-500 dark:text-slate-400">{`(${stepData.subjects} disciplina${stepData.subjects !== 1 ? 's' : ''})`}</span>}
+                        {step.id === 'boards' && <span className="font-normal text-slate-500 dark:text-slate-400">{`(${stepData.boards} banca${stepData.boards !== 1 ? 's' : ''})`}</span>}
+                        {step.id === 'generate' && <span className="font-normal text-slate-500 dark:text-slate-400">{`(${stepData.sessions} sessão${stepData.sessions !== 1 ? 'ões' : ''})`}</span>}
+                        {step.id === 'documents' && <span className="font-normal text-slate-500 dark:text-slate-400">{`(${stepData.documents} documento${stepData.documents !== 1 ? 's' : ''})`}</span>}
+                        {step.id === 'flashcards' && <span className="font-normal text-slate-500 dark:text-slate-400">{`(${stepData.flashcards} card${stepData.flashcards !== 1 ? 's' : ''})`}</span>}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -315,10 +322,14 @@ export function GettingStartedPage() {
         })}
       </div>
 
-      <div className="mt-6 text-center">
-        <p className="text-xs text-gray-400 dark:text-gray-500">
+      <div className="pt-2 text-center">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Dúvidas? Acesse a{' '}
-          <button onClick={() => navigate('/help')} className="text-primary-600 underline hover:text-primary-700">
+          <button
+            type="button"
+            onClick={() => navigate('/help')}
+            className="font-bold text-[#2E8C82] underline hover:text-[#26776f] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#2E8C82]"
+          >
             Central de Ajuda
           </button>{' '}
           para tutoriais detalhados de cada funcionalidade.

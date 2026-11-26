@@ -75,7 +75,8 @@ model User {
   friendRequestsSent    Friendship[]      @relation("FriendRequester")
   adminAuditLogs        AdminAuditLog[]          @relation("AdminAuditActor")
   consentRecords        ConsentRecord[]
-  processJobs ProcessJob[]
+  processJobs           ProcessJob[]
+  topicMasteries        UserTopicMastery[]
 }
 
 model Session {
@@ -106,6 +107,7 @@ model Subject {
   rankings       RankingBoard[]
   questionSets   QuestionSet[]
   flashcardDecks FlashcardDeck[]
+  topics         Topic[]
 
   @@index([parentId])
 }
@@ -116,7 +118,8 @@ model ExamBoard {
   slug      String   @unique
   createdAt DateTime @default(now())
 
-  questions Question[]
+  questions       Question[]
+  topicIncidences TopicIncidence[]
 }
 
 model Question {
@@ -129,6 +132,7 @@ model Question {
   comments      Json
   subjectId     String
   examBoardId   String?
+  topicId       String?
   source        QuestionSource @default(AI_GENERATED)
   aiModel       String?
   examYear      Int?
@@ -141,12 +145,14 @@ model Question {
 
   subject   Subject    @relation(fields: [subjectId], references: [id])
   examBoard ExamBoard? @relation(fields: [examBoardId], references: [id])
+  topic     Topic?     @relation(fields: [topicId], references: [id], onDelete: SetNull)
   attempts  QuestionAttempt[]
   favorites Favorite[]
   setItems  QuestionSetItem[]
 
   @@index([subjectId])
   @@index([examBoardId])
+  @@index([topicId])
   @@index([difficulty])
   @@index([subjectId, difficulty])
   @@index([source, examBoardId, examYear])
@@ -332,6 +338,7 @@ model Flashcard {
   source      String?
   elaboration String?  @db.Text
   deckId      String?
+  topicId     String?
   interval    Int      @default(1)
   easeFactor  Float    @default(2.5)
   repetition  Int      @default(0)
@@ -342,10 +349,12 @@ model Flashcard {
   user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   subject Subject        @relation(fields: [subjectId], references: [id])
   deck    FlashcardDeck? @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  topic   Topic?         @relation(fields: [topicId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([userId, nextReview])
   @@index([deckId])
+  @@index([topicId])
 }
 
 model Achievement {
@@ -571,13 +580,16 @@ model ContestSyllabusItem {
   studied        Boolean   @default(false)
   focus          Boolean   @default(true)
   importance     Int       @default(5)
-  firstStudiedAt DateTime?
-  content        String?   @db.LongText
+  firstStudiedAt   DateTime?
+  content          String?   @db.LongText
+  canonicalTopicId String?
 
-  contest Contest       @relation(fields: [contestId], references: [id], onDelete: Cascade)
-  reviews TopicReview[]
+  contest        Contest       @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  canonicalTopic Topic?        @relation(fields: [canonicalTopicId], references: [id], onDelete: SetNull)
+  reviews        TopicReview[]
 
   @@index([contestId])
+  @@index([canonicalTopicId])
 }
 
 model TopicReview {
@@ -1131,3 +1143,143 @@ model ContactSuppression {
 
   @@index([emailHash])
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// MAPA DE REVISÃO (GRAFO COMPARTILHADO + OVERLAY DE DOMÍNIO)
+// ═══════════════════════════════════════════════════════════════════
+
+enum TopicLevel {
+  DISCIPLINE
+  TOPIC
+  SUBTOPIC
+}
+
+enum RelationType {
+  PREREQUISITE
+  CONFUSED_WITH
+  CO_OCCURRING
+}
+
+enum RelationStatus {
+  DRAFT
+  APPROVED
+  REJECTED
+}
+
+enum MasteryState {
+  NOT_STARTED
+  IN_PROGRESS
+  MASTERED
+}
+
+model Topic {
+  id          String     @id @default(cuid())
+  parentId    String?
+  name        String     @db.VarChar(255)
+  slug        String     @db.VarChar(255)
+  level       TopicLevel @default(TOPIC)
+  order       Int        @default(0)
+  description String?    @db.Text
+  subjectId   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  parent            Topic?                @relation("TopicHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children          Topic[]               @relation("TopicHierarchy")
+  subject           Subject?              @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  outgoingRelations TopicRelation[]       @relation("SourceTopic")
+  incomingRelations TopicRelation[]       @relation("TargetTopic")
+  incidences        TopicIncidence[]
+  userMasteries     UserTopicMastery[]
+  layoutPositions   TopicLayoutPosition[]
+  questions         Question[]
+  flashcards        Flashcard[]
+  syllabusItems     ContestSyllabusItem[]
+
+  @@index([parentId])
+  @@index([subjectId])
+  @@index([level])
+  @@index([slug])
+}
+
+model TopicRelation {
+  id              String         @id @default(cuid())
+  sourceTopicId   String
+  targetTopicId   String
+  type            RelationType
+  evidence        String         @db.Text
+  source          String?        @db.VarChar(255)
+  status          RelationStatus @default(DRAFT)
+  confidence      Float?
+  createdById     String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  rejectionReason String?        @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  sourceTopic Topic @relation("SourceTopic", fields: [sourceTopicId], references: [id], onDelete: Cascade)
+  targetTopic Topic @relation("TargetTopic", fields: [targetTopicId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceTopicId, targetTopicId, type])
+  @@index([status])
+  @@index([sourceTopicId])
+  @@index([targetTopicId])
+}
+
+model TopicIncidence {
+  id             String   @id @default(cuid())
+  topicId        String
+  examBoardId    String
+  weight         Float    @default(1.0)
+  questionsCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  topic     Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  examBoard ExamBoard @relation(fields: [examBoardId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, examBoardId])
+  @@index([topicId])
+  @@index([examBoardId])
+}
+
+model TopicLayoutPosition {
+  id           String   @id @default(cuid())
+  graphVersion String   @db.VarChar(64)
+  topicId      String
+  x            Float
+  y            Float
+  pinned       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([graphVersion, topicId])
+  @@index([graphVersion])
+}
+
+model UserTopicMastery {
+  id                 String       @id @default(cuid())
+  userId             String
+  topicId            String
+  masteryScore       Float        @default(0.0)
+  state              MasteryState @default(NOT_STARTED)
+  attemptsCount      Int          @default(0)
+  correctCount       Int          @default(0)
+  accuracy           Float        @default(0.0)
+  lastAttemptAt      DateTime?
+  dueFlashcardsCount Int          @default(0)
+  priorityScore      Float        @default(0.0)
+  calculatedAt       DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@index([userId])
+  @@index([topicId])
+  @@index([userId, priorityScore])
+}
+

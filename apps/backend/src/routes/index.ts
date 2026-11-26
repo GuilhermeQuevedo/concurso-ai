@@ -25,6 +25,7 @@ import { calendarIntegrationRouter } from './calendar-integration.routes.js';
 import { errorNotebookRouter } from './error-notebook.routes.js';
 import { createEditalMapRouter } from './edital-map.routes.js';
 import { createStudyScheduleRouter } from './study-schedule.routes.js';
+import { mapRouter } from './map.routes.js';
 import { reminderRouter } from './reminder.routes.js';
 import { friendRouter } from './friend.routes.js';
 import { inviteRouter } from './invite.routes.js';
@@ -71,6 +72,7 @@ router.use('/games', gate, gameRouter);
 router.use('/error-notebook', gate, errorNotebookRouter);
 router.use('/edital-maps', gate, createEditalMapRouter());
 router.use('/study-schedules', gate, createStudyScheduleRouter());
+router.use('/map', mapRouter);
 
 router.use('/reminders', gate, reminderRouter);
 router.use('/invites', gate, inviteRouter);

@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide uppercase transition-colors',
+  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide uppercase transition-colors duration-fast ease-standard select-none [&_svg]:size-3 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -22,19 +22,36 @@ const badgeVariants = cva(
         outline:
           'border border-slate-300 text-slate-700 dark:border-slate-700 dark:text-slate-300',
       },
+      interactive: {
+        true: 'cursor-pointer hover:opacity-85 active:scale-95 transition-all duration-instant',
+        false: '',
+      },
     },
     defaultVariants: {
       variant: 'default',
+      interactive: false,
     },
   },
 );
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  readonly dot?: boolean;
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+function Badge({ className, variant, interactive, dot = false, children, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant, interactive }), className)} {...props}>
+      {dot && (
+        <span
+          className="size-1.5 rounded-full bg-current opacity-80"
+          aria-hidden="true"
+        />
+      )}
+      {children}
+    </div>
+  );
 }
 
 export { Badge, badgeVariants };

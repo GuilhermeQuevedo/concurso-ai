@@ -57,8 +57,8 @@ export function AdminPage() {
 
   if (!overview) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="flex justify-center py-16" role="status" aria-label="Carregando dados da administração">
+        <Loader2 className="h-8 w-8 animate-spin text-[#2E8C82]" />
       </div>
     );
   }
@@ -69,133 +69,145 @@ export function AdminPage() {
   const totalPages = usersData?.pagination?.totalPages ?? 1;
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Administração</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Visão geral de usuários, engajamento e receita.</p>
+    <div className="space-y-6 motion-safe:animate-in motion-safe:fade-in duration-fast">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Administração & Governança
+        </h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          Visão geral consolidada de usuários cadastrados, engajamento na plataforma e receita operacional.
+        </p>
       </div>
 
+      {/* Primary KPI Metrics Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card
+        <AdminStatCard
           icon={Users}
-          color="text-blue-600"
-          label="Usuários"
+          colorClass="text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-400"
+          label="Usuários Cadastrados"
           value={String(overview.users.total)}
           hint={`+${overview.users.newLast7} em 7d · +${overview.users.newLast30} em 30d`}
         />
-        <Card
+        <AdminStatCard
           icon={CreditCard}
-          color="text-green-600"
-          label="Assinantes ativos"
+          colorClass="text-[#2E8C82] bg-[#2E8C82]/10 dark:bg-[#2E8C82]/20 dark:text-[#38b2a6]"
+          label="Assinantes Ativos"
           value={String(overview.subscriptions.active)}
         />
-        <Card
+        <AdminStatCard
           icon={DollarSign}
-          color="text-emerald-600"
-          label="Recebido"
+          colorClass="text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400"
+          label="Receita Recebida"
           value={formatBRL(overview.revenue.receivedCents)}
           hint={`${overview.revenue.paymentsCount} pagamento(s)`}
         />
-        <Card
+        <AdminStatCard
           icon={Target}
-          color="text-purple-600"
-          label="Objetivos"
+          colorClass="text-purple-600 bg-purple-50 dark:bg-purple-950/40 dark:text-purple-400"
+          label="Objetivos / Concursos"
           value={String(overview.engagement.contests)}
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card
+      {/* Engagement Activity Metrics Grid */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <AdminStatCard
           icon={BookOpen}
-          color="text-amber-600"
-          label="Questões respondidas"
+          colorClass="text-[#F2A93B] bg-[#F2A93B]/10 dark:bg-[#F2A93B]/20 dark:text-[#f7bf67]"
+          label="Questões Resolvidas"
           value={String(overview.engagement.questionsAnswered)}
         />
-        <Card
+        <AdminStatCard
           icon={PenLine}
-          color="text-rose-600"
-          label="Redações"
+          colorClass="text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400"
+          label="Redações Submetidas"
           value={String(overview.engagement.essays)}
         />
-        <Card
+        <AdminStatCard
           icon={Layers}
-          color="text-indigo-600"
-          label="Flashcards"
+          colorClass="text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 dark:text-indigo-400"
+          label="Flashcards Praticados"
           value={String(overview.engagement.flashcards)}
         />
-        <Card
+        <AdminStatCard
           icon={BookOpen}
-          color="text-cyan-600"
-          label="Sessões de estudo"
+          colorClass="text-cyan-600 bg-cyan-50 dark:bg-cyan-950/40 dark:text-cyan-400"
+          label="Sessões de Estudo"
           value={String(overview.engagement.sessions)}
         />
       </div>
 
-      <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-400">
-        Os valores exatos de faturamento, saques e taxas ficam no Stripe (Financeiro). Aqui mostramos o que chegou pelos webhooks.
+      {/* Webhook and Financial Sync Disclaimer */}
+      <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
+        Os valores consolidados de faturamento, saques e taxas de intermediação são auditados no Stripe. Os dados acima refletem as notificações transacionais recebidas via webhooks.
       </div>
 
+      {/* Manual Access Grant Card */}
       <GrantAccessCard />
 
-      <div className="mt-6">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+      {/* Users Table Section */}
+      <div className="mt-8">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
             Usuários ({totalUsers})
           </h2>
           {totalPages > 1 && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-gray-500 dark:text-gray-400">
-                Página {page} de {totalPages}
+            <div className="flex items-center gap-3 text-xs">
+              <span className="font-medium text-slate-500 dark:text-slate-400">
+                Página <strong className="text-slate-800 dark:text-slate-200">{page}</strong> de {totalPages}
               </span>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1 || isLoadingUsers}
-                className="rounded-lg border border-gray-300 p-1 text-gray-600 hover:bg-gray-100 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                aria-label="Página anterior"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages || isLoadingUsers}
-                className="rounded-lg border border-gray-300 p-1 text-gray-600 hover:bg-gray-100 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                aria-label="Próxima página"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1 || isLoadingUsers}
+                  className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] active:scale-95 transition-all duration-fast touch-manipulation dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages || isLoadingUsers}
+                  className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] active:scale-95 transition-all duration-fast touch-manipulation dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  aria-label="Próxima página"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         {isLoadingUsers ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <div className="flex justify-center py-16" role="status" aria-label="Carregando tabela de usuários">
+            <Loader2 className="h-8 w-8 animate-spin text-[#2E8C82]" />
           </div>
         ) : users.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-gray-300 py-10 text-center text-sm text-gray-400 dark:border-gray-700">
-            Nenhum usuário cadastrado.
+          <p className="rounded-2xl border border-dashed border-slate-300 py-12 text-center text-sm font-medium text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            Nenhum usuário cadastrado encontrado.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-100 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800">
-                  <th className="px-4 py-3 font-medium">Nome</th>
-                  <th className="px-4 py-3 font-medium">E-mail</th>
-                  <th className="px-4 py-3 font-medium">Assinante</th>
-                  <th className="px-4 py-3 font-medium">Questões</th>
-                  <th className="px-4 py-3 font-medium">Redações</th>
-                  <th className="px-4 py-3 font-medium">Flashcards</th>
-                  <th className="px-4 py-3 font-medium">Streak</th>
-                  <th className="px-4 py-3 font-medium">Cadastro</th>
-                  <th className="px-4 py-3 font-medium text-right">PII</th>
+                <tr className="border-b border-slate-100 bg-slate-50/70 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                  <th className="px-5 py-3.5">Nome</th>
+                  <th className="px-5 py-3.5">E-mail</th>
+                  <th className="px-5 py-3.5">Assinante</th>
+                  <th className="px-5 py-3.5">Questões</th>
+                  <th className="px-5 py-3.5">Redações</th>
+                  <th className="px-5 py-3.5">Flashcards</th>
+                  <th className="px-5 py-3.5">Streak</th>
+                  <th className="px-5 py-3.5">Cadastro</th>
+                  <th className="px-5 py-3.5 text-right">Ação LGPD</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {users.map((u) => (
-                  <UserRow
+                  <UserTableRow
                     key={u.id}
                     user={u}
                     isRevealed={!!revealedUsers[u.id]}
@@ -208,6 +220,7 @@ export function AdminPage() {
         )}
       </div>
 
+      {/* LGPD Justified Access Modal */}
       <RevealPiiModal
         isOpen={!!selectedUserToReveal}
         title="Visualizar Dados Pessoais do Usuário"
@@ -224,79 +237,97 @@ export function AdminPage() {
   );
 }
 
-interface CardProps {
+interface AdminStatCardProps {
   icon: typeof Users;
-  color: string;
+  colorClass: string;
   label: string;
   value: string;
   hint?: string;
 }
 
-function Card({ icon: Icon, color, label, value, hint }: CardProps) {
+function AdminStatCard({ icon: Icon, colorClass, label, value, hint }: AdminStatCardProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex items-center gap-3">
-        <div className={`rounded-lg bg-gray-50 p-2 dark:bg-gray-800 ${color}`}>
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 transition-all duration-fast">
+      <div className="flex items-center gap-3.5">
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${colorClass}`}>
           <Icon className="h-5 w-5" />
         </div>
-        <div className="min-w-0">
-          <p className="truncate text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            {value}
+          </p>
+          <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
+            {label}
+          </p>
         </div>
       </div>
-      {hint && <p className="mt-2 text-[11px] text-gray-400">{hint}</p>}
+      {hint && (
+        <p className="mt-2.5 text-[11px] font-medium text-slate-400 dark:text-slate-500">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
 
-interface UserRowProps {
+interface UserTableRowProps {
   user: AdminUser;
   isRevealed: boolean;
   onOpenReveal: () => void;
 }
 
-function UserRow({ user, isRevealed, onOpenReveal }: UserRowProps) {
+function UserTableRow({ user, isRevealed, onOpenReveal }: UserTableRowProps) {
   return (
-    <tr className="text-gray-700 dark:text-gray-300">
-      <td className="px-4 py-3">
-        <span className="font-medium text-gray-900 dark:text-white">{user.name}</span>
+    <tr className="text-slate-700 hover:bg-slate-50/70 dark:text-slate-300 dark:hover:bg-slate-800/40 transition-colors duration-fast">
+      <td className="px-5 py-3.5">
+        <span className="font-bold text-slate-900 dark:text-white">{user.name}</span>
         {user.role === 'ADMIN' && (
-          <span className="ml-2 rounded bg-primary-100 px-1.5 py-0.5 text-[10px] font-semibold text-primary-700 dark:bg-primary-950 dark:text-primary-300">
+          <span className="ml-2 inline-flex items-center rounded-md border border-[#2E8C82]/30 bg-[#2E8C82]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#2E8C82] dark:bg-[#2E8C82]/20 dark:text-[#38b2a6]">
             admin
           </span>
         )}
       </td>
-      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{user.email}</td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-400">
+        {user.email}
+      </td>
+      <td className="px-5 py-3.5">
         {user.activeSubscriber ? (
-          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-950 dark:text-green-400">
+          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
             ativo
           </span>
         ) : (
-          <span className="text-xs text-gray-400">—</span>
+          <span className="text-xs text-slate-400">—</span>
         )}
       </td>
-      <td className="px-4 py-3">{user.questionsAnswered}</td>
-      <td className="px-4 py-3">{user.essays}</td>
-      <td className="px-4 py-3">{user.flashcards}</td>
-      <td className="px-4 py-3">{user.streak}</td>
-      <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
+      <td className="px-5 py-3.5 font-semibold text-slate-800 dark:text-slate-200">
+        {user.questionsAnswered}
+      </td>
+      <td className="px-5 py-3.5 font-semibold text-slate-800 dark:text-slate-200">
+        {user.essays}
+      </td>
+      <td className="px-5 py-3.5 font-semibold text-slate-800 dark:text-slate-200">
+        {user.flashcards}
+      </td>
+      <td className="px-5 py-3.5 font-semibold text-slate-800 dark:text-slate-200">
+        {user.streak}
+      </td>
+      <td className="px-5 py-3.5 text-xs text-slate-500 dark:text-slate-400">
         {new Date(user.createdAt).toLocaleDateString('pt-BR')}
       </td>
-      <td className="px-4 py-3 text-right">
+      <td className="px-5 py-3.5 text-right">
         {isRevealed ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-            <ShieldCheck className="h-3.5 w-3.5" />
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            <ShieldCheck className="h-4 w-4" />
             Revelado
           </span>
         ) : (
           <button
             type="button"
             onClick={onOpenReveal}
-            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-[11px] font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="min-h-[38px] inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] active:scale-95 transition-all duration-fast touch-manipulation dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             title="Revelar dados pessoais com justificativa auditada"
           >
-            <Eye className="h-3 w-3" />
+            <Eye className="h-3.5 w-3.5" />
             Revelar
           </button>
         )}

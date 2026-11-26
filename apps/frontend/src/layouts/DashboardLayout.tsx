@@ -8,7 +8,6 @@ import { SidebarReminders } from '@/features/reminders/components/SidebarReminde
 import { PomodoroMini } from '@/features/pomodoro/PomodoroMini';
 import {
   ChevronDown,
-  Menu,
   X,
   LogOut,
   type LucideIcon,
@@ -39,33 +38,36 @@ import { useTour } from '@/features/tour/useTour';
 import { useReviewNotifications } from '@/features/notifications/useReviewNotifications';
 import { EngramaWordmark } from '@/components/EngramaWordmark';
 import { StripeBillingModal } from '@/features/subscription/components/StripeBillingModal';
+import { isFeatureEnabled } from '@/config/feature-flags';
+import { AppHeader } from './AppHeader';
 
 type IconComponent = React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> | LucideIcon;
 
 interface NavItem {
-  path: string;
-  label: string;
-  icon: IconComponent;
+  readonly path: string;
+  readonly label: string;
+  readonly icon: IconComponent;
 }
 
 interface NavGroup {
-  key: string;
-  label: string;
-  icon: IconComponent;
-  items: NavItem[];
+  readonly key: string;
+  readonly label: string;
+  readonly icon: IconComponent;
+  readonly items: NavItem[];
 }
 
-const topItems: NavItem[] = [
+const topItems: readonly NavItem[] = [
   { path: '/dashboard', label: 'Visão Geral', icon: DashboardIcon },
 ];
 
-const navGroups: NavGroup[] = [
+const navGroups: readonly NavGroup[] = [
   {
     key: 'planning',
     label: 'Planejamento',
     icon: TargetIcon,
     items: [
       { path: '/contests', label: 'Meus Editais', icon: TargetIcon },
+      { path: '/mapa', label: 'Mapa de Revisão', icon: LayersIcon },
       { path: '/calendar', label: 'Calendário', icon: ClockIcon },
       { path: '/cronograma', label: 'Cronograma', icon: CronogramaIcon },
     ],
@@ -98,7 +100,7 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-const bottomItems: NavItem[] = [
+const bottomItems: readonly NavItem[] = [
   { path: '/profile', label: 'Perfil', icon: UserIcon },
   { path: '/settings', label: 'Configurações', icon: SettingsIcon },
   { path: '/help', label: 'Ajuda', icon: HelpCircleIcon },
@@ -117,8 +119,7 @@ function loadExpanded(pathname: string): string[] {
   }
 }
 
-// O estudo ativo precisa existir em volta de todo o layout e das páginas que ele mostra.
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+export function DashboardLayout({ children }: { readonly children: React.ReactNode }) {
   return (
     <ActiveStudyProvider>
       <DashboardLayoutContent>{children}</DashboardLayoutContent>
@@ -126,7 +127,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+function DashboardLayoutContent({ children }: { readonly children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { active: tourActive } = useTour();
   useReviewNotifications();
@@ -136,7 +137,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expanded, setExpanded] = useState<string[]>(() => loadExpanded(location.pathname));
   const [billingModalOpen, setBillingModalOpen] = useState(() =>
-    new URLSearchParams(window.location.search).has('subscribe'),
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search).has('subscribe') : false,
   );
 
   useEffect(() => {
@@ -147,7 +148,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   // Abre automaticamente o grupo ativo quando a rota mudar
   useEffect(() => {
-    const activeGroup = navGroups.find((g) => g.items.some((i) => i.path === location.pathname || (i.path === '/cronograma' && location.pathname === '/study-plan')));
+    const activeGroup = navGroups.find((g) =>
+      g.items.some(
+        (i) => i.path === location.pathname || (i.path === '/cronograma' && location.pathname === '/study-plan'),
+      ),
+    );
     if (activeGroup && !expanded.includes(activeGroup.key)) {
       setExpanded((prev) => {
         const next = [...prev, activeGroup.key];
@@ -171,8 +176,21 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   };
 
   const renderItem = (item: NavItem, indent = false) => {
-    const isActive = location.pathname === item.path || (item.path === '/cronograma' && location.pathname === '/study-plan');
+    const isActive =
+      location.pathname === item.path ||
+      (item.path === '/cronograma' && location.pathname === '/study-plan');
     const IconComp = item.icon;
+    const isAstryxActive = isFeatureEnabled('ASTRYX_SHELL');
+
+    const activeBgClass = isAstryxActive
+      ? 'bg-[var(--color-brand-primary,#2E8C82)]/15 text-white font-semibold'
+      : 'bg-teal-600/20 text-white font-semibold';
+    const activeTextClass = isAstryxActive
+      ? 'text-[var(--color-brand-primary,#2E8C82)]'
+      : 'text-teal-400';
+    const activeBarClass = isAstryxActive
+      ? 'bg-[var(--color-brand-primary,#2E8C82)] shadow-[0_0_8px_rgba(46,140,130,0.7)]'
+      : 'bg-teal-400 shadow-[0_0_8px_rgba(46,140,130,0.7)]';
 
     return (
       <Link
@@ -180,48 +198,67 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         to={item.path}
         data-tour={item.path}
         onClick={() => setSidebarOpen(false)}
-        className={`group relative flex w-full max-w-full box-border items-center gap-2.5 rounded-lg py-2 text-sm font-medium transition-all overflow-hidden ${
+        aria-current={isActive ? 'page' : undefined}
+        className={`group relative flex w-full max-w-full box-border items-center gap-2.5 rounded-xl py-2 min-h-[40px] text-sm font-medium transition-colors duration-fast ease-standard overflow-hidden select-none touch-manipulation active:scale-[0.99] motion-reduce:active:scale-100 ${
           indent ? 'pl-7 pr-2.5' : 'px-3'
-        } ${
-          isActive
-            ? 'bg-teal-600/15 text-white font-semibold'
-            : 'text-white/65 hover:bg-white/6 hover:text-white'
-        }`}
+        } ${isActive ? activeBgClass : 'text-white/70 hover:bg-white/8 hover:text-white'}`}
       >
-        {/* Barra Ativa Lateral Verde Engrama */}
+        {/* Barra Ativa Lateral Verde Engrama com Staging Refinado */}
         {isActive && (
-          <span className="absolute left-0.5 top-2 bottom-2 w-1 rounded-r-full bg-teal-400 shadow-[0_0_8px_rgba(46,140,130,0.6)]" />
+          <span className={`absolute left-0.5 top-2 bottom-2 w-1 rounded-r-full ${activeBarClass}`} />
         )}
         <span
-          className={`shrink-0 transition-colors ${
-            isActive ? 'text-teal-400' : 'text-white/50 group-hover:text-white/80'
+          className={`shrink-0 transition-colors duration-fast ease-standard ${
+            isActive ? activeTextClass : 'text-white/50 group-hover:text-white/90'
           }`}
         >
-          <IconComp size={18} />
+          <IconComp size={18} strokeWidth={isActive ? 2 : 1.75} />
         </span>
         <span className="min-w-0 flex-1 truncate">{item.label}</span>
       </Link>
     );
   };
 
+  const isAstryxActive = isFeatureEnabled('ASTRYX_SHELL');
+  const containerClass = isAstryxActive
+    ? 'astryx-theme bg-[var(--color-canvas)] text-[var(--color-text-primary)]'
+    : 'bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100';
+
   return (
-    <div className="flex min-h-screen bg-slate-50 font-body text-slate-900 dark:bg-slate-950 dark:text-slate-100 overflow-x-clip">
-      {/* Mobile Backdrop */}
+    <div className={`flex min-h-screen font-body overflow-x-clip ${containerClass}`}>
+      {/* Skip Link para Acessibilidade Teclado / Leitores de Tela */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--color-brand-primary,#2E8C82)] focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none"
+      >
+        Pular para o conteúdo principal
+      </a>
+
+      {/* Mobile Backdrop com Staging suave (fade-in) */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs lg:hidden"
+          role="presentation"
+          aria-hidden="true"
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs transition-opacity duration-fast ease-standard lg:hidden animate-in fade-in"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar com estilo Flashcards-Inteligentes (Deep Ink + Verde Engrama) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-white/8 bg-[#121A33] text-white overflow-x-hidden transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
-          sidebarOpen || tourActive ? 'translate-x-0' : '-translate-x-full'
+        aria-label="Navegação principal"
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r ${
+          isAstryxActive ? 'border-[var(--color-border-subtle)]' : 'border-white/8'
+        } bg-[#121A33] text-white overflow-x-hidden transition-transform duration-base ease-standard lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+          sidebarOpen || tourActive ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         }`}
       >
         {/* Topo / Logo */}
-        <div className="relative flex h-16 shrink-0 items-center justify-between border-b border-white/8 px-5">
+        <div
+          className={`relative flex h-16 shrink-0 items-center justify-between border-b ${
+            isAstryxActive ? 'border-[var(--color-border-subtle)]' : 'border-white/8'
+          } px-5`}
+        >
           <Link to="/dashboard" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2">
             <EngramaWordmark logoClass="h-7 w-7" textClass="text-xl font-display font-extrabold text-white" />
           </Link>
@@ -229,8 +266,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             <NotificationBell />
             {sidebarOpen && (
               <button
+                type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="p-1 text-white/60 hover:text-white lg:hidden"
+                className="flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-lg p-1 text-white/60 hover:text-white active:scale-95 touch-manipulation lg:hidden"
+                aria-label="Fechar menu lateral"
               >
                 <X size={20} />
               </button>
@@ -241,12 +280,20 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         <ActiveStudySelector />
 
         {/* Navegação com Mecanismo de Sub-Abas Expansíveis e Scroll Limpo */}
-        <nav className="sidebar-nav flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-2.5 py-4">
+        <nav
+          className={`sidebar-nav flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-2.5 py-4 ${
+            isAstryxActive ? 'scroll-mask-y' : ''
+          }`}
+        >
           {topItems.map((item) => renderItem(item))}
 
           {/* Área Administrativa */}
           {user?.role === 'ADMIN' && (
-            <div className="mt-2 border-b border-white/8 pb-2">
+            <div
+              className={`mt-2 border-b ${
+                isAstryxActive ? 'border-[var(--color-border-subtle)]' : 'border-white/8'
+              } pb-2`}
+            >
               <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-400/90 truncate">
                 Administração
               </div>
@@ -255,10 +302,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
-          {/* Grupos Expansíveis (Acordeão como estava antes) */}
+          {/* Grupos Expansíveis */}
           {navGroups.map((group) => {
             const isOpen = expanded.includes(group.key) || tourActive;
-            const hasActive = group.items.some((i) => i.path === location.pathname || (i.path === '/cronograma' && location.pathname === '/study-plan'));
+            const hasActive = group.items.some(
+              (i) => i.path === location.pathname || (i.path === '/cronograma' && location.pathname === '/study-plan'),
+            );
             const GroupIcon = group.icon;
 
             return (
@@ -266,21 +315,22 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 <button
                   type="button"
                   onClick={() => toggleGroup(group.key)}
-                  className="flex w-full max-w-full box-border items-center justify-between rounded-lg px-3 py-1.5 text-white/55 transition-colors hover:bg-white/5 hover:text-white/90 overflow-hidden"
+                  aria-expanded={isOpen}
+                  className="flex w-full max-w-full box-border min-h-[38px] items-center justify-between rounded-lg px-3 py-1.5 text-white/60 transition-colors duration-fast ease-standard hover:bg-white/6 hover:text-white/95 overflow-hidden active:scale-[0.99] touch-manipulation"
                 >
                   <span className="flex min-w-0 items-center gap-2.5 truncate">
-                    <span className="shrink-0 text-white/40">
+                    <span className="shrink-0 text-white/45">
                       <GroupIcon size={16} />
                     </span>
-                    <span className="truncate text-[11px] font-bold uppercase tracking-wider text-white/60">
+                    <span className="truncate text-[11px] font-bold uppercase tracking-wider text-white/70">
                       {group.label}
                     </span>
                     {hasActive && !isOpen && (
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-teal-400 shadow-[0_0_6px_rgba(46,140,130,0.8)]" />
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-brand-primary,#2E8C82)] shadow-[0_0_6px_rgba(46,140,130,0.8)]" />
                     )}
                   </span>
                   <ChevronDown
-                    className={`h-3.5 w-3.5 shrink-0 text-white/40 transition-transform duration-200 ${
+                    className={`h-3.5 w-3.5 shrink-0 text-white/40 transition-transform duration-fast ease-standard ${
                       isOpen ? 'rotate-180 text-white/80' : ''
                     }`}
                   />
@@ -288,7 +338,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
                 {/* Sub-Abas com Guia Vertical e Indentação */}
                 {isOpen && (
-                  <div className="mt-1 space-y-0.5 border-l border-white/10 pl-1 w-full max-w-full overflow-hidden">
+                  <div
+                    className={`mt-1 space-y-0.5 border-l ${
+                      isAstryxActive ? 'border-[var(--color-border-subtle)]' : 'border-white/10'
+                    } pl-1 w-full max-w-full overflow-hidden animate-in fade-in duration-fast ease-standard`}
+                  >
                     {group.items.map((item) => renderItem(item, true))}
                   </div>
                 )}
@@ -303,15 +357,18 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <AccountMenu items={bottomItems} onNavigate={() => setSidebarOpen(false)} onOpenBilling={() => setBillingModalOpen(true)} />
         </div>
 
-
         {/* Rodapé da Barra Lateral com Perfil */}
-        <div className="shrink-0 border-t border-white/8 bg-black/15 p-3 overflow-hidden">
+        <div
+          className={`shrink-0 border-t ${
+            isAstryxActive ? 'border-[var(--color-border-subtle)]' : 'border-white/8'
+          } bg-black/15 p-3 overflow-hidden`}
+        >
           <Link
             to="/profile"
             onClick={() => setSidebarOpen(false)}
-            className="mb-2 flex w-full max-w-full items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/6 overflow-hidden"
+            className="mb-2 flex w-full max-w-full items-center gap-3 rounded-xl px-2 py-2 min-h-[44px] transition-colors duration-fast ease-standard hover:bg-white/6 overflow-hidden active:scale-[0.99] touch-manipulation"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-700 text-sm font-bold text-white shadow-xs">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-brand-primary,#2E8C82)] to-[oklch(0.38_0.075_188)] text-sm font-bold text-white shadow-xs">
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="min-w-0 flex-1 overflow-hidden">
@@ -327,8 +384,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
           <button
+            type="button"
             onClick={handleLogout}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-white/55 transition-colors hover:bg-red-500/15 hover:text-red-300 overflow-hidden"
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 min-h-[38px] text-xs font-medium text-white/55 transition-colors duration-fast ease-standard hover:bg-red-500/15 hover:text-red-300 overflow-hidden active:scale-[0.99] touch-manipulation"
           >
             <LogOut size={15} className="shrink-0" />
             <span className="truncate">Sair da conta</span>
@@ -337,39 +395,27 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Conteúdo Principal */}
-      <div className="flex flex-1 flex-col overflow-x-hidden">
-        {/* Barra Superior Mobile */}
-        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900 lg:hidden">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-1.5 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-            aria-label="Abrir menu lateral"
-          >
-            <Menu size={22} />
-          </button>
-          <EngramaWordmark logoClass="h-7 w-7" textClass="text-lg text-slate-900 dark:text-white" />
-          <Link
-            to="/profile"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white"
-          >
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
-          </Link>
-        </header>
+      <div className="flex flex-1 flex-col overflow-x-hidden min-w-0">
+        {/* Barra Superior Unificada (Desktop Breadcrumbs + Mobile Drawer) */}
+        <AppHeader onOpenSidebar={() => setSidebarOpen(true)} />
 
         {/* Conteúdo da Tela */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1 p-4 md:p-6 lg:p-8 min-w-0 outline-none">
+          {children}
+        </main>
 
         <PomodoroMini />
 
-        {/* Botão Flutuante de Ajuda */}
+        {/* Botão Flutuante de Ajuda (Fitts & Squash and Stretch) */}
         {location.pathname !== '/help' && location.pathname !== '/study' && (
           <Link
             to="/help"
             data-tour="help"
-            className="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-teal-600 text-white shadow-lg transition-transform hover:scale-105 hover:bg-teal-700"
+            className="fixed bottom-6 right-6 z-40 flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-full bg-teal-600 text-white shadow-lg transition-transform duration-fast ease-standard hover:scale-105 active:scale-95 hover:bg-teal-700 touch-manipulation motion-reduce:active:scale-100"
             title="Ajuda & Metodologia"
+            aria-label="Ajuda e metodologia"
           >
-            <HelpCircleIcon size={20} />
+            <HelpCircleIcon size={22} />
           </Link>
         )}
 

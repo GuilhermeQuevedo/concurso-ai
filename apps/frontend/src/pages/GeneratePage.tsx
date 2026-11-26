@@ -112,26 +112,28 @@ export function GeneratePage() {
   };
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+    <div className="space-y-6 animate-in fade-in duration-fast">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Questões</h1>
-          <p className="max-w-xl text-sm text-gray-600 dark:text-gray-400">
-            Nossa IA gera questões e simulados personalizados pra você. Ela analisa o estilo da sua prova e cria
-            questões parecidas, praticamente prevendo o que você vai encontrar no dia! 🎯
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Questões & Simulados</h1>
+          <p className="max-w-xl text-sm text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+            Nossa IA gera questões e simulados personalizados no padrão da sua banca examinadora, preparando você exatamente para o estilo de cobrança da prova.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xs">
             {(['cards', 'folders'] as const).map((mode) => (
               <button
                 key={mode}
+                type="button"
                 onClick={() => changeView(mode)}
                 title={mode === 'cards' ? 'Ver em cards' : 'Ver em pastas'}
-                className={`px-2.5 py-2 ${
+                aria-label={mode === 'cards' ? 'Ver em cards' : 'Ver em pastas'}
+                aria-pressed={view === mode}
+                className={`min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                   view === mode
-                    ? 'bg-primary-600/10 text-primary-600'
-                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    ? 'bg-primary-600/10 text-primary-600 dark:bg-primary-950/60 dark:text-primary-300 font-bold'
+                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/60'
                 }`}
               >
                 {mode === 'cards' ? <LayoutGrid className="h-4 w-4" /> : <Folder className="h-4 w-4" />}
@@ -140,14 +142,16 @@ export function GeneratePage() {
           </div>
           <SubjectFilter subjects={subjects} total={sets.length} value={filter} onChange={setFilter} />
           <button
+            type="button"
             onClick={() => setShowManual(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+            className="min-h-[44px] flex items-center gap-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all duration-fast hover:bg-gray-100 dark:hover:bg-gray-700 shadow-xs touch-manipulation cursor-pointer active:scale-98 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
-            <PencilLine className="h-4 w-4" /> Criar Manual
+            <PencilLine className="h-4 w-4 text-gray-500" /> Criar Manual
           </button>
           <button
+            type="button"
             onClick={() => setShowChooser(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+            className="min-h-[44px] flex items-center gap-2 rounded-xl bg-[#2E8C82] px-4 py-2 text-sm font-bold text-white transition-all duration-fast hover:bg-[#26776f] shadow-xs touch-manipulation cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
           >
             <Sparkles className="h-4 w-4" /> Gerar questões
           </button>
@@ -155,28 +159,36 @@ export function GeneratePage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <div className="flex justify-center py-16">
+          <Loader2 className="h-7 w-7 animate-spin text-[#2E8C82]" />
         </div>
       ) : sets.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
-          <FileQuestion className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-          <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Nenhum simulado ainda</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Clique em “Gerar questões” para criar seu primeiro simulado no estilo da sua prova.
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900 shadow-xs">
+          <FileQuestion className="mx-auto mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
+          <p className="mb-1 text-base font-bold text-slate-800 dark:text-slate-200">Nenhum simulado ainda</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-5">
+            Clique em “Gerar questões” para criar seu primeiro caderno de questões no estilo da sua prova ou usar o banco de bancas.
           </p>
+          <button
+            type="button"
+            onClick={() => setShowChooser(true)}
+            className="min-h-[44px] inline-flex items-center gap-2 rounded-xl bg-[#2E8C82] px-5 py-2.5 text-sm font-bold text-white shadow-xs hover:bg-[#26776f] cursor-pointer transition-all duration-fast touch-manipulation active:scale-95"
+          >
+            <Sparkles className="h-4 w-4" /> Gerar Primeiro Simulado
+          </button>
         </div>
       ) : view === 'folders' && filter === 'all' ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
           {subjects.map((s) => (
             <button
               key={s.key}
+              type="button"
               onClick={() => openFolder(s.key)}
-              className="flex flex-col items-center rounded-xl p-3 text-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60"
+              className="flex flex-col items-center rounded-2xl border border-gray-200/70 bg-white p-4 text-center transition-all duration-fast hover:shadow-sm hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 cursor-pointer touch-manipulation active:scale-98"
             >
-              <Folder className="mb-1 h-14 w-14" style={{ color: subjectColor(s.key) }} fill="currentColor" fillOpacity={0.25} />
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">{s.name}</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <Folder className="mb-2 h-12 w-12" style={{ color: subjectColor(s.key) }} fill="currentColor" fillOpacity={0.25} />
+              <span className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-full">{s.name}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 {s.decks} {s.decks === 1 ? 'deck' : 'decks'} · {s.questions} questões
               </span>
             </button>
@@ -239,28 +251,30 @@ function SubjectFilter({
   const row = (key: string, label: string, count: number, dot?: string) => (
     <button
       key={key}
+      type="button"
       onClick={() => { onChange(key); setOpen(false); }}
-      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 ${
-        value === key ? 'font-semibold text-primary-600' : 'text-gray-700 dark:text-gray-200'
+      className={`min-h-[40px] flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
+        value === key ? 'font-bold text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-200'
       }`}
     >
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dot ?? '#9ca3af' }} />
+      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: dot ?? '#9ca3af' }} />
       <span className="flex-1 truncate">{label}</span>
-      <span className="text-xs text-gray-400">{count}</span>
+      <span className="text-xs text-gray-400 font-medium">{count}</span>
     </button>
   );
 
   return (
     <div ref={ref} className="relative">
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+        className="min-h-[44px] flex items-center gap-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 shadow-xs touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
       >
-        <SlidersHorizontal className="h-4 w-4" /> Filtrar
+        <SlidersHorizontal className="h-4 w-4 text-gray-500" /> Filtrar
       </button>
       {open && (
-        <div className="absolute right-0 z-20 mt-1 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
-          <p className="px-3 pt-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Matéria</p>
+        <div className="absolute right-0 z-20 mt-1.5 w-60 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 animate-in fade-in duration-fast">
+          <p className="px-3.5 pt-2.5 pb-1 text-[11px] font-bold uppercase tracking-wider text-gray-400">Filtrar por Matéria</p>
           {row('all', 'Todas as matérias', total)}
           {subjects.map((s) => row(s.key, s.name, s.decks, subjectColor(s.key)))}
         </div>

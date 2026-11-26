@@ -16,6 +16,10 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default('claude-sonnet-5-5'),
   WEEKLY_ESSAY_LIMIT: z.coerce.number().int().nonnegative().default(1),
+  FEATURE_REVIEW_MAP: z
+    .string()
+    .default('false')
+    .transform((val) => val === 'true'),
   // Assinatura estritamente obrigatória por padrão em todos os ambientes (sem flexibilidade)
   REQUIRE_SUBSCRIPTION: z
     .string()

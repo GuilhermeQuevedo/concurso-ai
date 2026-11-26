@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { X, Sparkles, Building2, CheckCircle2 } from 'lucide-react';
 import { contentService, type SubjectDTO, type ExamBoardDTO } from '@/features/content/services/content.service';
@@ -44,7 +44,7 @@ const DIFFICULTIES: Array<{ value: Difficulty | ''; label: string }> = [
   { value: '', label: 'Aleatório' },
 ];
 
-const field = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none';
+const field = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none transition-colors duration-fast';
 const label = 'mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300';
 
 function flatten(subjects: SubjectDTO[], prefix = ''): Array<SubjectDTO & { prefix: string }> {
@@ -61,9 +61,9 @@ function Segment({ active, onClick, children }: { active: boolean; onClick: () =
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+      className={`min-h-[44px] sm:min-h-[36px] flex items-center justify-center rounded-lg border px-3 py-2 text-sm transition-all duration-fast active:scale-95 touch-manipulation cursor-pointer ${
         active
-          ? 'border-primary-500 bg-primary-600/10 font-medium text-primary-600 dark:text-primary-400'
+          ? 'border-primary-500 bg-primary-600/10 font-bold text-primary-600 dark:text-primary-400 ring-1 ring-primary-500/50'
           : 'border-gray-300 text-gray-700 hover:border-primary-300 dark:border-gray-700 dark:text-gray-300'
       }`}
     >
@@ -147,26 +147,50 @@ export function GenerateAIModal({ onClose, onCreated, initialSubjectId = '' }: {
     onSuccess: () => onCreated(),
   });
 
+  // Keyboard navigation: Escape closes modal (Jakob's Law)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !mutation.isPending) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mutation.isPending, onClose]);
+
   const canGenerate = !mutation.isPending && (!!subjectId || !!file || content.trim().length > 0 || customBanca.trim().length > 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={onClose}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="generate-ai-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-normal"
+      onClick={onClose}
+    >
       <GenerationProgressModal open={mutation.isPending} quantity={quantity} subjectName={subjectName ?? (customBanca || 'Simulado')} />
       <div
-        className="max-h-[92vh] w-full max-w-xl overflow-auto rounded-2xl bg-white p-6 dark:bg-gray-900 shadow-2xl border border-gray-100 dark:border-gray-800"
+        className="max-h-[92vh] w-full max-w-xl overflow-auto rounded-2xl bg-white p-6 dark:bg-gray-900 shadow-2xl border border-gray-100 dark:border-gray-800 animate-in fade-in zoom-in-95 duration-slow ease-standard"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
           <div>
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary-600" />
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Gerador de Simulados Especialistas</h2>
+              <h2 id="generate-ai-title" className="text-lg font-bold text-gray-900 dark:text-white">
+                Gerador de Simulados Especialistas
+              </h2>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Engenharia de IA com perfil e malícia específicos por banca examinadora (Padrão Zion).
             </p>
           </div>
-          <button onClick={onClose} className="rounded p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="min-h-[44px] min-w-[44px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-colors duration-fast touch-manipulation"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -212,7 +236,7 @@ export function GenerateAIModal({ onClose, onCreated, initialSubjectId = '' }: {
                     key={banca}
                     type="button"
                     onClick={() => handleBancaSelect(banca)}
-                    className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all ${
+                    className={`min-h-[44px] sm:min-h-[32px] px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-fast active:scale-95 touch-manipulation ${
                       isSelected
                         ? 'bg-primary-600 text-white shadow-xs'
                         : 'border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30'
@@ -310,7 +334,7 @@ export function GenerateAIModal({ onClose, onCreated, initialSubjectId = '' }: {
                   key={n}
                   type="button"
                   onClick={() => setQuantity(n)}
-                  className={`h-8 w-11 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                  className={`min-h-[44px] min-w-[44px] sm:min-h-[34px] sm:min-w-[40px] flex items-center justify-center rounded-lg text-xs font-semibold cursor-pointer transition-all duration-fast active:scale-95 touch-manipulation ${
                     quantity === n
                       ? 'bg-primary-600 text-white shadow-xs'
                       : 'border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -327,7 +351,7 @@ export function GenerateAIModal({ onClose, onCreated, initialSubjectId = '' }: {
             type="button"
             onClick={() => mutation.mutate()}
             disabled={!canGenerate}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-primary-700 disabled:opacity-50 transition-all mt-4 cursor-pointer"
+            className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-primary-600 font-bold text-sm sm:text-base text-white shadow-md hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 transition-all duration-fast mt-4 cursor-pointer touch-manipulation"
           >
             <Sparkles className="h-4 w-4" /> Gerar Simulado Especialista
           </button>
