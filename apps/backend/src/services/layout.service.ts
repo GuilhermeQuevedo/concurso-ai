@@ -203,6 +203,10 @@ export class LayoutService {
     nodes: readonly { id: string; parentId: string | null; level: 'DISCIPLINE' | 'TOPIC' | 'SUBTOPIC'; subjectId: string | null }[],
     edges: readonly { id: string; source: string; target: string }[],
   ): Promise<Map<string, { x: number; y: number }>> {
+    if (nodes.length === 0) {
+      return new Map();
+    }
+
     // 1. Tenta carregar do banco para esta graphVersion
     const existingPositions = await this.db.topicLayoutPosition.findMany({
       where: { graphVersion },
