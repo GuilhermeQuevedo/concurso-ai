@@ -1,5 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { RelationStatus } from '@prisma/client';
+import type { prisma } from '../database/prisma.js';
 import {
   RelationGeneratorService,
   buildRelationExtractionPrompt,
@@ -9,7 +11,7 @@ import {
 import { AppError } from '../middlewares/error-handler.js';
 
 describe('RelationGeneratorService (Phase 7 — AI Relation Pipeline & Human Curation)', () => {
-  const service = new RelationGeneratorService({} as any);
+  const service = new RelationGeneratorService({} as unknown as typeof prisma);
 
   const mockSourceTopic: SourceTopicInfo = {
     id: 'top-1',
@@ -169,11 +171,11 @@ describe('RelationGeneratorService (Phase 7 — AI Relation Pipeline & Human Cur
       const mockDb = {
         topicRelation: {
           findUnique: async () => ({ id: 'rel-1', status: 'DRAFT' }),
-          update: async (args: any) => ({ ...mockUpdated, ...args.data }),
+          update: async (args: { data: Record<string, unknown> }) => ({ ...mockUpdated, ...args.data }),
         },
       };
 
-      const curationService = new RelationGeneratorService(mockDb as any);
+      const curationService = new RelationGeneratorService(mockDb as unknown as typeof prisma);
       const result = await curationService.approveRelation('rel-1', 'admin-123');
 
       assert.equal(result.status, 'APPROVED');
@@ -185,7 +187,7 @@ describe('RelationGeneratorService (Phase 7 — AI Relation Pipeline & Human Cur
       const mockDb = {
         topicRelation: {
           findUnique: async () => ({ id: 'rel-1', status: 'DRAFT' }),
-          update: async (args: any) => ({
+          update: async (args: { data: { status: RelationStatus; reviewedById: string; rejectionReason: string } }) => ({
             id: 'rel-1',
             status: args.data.status,
             reviewedById: args.data.reviewedById,
@@ -194,7 +196,7 @@ describe('RelationGeneratorService (Phase 7 — AI Relation Pipeline & Human Cur
         },
       };
 
-      const curationService = new RelationGeneratorService(mockDb as any);
+      const curationService = new RelationGeneratorService(mockDb as unknown as typeof prisma);
       const result = await curationService.rejectRelation(
         'rel-1',
         'admin-123',
@@ -210,11 +212,11 @@ describe('RelationGeneratorService (Phase 7 — AI Relation Pipeline & Human Cur
       const mockDb = {
         topicRelation: {
           findUnique: async () => ({ id: 'rel-1', status: 'DRAFT', evidence: 'Velha' }),
-          update: async (args: any) => ({ id: 'rel-1', ...args.data }),
+          update: async (args: { data: Record<string, unknown> }) => ({ id: 'rel-1', ...args.data }),
         },
       };
 
-      const curationService = new RelationGeneratorService(mockDb as any);
+      const curationService = new RelationGeneratorService(mockDb as unknown as typeof prisma);
       const result = await curationService.updateDraftRelation('rel-1', {
         evidence: 'Nova justificativa pedagógica aprofundada com 20+ caracteres.',
         sourceRef: 'STF, Súmula Vinculante 11',

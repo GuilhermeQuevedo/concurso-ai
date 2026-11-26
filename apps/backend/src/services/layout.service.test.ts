@@ -72,12 +72,14 @@ describe('LayoutService — Simulação Headless e Layout Estável (Fase 3)', ()
       const posMap = new Map(layout.map((n) => [n.topicId, n]));
 
       // Distância entre nós da mesma disciplina (Direito Administrativo)
-      const pAdm1 = posMap.get('top-adm-1')!;
-      const pAdm2 = posMap.get('top-adm-2')!;
+      const pAdm1 = posMap.get('top-adm-1');
+      const pAdm2 = posMap.get('top-adm-2');
+      assert.ok(pAdm1 && pAdm2, 'Nós de Direito Administrativo devem existir no layout');
       const intraDiscDist = Math.hypot(pAdm1.x - pAdm2.x, pAdm1.y - pAdm2.y);
 
       // Distância entre nós de disciplinas distintas (Adm 1 vs Const 1)
-      const pConst1 = posMap.get('top-const-1')!;
+      const pConst1 = posMap.get('top-const-1');
+      assert.ok(pConst1, 'Nó de Direito Constitucional deve existir no layout');
       const interDiscDist = Math.hypot(pAdm1.x - pConst1.x, pAdm1.y - pConst1.y);
 
       assert.ok(
@@ -94,7 +96,8 @@ describe('LayoutService — Simulação Headless e Layout Estável (Fase 3)', ()
       // 2. Prepara novo nó com nós existentes fixados com fixedX e fixedY
       const newNodesWithFixed: LayoutNodeInput[] = [
         ...sampleNodes.map((n) => {
-          const pos = initialPosMap.get(n.id)!;
+          const pos = initialPosMap.get(n.id);
+          assert.ok(pos, `Posição do nó ${n.id} deve existir no layout inicial`);
           return {
             ...n,
             fixedX: pos.x,
@@ -116,8 +119,9 @@ describe('LayoutService — Simulação Headless e Layout Estável (Fase 3)', ()
 
       // 4. Verifica que TODOS os nós pré-existentes mantiveram rigorosamente suas posições originais
       for (const initialNode of sampleNodes) {
-        const orig = initialPosMap.get(initialNode.id)!;
-        const current = updatedPosMap.get(initialNode.id)!;
+        const orig = initialPosMap.get(initialNode.id);
+        const current = updatedPosMap.get(initialNode.id);
+        assert.ok(orig && current, `Nó ${initialNode.id} deve existir em ambos os mapas`);
 
         assert.equal(
           current.x,

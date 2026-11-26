@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router';
-import { ResultsView } from './ResultsView';
+import { ResultsView, type QuestionState } from './ResultsView';
 import type { QuestionDTO } from '@/features/questions/services/question.service';
 
 describe('ResultsView Component (Phase 5 — Batch 3)', () => {
@@ -52,10 +52,23 @@ describe('ResultsView Component (Phase 5 — Batch 3)', () => {
     totalTime: 95,
   };
 
-  const mockStates = {
+  const mockStates: Record<string, QuestionState> = {
     'q-1': {
       selectedAnswer: 'A',
-      result: { isCorrect: true, correctAnswer: 'A', explanation: '' } as any,
+      result: {
+        isCorrect: true,
+        correctAnswer: 'A',
+        explanation: '',
+        attempt: {
+          id: 'att-1',
+          userId: 'user-1',
+          questionId: 'q-1',
+          answer: 'A',
+          isCorrect: true,
+          timeSpent: 40,
+          createdAt: new Date().toISOString(),
+        },
+      },
       timeSpent: 40,
       favorited: false,
       revealed: true,
@@ -63,7 +76,20 @@ describe('ResultsView Component (Phase 5 — Batch 3)', () => {
     },
     'q-2': {
       selectedAnswer: 'A',
-      result: { isCorrect: false, correctAnswer: 'B', explanation: '' } as any,
+      result: {
+        isCorrect: false,
+        correctAnswer: 'B',
+        explanation: '',
+        attempt: {
+          id: 'att-2',
+          userId: 'user-1',
+          questionId: 'q-2',
+          answer: 'A',
+          isCorrect: false,
+          timeSpent: 55,
+          createdAt: new Date().toISOString(),
+        },
+      },
       timeSpent: 55,
       favorited: false,
       revealed: true,

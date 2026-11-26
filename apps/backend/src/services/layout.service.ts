@@ -134,13 +134,14 @@ export class LayoutService {
     const nodeById = new Map<string, SimNode>(simNodes.map((n) => [n.id, n]));
 
     // Arestas da simulação
-    const simLinks: SimLink[] = edges
-      .filter((e) => nodeById.has(e.source) && nodeById.has(e.target))
-      .map((e) => ({
-        id: e.id,
-        source: nodeById.get(e.source)!,
-        target: nodeById.get(e.target)!,
-      }));
+    const simLinks: SimLink[] = [];
+    for (const e of edges) {
+      const source = nodeById.get(e.source);
+      const target = nodeById.get(e.target);
+      if (source && target) {
+        simLinks.push({ id: e.id, source, target });
+      }
+    }
 
     // Simulação headless do d3-force com semente fixa
     const simulation = forceSimulation<SimNode>(simNodes)

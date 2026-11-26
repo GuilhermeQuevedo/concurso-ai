@@ -2,15 +2,91 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { MapService } from './map.service.js';
 import { RelationStatus, TopicLevel, RelationType, MasteryState } from '@prisma/client';
+import { AppError } from '../middlewares/error-handler.js';
+import type { prisma } from '../database/prisma.js';
+
+interface TestTopic {
+  id: string;
+  name: string;
+  slug: string;
+  level: TopicLevel;
+  order: number;
+  description: string;
+  parentId: string | null;
+  subjectId: string;
+  updatedAt: Date;
+  incidences: Array<{ weight: number }>;
+}
+
+interface TestRelation {
+  id: string;
+  sourceTopicId: string;
+  targetTopicId: string;
+  type: RelationType;
+  evidence: string;
+  source?: string;
+  status: RelationStatus;
+  confidence?: number;
+  weight?: number;
+  updatedAt: Date;
+}
+
+interface TestIncidence {
+  id?: string;
+  topicId: string;
+  examBoardId: string;
+  weight: number;
+}
+
+interface TestMastery {
+  id?: string;
+  userId: string;
+  topicId: string;
+  masteryScore?: number;
+  state: MasteryState;
+  accuracy?: number;
+  attemptsCount?: number;
+  correctCount?: number;
+  dueFlashcardsCount?: number;
+  priorityScore?: number;
+  lastAttemptAt?: Date | null;
+  calculatedAt?: Date | null;
+  score?: number;
+  lastReviewedAt?: Date | null;
+  nextReviewAt?: Date | null;
+}
+
+interface TestFlashcard {
+  id: string;
+  userId: string;
+  topicId: string;
+  front: string;
+  back: string;
+  nextReview: Date;
+}
+
+interface TestAttempt {
+  id: string;
+  userId: string;
+  topicId?: string;
+  isCorrect: boolean;
+  answer?: string;
+  userAnswer?: string;
+  createdAt: Date;
+  question: {
+    statement: string;
+    explanation?: string;
+  };
+}
 
 describe('MapService — Contrato e Isolamento Multi-tenant (Fase 2)', () => {
-  let mockTopics: any[];
-  let mockRelations: any[];
-  let mockIncidences: any[];
-  let mockMasteries: any[];
-  let mockFlashcards: any[];
-  let mockAttempts: any[];
-  let mockDb: any;
+  let mockTopics: TestTopic[];
+  let mockRelations: TestRelation[];
+  let mockIncidences: TestIncidence[];
+  let mockMasteries: TestMastery[];
+  let mockFlashcards: TestFlashcard[];
+  let mockAttempts: TestAttempt[];
+  let mockDb: unknown;
   let service: MapService;
 
   beforeEach(() => {
@@ -181,49 +257,58 @@ describe('MapService — Contrato e Isolamento Multi-tenant (Fase 2)', () => {
     mockDb = {
       topic: {
         findMany: async () => mockTopics,
-        findUnique: async ({ where }: any) => {
+        findUnique: async ({ where }: { where: { id: string } }) => {
           const found = mockTopics.find((t) => t.id === where.id);
           return found ? { ...found, incidences: [{ weight: 1.8 }] } : null;
         },
       },
       topicRelation: {
-        findMany: async ({ where }: any) => {
-          return mockRelations.filter((r) => {
-            if (where?.status && r.status !== where.status) return false;
-            if (where?.OR) {
-              const matchesSource = where.OR.some((clause: any) => clause.sourceTopicId === r.sourceTopicId);
-              const matchesTarget = where.OR.some((clause: any) => clause.targetTopicId === r.targetTopicId);
-              if (!matchesSource && !matchesTarget) return false;
-            }
-            return true;
-          }).map((r) => {
-            const sourceTopic = mockTopics.find((t) => t.id === r.sourceTopicId);
-            const targetTopic = mockTopics.find((t) => t.id === r.targetTopicId);
-            return { ...r, sourceTopic, targetTopic };
-          });
+        findMany: async ({
+          where,
+        }: {
+          where?: {
+            status?: RelationStatus;
+            OR?: Array<{ sourceTopicId?: string; targetTopicId?: string }>;
+          };
+        } = {}) => {
+          return mockRelations
+            .filter((r) => {
+              if (where?.status && r.status !== where.status) return false;
+              if (where?.OR) {
+                const matchesSource = where.OR.some((clause) => clause.sourceTopicId === r.sourceTopicId);
+                const matchesTarget = where.OR.some((clause) => clause.targetTopicId === r.targetTopicId);
+                if (!matchesSource && !matchesTarget) return false;
+              }
+              return true;
+            })
+            .map((r) => {
+              const sourceTopic = mockTopics.find((t) => t.id === r.sourceTopicId);
+              const targetTopic = mockTopics.find((t) => t.id === r.targetTopicId);
+              return { ...r, sourceTopic, targetTopic };
+            });
         },
       },
       topicIncidence: {
         findMany: async () => mockIncidences,
       },
       userTopicMastery: {
-        findMany: async ({ where }: any) => {
+        findMany: async ({ where }: { where: { userId: string } }) => {
           return mockMasteries.filter((m) => m.userId === where.userId);
         },
       },
       flashcard: {
-        findMany: async ({ where }: any) => {
+        findMany: async ({ where }: { where: { userId: string; topicId: string } }) => {
           return mockFlashcards.filter((f) => f.userId === where.userId && f.topicId === where.topicId);
         },
-        count: async ({ where }: any) => {
+        count: async ({ where }: { where: { userId: string; topicId: string } }) => {
           return mockFlashcards.filter((f) => f.userId === where.userId && f.topicId === where.topicId).length;
         },
       },
       questionAttempt: {
-        findMany: async ({ where }: any) => {
+        findMany: async ({ where }: { where: { userId: string } }) => {
           return mockAttempts.filter((a) => a.userId === where.userId);
         },
-        count: async ({ where }: any) => {
+        count: async ({ where }: { where: { userId: string } }) => {
           return mockAttempts.filter((a) => a.userId === where.userId).length;
         },
       },
@@ -234,7 +319,7 @@ describe('MapService — Contrato e Isolamento Multi-tenant (Fase 2)', () => {
       },
     };
 
-    service = new MapService(mockDb as any);
+    service = new MapService(mockDb as unknown as typeof prisma);
   });
 
   describe('getGraph (Grafo Compartilhado)', () => {
@@ -298,7 +383,7 @@ describe('MapService — Contrato e Isolamento Multi-tenant (Fase 2)', () => {
     it('deve rejeitar requisição sem userId', async () => {
       await assert.rejects(
         async () => service.getOverlay(''),
-        (err: any) => err.statusCode === 401 && err.code === 'UNAUTHORIZED',
+        (err: unknown) => err instanceof AppError && err.statusCode === 401 && err.code === 'UNAUTHORIZED',
       );
     });
   });
@@ -341,7 +426,7 @@ describe('MapService — Contrato e Isolamento Multi-tenant (Fase 2)', () => {
     it('deve lançar 404 se o tópico não existir', async () => {
       await assert.rejects(
         async () => service.getFocus('user-A', 'topic-inexistente'),
-        (err: any) => err.statusCode === 404 && err.code === 'TOPIC_NOT_FOUND',
+        (err: unknown) => err instanceof AppError && err.statusCode === 404 && err.code === 'TOPIC_NOT_FOUND',
       );
     });
   });
