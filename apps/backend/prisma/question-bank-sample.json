@@ -1,0 +1,74 @@
+[
+  {
+    "board": "CEBRASPE", "subject": "Direito Constitucional", "year": 2024, "organ": "Tribunal (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "EASY",
+    "statement": "A casa é asilo inviolável do indivíduo, ninguém nela podendo penetrar sem consentimento do morador, salvo em caso de flagrante delito ou desastre, ou para prestar socorro, ou, durante o dia, por determinação judicial.",
+    "alternatives": [{ "letter": "C", "text": "Certo" }, { "letter": "E", "text": "Errado" }], "answer": "C",
+    "explanation": "Reproduz o art. 5º, XI, da Constituição Federal."
+  },
+  {
+    "board": "CEBRASPE", "subject": "Direito Constitucional", "year": 2023, "organ": "Tribunal (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "MEDIUM",
+    "statement": "Em tempo de paz, a Constituição admite a pena de morte, desde que haja condenação transitada em julgado.",
+    "alternatives": [{ "letter": "C", "text": "Certo" }, { "letter": "E", "text": "Errado" }], "answer": "E",
+    "explanation": "O art. 5º, XLVII, a, só admite a pena de morte em caso de guerra declarada."
+  },
+  {
+    "board": "CEBRASPE", "subject": "Direito Constitucional", "year": 2022, "organ": "Prefeitura (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "EASY",
+    "statement": "São gratuitas as ações de habeas corpus e habeas data e, na forma da lei, os atos necessários ao exercício da cidadania.",
+    "alternatives": [{ "letter": "C", "text": "Certo" }, { "letter": "E", "text": "Errado" }], "answer": "C",
+    "explanation": "Art. 5º, LXXVII, da Constituição Federal."
+  },
+  {
+    "board": "CEBRASPE", "subject": "Direito Administrativo", "year": 2024, "organ": "Prefeitura (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "MEDIUM",
+    "statement": "Pelo princípio da legalidade, a administração pública pode fazer tudo o que a lei não proíbe.",
+    "alternatives": [{ "letter": "C", "text": "Certo" }, { "letter": "E", "text": "Errado" }], "answer": "E",
+    "explanation": "Particulares podem fazer o que a lei não proíbe; a administração só pode fazer o que a lei autoriza."
+  },
+  {
+    "board": "CEBRASPE", "subject": "Informática", "year": 2023, "organ": "Banco (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "EASY",
+    "statement": "Em uma planilha eletrônica, a fórmula =SOMA(A1:A5) calcula a soma dos valores contidos nas células de A1 até A5.",
+    "alternatives": [{ "letter": "C", "text": "Certo" }, { "letter": "E", "text": "Errado" }], "answer": "C",
+    "explanation": "O intervalo A1:A5 inclui todas as células de A1 a A5."
+  },
+  {
+    "board": "QUADRIX", "subject": "Direito Constitucional", "year": 2024, "organ": "Conselho (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "EASY",
+    "statement": "A língua portuguesa é o idioma oficial da República Federativa do Brasil.",
+    "alternatives": [{ "letter": "C", "text": "Certo" }, { "letter": "E", "text": "Errado" }], "answer": "C",
+    "explanation": "Art. 13 da Constituição Federal."
+  },
+  {
+    "board": "FGV", "subject": "Direito Constitucional", "year": 2024, "organ": "Tribunal (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "EASY",
+    "statement": "O mandato do Presidente da República tem a duração de:",
+    "alternatives": [{ "letter": "A", "text": "dois anos." }, { "letter": "B", "text": "três anos." }, { "letter": "C", "text": "quatro anos." }, { "letter": "D", "text": "cinco anos." }, { "letter": "E", "text": "seis anos." }], "answer": "C",
+    "explanation": "Art. 82 da Constituição Federal: quatro anos, com possibilidade de uma reeleição."
+  },
+  {
+    "board": "FGV", "subject": "Língua Portuguesa", "year": 2023, "organ": "Prefeitura (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "MEDIUM",
+    "statement": "Assinale a alternativa em que o uso do sinal indicativo de crase está correto.",
+    "alternatives": [{ "letter": "A", "text": "Entregou o documento à ela." }, { "letter": "B", "text": "Fomos à Bahia no verão." }, { "letter": "C", "text": "O trabalho começa à partir de segunda." }, { "letter": "D", "text": "Ela se dedicou à ler romances." }, { "letter": "E", "text": "Refiro-me à todos os presentes." }], "answer": "B",
+    "explanation": "Há fusão da preposição a com o artigo a, pois \"Bahia\" admite artigo (\"da Bahia\"). Nas demais, não há crase diante de pronome, verbo ou palavra no plural masculino."
+  },
+  {
+    "board": "FCC", "subject": "Direito Administrativo", "year": 2024, "organ": "Tribunal (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "MEDIUM",
+    "statement": "Segundo a Lei nº 8.112/1990, a investidura em cargo público ocorre com:",
+    "alternatives": [{ "letter": "A", "text": "a nomeação." }, { "letter": "B", "text": "a posse." }, { "letter": "C", "text": "o exercício." }, { "letter": "D", "text": "a aprovação no concurso." }, { "letter": "E", "text": "a publicação do edital." }], "answer": "B",
+    "explanation": "Art. 7º da Lei nº 8.112/1990: a investidura em cargo público ocorrerá com a posse."
+  },
+  {
+    "board": "FCC", "subject": "Raciocínio Lógico", "year": 2022, "organ": "Banco (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "MEDIUM",
+    "statement": "A negação da proposição \"Todo estudante foi aprovado\" é:",
+    "alternatives": [{ "letter": "A", "text": "Nenhum estudante foi aprovado." }, { "letter": "B", "text": "Algum estudante não foi aprovado." }, { "letter": "C", "text": "Todo estudante foi reprovado." }, { "letter": "D", "text": "Algum estudante foi aprovado." }, { "letter": "E", "text": "Nenhum estudante foi reprovado." }], "answer": "B",
+    "explanation": "A negação de \"todo A é B\" é \"algum A não é B\"."
+  },
+  {
+    "board": "VUNESP", "subject": "Direito Administrativo", "year": 2023, "organ": "Prefeitura (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "MEDIUM",
+    "statement": "Não está expresso no caput do art. 37 da Constituição Federal, entre os princípios da administração pública, o da:",
+    "alternatives": [{ "letter": "A", "text": "legalidade." }, { "letter": "B", "text": "impessoalidade." }, { "letter": "C", "text": "moralidade." }, { "letter": "D", "text": "razoabilidade." }, { "letter": "E", "text": "eficiência." }], "answer": "D",
+    "explanation": "O caput do art. 37 traz legalidade, impessoalidade, moralidade, publicidade e eficiência. A razoabilidade é princípio implícito."
+  },
+  {
+    "board": "IBFC", "subject": "Língua Portuguesa", "year": 2022, "organ": "Conselho (exemplo)", "exam": "Prova de exemplo (protótipo)", "difficulty": "EASY",
+    "statement": "Assinale a alternativa em que a palavra está grafada corretamente.",
+    "alternatives": [{ "letter": "A", "text": "excessão" }, { "letter": "B", "text": "exceção" }, { "letter": "C", "text": "exeção" }, { "letter": "D", "text": "ecxeção" }, { "letter": "E", "text": "esceção" }], "answer": "B",
+    "explanation": "A grafia correta é \"exceção\"."
+  }
+]

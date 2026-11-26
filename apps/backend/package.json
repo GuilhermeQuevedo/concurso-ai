@@ -12,6 +12,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:import-bank": "tsx prisma/import-question-bank.ts",
+    "prisma:import-nap": "tsx prisma/import-nap-bank.ts",
     "prisma:seed-seedf": "tsx prisma/seed-seedf-sociology.ts",
     "prisma:studio": "prisma studio"
   },
