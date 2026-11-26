@@ -18,8 +18,8 @@ const envSchema = z.object({
   WEEKLY_ESSAY_LIMIT: z.coerce.number().int().nonnegative().default(1),
   FEATURE_REVIEW_MAP: z
     .string()
-    .default('false')
-    .transform((val) => val === 'true'),
+    .default('true')
+    .transform((val) => val !== 'false'),
   // Assinatura estritamente obrigatória por padrão em todos os ambientes (sem flexibilidade)
   REQUIRE_SUBSCRIPTION: z
     .string()

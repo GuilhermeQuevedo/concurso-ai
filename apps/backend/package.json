@@ -15,6 +15,7 @@
     "prisma:import-bank": "tsx prisma/import-question-bank.ts",
     "prisma:import-nap": "tsx prisma/import-nap-bank.ts",
     "prisma:seed-seedf": "tsx prisma/seed-seedf-sociology.ts",
+    "seed:review-map": "tsx src/scripts/seed-review-map.ts",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {

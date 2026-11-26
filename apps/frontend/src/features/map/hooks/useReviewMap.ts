@@ -10,6 +10,8 @@ export interface UseReviewMapReturn {
   readonly summary: { totalTopics: number; studiedTopics: number; masteredTopics: number; globalCoveragePercentage: number } | null;
   readonly isLoading: boolean;
   readonly isError: boolean;
+  readonly error: Error | null;
+  readonly refetch: () => void;
   readonly selectedNodeId: string | null;
   readonly selectedNode: GraphNode | null;
   readonly depth: number;
@@ -38,6 +40,8 @@ export function useReviewMap(initialHoveredId: string | null = null): UseReviewM
     data: graphData,
     isLoading: isLoadingGraph,
     isError: isErrorGraph,
+    error: errorGraph,
+    refetch: refetchGraph,
   } = useQuery({
     queryKey: ['review-map-graph', filterDisciplineId],
     queryFn: () => mapService.getGraph({ disciplineId: filterDisciplineId || undefined }),
@@ -49,6 +53,8 @@ export function useReviewMap(initialHoveredId: string | null = null): UseReviewM
     data: overlayData,
     isLoading: isLoadingOverlay,
     isError: isErrorOverlay,
+    error: errorOverlay,
+    refetch: refetchOverlay,
   } = useQuery({
     queryKey: ['review-map-overlay', filterDisciplineId],
     queryFn: () => mapService.getOverlay(filterDisciplineId || undefined),
@@ -170,6 +176,11 @@ export function useReviewMap(initialHoveredId: string | null = null): UseReviewM
     summary: overlayData?.summary ?? null,
     isLoading: isLoadingGraph || isLoadingOverlay,
     isError: isErrorGraph || isErrorOverlay,
+    error: ((errorGraph || errorOverlay) as Error) ?? null,
+    refetch: () => {
+      void refetchGraph();
+      void refetchOverlay();
+    },
     selectedNodeId,
     selectedNode,
     depth,
