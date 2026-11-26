@@ -36,15 +36,39 @@ export interface DocumentDTO {
   createdAt: string;
 }
 
+export interface ReadingInfoDTO {
+  characters: number;
+  pageCount: number | null;
+  processedPages: number | null;
+  processedChars: number;
+  // O documento é lido em duas partes: o começo agora e o restante em seguida.
+  inParts: boolean;
+}
+
 export interface UploadedDocumentDTO extends DocumentDTO {
   suggestedKind: DocumentKind;
   kindAutoDetected: boolean;
+  reading: ReadingInfoDTO;
 }
 
 export type ProcessResult =
   | { pipeline: 'objetivo'; contestId: string; title: string }
   | { pipeline: 'kit'; subjectId: string; summary: boolean; flashcards: number; questions: number }
   | { pipeline: 'questoes'; subjectId: string; imported: number };
+
+export type ProcessJobStatus = 'RUNNING' | 'DONE' | 'FAILED' | 'CANCELED';
+
+export interface ProcessJobDTO {
+  id: string;
+  documentId: string;
+  status: ProcessJobStatus;
+  partsDone: number;
+  totalParts: number;
+  contestId: string | null;
+  result: ProcessResult | null;
+  message: string | null;
+  errorCode: string | null;
+}
 
 export const documentService = {
   async upload(
@@ -79,12 +103,23 @@ export const documentService = {
     return unwrapData(response);
   },
 
-  async process(id: string, focus?: string): Promise<ProcessResult> {
-    const response = await api.post<ApiResponse<ProcessResult>>(
-      `/documents/${id}/process`,
-      focus ? { focus } : {},
-    );
+  // Inicia a leitura em segundo plano; devolve a tarefa na hora (o andamento vem de getJob).
+  async startProcess(id: string, focus?: string): Promise<ProcessJobDTO> {
+    const response = await api.post<ApiResponse<ProcessJobDTO>>(`/documents/${id}/process`, focus ? { focus } : {});
     return unwrapData(response);
+  },
+
+  async getJob(jobId: string): Promise<ProcessJobDTO> {
+    return unwrapData(await api.get<ApiResponse<ProcessJobDTO>>(`/documents/jobs/${jobId}`));
+  },
+
+  async cancelJob(jobId: string): Promise<ProcessJobDTO> {
+    return unwrapData(await api.post<ApiResponse<ProcessJobDTO>>(`/documents/jobs/${jobId}/cancel`));
+  },
+
+  async getContestJob(contestId: string): Promise<ProcessJobDTO | null> {
+    const response = await api.get<ApiResponse<ProcessJobDTO | null>>(`/documents/jobs/contest/${contestId}`);
+    return response.data.data ?? null;
   },
 
   async delete(id: string): Promise<void> {

@@ -39,6 +39,7 @@ describe('DSAR - Direitos do Titular LGPD (Exportação e Eliminação de Conta)
   );
 
   const testUserPassword = 'StrongPassword123!';
+  let testTopicId: string;
   let userWithoutPaymentsId: string;
   let userWithoutPaymentsEmail: string;
 
@@ -112,10 +113,48 @@ describe('DSAR - Direitos do Titular LGPD (Exportação e Eliminação de Conta)
         googleRefreshToken: 'mock_google_refresh_token',
       },
     });
+
+    // 3. Tópico canônico e domínios do Mapa de Revisão (Engrama) para ambos os usuários
+    const testTopic = await prisma.topic.create({
+      data: {
+        name: 'Tópico de Teste DSAR Engrama',
+        slug: `topico-dsar-${Date.now()}`,
+        level: 'TOPIC',
+        order: 999,
+      },
+    });
+    testTopicId = testTopic.id;
+
+    await prisma.userTopicMastery.create({
+      data: {
+        userId: user1.id,
+        topicId: testTopic.id,
+        masteryScore: 75.0,
+        state: 'IN_PROGRESS',
+        attemptsCount: 12,
+        correctCount: 9,
+        accuracy: 75.0,
+      },
+    });
+
+    await prisma.userTopicMastery.create({
+      data: {
+        userId: user2.id,
+        topicId: testTopic.id,
+        masteryScore: 90.0,
+        state: 'MASTERED',
+        attemptsCount: 20,
+        correctCount: 18,
+        accuracy: 90.0,
+      },
+    });
   });
 
   after(async () => {
     // Limpeza de contingência
+    if (testTopicId) {
+      await prisma.topic.delete({ where: { id: testTopicId } }).catch(() => {});
+    }
     await prisma.payment.deleteMany({
       where: {
         email: { in: [userWithoutPaymentsEmail, userWithPaymentsEmail] },
@@ -157,6 +196,11 @@ describe('DSAR - Direitos do Titular LGPD (Exportação e Eliminação de Conta)
       assert.ok(Array.isArray(exported.flashcards));
       assert.ok(Array.isArray(exported.essays));
       assert.ok(Array.isArray(exported.payments));
+      assert.ok(Array.isArray(exported.reviewMapMasteries));
+      assert.strictEqual(exported.reviewMapMasteries.length, 1);
+      assert.strictEqual(exported.reviewMapMasteries[0].topicId, testTopicId);
+      assert.strictEqual(exported.reviewMapMasteries[0].masteryScore, 75.0);
+      assert.strictEqual(exported.reviewMapMasteries[0].topic.name, 'Tópico de Teste DSAR Engrama');
     });
 
     it('deve exigir senha ao tentar exportar dados de conta com senha definida', async () => {
@@ -224,6 +268,12 @@ describe('DSAR - Direitos do Titular LGPD (Exportação e Eliminação de Conta)
       });
       assert.strictEqual(checkUser, null, 'Usuário sem pagamento deve ser removido do banco');
 
+      // Verifica que UserTopicMastery foi excluído em cascata (Art. 16 LGPD)
+      const checkMasteries1 = await prisma.userTopicMastery.findMany({
+        where: { userId: userWithoutPaymentsId },
+      });
+      assert.strictEqual(checkMasteries1.length, 0, 'UserTopicMastery deve ser excluído em cascata no hard delete');
+
       // Verifica que o log de auditoria do descarte existe
       const userHash = crypto.createHash('sha256').update(userWithoutPaymentsId).digest('hex');
       const erasureLog = await prisma.erasureLog.findUnique({
@@ -282,6 +332,12 @@ describe('DSAR - Direitos do Titular LGPD (Exportação e Eliminação de Conta)
       assert.strictEqual(anonymizedPayments.length, 1, 'Registro fiscal deve ser preservado sob o e-mail anônimo');
       assert.strictEqual(anonymizedPayments[0].amountCents, 19990);
       assert.strictEqual(anonymizedPayments[0].currency, 'BRL');
+
+      // Verifica que UserTopicMastery foi completamente eliminado mesmo sob anonimização fiscal (Art. 16 LGPD)
+      const checkMasteries2 = await prisma.userTopicMastery.findMany({
+        where: { userId: userWithPaymentsId },
+      });
+      assert.strictEqual(checkMasteries2.length, 0, 'UserTopicMastery deve ser expurgado na anonimização fiscal');
 
       // Verifica log de disaster recovery
       const userHash = crypto.createHash('sha256').update(userWithPaymentsId).digest('hex');

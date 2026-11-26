@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export type ToastKind = 'error' | 'success';
+export type ToastKind = 'error' | 'success' | 'warning';
 
 export interface ToastItem {
   id: number;
@@ -31,6 +31,7 @@ function push(kind: ToastKind, message: string): void {
 export const toast = {
   error: (message: string) => push('error', message),
   success: (message: string) => push('success', message),
+  warning: (message: string) => push('warning', message),
 };
 
 const subscribe = (listener: () => void) => {
@@ -39,5 +40,5 @@ const subscribe = (listener: () => void) => {
 };
 
 export function useToasts(): ToastItem[] {
-  return useSyncExternalStore(subscribe, () => items);
+  return useSyncExternalStore(subscribe, () => items, () => items);
 }

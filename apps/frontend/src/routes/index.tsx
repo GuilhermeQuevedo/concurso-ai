@@ -19,6 +19,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { GroupsPage } from '@/pages/GroupsPage';
 import { ContestsPage } from '@/pages/ContestsPage';
+import { ReviewMapPage } from '@/pages/ReviewMapPage';
 import { CalendarPage } from '@/pages/CalendarPage';
 import { MemorySimulatorPage } from '@/pages/MemorySimulatorPage';
 import { RankingsPage } from '@/pages/RankingsPage';
@@ -33,6 +34,8 @@ import { ExamSlicerPage } from '@/pages/ExamSlicerPage';
 import { CookiePolicyPage } from '@/pages/CookiePolicyPage';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { TermsOfUsePage } from '@/pages/TermsOfUsePage';
+import { DesignLabPage } from '@/features/dev/DesignLabPage';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { SubscriptionGate } from '@/features/subscription/components/SubscriptionGate';
@@ -73,7 +76,8 @@ export function AppRoutes() {
       <Route path="/achievements" element={<ProtectedLayout><AchievementsPage /></ProtectedLayout>} />
       <Route path="/cronograma" element={<ProtectedLayout><CronogramaPage /></ProtectedLayout>} />
       <Route path="/study-plan" element={<ProtectedLayout><CronogramaPage /></ProtectedLayout>} />
-      <Route path="/mapa" element={<Navigate to="/contests" replace />} />
+      <Route path="/mapa" element={<ProtectedLayout><ReviewMapPage /></ProtectedLayout>} />
+      <Route path="/map" element={<Navigate to="/mapa" replace />} />
       <Route path="/board" element={<Navigate to="/contests" replace />} />
       <Route path="/contests" element={<ProtectedLayout><ContestsPage /></ProtectedLayout>} />
       <Route path="/calendar" element={<ProtectedLayout><CalendarPage /></ProtectedLayout>} />
@@ -90,6 +94,11 @@ export function AppRoutes() {
       <Route path="/help" element={<ProtectedLayout><HelpPage /></ProtectedLayout>} />
       <Route path="/metodologia" element={<ProtectedLayout><MethodologyPage /></ProtectedLayout>} />
       <Route path="/getting-started" element={<ProtectedLayout><GettingStartedPage /></ProtectedLayout>} />
+
+      {/* Dev Design Lab (Astryx & OKLCH Theme Preview) */}
+      {FEATURE_FLAGS.ASTRYX_DEV_LAB && (
+        <Route path="/dev/design-lab" element={<DesignLabPage />} />
+      )}
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

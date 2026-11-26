@@ -1,3 +1,4 @@
+import { partsOf } from '../utils/document-parts.js';
 import fs from 'node:fs/promises';
 import type { IAIProvider } from '../interfaces/ai.interfaces.js';
 import { extractPdfText } from '../utils/pdf.js';
@@ -54,7 +55,7 @@ export class ContestService {
     return this.buildFromContent(userId, content, document.id, focus);
   }
 
-  async createFromContent(userId: string, documentId: string, focus?: string) {
+  async createFromContent(userId: string, documentId: string, focus?: string, firstPartOnly = false) {
     const document = await prisma.document.findUnique({ where: { id: documentId } });
     if (!document || document.userId !== userId) {
       throw new AppError(404, 'DOCUMENT_NOT_FOUND', 'Documento não encontrado');
@@ -62,7 +63,8 @@ export class ContestService {
     if (document.content.trim().length < 200) {
       throw new AppError(400, 'EDITAL_TOO_SHORT', 'O documento não tem texto suficiente para extrair o conteúdo programático.');
     }
-    return this.buildFromContent(userId, document.content, document.id, focus);
+    const { first } = partsOf(document.content, firstPartOnly ? document.firstPartChars : null);
+    return this.buildFromContent(userId, first, document.id, focus);
   }
 
   private async buildFromContent(userId: string, content: string, documentId: string, focus?: string) {

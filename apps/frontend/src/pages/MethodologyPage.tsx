@@ -37,201 +37,201 @@ interface Section {
 const SECTIONS: Section[] = [
   {
     title: 'Como você fixa o conteúdo na memória',
-    subtitle: 'Princípios de memória',
+    subtitle: 'Princípios de neurociência da memória',
     methods: [
       {
         icon: Repeat,
         title: 'Repetição espaçada',
         science:
-          'Estudar distribuído no tempo retém muito mais que estudar tudo de uma vez na véspera.',
+          'Estudar distribuído no tempo retém substancialmente mais que estudar tudo de uma vez na véspera da prova.',
         study: 'Payne & Wenger (1996)',
         app: [
           'Os flashcards usam o algoritmo SM-2: cada card volta em intervalos crescentes (1 → 6 → 15 → 30+ dias).',
-          'Acertou com facilidade? O card demora mais pra voltar. Errou? Volta amanhã.',
+          'Acertou com facilidade? O card demora mais para voltar. Errou? Volta no dia seguinte para fixação.',
         ],
       },
       {
         icon: Clock,
         title: 'Curva do esquecimento',
         science:
-          'A maior parte do esquecimento acontece nos primeiros dias; depois estabiliza. A 1ª revisão precisa ser cedo.',
-        study: 'Ebbinghaus (1885)',
+          'A maior parte do esquecimento ocorre nas primeiras 24 a 48 horas; depois estabiliza. A primeira revisão precisa ocorrer cedo.',
+        study: 'Hermann Ebbinghaus (1885)',
         app: [
-          'A primeira revisão é agendada logo (mesmo dia/dia seguinte), antes da queda mais forte.',
-          'O "Simulador de Memória" mostra visualmente a curva e o efeito das revisões.',
+          'A primeira revisão é agendada rapidamente antes da queda acentuada de retenção.',
+          'O painel da plataforma exibe visualmente a curva de retenção e a estabilização pós-revisão.',
         ],
       },
       {
         icon: Target,
-        title: 'Recordação ativa (não releitura)',
+        title: 'Recordação ativa (Active Recall)',
         science:
-          'Produzir a resposta de memória fixa muito mais que reconhecê-la pronta — e reler é a estratégia mais fraca.',
+          'Produzir a resposta a partir do esforço mental fixa o traço sináptico muito mais do que reler ou reconhecer o texto pronto.',
         study: 'Roediger & Karpicke (2006)',
         app: [
-          'Na revisão, você tenta lembrar a resposta antes de virar o card.',
-          'As questões exigem que você produza/escolha a resposta, não só reconhecer o texto.',
+          'Na revisão de flashcards, você tenta recordar a resposta antes de virar o card.',
+          'As questões exigem produção e escolha de alternativas sem cola prévia.',
         ],
       },
       {
         icon: Brain,
-        title: 'Significado vence forma',
+        title: 'Significado profundo vence decoreba',
         science:
-          'Processar o significado gera memória muito melhor que decorar som ou aparência das palavras.',
+          'Processar o significado e a semântica gera traços de memória duradouros, superiores a qualquer memorização superficial.',
         study: 'Craik & Tulving (1975)',
         app: [
-          'As questões cobram compreensão ("por quê", "qual a diferença", "aplique a um caso"), não decoreba.',
-          'Cada questão vem com explicação da certa e de por que cada errada está errada.',
+          'As questões cobram compreensão crítica (causas, distinções conceituais e casos práticos).',
+          'Cada questão possui fundamentação da correta e do erro de cada alternativa incorreta.',
         ],
       },
       {
         icon: MessageCircle,
         title: 'Elaboração e autorreferência',
         science:
-          'Relacionar o conteúdo ao que você já sabe — e à sua própria vida — é a forma mais eficaz de memorizar.',
+          'Relacionar o conceito ao seu conhecimento prévio e a situações reais é o método cognitivo mais potente de retenção.',
         study: 'Craik & Tulving (1975); Rogers et al. (1977)',
         app: [
-          'Após ver a resposta, você escreve "explique com suas palavras ou dê um exemplo da sua vida".',
-          'Sua elaboração fica salva no card e serve de pista nas próximas revisões.',
+          'Após o gabarito, você é incentivado a registrar uma síntese pessoal ou exemplo prático.',
+          'Sua anotação pessoal fica atrelada ao card e serve de âncora nas próximas revisões.',
         ],
       },
       {
         icon: Lightbulb,
-        title: 'Pistas graduais',
+        title: 'Pistas graduais de recuperação',
         science:
-          'Às vezes a informação está lá, mas falta a pista para recuperá-la. Dicas parciais puxam a memória com esforço.',
-        study: 'Tulving (1974)',
+          'Muitas vezes a memória está consolidada, mas falta a pista para acessá-la. Dicas em camadas estimulam o esforço de busca.',
+        study: 'Endel Tulving (1974)',
         app: [
-          'Antes de revelar a resposta, o botão "Dica gradual" mostra o começo dela em 3 níveis.',
+          'No modo Na Ponta da Língua, você pode solicitar dicas parciais em até 3 níveis graduais.',
         ],
       },
       {
         icon: Shuffle,
         title: 'Efeito de posição serial',
         science:
-          'Lembramos melhor o início e o fim de uma lista; o meio é o mais frágil.',
+          'Lembramos com mais facilidade o início e o fim de sequências; os itens centrais sofrem maior interferência.',
         study: 'Glanzer & Cunitz (1966)',
         app: [
-          'A ordem dos flashcards é embaralhada a cada revisão, para nenhum card ficar sempre no meio.',
+          'A ordem dos flashcards é aleatorizada a cada sessão para evitar que certos tópicos fiquem sempre no meio.',
         ],
       },
       {
         icon: Layers,
-        title: 'Blocos curtos (memória de trabalho)',
+        title: 'Blocos curtos (Memória de Trabalho)',
         science:
-          'A memória de trabalho segura poucos itens por vez (cerca de 7). Blocos grandes demais sobrecarregam.',
-        study: 'Miller (1956)',
+          'A memória de trabalho suporta poucos blocos simultâneos. Sobrecargas cognitivas inviabilizam a retenção sustentável.',
+        study: 'George Miller (1956)',
         app: [
-          'O conteúdo é quebrado em blocos curtos e um foco por tela, evitando excesso de itens novos de uma vez.',
+          'O conteúdo é fragmentado em blocos atômicos e um objetivo claro por tela.',
         ],
       },
       {
         icon: BookMarked,
-        title: 'Memória é reconstrução',
+        title: 'Memória como reconstrução ativa',
         science:
-          'Lembramos o essencial e reconstruímos o resto; a versão errada pode se consolidar, e erramos a fonte do que lembramos.',
+          'Retemos a ideia central e reconstruímos os detalhes; distorções cognitivas ocorrem sem feedback corretivo imediato.',
         study: 'Bartlett (1932); Loftus & Palmer (1974)',
         app: [
-          'Feedback correto imediato após cada erro, para a versão errada não se fixar.',
-          'Cada flashcard gerado registra de qual material veio.',
+          'Correção e justificativa imediatas após cada erro evitam a consolidação de conceitos equivocados.',
+          'Cada assertiva referencia com exatidão a lei seca, súmula ou material de origem.',
         ],
       },
     ],
   },
   {
-    title: 'Técnicas de foco e estudo',
-    subtitle: 'Métodos de produtividade e aprendizagem ativa',
+    title: 'Técnicas de foco e estudo ativo',
+    subtitle: 'Métodos de produtividade e atenção sustentada',
     methods: [
       {
         icon: Timer,
-        title: 'Pomodoro',
+        title: 'Técnica Pomodoro',
         science:
-          'Trabalhar em blocos focados de tempo com pausas curtas sustenta a concentração e evita a fadiga, que derruba o rendimento.',
+          'Trabalhar em intervalos cronometrados com pausas regulares preserva o estado de fluxo e previne o esgotamento atencional.',
         study: 'Francesco Cirillo (1980s)',
         app: [
-          'Timer de Pomodoro no painel: ciclos de foco seguidos de pausa curta.',
-          'Mantém sessões consistentes sem esgotar a atenção ao longo do dia.',
+          'Timer integrado com ciclos de foco e pausas no painel e no cabeçalho.',
+          'Mantém a cadência sem sobrecarregar a energia cognitiva ao longo do dia.',
         ],
       },
       {
         icon: GraduationCap,
         title: 'Técnica Feynman',
         science:
-          'Explicar um conceito com palavras simples, como se ensinasse a alguém, revela o que você realmente entendeu e o que ainda está confuso.',
+          'Explicar um conceito complexo em termos simples revela imediatamente lacunas de raciocínio e pontos de confusão.',
         study: 'Richard Feynman',
         app: [
-          'O prompt de elaboração pede que você explique a resposta com suas próprias palavras.',
-          'Se não consegue explicar de forma simples, é sinal claro de que aquele ponto precisa de mais revisão.',
+          'O campo de elaboração estimula você a redigir o conceito com suas próprias palavras.',
+          'Incapacidade de simplificar sinaliza que o tema requer nova revisão.',
         ],
       },
       {
         icon: Zap,
-        title: 'Check-in de energia',
+        title: 'Check-in de energia cognitiva',
         science:
-          'O rendimento varia com seu nível de energia/ativação ao longo do dia. Saber como você está ajuda a dosar o esforço.',
-        study: 'Yerkes & Dodson (1908)',
+          'O rendimento cognitivo varia de acordo com o nível de ativação e ciclo circadiano ao longo do dia.',
+        study: 'Lei de Yerkes-Dodson (1908)',
         app: [
-          'Um check-in rápido registra sua energia do dia.',
-          'Use conteúdo novo (mais exigente) nos picos e revisão leve quando estiver mais cansado.',
+          'O check-in diário calibra o nível de energia do estudante.',
+          'Conteúdos novos e exigentes nos picos de disposição; revisões leves em momentos de fadiga.',
         ],
       },
       {
         icon: FileCheck,
-        title: 'Modo prova (simulado)',
+        title: 'Modo Simulado e Contexto Fiel',
         science:
-          'Estudar em condições parecidas com a prova (tempo, formato, sem consulta) faz a memória recuperar melhor na hora que importa.',
+          'Estudar sob condições similares às do dia da prova (tempo, formato, sem consultas) facilita a recuperação sob estresse real.',
         study: 'Godden & Baddeley (1975)',
         app: [
-          'O Modo Simulado replica a prova: você responde tudo e só vê o gabarito no final, com cronômetro.',
-          'Treina gestão de tempo e recuperação sob pressão real.',
+          'O Modo Simulado replica a pressão da banca: resolução sequencial com gabarito apenas ao final.',
+          'Aprimora ritmo de prova, resistência mental e administração do tempo.',
         ],
       },
     ],
   },
   {
-    title: 'Como mantemos você estudando',
-    subtitle: 'Hábito e motivação',
+    title: 'Como sustentamos sua constância diária',
+    subtitle: 'Ciência do hábito e motivação intrínseca',
     methods: [
       {
         icon: CheckCircle2,
-        title: 'Metas progressivas',
+        title: 'Metas progressivas e micro-vitórias',
         science:
-          'Hábitos se constroem reforçando passos cada vez mais próximos do alvo — começando pequeno e crescendo.',
-        study: 'Skinner (modelagem)',
+          'Hábitos sólidos são construídos pelo reforço de aproximações sucessivas, iniciando em metas viáveis.',
+        study: 'Modelagem Comportamental (B. F. Skinner)',
         app: [
-          'Meta diária ajustável e dificuldade das questões em degraus (reconhecer → recordar → aplicar).',
+          'Meta diária customizável e progressão em degraus cognitivos (reconhecer → recordar → aplicar).',
         ],
       },
       {
         icon: Trophy,
-        title: 'Recompensar domínio, não presença',
+        title: 'Recompensar domínio real, não mera presença',
         science:
-          'Recompensar apenas "aparecer" pode reduzir a motivação. O que funciona é recompensar progresso real.',
+          'Recompensar apenas tempo passivo diminui a motivação intrínseca. O reforço deve premiar o progresso real de domínio.',
         study: 'Lepper, Greene & Nisbett (1973)',
         app: [
-          'Os pontos vêm de desempenho: questão certa, sessão concluída, revisão feita, streak — não de só abrir o app.',
-          'O progresso de conhecimento tem destaque, acima da pontuação.',
+          'XP concedido por desempenho genuíno: questões resolvidas, acertos, revisões concluídas e streak.',
+          'O domínio temático tem primazia visual sobre qualquer pontuação superficial.',
         ],
       },
       {
         icon: Gauge,
-        title: 'Pressão na medida certa',
+        title: 'Pressão ideal e foco sustentado',
         science:
-          'O desempenho melhora com a pressão até um ponto; ansiedade demais piora. O ideal é uma pressão moderada.',
+          'A performance cresce com um nível moderado de desafio, mas decai drasticamente com ansiedade excessiva.',
         study: 'Yerkes & Dodson (1908)',
         app: [
-          'Cronômetro opcional; Modo Estudo mais calmo e Modo Simulado para treinar pressão de prova.',
-          'Sem contagens agressivas ou rankings públicos por padrão.',
+          'Cronômetro flexível: modo estudo focado e calmo vs. simulado para simular o rigor de prova.',
+          'Sem rankings tóxicos ou penalidades punitivas por ausência.',
         ],
       },
       {
         icon: Bell,
-        title: 'Gatilho do hábito',
+        title: 'Gatilhos de hábito',
         science:
-          'Um sinal fixo (horário, aviso) indica quando estudar e ajuda o hábito a se formar.',
-        study: 'Estímulo discriminativo (Skinner)',
+          'Sinais contextuais regulares no ambiente funcionam como estímulos que ativam a execução automática da rotina de estudo.',
+        study: 'Estímulo Discriminativo (Skinner)',
         app: [
-          'Notificações avisam quando há flashcards e tarefas do dia pendentes.',
-          'O Quadro (Kanban) e o calendário mantêm as tarefas sempre à vista.',
+          'Lembretes sutis informando o volume de cards do dia e metas em aberto.',
+          'Quadro de constância e mapa de revisão mantêm os tópicos sempre no campo visual.',
         ],
       },
     ],
@@ -240,29 +240,32 @@ const SECTIONS: Section[] = [
 
 export function MethodologyPage() {
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="rounded-lg bg-gray-50 p-2 text-primary-600 dark:bg-gray-800">
-          <FlaskConical className="h-5 w-5" />
+    <div className="mx-auto max-w-4xl space-y-6">
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2E8C82]/10 text-[#2E8C82] dark:bg-[#2E8C82]/20">
+          <FlaskConical className="h-6 w-6 text-[#2E8C82]" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Metodologia</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Os métodos de estudo por trás de cada recurso da plataforma, com exemplos práticos.
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Metodologia</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            A neurociência e os princípios de aprendizagem ativa por trás de cada funcionalidade da plataforma.
           </p>
         </div>
       </div>
 
-      <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-300">
-        Cada ferramenta aqui é baseada em métodos consagrados de memória, foco e aprendizagem. Abaixo, o
-        que cada técnica propõe e como você a usa na prática dentro da plataforma.
+      <div className="rounded-2xl border border-[#2E8C82]/30 bg-[#2E8C82]/10 p-5 text-sm text-slate-800 dark:text-slate-100 shadow-xs">
+        <p className="leading-relaxed">
+          Cada recurso da plataforma foi concebido com base em evidências científicas comprovadas de retenção mnemônica, atenção concentrada e formação de hábitos. Veja abaixo os fundamentos teóricos de cada método e como eles são aplicados na prática na sua rotina de estudos.
+        </p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-10">
         {SECTIONS.map((section) => (
-          <section key={section.title}>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">{section.title}</h2>
-            <p className="mb-4 text-xs font-medium uppercase tracking-wide text-gray-400">{section.subtitle}</p>
+          <section key={section.title} className="space-y-4">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{section.title}</h2>
+              <p className="mt-0.5 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{section.subtitle}</p>
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {section.methods.map((m) => (
                 <MethodCard key={m.title} method={m} />
@@ -277,23 +280,27 @@ export function MethodologyPage() {
 
 function MethodCard({ method }: { method: Method }) {
   return (
-    <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <div className="mb-2 flex items-center gap-2">
-        <div className="rounded-lg bg-primary-50 p-1.5 text-primary-600 dark:bg-primary-950 dark:text-primary-300">
-          <method.icon className="h-4 w-4" />
+    <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-fast hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2E8C82]/10 text-[#2E8C82] dark:bg-[#2E8C82]/20 dark:text-[#38b2a6]">
+          <method.icon className="h-5 w-5" />
         </div>
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{method.title}</h3>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white leading-snug">{method.title}</h3>
       </div>
-      <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">{method.science}</p>
-      {method.study && <p className="mb-3 text-[11px] font-medium text-gray-400">📖 {method.study}</p>}
-      <div className="mt-auto rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-green-600 dark:text-green-400">
+      <p className="mb-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{method.science}</p>
+      {method.study && (
+        <p className="mb-4 text-xs font-semibold text-slate-400 dark:text-slate-500">
+          {`📖 ${method.study}`}
+        </p>
+      )}
+      <div className="mt-auto rounded-xl bg-slate-50 p-3.5 border border-slate-100 dark:border-slate-800 dark:bg-slate-800/60">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
           Na plataforma
         </p>
-        <ul className="space-y-1">
+        <ul className="space-y-2">
           {method.app.map((item, i) => (
-            <li key={i} className="flex gap-1.5 text-xs text-gray-600 dark:text-gray-300">
-              <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-green-500" />
+            <li key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <span>{item}</span>
             </li>
           ))}

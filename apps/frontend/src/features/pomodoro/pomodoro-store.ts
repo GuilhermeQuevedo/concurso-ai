@@ -94,6 +94,9 @@ function schedule(): void {
     return;
   }
   timer = setTimeout(finish, wait);
+  if (typeof timer === 'object' && timer !== null && 'unref' in timer) {
+    (timer as { unref: () => void }).unref();
+  }
 }
 
 export const pomodoro = {
@@ -124,8 +127,10 @@ const subscribe = (listener: () => void) => {
   return () => listeners.delete(listener);
 };
 
+const getSnapshot = () => state;
+
 export function usePomodoroState(): PomodoroState {
-  return useSyncExternalStore(subscribe, () => state);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 schedule();

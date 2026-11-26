@@ -96,7 +96,7 @@ export function SimuladoViewer({
 
   if (!questions || questions.length === 0) {
     return (
-      <div className="w-full max-w-2xl mx-auto p-8 text-center border border-red-200 dark:border-red-900/60 rounded-2xl bg-red-50 dark:bg-red-950/20 text-red-600">
+      <div className="w-full max-w-2xl mx-auto p-8 text-center border border-red-200 dark:border-red-900/60 rounded-2xl bg-red-50 dark:bg-red-950/20 text-red-600 shadow-xs">
         <AlertCircle className="w-10 h-10 mx-auto mb-3" />
         <p className="font-bold text-lg">Nenhuma questão disponível para este simulado.</p>
       </div>
@@ -175,10 +175,10 @@ export function SimuladoViewer({
     else if (percentage >= 60) performanceLabel = 'Bom aproveitamento, com pontos de atenção a revisar.';
 
     return (
-      <div className="w-full max-w-3xl mx-auto space-y-8 animate-in fade-in duration-300">
+      <div className="w-full max-w-3xl mx-auto space-y-8 animate-in fade-in duration-fast">
         {/* Performance Card */}
-        <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-sm text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-amber-500" />
+        <div className="rounded-3xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 sm:p-8 shadow-xs text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary-600 to-amber-500" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Resultado do Simulado</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{performanceLabel}</p>
 
@@ -212,7 +212,7 @@ export function SimuladoViewer({
               </div>
               <Link
                 to="/error-notebook"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors shrink-0"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors shrink-0 touch-manipulation cursor-pointer"
               >
                 <BookOpen className="w-3.5 h-3.5" /> Ir para o Caderno de Erros
               </Link>
@@ -221,6 +221,7 @@ export function SimuladoViewer({
 
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
+              type="button"
               onClick={() => {
                 setAnswers({});
                 setCurrentIndex(0);
@@ -231,7 +232,7 @@ export function SimuladoViewer({
                 autoExportedRef.current = false;
                 if (onRestart) onRestart();
               }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-semibold transition-colors cursor-pointer"
+              className="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-semibold transition-all duration-fast active:scale-[0.98] touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             >
               <RotateCcw className="w-4 h-4" /> Repetir Simulado
             </button>
@@ -239,7 +240,7 @@ export function SimuladoViewer({
             {wrongIndices.length > 0 && (
               <Link
                 to="/error-notebook"
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-sm transition-all cursor-pointer"
+                className="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-xs transition-all duration-fast active:scale-[0.98] touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 <BookOpen className="w-4 h-4" /> Ir para o Caderno de Erros ({wrongIndices.length})
               </Link>
@@ -247,9 +248,10 @@ export function SimuladoViewer({
 
             {wrongIndices.length > 0 && !autoExportSuccess && !isAutoExporting && (
               <button
+                type="button"
                 onClick={handleManualExport}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                className="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-xs transition-all duration-fast disabled:opacity-50 active:scale-[0.98] touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 <BookmarkPlus className="w-4 h-4" />
                 {isExporting ? 'Exportando...' : `Salvar ${wrongIndices.length} Erros no Caderno de Erros`}
@@ -258,8 +260,9 @@ export function SimuladoViewer({
 
             {onFinish && (
               <button
+                type="button"
                 onClick={onFinish}
-                className="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors cursor-pointer"
+                className="min-h-[44px] inline-flex items-center px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-all duration-fast active:scale-[0.98] touch-manipulation cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
                 Concluir
               </button>
@@ -277,7 +280,7 @@ export function SimuladoViewer({
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary-500" />
+              <Sparkles className="w-5 h-5 text-primary-600 dark:text-primary-400" />
               Gabarito Consolidado & Resoluções Comentadas
             </h3>
             <span className="text-xs font-semibold text-gray-500">
@@ -363,7 +366,7 @@ export function SimuladoViewer({
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
-      {/* Header com Prevenção de Colisão de Texto */}
+      {/* Header com Prevenção de Colisão de Texto & Paginação Acessível */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800 pb-4">
         <div className="min-w-0 flex-1">
           <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate" title={title}>
@@ -373,12 +376,16 @@ export function SimuladoViewer({
             Questão {currentIndex + 1} de {questions.length}
           </p>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto max-w-full py-1">
+        <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto max-w-full py-1" role="tablist" aria-label="Navegação por questões">
           {questions.map((_, i) => (
             <button
               key={i}
+              type="button"
+              role="tab"
+              aria-label={`Ir para questão ${i + 1}`}
+              aria-current={i === currentIndex ? 'step' : undefined}
               onClick={() => setCurrentIndex(i)}
-              className={`h-2.5 rounded-full transition-all cursor-pointer ${
+              className={`h-2.5 rounded-full transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 i === currentIndex
                   ? 'w-8 bg-primary-600'
                   : answers[i] !== undefined
@@ -391,7 +398,7 @@ export function SimuladoViewer({
       </div>
 
       {/* Question Card */}
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 md:p-8 shadow-sm space-y-6">
+      <div className="rounded-2xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 md:p-8 shadow-xs space-y-6">
         {currentQuestion.referenceText && (
           <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm italic leading-relaxed text-gray-600 dark:text-gray-300">
             {currentQuestion.referenceText}
@@ -403,13 +410,13 @@ export function SimuladoViewer({
         </div>
 
         {/* Alternatives */}
-        <div className="space-y-3">
+        <div className="space-y-3" role="radiogroup" aria-label="Alternativas da questão">
           {currentQuestion.alternatives.map((alt) => {
             const isSelected = answeredLetter === alt.letter;
             const isAnswerKey = isCurrentRevealed && alt.letter === currentQuestion.correctAnswer;
             const isWrongSelection = isCurrentRevealed && isSelected && alt.letter !== currentQuestion.correctAnswer;
 
-            let cardTone = 'border-gray-200 dark:border-gray-800 hover:border-primary-400/50 bg-white dark:bg-gray-900';
+            let cardTone = 'border-gray-200/90 dark:border-gray-800 hover:border-primary-400/50 bg-white dark:bg-gray-900';
             let circleTone = 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400';
 
             if (isAnswerKey) {
@@ -424,16 +431,19 @@ export function SimuladoViewer({
             }
 
             return (
-              <div
+              <button
+                type="button"
                 key={alt.letter}
+                role="radio"
+                aria-checked={isSelected || isAnswerKey}
                 onClick={() => handleSelectAlternative(alt.letter)}
-                className={`flex items-start gap-3.5 p-4 rounded-xl border cursor-pointer transition-all ${cardTone}`}
+                className={`flex min-h-[48px] w-full items-center gap-3.5 p-4 rounded-xl border text-left cursor-pointer transition-all duration-fast ease-standard touch-manipulation active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${cardTone}`}
               >
                 <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${circleTone}`}>
                   {isAnswerKey ? <Check className="w-4 h-4 stroke-[3]" /> : isWrongSelection ? <X className="w-4 h-4 stroke-[3]" /> : alt.letter}
                 </span>
-                <span className="text-sm md:text-base leading-relaxed pt-0.5">{alt.text}</span>
-              </div>
+                <span className="text-sm md:text-base leading-relaxed flex-1">{alt.text}</span>
+              </button>
             );
           })}
         </div>
@@ -444,11 +454,11 @@ export function SimuladoViewer({
             <button
               type="button"
               onClick={toggleCurrentExplanation}
-              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 cursor-pointer transition-colors"
+              className="min-h-[44px] sm:min-h-[34px] inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 cursor-pointer transition-colors touch-manipulation active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             >
               <Sparkles className="w-4 h-4" />
               <span>{isCurrentRevealed ? 'Ocultar Explicação Detalhada' : 'Conferir Gabarito e Explicação Completa'}</span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${isCurrentRevealed ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 transition-transform duration-fast ease-standard ${isCurrentRevealed ? 'rotate-180' : ''}`} />
             </button>
           </div>
         )}
@@ -458,7 +468,7 @@ export function SimuladoViewer({
           <RichExplanationView
             explanation={currentQuestion.explanation}
             correctAnswer={currentQuestion.correctAnswer}
-            className="animate-in fade-in duration-200"
+            className="animate-in fade-in duration-fast"
           />
         )}
       </div>
@@ -469,7 +479,7 @@ export function SimuladoViewer({
           type="button"
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-semibold transition-colors cursor-pointer"
+          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-semibold transition-all duration-fast ease-standard cursor-pointer active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           <ArrowLeft className="w-4 h-4" /> Anterior
         </button>
@@ -477,7 +487,7 @@ export function SimuladoViewer({
         <button
           type="button"
           onClick={handleNext}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-sm transition-all cursor-pointer"
+          className="min-h-[44px] flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold shadow-xs transition-all duration-fast ease-standard cursor-pointer active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
         >
           {currentIndex === questions.length - 1 ? 'Finalizar e Ver Gabarito' : 'Próxima'}
           <ArrowRight className="w-4 h-4" />

@@ -11,13 +11,13 @@ import { CommentThread } from './CommentThread';
 
 export interface GroupHelpProps {
   groupId: string;
-  // Quando informado, mostra só as conversas daquele item (ex.: um deck compartilhado).
+  // Quando informado, mostra apenas as conversas daquele item específico (ex.: um deck compartilhado).
   target?: { type: CommentTarget; id: string };
   canModerate: boolean;
   emptyText?: string;
 }
 
-// Lista de conversas do grupo com formulário para comentar ou pedir ajuda.
+// Lista de conversas do grupo com formulário para interagir ou tirar dúvidas coletivas.
 export function GroupHelp({ groupId, target, canModerate, emptyText }: GroupHelpProps) {
   const queryClient = useQueryClient();
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -42,26 +42,26 @@ export function GroupHelp({ groupId, target, canModerate, emptyText }: GroupHelp
       setContext('');
       queryClient.invalidateQueries({ queryKey: ['group-comments', groupId] });
     },
-    onError: (error) => toast.error(getErrorMessage(error, 'Não foi possível enviar.')),
+    onError: (error) => toast.error(getErrorMessage(error, 'Não foi possível enviar a mensagem.')),
   });
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <div className="space-y-5 motion-safe:animate-in motion-safe:fade-in duration-fast">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
         {!target && (
           <textarea
             value={context}
             maxLength={1500}
             onChange={(e) => setContext(e.target.value)}
-            placeholder="(opcional) Cole aqui a questão ou o flashcard sobre o qual você tem dúvida"
+            placeholder="(Opcional) Cole aqui o texto da questão ou do flashcard para contextualizar sua dúvida..."
             aria-label="Contexto da dúvida"
             rows={2}
-            className="mb-2 w-full resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className="mb-3 min-h-[80px] w-full resize-none rounded-xl border border-slate-300 bg-white p-3 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#2E8C82] focus:outline-none focus:ring-2 focus:ring-[#2E8C82]/20 transition-colors duration-fast dark:border-slate-700 dark:bg-slate-800 dark:text-white"
           />
         )}
         <CommentForm
-          placeholder={target ? 'Comente ou tire uma dúvida' : 'Qual é a sua dúvida?'}
-          submitLabel="Publicar"
+          placeholder={target ? 'Comente ou tire uma dúvida sobre este item...' : 'Qual é a sua dúvida para o grupo?'}
+          submitLabel="Publicar Dúvida"
           allowDoubt
           defaultDoubt={!target}
           pending={create.isPending}
@@ -69,23 +69,36 @@ export function GroupHelp({ groupId, target, canModerate, emptyText }: GroupHelp
         />
       </div>
 
-      <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-        <input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} className="rounded" />
-        Mostrar só as dúvidas em aberto
-      </label>
+      <div className="flex items-center justify-between px-1">
+        <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={onlyOpen}
+            onChange={(e) => setOnlyOpen(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-[#2E8C82] focus:ring-[#2E8C82] dark:border-slate-700 dark:bg-slate-800"
+          />
+          Mostrar apenas dúvidas em aberto
+        </label>
+      </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <div className="flex justify-center py-12" role="status" aria-label="Carregando discussões do grupo">
+          <Loader2 className="h-8 w-8 animate-spin text-[#2E8C82]" />
         </div>
       ) : threads.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-          {emptyText ?? (onlyOpen ? 'Nenhuma dúvida em aberto. 🎉' : 'Nenhuma conversa ainda. Tire a primeira dúvida!')}
+        <p className="rounded-2xl border border-dashed border-slate-300 p-10 text-center text-sm font-medium text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          {emptyText ?? (onlyOpen ? 'Nenhuma dúvida em aberto no momento. 🎉' : 'Nenhuma conversa iniciada ainda. Seja o primeiro a postar!')}
         </p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {threads.map((thread) => (
-            <CommentThread key={thread.id} groupId={groupId} thread={thread} queryKey={['group-comments', groupId]} canModerate={canModerate} />
+            <CommentThread
+              key={thread.id}
+              groupId={groupId}
+              thread={thread}
+              queryKey={['group-comments', groupId]}
+              canModerate={canModerate}
+            />
           ))}
         </div>
       )}

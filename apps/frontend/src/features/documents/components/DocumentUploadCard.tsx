@@ -21,9 +21,11 @@ export interface DocumentUploadCardProps {
 }
 
 const FIELD_CLASS =
-  'w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white';
+  'w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base sm:text-sm text-slate-900 transition-colors focus:border-[#2E8C82] focus:outline-none focus:ring-2 focus:ring-[#2E8C82]/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white touch-manipulation';
 
-// Cartão de envio: recolhível, para não ocupar a tela de quem já tem muitos documentos.
+/**
+ * Card recolhível para envio de novos documentos integrado ao Astryx Design System.
+ */
 export function DocumentUploadCard({ subjects }: DocumentUploadCardProps) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,14 +41,19 @@ export function DocumentUploadCard({ subjects }: DocumentUploadCardProps) {
       documentService.upload(file, { subjectId: subjectId || undefined, kind: kind || undefined, name }),
     onSuccess: (uploaded) => {
       setLastUpload(uploaded);
-      toast.success('Documento enviado.');
+      toast.success('Documento enviado com sucesso.');
       setName('');
       setNameMissing(false);
       void invalidateDocuments(queryClient);
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
     onError: (error) =>
-      toast.error(getErrorMessage(error, 'Erro ao enviar arquivo. Verifique o formato (PDF, TXT, MD, HTML) e o tamanho (máx 10MB).')),
+      toast.error(
+        getErrorMessage(
+          error,
+          'Erro ao enviar arquivo. Verifique o formato (PDF, TXT, MD, HTML) e o tamanho (máx 10MB).'
+        )
+      ),
   });
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,15 +68,15 @@ export function DocumentUploadCard({ subjects }: DocumentUploadCardProps) {
   };
 
   return (
-    <div className="mb-6 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+    <div className="mb-6 rounded-2xl border border-slate-200/90 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-xs transition-all duration-fast">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between px-6 py-4 text-left"
+        className="flex min-h-[44px] w-full items-center justify-between px-6 py-4 text-left cursor-pointer"
       >
-        <span className="text-sm font-semibold text-gray-900 dark:text-white">Enviar documento</span>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className="text-sm font-bold text-slate-900 dark:text-white">Enviar documento</span>
+        <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <div className="px-6 pb-6">
@@ -83,8 +90,14 @@ export function DocumentUploadCard({ subjects }: DocumentUploadCardProps) {
               showError={nameMissing}
             />
             <div className="min-w-0 flex-1">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">O que é este arquivo?</label>
-              <select value={kind} onChange={(e) => setKind(e.target.value as DocumentKind | '')} className={FIELD_CLASS}>
+              <label className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-300">
+                Tipo do documento
+              </label>
+              <select
+                value={kind}
+                onChange={(e) => setKind(e.target.value as DocumentKind | '')}
+                className={FIELD_CLASS}
+              >
                 <option value="">Detectar automaticamente</option>
                 {KIND_OPTIONS.map((k) => (
                   <option key={k} value={k}>
@@ -94,9 +107,11 @@ export function DocumentUploadCard({ subjects }: DocumentUploadCardProps) {
               </select>
             </div>
             <div className="min-w-0 flex-1">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">Disciplina (opcional)</label>
+              <label className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-300">
+                Disciplina (opcional)
+              </label>
               <select value={subjectId} onChange={(e) => setSubjectId(e.target.value)} className={FIELD_CLASS}>
-                <option value="">Sem disciplina</option>
+                <option value="">Sem disciplina vinculada</option>
                 {subjects.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.prefix}
@@ -106,25 +121,31 @@ export function DocumentUploadCard({ subjects }: DocumentUploadCardProps) {
               </select>
             </div>
             <div>
-              <input ref={fileInputRef} type="file" accept=".pdf,.txt,.md,.html" onChange={onFileChange} className="hidden" />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.txt,.md,.html"
+                onChange={onFileChange}
+                className="hidden"
+              />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={upload.isPending}
-                className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+                className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[#2E8C82] px-5 py-2.5 text-sm font-bold text-white shadow-xs transition-all hover:bg-[#26776f] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer touch-manipulation active:scale-[0.99]"
               >
                 {upload.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                {upload.isPending ? 'Enviando...' : 'Enviar arquivo'}
+                <span>{upload.isPending ? 'Enviando...' : 'Enviar arquivo'}</span>
               </button>
             </div>
           </div>
           {upload.isSuccess && lastUpload && (
-            <p className="mt-2 text-sm text-green-600">
+            <p className="mt-3 text-sm font-medium text-[#1b5e56] dark:text-[#52b3a8]">
               Documento enviado! Identificado como <strong>{KIND_LABELS[lastUpload.kind]}</strong>
-              {lastUpload.kindAutoDetected ? ' (detectado automaticamente — ajuste no menu "⋯" se precisar).' : '.'}
+              {lastUpload.kindAutoDetected ? ' (detectado automaticamente).' : '.'}
             </p>
           )}
-          <p className="mt-2 text-xs text-gray-400">Formatos: PDF, TXT, Markdown, HTML. Máximo 10MB.</p>
+          <p className="mt-2 text-xs text-slate-400">Formatos aceitos: PDF, TXT, Markdown, HTML · Limite de 10MB</p>
         </div>
       )}
     </div>

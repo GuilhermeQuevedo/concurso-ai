@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Layers, FileQuestion, Map, Loader2 } from 'lucide-react';
 
 import type { DeckDTO } from '@/features/flashcards/services/flashcard.service';
@@ -9,7 +9,7 @@ const QUESTION_GAMES: GameType[] = ['DUELO', 'TRILHA'];
 const MIN_CARDS = 4;
 const MIN_QUESTIONS = 5;
 
-interface Props {
+export interface GameSetupModalProps {
   game: GameType;
   title: string;
   decks: DeckDTO[];
@@ -49,11 +49,32 @@ function buildOptions(game: GameType, decks: DeckDTO[], sets: QuestionSetSummary
   }));
 }
 
-export function GameSetupModal({ game, title, decks, sets, subjects, initialSubjectId, starting, onStart, onTrilhaMap, onClose }: Props) {
+export function GameSetupModal({
+  game,
+  title,
+  decks,
+  sets,
+  subjects,
+  initialSubjectId,
+  starting,
+  onStart,
+  onTrilhaMap,
+  onClose,
+}: GameSetupModalProps) {
   const isQuiz = QUESTION_GAMES.includes(game);
   const options = buildOptions(game, decks, sets);
   const [selected, setSelected] = useState('all');
   const [subjectId, setSubjectId] = useState(initialSubjectId ?? '');
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !starting) {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [starting, onClose]);
 
   const chosen = options.find((o) => o.key === selected);
   const source: GameSource = chosen ? chosen.source : subjectId ? { subjectId } : {};
@@ -62,27 +83,39 @@ export function GameSetupModal({ game, title, decks, sets, subjects, initialSubj
   const submit = () => (needsMap ? onTrilhaMap() : onStart(source));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs motion-safe:animate-in motion-safe:fade-in duration-fast"
+      onClick={() => !starting && onClose()}
+    >
       <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-xl bg-white p-5 shadow-xl dark:bg-gray-900"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 motion-safe:animate-in motion-safe:zoom-in-95 duration-fast"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-1 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
-          <button onClick={onClose} aria-label="Fechar" className="text-gray-400 hover:text-gray-600">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={starting}
+            aria-label="Fechar"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] active:scale-95 transition-all duration-fast disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mb-4 text-xs font-medium text-slate-500 dark:text-slate-400">
           {isQuiz ? 'Escolha de qual simulado as questões vão sair.' : 'Escolha de qual deck os cards vão sair.'}
         </p>
 
-        <div className="-mx-1 flex-1 space-y-2 overflow-y-auto px-1">
+        <div className="-mx-1 flex-1 space-y-2.5 overflow-y-auto px-1">
           <OptionRow
             active={selected === 'all'}
             icon={game === 'TRILHA' ? Map : isQuiz ? FileQuestion : Layers}
             label={game === 'TRILHA' ? 'Mapa de territórios' : isQuiz ? 'Todas as minhas questões' : 'Todos os meus flashcards'}
-            detail={game === 'TRILHA' ? 'Uma disciplina por território' : 'Mistura tudo o que você tem'}
+            detail={game === 'TRILHA' ? 'Uma disciplina por território' : 'Mistura todo o conteúdo cadastrado'}
             onClick={() => setSelected('all')}
           />
           {options.map((o) => (
@@ -97,21 +130,25 @@ export function GameSetupModal({ game, title, decks, sets, subjects, initialSubj
             />
           ))}
           {options.length === 0 && (
-            <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-              {isQuiz ? 'Você ainda não tem simulados. Crie um em Questões.' : 'Você ainda não tem decks. Crie um em Flashcards.'}
+            <p className="rounded-xl border border-dashed border-slate-300 p-4 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+              {isQuiz ? 'Você ainda não tem simulados. Crie um na seção de Questões.' : 'Você ainda não tem decks. Crie um na seção de Flashcards.'}
             </p>
           )}
         </div>
 
         {selected === 'all' && game !== 'TRILHA' && (
-          <div className="mt-3">
-            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-              Ou filtrar por disciplina (opcional)
+          <div className="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <label
+              htmlFor="subject-filter-select"
+              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300"
+            >
+              Ou filtrar por disciplina específica (opcional):
             </label>
             <select
+              id="subject-filter-select"
               value={subjectId}
               onChange={(e) => setSubjectId(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-base sm:text-sm text-slate-900 focus:border-[#2E8C82] focus:outline-none focus:ring-2 focus:ring-[#2E8C82]/20 transition-colors duration-fast dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             >
               <option value="">Qualquer disciplina</option>
               {subjects.map((s) => (
@@ -125,12 +162,13 @@ export function GameSetupModal({ game, title, decks, sets, subjects, initialSubj
         )}
 
         <button
+          type="button"
           onClick={submit}
           disabled={starting}
-          className="mt-4 flex items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+          className="mt-5 min-h-[44px] inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2E8C82] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#26776f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] focus-visible:ring-offset-2 active:scale-95 transition-all duration-fast disabled:opacity-50 shadow-xs touch-manipulation"
         >
           {starting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {needsMap ? 'Abrir mapa' : 'Jogar'}
+          {needsMap ? 'Abrir mapa de territórios' : 'Jogar Agora'}
         </button>
       </div>
     </div>
@@ -157,16 +195,16 @@ function OptionRow({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={`min-h-[48px] flex w-full items-center gap-3.5 rounded-xl border p-3.5 text-left transition-all duration-fast disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8C82] ${
         active
-          ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/30'
-          : 'border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800'
+          ? 'border-[#2E8C82] bg-[#2E8C82]/10 ring-1 ring-[#2E8C82] dark:border-[#2E8C82] dark:bg-[#2E8C82]/20'
+          : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800/60'
       }`}
     >
-      <Icon className="h-5 w-5 shrink-0 text-primary-600" />
-      <span className="min-w-0">
-        <span className="block truncate text-sm font-medium text-gray-900 dark:text-white">{label}</span>
-        <span className="block truncate text-xs text-gray-500 dark:text-gray-400">{detail}</span>
+      <Icon className="h-5 w-5 shrink-0 text-[#2E8C82] dark:text-[#38b2a6]" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{label}</span>
+        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{detail}</span>
       </span>
     </button>
   );

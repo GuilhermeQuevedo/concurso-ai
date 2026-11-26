@@ -17,10 +17,10 @@ import {
   essayService,
   isCaseStudyResult,
   type EssaySummary,
-  type EssayCriteria,
 } from '@/features/essays/services/essay.service';
 import { SubmitEssayForm } from '@/features/essays/components/SubmitEssayForm';
 import { CaseStudyResultView } from '@/features/essays/components/CaseStudyResultView';
+import { EssayCorrectionFeedback } from '@/features/essays/components/EssayCorrectionFeedback';
 
 type View = 'list' | 'write' | 'detail';
 
@@ -115,8 +115,9 @@ function EssayCard({ essay, onClick }: { essay: EssaySummary; onClick: () => voi
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left transition-colors hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800"
+      className="flex min-h-[44px] w-full items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left transition-all hover:bg-gray-50 active:scale-[0.99] touch-manipulation dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800"
     >
       <div className="min-w-0 flex-1">
         <h3 className="font-semibold text-gray-900 dark:text-white">{essay.title}</h3>
@@ -166,6 +167,7 @@ function EssayDetailView({ essayId, onBack }: { essayId: string; onBack: () => v
 
   const maxScore = essay.maxScore ?? 100;
   const caseResult = isCaseStudyResult(essay.criteria) ? essay.criteria : null;
+  const essayCriteria = !caseResult && essay.criteria && !isCaseStudyResult(essay.criteria) ? essay.criteria : null;
   const competitionPoints = essay.score !== null ? Math.round((essay.score / maxScore) * 10) : 0;
 
   return (
@@ -197,31 +199,24 @@ function EssayDetailView({ essayId, onBack }: { essayId: string; onBack: () => v
       </div>
 
       {essay.status === 'GRADED' && essay.score !== null && (
-        <>
-          <ScoreCard score={essay.score} maxScore={maxScore} />
+        <div className="space-y-4 mb-4">
+          <EssayCorrectionFeedback
+            score={essay.score}
+            maxScore={maxScore}
+            criteria={essayCriteria}
+            feedback={caseResult ? null : (essay.feedback ?? null)}
+          />
 
-          {caseResult ? (
-            <CaseStudyResultView result={caseResult} />
-          ) : (
-            <>
-              {essay.criteria && 'cac' in essay.criteria && <CriteriaBreakdown criteria={essay.criteria} />}
-              {essay.feedback && (
-                <div className="mb-4 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-                  <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">Feedback da Correção</h3>
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-gray-300">{essay.feedback}</p>
-                </div>
-              )}
-            </>
-          )}
+          {caseResult && <CaseStudyResultView result={caseResult} />}
 
-          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950">
-            <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
-              <Trophy className="h-4 w-4" />
-              <span className="font-medium">Pontos na Competição:</span>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 dark:border-emerald-800 dark:bg-emerald-950/40">
+            <div className="flex items-center gap-2 text-sm text-emerald-800 dark:text-emerald-300">
+              <Trophy className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span className="font-semibold">Pontos na Competição:</span>
               <span>1 (envio) + {competitionPoints} (nota) = {1 + competitionPoints} pontos</span>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {essay.status === 'GRADING' && (
@@ -260,61 +255,6 @@ function EssayDetailView({ essayId, onBack }: { essayId: string; onBack: () => v
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-function ScoreCard({ score, maxScore }: { score: number; maxScore: number }) {
-  const pct = (score / maxScore) * 100;
-  const color = pct >= 80 ? 'text-green-600' : pct >= 50 ? 'text-yellow-600' : 'text-red-600';
-  const bgColor = pct >= 80 ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800' : pct >= 50 ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800' : 'bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800';
-  const label = pct >= 80 ? 'Excelente!' : pct >= 60 ? 'Bom trabalho!' : pct >= 40 ? 'Pode melhorar' : 'Precisa de atenção';
-
-  return (
-    <div className={`mb-4 rounded-xl border p-6 text-center ${bgColor}`}>
-      <p className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">Nota Final</p>
-      <p className={`text-5xl font-bold ${color}`}>
-        {fmt(score)}
-        <span className="text-2xl">/{maxScore}</span>
-      </p>
-      <p className={`mt-1 text-sm font-medium ${color}`}>{label}</p>
-    </div>
-  );
-}
-
-function CriteriaBreakdown({ criteria }: { criteria: EssayCriteria }) {
-  const items = [
-    { key: 'cac' as const, label: 'CAC — Conteúdo e Atendimento ao Comando', description: 'Compreensão do tema, pertinência dos argumentos, repertório sociocultural' },
-    { key: 'ot' as const, label: 'OT — Organização Textual', description: 'Estrutura dissertativo-argumentativa, progressão temática, conectivos' },
-    { key: 'dlp' as const, label: 'DLP — Domínio da Língua Portuguesa', description: 'Ortografia, concordância, regência, pontuação, vocabulário' },
-  ];
-
-  return (
-    <div className="mb-4 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-      <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Critérios de Avaliação</h3>
-      <div className="space-y-4">
-        {items.map(({ key, label, description }) => {
-          const criterion = criteria[key];
-          const pct = (criterion.score / criterion.maxScore) * 100;
-          const barColor = pct >= 75 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500';
-
-          return (
-            <div key={key} className="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{label}</span>
-                <span className="text-sm font-bold text-gray-900 dark:text-white">
-                  {criterion.score}/{criterion.maxScore}
-                </span>
-              </div>
-              <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">{description}</p>
-              <div className="mb-2 h-2.5 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
-              </div>
-              <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">{criterion.comments}</p>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

@@ -46,39 +46,64 @@ function buildCells({ year, month, counts, shielded, today }: ConstanciaMonthPro
 }
 
 function cellClass(cell: DayCell, size: 'normal' | 'small'): string {
-  const height = size === 'small' ? 'h-8' : 'h-10';
-  const base = `relative flex ${height} flex-col items-center justify-center rounded-lg text-xs`;
-  const ring = cell.isToday ? ' ring-2 ring-primary-500' : '';
-  if (cell.isFuture) return `${base} text-gray-300 dark:text-gray-700`;
-  if (cell.count > 0) return `${base} bg-orange-50 font-semibold text-orange-700 dark:bg-orange-500/10 dark:text-orange-300${ring}`;
-  if (cell.shielded) return `${base} bg-sky-50 font-semibold text-sky-700 dark:bg-sky-500/10 dark:text-sky-300${ring}`;
-  return `${base} bg-gray-50 text-gray-500 dark:bg-gray-800/60 dark:text-gray-400${ring}`;
+  const height = size === 'small' ? 'h-8 sm:h-9' : 'h-10 sm:h-11';
+  const base = `relative flex ${height} flex-col items-center justify-center rounded-xl text-xs transition-all duration-fast touch-manipulation cursor-default select-none`;
+  const ring = cell.isToday ? ' ring-2 ring-primary-500 ring-offset-1 dark:ring-offset-gray-900 shadow-xs' : '';
+  if (cell.isFuture) return `${base} text-gray-300 dark:text-gray-700 opacity-40`;
+  if (cell.count > 0)
+    return `${base} bg-gradient-to-b from-amber-50 to-amber-100/70 font-bold text-amber-900 shadow-2xs hover:scale-105 active:scale-95 dark:from-amber-950/40 dark:to-amber-900/40 dark:text-amber-200 border border-amber-200/60 dark:border-amber-800/60${ring}`;
+  if (cell.shielded)
+    return `${base} bg-gradient-to-b from-sky-50 to-sky-100/70 font-bold text-sky-800 shadow-2xs hover:scale-105 active:scale-95 dark:from-sky-950/40 dark:to-sky-900/40 dark:text-sky-200 border border-sky-200/60 dark:border-sky-800/60${ring}`;
+  return `${base} bg-gray-50/80 text-gray-600 hover:bg-gray-100 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:bg-gray-800${ring}`;
 }
 
 function cellTitle(cell: DayCell): string {
   if (cell.isFuture) return '';
-  if (cell.shielded && cell.count === 0) return `${cell.key}: escudo protegeu a sequência`;
-  return `${cell.key}: ${cell.count} atividade${cell.count === 1 ? '' : 's'}`;
+  if (cell.shielded && cell.count === 0) return `${cell.key}: Escudo protegeu a ofensiva`;
+  return `${cell.key}: ${cell.count} atividade(s) registrada(s)`;
 }
 
 export function ConstanciaMonth(props: ConstanciaMonthProps) {
-  const { size = 'normal' } = props;
+  const { size = 'normal', year, month } = props;
   const cells = buildCells(props);
   const compactIcons = size === 'small';
 
   return (
-    <div className="grid grid-cols-7 gap-1.5">
+    <div
+      role="grid"
+      aria-label={`Calendário de constância de ${monthTitle(year, month)}`}
+      className="grid grid-cols-7 gap-1.5"
+    >
       {WEEKDAYS.map((label, i) => (
-        <span key={i} className="pb-1 text-center text-[10px] font-medium text-gray-400">
+        <span
+          key={i}
+          className="pb-1 text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 select-none"
+        >
           {label}
         </span>
       ))}
       {cells.map((cell, i) =>
         cell ? (
-          <div key={cell.key} title={cellTitle(cell)} className={cellClass(cell, size)}>
-            {cell.count > 0 && <Flame className="h-3.5 w-3.5 fill-orange-400 text-orange-500" aria-label="Dia de estudo" />}
-            {cell.count === 0 && cell.shielded && <Shield className="h-3.5 w-3.5 fill-sky-400 text-sky-500" aria-label="Dia protegido por escudo" />}
-            <span className={cell.count > 0 || cell.shielded ? `${compactIcons ? 'text-[9px]' : 'text-[10px]'} leading-none` : ''}>
+          <div
+            key={cell.key}
+            role="gridcell"
+            aria-label={cellTitle(cell) || `Dia ${cell.day}`}
+            title={cellTitle(cell)}
+            className={cellClass(cell, size)}
+          >
+            {cell.count > 0 && (
+              <Flame className="h-3.5 w-3.5 fill-amber-500 text-amber-500 drop-shadow-xs motion-safe:animate-pulse" />
+            )}
+            {cell.count === 0 && cell.shielded && (
+              <Shield className="h-3.5 w-3.5 fill-sky-400 text-sky-500 drop-shadow-xs" />
+            )}
+            <span
+              className={
+                cell.count > 0 || cell.shielded
+                  ? `${compactIcons ? 'text-[9px]' : 'text-[10px]'} leading-none font-bold`
+                  : 'font-semibold'
+              }
+            >
               {cell.day}
             </span>
           </div>
