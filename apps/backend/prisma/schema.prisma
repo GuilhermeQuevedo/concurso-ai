@@ -151,6 +151,8 @@ model Question {
   @@index([subjectId, difficulty])
   @@index([source, examBoardId, examYear])
   @@index([source, area])
+  @@index([source, organ])
+  @@index([source, position])
 }
 
 model QuestionAttempt {

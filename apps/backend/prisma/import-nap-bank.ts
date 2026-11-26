@@ -15,6 +15,8 @@ import { toBankQuestion, type BankQuestionData, type NapQuestion } from '../src/
 
 const prisma = new PrismaClient();
 const BATCH = 500;
+// As atualizações vão em grupos menores para a transação não estourar o tempo limite em banco remoto.
+const UPDATE_BATCH = 100;
 
 const slugOf = (name: string) =>
   name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -62,6 +64,20 @@ async function toRow(item: BankQuestionData) {
   };
 }
 
+// Quem já existia recebe os campos de metadados novos (cargo, área, órgão), sem mexer no resto.
+async function refreshMetadata(rows: Array<Awaited<ReturnType<typeof toRow>>>): Promise<void> {
+  for (let i = 0; i < rows.length; i += UPDATE_BATCH) {
+    await prisma.$transaction(
+      rows.slice(i, i + UPDATE_BATCH).map((row) =>
+        prisma.question.updateMany({
+          where: { sourceRef: row.sourceRef },
+          data: { organ: row.organ, examName: row.examName, position: row.position, area: row.area, examYear: row.examYear },
+        }),
+      ),
+    );
+  }
+}
+
 async function main(): Promise<void> {
   const file = resolve(process.argv[2] ?? '../../nap-questoes-all.json');
   const raw: NapQuestion[] = JSON.parse(readFileSync(file, 'utf-8'));
@@ -73,15 +89,7 @@ async function main(): Promise<void> {
     const rows = [];
     for (const item of valid.slice(i, i + BATCH)) rows.push(await toRow(item));
     created += (await prisma.question.createMany({ data: rows, skipDuplicates: true })).count;
-    // Quem já existia recebe os campos de metadados novos (cargo, área, órgão), sem mexer no resto.
-    await prisma.$transaction(
-      rows.map((row) =>
-        prisma.question.updateMany({
-          where: { sourceRef: row.sourceRef },
-          data: { organ: row.organ, examName: row.examName, position: row.position, area: row.area, examYear: row.examYear },
-        }),
-      ),
-    );
+    await refreshMetadata(rows);
     console.log(`  ${Math.min(i + BATCH, valid.length)}/${valid.length}`);
   }
   console.log(`Concluído: ${created} novas, ${valid.length - created} já existiam.`);
